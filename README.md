@@ -3,8 +3,8 @@ Product: Simple C# browser with webview.
 Current state: Still in development.
 
 Completely usable. 
-
-Installation: 
+UPDATE: before updating to new version, run Update_manager.bat & follow instructions.
+INSTALLATION: 
 1. DISABLE ANTIVIRUS
 
 2. download **_ONLY_** the release files, containing **_.exe & .pak_**, make sure they r in the same folder & run Horizon.START shortcut. 
