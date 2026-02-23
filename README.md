@@ -20,3 +20,4 @@ How-to's
 
 
 _known issues:_ due to the custom nature of the browser, bot detection is triggered on some websites(google services work). Fix is currently under development. 
+tab language functionallity is not working.
