@@ -1,6 +1,7 @@
 Product: Webview browser.
 
 Current state: complete. Further updates coming.
+for contact, complaints & feedback: https://feedbackcol-nszemvwz.manus.space/
 
 How-to's
   UPDATE: before updating to new version, run Update_manager.bat & follow instructions.
@@ -19,5 +20,6 @@ How-to's
 <img width="480" height="270" alt="image" src="https://github.com/user-attachments/assets/60ef0e6b-1755-4e07-b5e2-cd70907bcd06" />
 
 
-_known issues:_ due to the custom nature of the browser, bot detection is triggered on some websites(google services work). Fix is currently under development. 
-tab language functionallity is not working.
+_known issues:_ :/due to the custom nature of the browser, bot detection is triggered on some websites(google services work). Fix is currently under development. 
+:/tab language functionallity is not working.
+:/tab sound control is inconsistent & often fails
