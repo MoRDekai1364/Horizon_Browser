@@ -1,12 +1,12 @@
 Product: Webview browser.
 
-Current state: complete. Further updates coming.
+Current state: complete. Further updates & fixes coming.
 for contact, complaints & feedback: https://feedbackcol-nszemvwz.manus.space/
 
 How-to's
   UPDATE: before updating to new version, run Update_manager.bat & follow instructions.
   INSTALLATION: 
-1. temporarily disabling antivirus is **higly recommended **before installation
+1. temporarily disabling antivirus is **_higly recommended_**before installation
 
 2. download **_ONLY_** the release files, containing **_.exe & .pak_**, make sure they are in the same folder & run Horizon.START shortcut. 
 
@@ -22,4 +22,5 @@ How-to's
 
 _known issues:_ :/due to the custom nature of the browser, bot detection is triggered on some websites(google services work). Fix is currently under development. 
 :/tab language functionallity is not working.
-:/tab sound control is inconsistent & often fails
+:/tab sound controls are clunky & inconsistent
+:/ media playback tab could "vanish", while still playing
