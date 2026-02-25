@@ -1,6 +1,7 @@
 Product: Webview browser.
 
-Current state: complete. Further updates & fixes coming.
+Current state: functional. Further updates & fixes coming.
+Current focus: debugging.
 for contact, complaints & feedback: https://feedbackcol-nszemvwz.manus.space/
 
 How-to's
@@ -28,3 +29,4 @@ _known issues:_ :/due to the custom nature of the browser, bot detection is trig
 :/ no easy default browser option. fix on the way
 :/ inner site title on some websites accidentally  replaces tab title. fix on the way
 :/ colored tab download progress indicator not working. fix on the way
+:/ right tab click context menu & tab moving are not available on secondary tab bar
