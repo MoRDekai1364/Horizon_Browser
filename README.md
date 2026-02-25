@@ -20,9 +20,10 @@ How-to's
 <img width="480" height="270" alt="image" src="https://github.com/user-attachments/assets/60ef0e6b-1755-4e07-b5e2-cd70907bcd06" />
 
 
-_known issues:_ :/due to the custom nature of the browser, bot detection is triggered on some websites(google services work). Fix is on its way.
+_known issues:_ :/due to the custom nature of the browser, bot detection is triggered on some websites(google services work). Fix on the way.
 :/tab language functionallity is not working.
 :/tab sound controls are clunky & inconsistent
 :/ media playback tab could "vanish", while still playing
-:/ after receiving notification (for example from a telegram/whatsapp tab), the media player tab mode is triggered, & the tab becomes unclickable. Fix is on its way.
-:/ no easy default browser option. yet.
+:/ after receiving notification (for example from a telegram/whatsapp tab), the media player tab mode is triggered, & the tab becomes unclickable. Fix  on  way.
+:/ no easy default browser option. fix on the way
+:/ inner site title on some websites accidentally  replaces tab title. fix on the way
