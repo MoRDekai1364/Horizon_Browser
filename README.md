@@ -24,3 +24,4 @@ _known issues:_ :/due to the custom nature of the browser, bot detection is trig
 :/tab language functionallity is not working.
 :/tab sound controls are clunky & inconsistent
 :/ media playback tab could "vanish", while still playing
+:/ after receiving notification (for example from a telegram/whatsapp tab), the media player tab mode is triggered, & the tab becomes unclickable. Fix is currently under development
