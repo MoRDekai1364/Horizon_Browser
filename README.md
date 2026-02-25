@@ -27,3 +27,4 @@ _known issues:_ :/due to the custom nature of the browser, bot detection is trig
 :/ after receiving notification (for example from a telegram/whatsapp tab), the media player tab mode is triggered, & the tab becomes unclickable. Fix  on  way.
 :/ no easy default browser option. fix on the way
 :/ inner site title on some websites accidentally  replaces tab title. fix on the way
+:/ colored tab download progress indicator not working. fix on the way
