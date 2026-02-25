@@ -21,7 +21,8 @@ How-to's
 <img width="480" height="270" alt="image" src="https://github.com/user-attachments/assets/60ef0e6b-1755-4e07-b5e2-cd70907bcd06" />
 
 
-_known issues:_ :/due to the custom nature of the browser, bot detection is triggered on some websites(google services work). Fix on the way.
+_known issues:_ 
+:/due to the custom nature of the browser, bot detection is triggered on some websites(google services work). Fix on the way.
 :/tab language functionallity is not working.
 :/tab sound controls are clunky & inconsistent
 :/ media playback tab could "vanish", while still playing
@@ -30,3 +31,5 @@ _known issues:_ :/due to the custom nature of the browser, bot detection is trig
 :/ inner site title on some websites accidentally  replaces tab title. fix on the way
 :/ colored tab download progress indicator not working. fix on the way
 :/ right tab click context menu & tab moving are not available on secondary tab bar
+
+planned features: replace the "open downloads" sidebar button at the bottom of downloads section with preview button for basic image/ text preview
