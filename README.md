@@ -22,14 +22,8 @@ How-to's
 
 
 _known issues:_ 
-:/due to the custom nature of the browser, bot detection is triggered on some websites(google services work). Fix on the way.
+:/due to the custom nature of the browser, bot detection is triggered on some websites(claude). 
 :/tab language functionallity is not working.
-:/tab sound controls are clunky & inconsistent
-:/ media playback tab could "vanish", while still playing
-:/ after receiving notification (for example from a telegram/whatsapp tab), the media player tab mode is triggered, & the tab becomes unclickable. Fix  on  way.
-:/ no easy default browser option. fix on the way
-:/ inner site title on some websites accidentally  replaces tab title. fix on the way
-:/ colored tab download progress indicator not working. fix on the way
-:/ right tab click context menu & tab moving are not available on secondary tab bar
+:/ inner site title on all websites  replaces tab title. fix on the way
 
-planned features: replace the "open downloads" sidebar button at the bottom of downloads section with preview button for basic image/ text preview
+planned features: right clicking the forward/backward tab media playback buttons changed to next/previous track
