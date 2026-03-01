@@ -26,4 +26,8 @@ _known issues:_
 :/tab language functionallity is not working.
 :/ inner site title on all websites  replaces tab title. fix on the way
 
-planned features: right clicking the forward/backward tab media playback buttons changed to next/previous track
+planned features: right clicking the forward/backward tab media playback buttons changed to next/previous track⭐️⭐️⭐️
+add sleeping tabs feature⭐️⭐️⭐️
+improve cookie blocking⭐️⭐️
+introduce automated web store extension flow⭐️⭐️
+vastly improve customizability ⭐️
