@@ -33,3 +33,4 @@ improve cookie blocking⭐️⭐️
 +introduce automated web store extension flow⭐️⭐️
 +vastly improve customizability⭐️
 +add clock & memory usage widgets in header⭐️⭐️⭐️
++drag&drop support for sidebar/tabs
