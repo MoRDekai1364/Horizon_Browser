@@ -34,3 +34,4 @@ improve cookie blocking⭐️|
 +vastly improve customizability⭐️|
 +add clock & memory usage widgets in header⭐️⭐️⭐️|
 +drag&drop support for sidebar/tabs⭐️⭐️⭐️|
++add sidebar categories to internet tab management⭐️⭐️⭐️|
