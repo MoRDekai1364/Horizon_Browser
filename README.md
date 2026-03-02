@@ -4,16 +4,16 @@ Current state: functional. Further updates & fixes coming.
 Current focus: debugging.
 for contact, complaints & feedback: https://feedbackcol-nszemvwz.manus.space/
 
-How-to's
+How-to's:
   UPDATE: before updating to new version, run Update_manager.bat & follow instructions.
   INSTALLATION: 
-1. temporarily disabling antivirus is **_higly recommended_**before installation
 
-2. download **_ONLY_** the release files, containing **_.exe & .pak_**, make sure they are in the same folder & run Horizon.START shortcut. 
+temporarily disabling antivirus is **_higly recommended_**before installation
 
-3. for straightforward installation **download setup file, alongside the .pak file**
+1. **recommended installation method**: download **Horizon_Browser_official_release.zip**, unarchive in chosen location & use. 
 
-4. if installation from step 3 isnt working, download **Horizon_Browser_official_release.zip**
+2. **secondary installation method:**: download **_ONLY_** the release files, containing **_.exe & .pak_**, make sure they are in the same folder & run Horizon.START shortcut. if shortcut isnt working: exe location: bin/release/Horizon.Stealth.exe
+
 
 <img width="480" height="270" alt="image" src="https://github.com/user-attachments/assets/f9dac41e-128a-4ce7-97c6-3c05f66a37d5" />
 <img width="480" height="270"  alt="image" src="https://github.com/user-attachments/assets/24f5ff7f-3401-48f0-8f4f-ee7477bc90b6" />
@@ -22,6 +22,7 @@ How-to's
 
 
 _known issues:_ 
+:/secondary installation method features a setup file, which may be blocked by some antivirus software, which may lead to frustration & confusion with users.
 :/due to the custom nature of the browser, bot detection is triggered on some websites(claude). 
 :/tab language functionallity is not working.
 :/ inner site title on all websites  replaces tab title. fix on the way
