@@ -21,12 +21,13 @@ temporarily disabling antivirus is **_higly recommended_**before installation
 <img width="480" height="270"  alt="image" src="https://github.com/user-attachments/assets/19e61c5b-52fe-4944-be49-96eb1b334320" />
 <img width="480" height="270" alt="image" src="https://github.com/user-attachments/assets/60ef0e6b-1755-4e07-b5e2-cd70907bcd06" />
 
-
+_note: number of emojis show how soon will an issue be fixed/feature be implemented_
 _known issues:_ 
-:/secondary installation method features a setup file, which may be blocked by some antivirus software, which may lead to frustration & confusion with users.
-:/due to the custom nature of the browser, bot detection is triggered on some websites(claude). 
-:/tab language functionallity is not working.
-:/ inner site title on all websites  replaces tab title. fix on the way
+:/ secondary installation method features a setup file, which may be blocked by some antivirus software, which may lead to frustration & confusion with users.⛔|
+:/ due to the custom nature of the browser, bot detection is triggered on some websites(claude). ⛔|
+:/ tab language functionallity is not working.⛔|
+:/ inner site title on all websites  replaces tab title.⛔⛔⛔|
+:/ download progress coloring doesnt work on secondary tab bar⛔⛔⛔|
 
 planned features: 
 +right clicking the forward/backward tab media playback buttons changed to next/previous track⭐️⭐️⭐️|
