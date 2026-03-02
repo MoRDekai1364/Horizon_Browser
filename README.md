@@ -1,3 +1,4 @@
+
 Product: Webview browser.
 
 Current state: functional. Further updates & fixes coming.
@@ -36,3 +37,4 @@ improve cookie blocking⭐️|
 +add clock & memory usage widgets in header⭐️⭐️⭐️|
 +drag&drop support for sidebar/tabs⭐️⭐️⭐️|
 +add sidebar categories to internet tab management⭐️⭐️⭐️|
++dedicated installer, instead of using (https://github.com/MoRDekai1364/Installer_Builder.git)⭐️⭐️|
