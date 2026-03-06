@@ -108,4 +108,8 @@ improve cookie blocking⭐️|
 
 +add copy & preview commands in the downloads tab right click context menu⭐️⭐️⭐️|
 
+
 +should be able to shift-click/ctrl-click tabs exactly like file explorer ctrl click & shift-click function with files. ⭐️⭐️|
+
+
++add clock/ram/cpu usage widget on the left of open new tab button. location: header. Default mode: clock. right click on the widget, allows to add browser cpu/ram usage. when more than one mode is selected, the widget changes every 7s with slow, smooth fade transition, media playback tab style.⭐️⭐️⭐️|
