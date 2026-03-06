@@ -100,3 +100,5 @@ improve cookie blocking⭐️|
 
 +currently, tabs change their name for example, Github becomes Horizon_Browser if the browser github is opened. change: exclusions: media playback mode. context: by default all tabs will have only [Github], but the exact tab title is showed on mouse cursor hover with the identical fade animation, as current tab mode transition. this change is reversable in settings to the current state, with another option present to disable name show on hover entirely. when there are 2 tabs with the same tab name (2 [Github] tabs), they are colored differently, but with neighbouring color gamma. tab title text should always be in contrast with the coloring⭐️⭐️⭐️|
 
+
++add copy & preview commands in the downloads tab right click context menu⭐️⭐️⭐️|
