@@ -62,6 +62,10 @@ _known issues:_
 :/ when a webapp/link is opened via the default browser protocol, the browser home page is changed to that link.⛔⛔⛔|
 
 
+:/ browser window covers the taskbar, instead of respecting its boundaries. ⛔⛔⛔|
+
+
+
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
