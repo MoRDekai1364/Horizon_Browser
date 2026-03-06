@@ -113,3 +113,13 @@ improve cookie blocking⭐️|
 
 
 +add clock/ram/cpu usage widget on the left of open new tab button. location: header. Default mode: clock. right click on the widget, allows to add browser cpu/ram usage. when more than one mode is selected, the widget changes every 7s with slow, smooth fade transition, media playback tab style.⭐️⭐️⭐️|
+
+
+
++should be able to shift-click/ctrl-click tabs exactly like file explorer ctrl click & shift-click function with files. ⭐️⭐️|
+
+
++add clock/ram/cpu usage widget on the left of open new tab button. location: header. Default mode: clock. right click on the widget, allows to add browser cpu/ram usage, notes(user can edit/take/add them live),  weather, calculator, media playing. when more than one mode is selected, the widget changes every 7s, or not at all(user should be able to change the duration, as well as to scroll up-down to change widgets) with slow, smooth fade transition, media playback tab style.⭐️⭐️⭐️|
+
+
++ downloads sidebar tab should have complete copy-cut-paste files functionallity in the right click context menu,  entirely handled by the browser, the same way it already handles folder openings⭐️⭐️⭐️|
