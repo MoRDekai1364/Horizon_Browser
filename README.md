@@ -103,3 +103,5 @@ improve cookie blocking⭐️|
 
 
 +add copy & preview commands in the downloads tab right click context menu⭐️⭐️⭐️|
+
++should be able to shift-click/ctrl-click tabs exactly like file explorer ctrl click & shift-click function with files. ⭐️⭐️|
