@@ -59,6 +59,7 @@ _known issues:_
 :/ tabs may randomly disappear from main tab bar⛔⛔⛔|
 
 
+:/ when a webapp/link is opened via the default browser protocol, the browser home page is changed to that link.⛔⛔⛔|
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
