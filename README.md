@@ -56,7 +56,10 @@ _known issues:_
 :/ when the main tab bar is full, the last added tab gets cut in half, requiring repeated clicking to fix & move to secondary tab bar.⛔⛔⛔|
 
 
-:/ issue that prevents audio equalizer from extracting colors from media  thumbnail(new feature). 
+:/ issue that prevents audio equalizer from extracting colors from media  thumbnail(new feature). ⛔⛔⛔|
+
+
+:/ issue that returns about:blank when sleeping tabs are activated ⛔⛔⛔|
 
 
 :/ when a webapp/link is opened via the default browser protocol, the browser home page is changed to that link.⛔⛔⛔|
