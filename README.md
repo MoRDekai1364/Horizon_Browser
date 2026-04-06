@@ -49,7 +49,7 @@ Before updating to a new version, run **`Update_manager.bat`** and follow the on
 | ⛔ | Secondary installation method may be blocked by antivirus software |
 | ⛔ | Bot detection triggered on some websites (e.g. Claude) due to the custom browser fingerprint |
 | ⛔⛔⛔ | Per-tab language UI switches correctly, but does not change the actual keyboard layout |
-| ⛔⛔⛔ | Sleeping tabs display `about:blank` instead of a "Sleeping" placeholder title |
+
 
 ---
 
@@ -59,7 +59,7 @@ Before updating to a new version, run **`Update_manager.bat`** and follow the on
 
 | | Feature |
 |---|---|
-| ⭐⭐⭐ | Move items between Favourites and Bookmarks via right-click context menus in both tabs |
+
 | ⭐⭐ | Automated Chrome Web Store extension install flow |
 | ⭐⭐ | Dedicated installer |
 | ⭐ | Vastly improved customisability |
