@@ -508,16 +508,6 @@ function Invoke-CommitAndPush {
         }
         Write-Log "Branch verification passed: $TargetBranch"
 
-        if (Test-Path (Join-Path $LocalPath "code_files\.git")) {
-            Write-Host "[INFO] Detected submodule. Committing submodule changes..."
-            Push-Location (Join-Path $LocalPath "code_files")
-            git add .
-            git commit -m "Auto-commit: $CommitMessage" | Out-Null
-            Pop-Location
-            git add code_files
-            Write-Log "Submodule 'code_files' committed."
-        }
-
         git add .
         git commit -m "$CommitMessage" | Out-Null
         Write-Log "Committed with message: $CommitMessage"
