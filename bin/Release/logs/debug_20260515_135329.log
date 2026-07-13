@@ -1,0 +1,55 @@
+[13:53:29.596] [SYSTEM] Black Box Logging Initialized.
+[13:53:29.606] [SYSTEM] Log Path: H:\Programming\Personal_projects\Horizon_Browser\development_version_beta\bin\Release\logs\debug_20260515_135329.log
+[13:53:29.736] [BOOT] Horizon Stealth Browser is starting...
+[13:53:29.743] [BOOT] Mode: Standard Browser
+[13:53:29.748] [ENGINE] Initializing Stealth Environment...
+[13:53:29.778] [ENGINE] WebView2 Environment Created.
+[13:53:29.907] [VAULT] Initialized. Loaded 0 credentials.
+[13:53:29.928] [HISTORY] Loaded 308 history entries.
+[13:53:29.931] [JANITOR] Initializing Service...
+[13:53:29.933] [JANITOR] Timer started. Interval: 60s.
+[13:53:30.715] [UI] MainWindow Ready (Multi-Instance + Shortcuts).
+[13:53:36.004] [EXT] Skipped Firefox-only extension: 'traduzir_paginas_web-10.1.1.1'
+[13:53:36.326] [EXT] Loaded: 'adguard' → ID=gjbcdalockdbdpjilfijigifebblleeo
+[13:53:36.443] [EXT] Loaded: 'autoskip-for-youtube™-ads-chrome-web-store' → ID=enpiaeoobofcpedppdnooadnbaldkjih
+[13:53:36.455] [EXT] Loaded: 'consent-o-matic' → ID=fennofgmefeblbegldihhmpehdehoflg
+[13:53:36.472] [EXT] Loaded: 'crx-extractor-downloader-chrome-web-store' → ID=aagoielimgdcaagiedmdildgfdhcmogh
+[13:53:36.517] [EXT] Loaded: 'dark-mode-chrome-web-store' → ID=pnbopgbekiomlhlfodahgbchgghkkkie
+[13:53:36.529] [EXT] Loaded: 'document-preview-exporter-for-google-drive-chrome-web-store' → ID=igdgheonliiohfnmpdnpimnojhednhon
+[13:53:36.728] [EXT] Loaded: 'google-docs-offline-chrome-web-store' → ID=fjfcaoomjhlpbniopilcfbpefalbhpba
+[13:53:36.915] [EXT] Loaded: 'linguist-web-page-translator-chrome-web-store' → ID=cknpchhamkghepdgmebdeeiklbmhajjb
+[13:53:36.918] [EXT] Loaded: 'manus-ai-browser-operator-chrome-web-store' → ID=mahdomgfmegkjcelplonolabemigokdm
+[13:53:37.044] [EXT] Loaded: 'pip-youtube-pip-chrome-web-store' → ID=genekjfjfkimebghjfadgkigblpjbfaf
+[13:53:37.046] [EXT] Loaded: 'remove-paywalls-chrome-web-store' → ID=mlfdcdoeelfhknfbpcjgffjbcjcipccl
+[13:53:37.050] [EXT] Loaded: 'save-it-later-chrome-web-store' → ID=dbhoefmijjkdalpfhgfcpakjilijegok
+[13:53:37.376] [EXT] Loaded: 'sponsorblock-for-youtube-skip-sponsorships-chrome-web-store' → ID=llafjhmkffdlhpiojoipllmmedhckpgh
+[13:53:37.380] [EXT] Loaded: 'tldr-this-free-automatic-text-summary-tool-chrome-web-store' → ID=bjchemafiampldmkfmpigfoakogialkl
+[13:53:37.383] [EXT] Extension loading done — 14 loaded, 0 failed.
+[13:53:40.704] [SWITCHER] Snapshot timed out for: AlohaFind Private web search - Private search for VPN
+[13:53:49.293] [SWITCHER] Snapshot timed out for: My Browser - Manus
+
+[CRITICAL FAILURE DETECTED - MERGING TAPE]
+==========================================
+===       HORIZON BLACK BOX TAPE       ===
+==========================================
+Timestamp: 15.5.2026 г. 13:53:59
+Context:   Background Task
+Exception: AggregateException
+Message:   A Task's exception(s) were not observed either by Waiting on the Task or accessing its Exception property. As a result, the unobserved exception was rethrown by the finalizer thread. (Cannot access a closed Stream.)
+------------------------------------------
+Stack Trace:
+
+------------------------------------------
+Inner Exception:
+System.ObjectDisposedException: Cannot access a closed Stream.
+   at System.Runtime.InteropServices.Marshal.ThrowExceptionForHR(Int32 errorCode)
+   at Microsoft.Web.WebView2.Core.CoreWebView2.CapturePreviewAsync(CoreWebView2CapturePreviewImageFormat imageFormat, Stream imageStream)
+==========================================
+[TAPE MERGE COMPLETE]
+[13:54:09.016] [JANITOR] Initializing Service...
+[13:54:09.018] [JANITOR] Timer started. Interval: 60s.
+[13:54:09.743] [THEME] Applied visual style: Horizon
+[13:54:29.934] [JANITOR] Starting scan of: C:\Users\MoRDekai1364\Downloads
+[13:54:29.938] [JANITOR] Found 5 files.
+[13:54:53.800] [SESSION] Saved 1 tabs for session restore.
+[13:54:53.829] [SESSION] Saved 1 tabs for session restore.

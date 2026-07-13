@@ -1,0 +1,37 @@
+[20:59:08.458] [SYSTEM] Black Box Logging Initialized.
+[20:59:08.466] [SYSTEM] Log Path: H:\Programming\Personal_projects\Horizon_Browser\Horizon_Browser_official_release\bin\Release\logs\debug_20260605_205908.log
+[20:59:08.469] [BOOT] Horizon Stealth Browser is starting...
+[20:59:08.474] [BOOT] Mode: Standard Browser
+[20:59:08.479] [ENGINE] Initializing Stealth Environment...
+[20:59:08.671] [ENGINE] WebView2 Environment Created.
+[20:59:08.804] [VAULT] Initialized. Loaded 0 credentials.
+[20:59:08.813] [HISTORY] Loaded 238 history entries.
+[20:59:08.833] [JANITOR] Initializing Service...
+[20:59:08.835] [JANITOR] Timer started. Interval: 60s.
+[20:59:09.504] [UI] MainWindow Ready (Multi-Instance + Shortcuts).
+[20:59:18.655] [EXT] WARNING: Extension folder missing for 'mmioliijnhnoblpgimnlajmefafdfilb'
+[20:59:18.811] [EXT] WARNING: Extension folder missing for 'gighmmpiobklfepjocnamgkkbiglidom'
+[20:59:18.813] [EXT] WARNING: Extension folder missing for 'efaidnbmnnnibpcajpcglclefindmkaj'
+[20:59:18.814] [EXT] WARNING: Extension folder missing for 'kjchkpkjpiloipaonppkmepcbhcncedo'
+[20:59:18.815] [EXT] WARNING: Extension folder missing for 'eimadpbcbfnmbkopoojfekhnkhdbieeh'
+[20:59:28.102] [EXT] Skipped Firefox-only extension: 'traduzir_paginas_web-10.1.1.1'
+[20:59:28.506] [EXT] Loaded: 'adguard' → ID=gjbcdalockdbdpjilfijigifebblleeo
+[20:59:28.530] [EXT] Loaded: 'autoskip-for-youtube™-ads-chrome-web-store' → ID=enpiaeoobofcpedppdnooadnbaldkjih
+[20:59:28.568] [EXT] Loaded: 'consent-o-matic' → ID=fennofgmefeblbegldihhmpehdehoflg
+[20:59:28.569] [EXT] Loaded: 'crx-extractor-downloader-chrome-web-store' → ID=aagoielimgdcaagiedmdildgfdhcmogh
+[20:59:28.570] [EXT] Loaded: 'dark-mode-chrome-web-store' → ID=pnbopgbekiomlhlfodahgbchgghkkkie
+[20:59:28.571] [EXT] Loaded: 'document-preview-exporter-for-google-drive-chrome-web-store' → ID=igdgheonliiohfnmpdnpimnojhednhon
+[20:59:28.721] [EXT] Loaded: 'google-docs-offline-chrome-web-store' → ID=fjfcaoomjhlpbniopilcfbpefalbhpba
+[20:59:28.872] [EXT] Loaded: 'linguist-web-page-translator-chrome-web-store' → ID=cknpchhamkghepdgmebdeeiklbmhajjb
+[20:59:28.898] [EXT] Loaded: 'manus-ai-browser-operator-chrome-web-store' → ID=mahdomgfmegkjcelplonolabemigokdm
+[20:59:28.903] [EXT] Loaded: 'pip-youtube-pip-chrome-web-store' → ID=genekjfjfkimebghjfadgkigblpjbfaf
+[20:59:28.940] [EXT] Loaded: 'remove-paywalls-chrome-web-store' → ID=mlfdcdoeelfhknfbpcjgffjbcjcipccl
+[20:59:28.942] [EXT] Loaded: 'save-it-later-chrome-web-store' → ID=dbhoefmijjkdalpfhgfcpakjilijegok
+[20:59:29.208] [EXT] Loaded: 'sponsorblock-for-youtube-skip-sponsorships-chrome-web-store' → ID=llafjhmkffdlhpiojoipllmmedhckpgh
+[20:59:29.218] [EXT] Loaded: 'tldr-this-free-automatic-text-summary-tool-chrome-web-store' → ID=bjchemafiampldmkfmpigfoakogialkl
+[20:59:29.326] [EXT] Loaded: 'twp-translate-[beta]-chrome-web-store' → ID=micabgbmbfjdcifaljgbioeiflcemnmo
+[20:59:29.410] [EXT] Extension loading done — 15 loaded, 0 failed.
+[20:59:29.502] [SESSION] Saved 1 tabs for session restore.
+[20:59:32.691] [SWITCHER] Snapshot timed out for: AlohaFind Private web search - Private search for VPN
+[20:59:42.268] [SESSION] Saved 1 tabs for session restore.
+[20:59:42.473] [SESSION] Saved 1 tabs for session restore.

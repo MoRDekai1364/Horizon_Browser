@@ -1,0 +1,18 @@
+[21:02:18.153] [SYSTEM] Black Box Logging Initialized.
+[21:02:18.167] [SYSTEM] Log Path: H:\Programming\Personal_projects\Horizon_Browser\Horizon_Browser_official_release\bin\Release\logs\debug_20260605_210218.log
+[21:02:18.168] [BOOT] Horizon Stealth Browser is starting...
+[21:02:18.172] [BOOT] Mode: Standard Browser
+[21:02:18.176] [ENGINE] Initializing Stealth Environment...
+[21:02:18.207] [ENGINE] WebView2 Environment Created.
+[21:02:18.309] [VAULT] Initialized. Loaded 0 credentials.
+[21:02:18.315] [HISTORY] Loaded 238 history entries.
+[21:02:18.325] [JANITOR] Initializing Service...
+[21:02:18.327] [JANITOR] Timer started. Interval: 60s.
+[21:02:18.892] [UI] MainWindow Ready (Multi-Instance + Shortcuts).
+[21:02:26.135] [EXT] WARNING: Extension folder missing for 'mmioliijnhnoblpgimnlajmefafdfilb'
+[21:02:26.136] [EXT] WARNING: Extension folder missing for 'gighmmpiobklfepjocnamgkkbiglidom'
+[21:02:26.137] [EXT] WARNING: Extension folder missing for 'efaidnbmnnnibpcajpcglclefindmkaj'
+[21:02:26.138] [EXT] WARNING: Extension folder missing for 'kjchkpkjpiloipaonppkmepcbhcncedo'
+[21:02:26.138] [EXT] WARNING: Extension folder missing for 'eimadpbcbfnmbkopoojfekhnkhdbieeh'
+[21:02:28.325] [SESSION] Saved 1 tabs for session restore.
+[21:02:28.403] [SESSION] Saved 1 tabs for session restore.

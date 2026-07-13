@@ -1,0 +1,16 @@
+==========================================
+===       HORIZON BLACK BOX TAPE       ===
+==========================================
+Timestamp: 15.5.2026 г. 13:53:59
+Context:   Background Task
+Exception: AggregateException
+Message:   A Task's exception(s) were not observed either by Waiting on the Task or accessing its Exception property. As a result, the unobserved exception was rethrown by the finalizer thread. (Cannot access a closed Stream.)
+------------------------------------------
+Stack Trace:
+
+------------------------------------------
+Inner Exception:
+System.ObjectDisposedException: Cannot access a closed Stream.
+   at System.Runtime.InteropServices.Marshal.ThrowExceptionForHR(Int32 errorCode)
+   at Microsoft.Web.WebView2.Core.CoreWebView2.CapturePreviewAsync(CoreWebView2CapturePreviewImageFormat imageFormat, Stream imageStream)
+==========================================

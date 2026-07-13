@@ -1,0 +1,7 @@
+Hi, welcome to Horizon Browser. YOU MAY HAVE TO DISABLE YOUR ANTIVIRUS. If the setup fails, disable the antivirus, CLOSE the setup & try again. 
+This is a custom browser, born of frustration with everything missing in the popular browsers we have.
+My goal was to integrate as many features as possible to make a tool that feels powerful, yet uncluttered, while still doing only the job it was supposed to do. If you have any problems/feedback, please dont hesitate to submit your thoughts here: 
+
+https://feedbackcol-nszemvwz.manus.space/
+
+Happy browsing ;)

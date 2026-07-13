@@ -1,0 +1,27 @@
+[09:33:06.944] [SYSTEM] Black Box Logging Initialized.
+[09:33:06.951] [SYSTEM] Log Path: E:\Programming\Personal_projects\Horizon_Browser\Horizon_Browser_official_release\bin\Release\logs\debug_20260404_093306.log
+[09:33:06.952] [BOOT] Horizon Stealth Browser is starting...
+[09:33:06.956] [BOOKMARKS] Initialized. Loaded 0 bookmarks.
+[09:33:06.956] [BOOT] Mode: Standard Browser
+[09:33:06.960] [ENGINE] Initializing Stealth Environment...
+[09:33:06.997] [ENGINE] WebView2 Environment Created.
+[09:33:07.105] [VAULT] Initialized. Loaded 0 credentials.
+[09:33:07.108] [HISTORY] Loaded 0 history entries.
+[09:33:07.109] [JANITOR] Initializing Service...
+[09:33:07.111] [JANITOR] Timer started. Interval: 60s.
+[09:33:07.653] [UI] MainWindow Ready (Multi-Instance + Shortcuts).
+[09:33:10.333] [EXT] Skipped Firefox-only extension: 'traduzir_paginas_web-10.1.1.1'
+[09:33:10.551] [EXT] Loaded: 'adguard' → ID=gjbcdalockdbdpjilfijigifebblleeo
+[09:33:10.691] [EXT] Loaded: 'autoskip-for-youtube™-ads-chrome-web-store' → ID=enpiaeoobofcpedppdnooadnbaldkjih
+[09:33:10.700] [EXT] Loaded: 'consent-o-matic' → ID=fennofgmefeblbegldihhmpehdehoflg
+[09:33:10.713] [EXT] Loaded: 'crx-extractor-downloader-chrome-web-store' → ID=aagoielimgdcaagiedmdildgfdhcmogh
+[09:33:10.854] [EXT] Loaded: 'google-docs-offline-chrome-web-store' → ID=fjfcaoomjhlpbniopilcfbpefalbhpba
+[09:33:11.040] [EXT] Loaded: 'linguist-web-page-translator-chrome-web-store' → ID=cknpchhamkghepdgmebdeeiklbmhajjb
+[09:33:11.053] [EXT] Loaded: 'manus-ai-browser-operator-chrome-web-store' → ID=mahdomgfmegkjcelplonolabemigokdm
+[09:33:11.057] [EXT] Loaded: 'remove-paywalls-chrome-web-store' → ID=mlfdcdoeelfhknfbpcjgffjbcjcipccl
+[09:33:11.070] [EXT] Loaded: 'save-it-later-chrome-web-store' → ID=dbhoefmijjkdalpfhgfcpakjilijegok
+[09:33:11.367] [EXT] Loaded: 'sponsorblock-for-youtube-skip-sponsorships-chrome-web-store' → ID=llafjhmkffdlhpiojoipllmmedhckpgh
+[09:33:11.383] [EXT] Loaded: 'tldr-this-free-automatic-text-summary-tool-chrome-web-store' → ID=bjchemafiampldmkfmpigfoakogialkl
+[09:33:11.385] [EXT] Extension loading done — 11 loaded, 0 failed.
+[09:33:17.448] [SESSION] Saved 1 tabs for session restore.
+[09:33:17.500] [SESSION] Saved 1 tabs for session restore.

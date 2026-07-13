@@ -1,0 +1,25 @@
+2026/06/05-21:02:28.517 7674 Reusing MANIFEST H:\Programming\Personal_projects\Horizon_Browser\Horizon_Browser_official_release\bin\Release\HorizonData\EBWebView\Default\IndexedDB\chrome-extension_gjbcdalockdbdpjilfijigifebblleeo_0.indexeddb.leveldb/MANIFEST-000001
+2026/06/05-21:02:28.518 7674 Recovering log #30
+2026/06/05-21:02:28.519 7674 Reusing old log H:\Programming\Personal_projects\Horizon_Browser\Horizon_Browser_official_release\bin\Release\HorizonData\EBWebView\Default\IndexedDB\chrome-extension_gjbcdalockdbdpjilfijigifebblleeo_0.indexeddb.leveldb/000030.log 
+2026/06/05-21:02:28.520 7674 Delete type=2 #28
+2026/06/05-21:02:28.531 1e6c Level-0 table #35: started
+2026/06/05-21:02:28.538 1e6c Level-0 table #35: 87954 bytes OK
+2026/06/05-21:02:28.539 1e6c Delete type=0 #30
+2026/06/05-21:02:28.545 2ba0 Manual compaction at level-0 from '\x00\x0c\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00\x0d\x00\x00\x00' @ 0 : 0; will stop at '\x00\x0c\x00\x00\x05' @ 776 : 1
+2026/06/05-21:02:28.545 2ba0 Compacting 1@0 + 1@1 files
+2026/06/05-21:02:28.549 2ba0 Generated table #36@0: 39 keys, 43606 bytes
+2026/06/05-21:02:28.550 2ba0 Compacted 1@0 + 1@1 files => 43606 bytes
+2026/06/05-21:02:28.578 2ba0 compacted to: files[ 0 1 0 0 0 0 0 ]
+2026/06/05-21:02:28.579 2ba0 Delete type=2 #35
+2026/06/05-21:02:28.580 2ba0 Manual compaction at level-0 from '\x00\x0c\x00\x00\x05' @ 776 : 1 .. '\x00\x0d\x00\x00\x00' @ 0 : 0; will stop at (end)
+2026/06/05-21:02:29.958 47c8 Level-0 table #38: started
+2026/06/05-21:02:29.960 47c8 Level-0 table #38: 639 bytes OK
+2026/06/05-21:02:29.961 47c8 Delete type=2 #32
+2026/06/05-21:02:29.961 47c8 Delete type=0 #34
+2026/06/05-21:02:29.962 2ba0 Manual compaction at level-0 from '\x00\x0d\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00\x0e\x00\x00\x00' @ 0 : 0; will stop at '\x00\x0d\x00\x00\x05' @ 795 : 1
+2026/06/05-21:02:29.962 2ba0 Compacting 1@0 + 1@1 files
+2026/06/05-21:02:29.965 2ba0 Generated table #39@0: 38 keys, 43592 bytes
+2026/06/05-21:02:29.965 2ba0 Compacted 1@0 + 1@1 files => 43592 bytes
+2026/06/05-21:02:29.966 2ba0 compacted to: files[ 0 1 0 0 0 0 0 ]
+2026/06/05-21:02:29.966 2ba0 Delete type=2 #38
+2026/06/05-21:02:29.967 2ba0 Manual compaction at level-0 from '\x00\x0d\x00\x00\x05' @ 795 : 1 .. '\x00\x0e\x00\x00\x00' @ 0 : 0; will stop at (end)

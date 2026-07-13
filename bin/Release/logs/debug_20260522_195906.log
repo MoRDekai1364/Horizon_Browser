@@ -1,0 +1,26 @@
+[19:59:06.380] [SYSTEM] Black Box Logging Initialized.
+[19:59:06.391] [SYSTEM] Log Path: H:\Programming\Personal_projects\Horizon_Browser\Horizon_Browser_official_release\bin\Release\logs\debug_20260522_195906.log
+[19:59:06.392] [BOOT] Horizon Stealth Browser is starting...
+[19:59:06.398] [BOOT] Mode: Standard Browser
+[19:59:06.405] [ENGINE] Initializing Stealth Environment...
+[19:59:06.450] [ENGINE] WebView2 Environment Created.
+[19:59:06.600] [VAULT] Initialized. Loaded 0 credentials.
+[19:59:06.608] [HISTORY] Loaded 1 history entries.
+[19:59:06.620] [JANITOR] Initializing Service...
+[19:59:06.622] [JANITOR] Timer started. Interval: 60s.
+[19:59:07.442] [UI] MainWindow Ready (Multi-Instance + Shortcuts).
+[19:59:24.439] [EXT] Skipped Firefox-only extension: 'traduzir_paginas_web-10.1.1.1'
+[19:59:25.092] [EXT] Loaded: 'adguard' → ID=gjbcdalockdbdpjilfijigifebblleeo
+[19:59:25.220] [EXT] Loaded: 'autoskip-for-youtube™-ads-chrome-web-store' → ID=enpiaeoobofcpedppdnooadnbaldkjih
+[19:59:25.237] [EXT] Loaded: 'consent-o-matic' → ID=fennofgmefeblbegldihhmpehdehoflg
+[19:59:25.264] [EXT] Loaded: 'crx-extractor-downloader-chrome-web-store' → ID=aagoielimgdcaagiedmdildgfdhcmogh
+[19:59:25.296] [EXT] Loaded: 'dark-mode-chrome-web-store' → ID=pnbopgbekiomlhlfodahgbchgghkkkie
+[19:59:25.307] [EXT] Loaded: 'document-preview-exporter-for-google-drive-chrome-web-store' → ID=igdgheonliiohfnmpdnpimnojhednhon
+[19:59:25.471] [EXT] Loaded: 'google-docs-offline-chrome-web-store' → ID=fjfcaoomjhlpbniopilcfbpefalbhpba
+[19:59:25.737] [EXT] Loaded: 'linguist-web-page-translator-chrome-web-store' → ID=cknpchhamkghepdgmebdeeiklbmhajjb
+[19:59:25.753] [EXT] Loaded: 'manus-ai-browser-operator-chrome-web-store' → ID=mahdomgfmegkjcelplonolabemigokdm
+[19:59:25.769] [EXT] Loaded: 'pip-youtube-pip-chrome-web-store' → ID=genekjfjfkimebghjfadgkigblpjbfaf
+[19:59:25.779] [EXT] Loaded: 'remove-paywalls-chrome-web-store' → ID=mlfdcdoeelfhknfbpcjgffjbcjcipccl
+[19:59:25.818] [EXT] Loaded: 'save-it-later-chrome-web-store' → ID=dbhoefmijjkdalpfhgfcpakjilijegok
+[19:59:26.155] [SESSION] Saved 1 tabs for session restore.
+[19:59:26.219] [SESSION] Saved 1 tabs for session restore.

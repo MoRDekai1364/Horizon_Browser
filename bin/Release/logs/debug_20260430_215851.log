@@ -1,0 +1,29 @@
+[21:58:51.435] [SYSTEM] Black Box Logging Initialized.
+[21:58:51.456] [SYSTEM] Log Path: H:\Programming\Personal_projects\Horizon_Browser\development_version_beta\bin\Release\logs\debug_20260430_215851.log
+[21:58:51.458] [BOOT] Horizon Stealth Browser is starting...
+[21:58:51.462] [BOOT] Mode: Standard Browser
+[21:58:51.481] [ENGINE] Initializing Stealth Environment...
+[21:58:51.509] [ENGINE] WebView2 Environment Created.
+[21:58:51.614] [VAULT] Initialized. Loaded 0 credentials.
+[21:58:51.620] [HISTORY] Loaded 30 history entries.
+[21:58:51.621] [JANITOR] Initializing Service...
+[21:58:51.624] [JANITOR] Timer started. Interval: 60s.
+[21:58:52.154] [UI] MainWindow Ready (Multi-Instance + Shortcuts).
+[21:58:56.693] [EXT] Skipped Firefox-only extension: 'traduzir_paginas_web-10.1.1.1'
+[21:58:56.997] [EXT] Loaded: 'adguard' → ID=gjbcdalockdbdpjilfijigifebblleeo
+[21:58:57.191] [EXT] Loaded: 'autoskip-for-youtube™-ads-chrome-web-store' → ID=enpiaeoobofcpedppdnooadnbaldkjih
+[21:58:57.202] [EXT] Loaded: 'consent-o-matic' → ID=fennofgmefeblbegldihhmpehdehoflg
+[21:58:57.242] [EXT] Loaded: 'crx-extractor-downloader-chrome-web-store' → ID=aagoielimgdcaagiedmdildgfdhcmogh
+[21:58:57.264] [EXT] Loaded: 'dark-mode-chrome-web-store' → ID=pnbopgbekiomlhlfodahgbchgghkkkie
+[21:58:57.273] [EXT] Loaded: 'document-preview-exporter-for-google-drive-chrome-web-store' → ID=igdgheonliiohfnmpdnpimnojhednhon
+[21:58:57.468] [EXT] Loaded: 'google-docs-offline-chrome-web-store' → ID=fjfcaoomjhlpbniopilcfbpefalbhpba
+[21:58:57.672] [EXT] Loaded: 'linguist-web-page-translator-chrome-web-store' → ID=cknpchhamkghepdgmebdeeiklbmhajjb
+[21:58:57.728] [EXT] Loaded: 'manus-ai-browser-operator-chrome-web-store' → ID=mahdomgfmegkjcelplonolabemigokdm
+[21:58:57.738] [EXT] Loaded: 'pip-youtube-pip-chrome-web-store' → ID=genekjfjfkimebghjfadgkigblpjbfaf
+[21:58:57.761] [EXT] Loaded: 'remove-paywalls-chrome-web-store' → ID=mlfdcdoeelfhknfbpcjgffjbcjcipccl
+[21:58:57.773] [EXT] Loaded: 'save-it-later-chrome-web-store' → ID=dbhoefmijjkdalpfhgfcpakjilijegok
+[21:58:58.094] [EXT] Loaded: 'sponsorblock-for-youtube-skip-sponsorships-chrome-web-store' → ID=llafjhmkffdlhpiojoipllmmedhckpgh
+[21:58:58.109] [EXT] Loaded: 'tldr-this-free-automatic-text-summary-tool-chrome-web-store' → ID=bjchemafiampldmkfmpigfoakogialkl
+[21:58:58.114] [EXT] Extension loading done — 14 loaded, 0 failed.
+[21:59:45.254] [SESSION] Saved 1 tabs for session restore.
+[21:59:45.324] [SESSION] Saved 1 tabs for session restore.
