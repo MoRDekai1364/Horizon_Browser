@@ -1,0 +1,172 @@
+<UserControl x:Class="Horizon.Stealth.Controls.VaultSidebar"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:Horizon.Stealth.Controls"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
+             Background="Transparent"
+             BorderThickness="0">
+    
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Themes/Horizon.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <local:FaviconConverter x:Key="FaviconConverter"/>
+
+            <SolidColorBrush x:Key="Brush.Neon" Color="#00FF00"/>
+            <SolidColorBrush x:Key="Brush.Alert" Color="#FF3333"/>
+
+            <Style x:Key="Style.StealthListItem" TargetType="ListBoxItem">
+                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Margin" Value="0,2"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ListBoxItem">
+                            <Border x:Name="Bd" Background="#111" BorderBrush="#222" BorderThickness="1" CornerRadius="6" Padding="4">
+                                <ContentPresenter/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Bd" Property="Background" Value="#1A1A1A"/>
+                                    <Setter TargetName="Bd" Property="BorderBrush" Value="#444"/>
+                                </Trigger>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter TargetName="Bd" Property="Background" Value="#222"/>
+                                    <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Brush.Neon}"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <DataTemplate x:Key="Template.VaultItem">
+                <Grid Margin="5,2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <Border Width="20" Height="20" CornerRadius="3" Background="White" Margin="0,0,10,0" VerticalAlignment="Center">
+                        <Image Source="{Binding Url, Converter={StaticResource FaviconConverter}}" Stretch="UniformToFill"/>
+                    </Border>
+
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding Title}" Foreground="#EEE" FontSize="11" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Text="{Binding Url}" Foreground="#888" FontSize="9" TextTrimming="CharacterEllipsis" Margin="0,1,0,0"/>
+                    </StackPanel>
+
+                    <TextBlock Grid.Column="2" Text="••••••" Foreground="#444" FontSize="10" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                </Grid>
+            </DataTemplate>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid x:Name="MainContent" Margin="10,0,10,10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            
+
+            <Border Grid.Row="1" Background="#111" CornerRadius="6" Padding="8,4" Margin="0,0,0,10" BorderBrush="#222" BorderThickness="1">
+                <Grid>
+                    <TextBox x:Name="TxtSearch" Background="Transparent" Foreground="White" BorderThickness="0" CaretBrush="White" TextChanged="TxtSearch_TextChanged"/>
+                    <TextBlock IsHitTestVisible="False" Text="Search signal..." Foreground="#444" VerticalAlignment="Center" Margin="2,0,0,0">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Text, ElementName=TxtSearch}" Value="">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </Grid>
+            </Border>
+
+            <ListBox x:Name="ListVault" Grid.Row="2" ItemTemplate="{StaticResource Template.VaultItem}"
+                     ItemContainerStyle="{StaticResource Style.StealthListItem}"
+                     Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                     MouseDoubleClick="ListVault_MouseDoubleClick"/>
+
+            <UniformGrid Grid.Row="3" Rows="1" Columns="5" Margin="0,10,0,5">
+                <Button Content="➕" Click="BtnAddNew_Click" Background="#112211" Foreground="#00AA00" BorderThickness="0" Height="30" Margin="0,0,2,0" ToolTip="Add New Credential"/>
+                <Button Content="👤" Click="BtnCopyUser_Click" Background="#111" Foreground="#AAA" BorderThickness="0" Height="30" Margin="2,0,2,0" ToolTip="Copy Username"/>
+                <Button Content="🔑" Click="BtnCopyPass_Click" Background="#111" Foreground="#AAA" BorderThickness="0" Height="30" Margin="2,0,2,0" ToolTip="Copy Password"/>
+                <Button Content="✎" Click="BtnEdit_Click" Background="#111" Foreground="#AAA" BorderThickness="0" Height="30" Margin="2,0,2,0" ToolTip="Edit Entry"/>
+                <Button Content="🗑" Click="BtnDelete_Click" Background="#331111" Foreground="{StaticResource Brush.Alert}" BorderThickness="0" Height="30" Margin="2,0,0,0" ToolTip="Delete Entry"/>
+            </UniformGrid>
+
+            <Grid Grid.Row="4" Margin="0,5,0,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Button Grid.Row="0" Grid.Column="0" Content="IMPORT" Click="BtnImport_Click" Style="{StaticResource Style_StealthButton}" Foreground="#888" FontSize="10" Margin="0,0,2,2"/>
+                <Button Grid.Row="0" Grid.Column="1" Content="EXPORT" Click="BtnExport_Click" Style="{StaticResource Style_StealthButton}" Foreground="#888" FontSize="10" Margin="2,0,0,2"/>
+                <Button Grid.Row="1" Grid.Column="0" Content="WIPE + IMPORT" Click="BtnWipeImport_Click" Style="{StaticResource Style_StealthButton}" Foreground="#996633" FontSize="10" Margin="0,2,2,0"/>
+                <Button Grid.Row="1" Grid.Column="1" Content="LOCK" Click="BtnLockVault_Click" Style="{StaticResource Style_StealthButton}" Foreground="#663333" FontSize="10" Margin="2,2,0,0"/>
+            </Grid>
+        </Grid>
+
+        <Grid x:Name="OverlayEdit" Background="#AA000000" Visibility="Collapsed">
+            <Border Background="#151515" BorderBrush="#333" BorderThickness="1" CornerRadius="8" VerticalAlignment="Center" HorizontalAlignment="Stretch" Margin="15" Padding="20">
+                <StackPanel>
+                    <TextBlock x:Name="TxtOverlayHeader" Text="EDIT CREDENTIAL" Foreground="{StaticResource Brush.Neon}" FontWeight="Bold" FontSize="10" Margin="0,0,0,15"/>
+                    
+                    <TextBlock Text="TITLE" Foreground="#555" FontSize="8" Margin="0,0,0,4"/>
+                    <TextBox x:Name="TxtEditTitle" Background="#222" Foreground="White" BorderThickness="0" Height="30" VerticalContentAlignment="Center" Padding="8,0" Margin="0,0,0,12"/>
+
+                    <TextBlock Text="SERVICE URL" Foreground="#555" FontSize="8" Margin="0,0,0,4"/>
+                    <TextBox x:Name="TxtEditUrl" Background="#222" Foreground="White" BorderThickness="0" Height="30" VerticalContentAlignment="Center" Padding="8,0" Margin="0,0,0,12"/>
+                    
+                    <TextBlock Text="USERNAME" Foreground="#555" FontSize="8" Margin="0,0,0,4"/>
+                    <TextBox x:Name="TxtEditUser" Background="#222" Foreground="White" BorderThickness="0" Height="30" VerticalContentAlignment="Center" Padding="8,0" Margin="0,0,0,12"/>
+                    
+                    <TextBlock Text="PASSWORD" Foreground="#555" FontSize="8" Margin="0,0,0,4"/>
+                    <TextBox x:Name="TxtEditPass" Background="#222" Foreground="White" BorderThickness="0" Height="30" VerticalContentAlignment="Center" Padding="8,0" Margin="0,0,0,20"/>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Grid.Column="0" Content="CANCEL" Click="BtnCancelEdit_Click" Style="{StaticResource Style_StealthButton}" Height="35" Margin="0,0,5,0"/>
+                        <Button Grid.Column="1" Content="UPDATE" Click="BtnSaveEdit_Click" Background="{StaticResource Brush.Neon}" Foreground="Black" FontWeight="Bold" Height="35" Margin="5,0,0,0">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" CornerRadius="4">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <Grid x:Name="OverlayLocked" Background="#0b0b0b" Visibility="Collapsed">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                <TextBlock Text="🔒" FontSize="48" HorizontalAlignment="Center" Margin="0,0,0,20" Opacity="0.3"/>
+                <TextBlock Text="VAULT ENCRYPTED" Foreground="#444" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,30"/>
+                <Button Content="[ ACCESS SIGNAL ]" Click="BtnUnlock_Click" Style="{StaticResource Style_StealthButton}" Width="160" Height="40" Foreground="{StaticResource Brush.Neon}"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

@@ -315,6 +315,150 @@ function Confirm-RenameDiff {
     return $false
 }
 
+function Show-ManageMenu {
+    param($Config)
+
+    while ($true) {
+        Write-Host ""
+        Write-Host "=== Manage Settings ==="
+        Write-Host "1: List/edit saved repos"
+        Write-Host "2: Set default repo"
+        Write-Host "3: Update GitHub token"
+        Write-Host "4: View/delete folder-branch mappings"
+        Write-Host "5: View last-used selections"
+        Write-Host "B: Back / run deploy"
+        $choice = Read-Host "Select option"
+
+        switch ($choice) {
+            "1" { Show-ReposMenu -Config $Config }
+            "2" { Set-DefaultRepo -Config $Config }
+            "3" {
+                $newToken = Read-Host "Enter new GitHub PAT"
+                $Config.githubToken = $newToken
+                Save-Config $Config
+                Write-Log "GitHub token updated via manage menu."
+                Write-Host "Token updated."
+            }
+            "4" { Show-MappingsMenu -Config $Config }
+            "5" { Show-LastUsed -Config $Config }
+            "B" { return }
+            "b" { return }
+            default { Write-Host "Invalid option." }
+        }
+    }
+}
+
+function Show-ReposMenu {
+    param($Config)
+
+    $repos = @($Config.repos)
+    if ($repos.Count -eq 0) {
+        Write-Host "No saved repos."
+        return
+    }
+
+    Write-Host ""
+    for ($i = 0; $i -lt $repos.Count; $i++) {
+        $marker = if ($repos[$i].name -eq $Config.defaultRepo) { " (default)" } else { "" }
+        Write-Host ("{0}: {1}{2}" -f ($i + 1), $repos[$i].name, $marker)
+        Write-Host ("     Path: {0}" -f $repos[$i].path)
+        Write-Host ("     URL:  {0}" -f $repos[$i].url)
+    }
+
+    Write-Host "Enter index to delete, or B to go back"
+    $choice = Read-Host "Selection"
+    if ($choice -eq "B" -or $choice -eq "b") { return }
+
+    $index = [int]$choice - 1
+    if ($index -lt 0 -or $index -ge $repos.Count) {
+        Write-Host "[ERROR] Invalid selection."
+        return
+    }
+
+    $removedName = $repos[$index].name
+    $confirm = Read-Host ("Delete repo '{0}'? (y/N)" -f $removedName)
+    if ($confirm -eq "y" -or $confirm -eq "Y") {
+        $Config.repos = @($repos | Where-Object { $_.name -ne $removedName })
+        if ($Config.defaultRepo -eq $removedName) {
+            $Config.defaultRepo = ""
+        }
+        Save-Config $Config
+        Write-Log "Deleted repo entry: $removedName"
+        Write-Host "Deleted."
+    }
+}
+
+function Set-DefaultRepo {
+    param($Config)
+
+    $repos = @($Config.repos)
+    if ($repos.Count -eq 0) {
+        Write-Host "No saved repos."
+        return
+    }
+
+    Write-Host ""
+    for ($i = 0; $i -lt $repos.Count; $i++) {
+        Write-Host ("{0}: {1}" -f ($i + 1), $repos[$i].name)
+    }
+    $choice = Read-Host "Select new default repo index"
+    $index = [int]$choice - 1
+    if ($index -lt 0 -or $index -ge $repos.Count) {
+        Write-Host "[ERROR] Invalid selection."
+        return
+    }
+
+    $Config.defaultRepo = $repos[$index].name
+    Save-Config $Config
+    Write-Log "Default repo set to: $($repos[$index].name)"
+    Write-Host "Default repo set to $($repos[$index].name)."
+}
+
+function Show-MappingsMenu {
+    param($Config)
+
+    $mapProps = @($Config.folderBranchMap.PSObject.Properties)
+    if ($mapProps.Count -eq 0) {
+        Write-Host "No saved folder-branch mappings."
+        return
+    }
+
+    Write-Host ""
+    for ($i = 0; $i -lt $mapProps.Count; $i++) {
+        Write-Host ("{0}: {1}  ->  {2}" -f ($i + 1), $mapProps[$i].Name, $mapProps[$i].Value)
+    }
+    Write-Host "Enter index to delete, or B to go back"
+    $choice = Read-Host "Selection"
+    if ($choice -eq "B" -or $choice -eq "b") { return }
+
+    $index = [int]$choice - 1
+    if ($index -lt 0 -or $index -ge $mapProps.Count) {
+        Write-Host "[ERROR] Invalid selection."
+        return
+    }
+
+    $keyToRemove = $mapProps[$index].Name
+    $Config.folderBranchMap.PSObject.Properties.Remove($keyToRemove)
+    Save-Config $Config
+    Write-Log "Deleted folder-branch mapping: $keyToRemove"
+    Write-Host "Deleted."
+}
+
+function Show-LastUsed {
+    param($Config)
+
+    $lastProps = @($Config.lastUsed.PSObject.Properties)
+    if ($lastProps.Count -eq 0) {
+        Write-Host "No last-used data recorded."
+        return
+    }
+
+    Write-Host ""
+    foreach ($p in $lastProps) {
+        Write-Host ("{0}: {1}" -f $p.Name, $p.Value)
+    }
+}
+
 function Select-FolderDialog {
     param([string]$Description = "Select local repo folder")
 
@@ -413,6 +557,15 @@ Write-Progress-Bar -Percent 0 -Label "Initializing config"
 
 Initialize-Config
 $Config = Load-Config
+
+Write-Host ""
+Write-Host "1: Run deploy"
+Write-Host "M: Manage settings"
+$topChoice = Read-Host ("Selection (Enter for deploy)")
+if ($topChoice -eq "M" -or $topChoice -eq "m") {
+    Show-ManageMenu -Config $Config
+    $Config = Load-Config
+}
 
 Write-Progress-Bar -Percent 20 -Label "Selecting repo"
 $SelectedRepo = Select-Repo -Config $Config

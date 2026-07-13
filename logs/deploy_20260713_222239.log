@@ -1,3 +1,17 @@
 [2026-07-13 22:22:39] [INFO] === Deploy script started (Phase 4) ===
 [2026-07-13 22:22:40] [INFO] Selected default repo: official_release
 [2026-07-13 22:22:40] [INFO] === Phase 1 complete ===
+[2026-07-13 22:22:41] [INFO] Log copied to H:\Programming\Personal_projects\Horizon_Browser\Horizon_Browser_official_release\logs
+[2026-07-13 22:22:41] [INFO] Fetched 3 branches from MoRDekai1364/Horizon_Browser
+[2026-07-13 22:22:42] [INFO] Local file count: 1899
+[2026-07-13 22:22:42] [INFO] === Phase 2 complete ===
+[2026-07-13 22:22:42] [INFO] Using saved folder->branch mapping: Horizon_Browser_official_release -> official_release
+[2026-07-13 22:22:43] [INFO] Fetched tree for branch 'official_release' (2110 entries)
+[2026-07-13 22:22:44] [INFO] No rename/move candidates detected.
+[2026-07-13 22:22:44] [INFO] === Phase 3 complete ===
+[2026-07-13 22:22:44] [INFO] Pre-check passed: local branch matches target (official_release)
+[2026-07-13 22:23:00] [INFO] Branch verification passed: official_release
+[2026-07-13 22:23:01] [INFO] Submodule 'code_files' committed.
+[2026-07-13 22:23:01] [INFO] Committed with message: Test run: add code_files folder
+[2026-07-13 22:23:04] [INFO] Push succeeded to branch official_release
+[2026-07-13 22:23:04] [INFO] === Phase 4 complete ===

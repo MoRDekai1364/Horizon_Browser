@@ -1,0 +1,1151 @@
+<UserControl x:Class="Horizon.Stealth.Controls.FluxSidebar"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:Horizon.Stealth.Controls"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
+             Background="{DynamicResource Brush_Background}"
+             BorderBrush="#1aff00" BorderThickness="1,0,0,0"
+             Width="320">
+
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Themes/Horizon.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <SolidColorBrush x:Key="Brush_SoftText" Color="#EAEAEA"/>
+            <local:FaviconConverter x:Key="FaviconConverter"/>
+            <local:FluxGradientConverter x:Key="FluxGradientConverter"/>
+            <local:NullOrEmptyConverter    x:Key="NullOrEmptyConverter"/>
+            <local:LocalImageConverter     x:Key="LocalImageConverter"/>
+            <local:CategoryColorConverter  x:Key="CategoryColorConverter"/>
+
+            <SolidColorBrush x:Key="Brush.Neon"    Color="#00FF00"/>
+            <SolidColorBrush x:Key="Brush.NeonDim" Color="#005500"/>
+            <SolidColorBrush x:Key="Brush.Alert"   Color="#FF3333"/>
+
+            <Style x:Key="Style.SortBtn" TargetType="Button">
+                <Setter Property="Height"          Value="32"/>
+                <Setter Property="FontSize"        Value="10"/>
+                <Setter Property="FontWeight"      Value="Bold"/>
+                <Setter Property="BorderThickness" Value="0,0,1,1"/>
+                <Setter Property="Cursor"          Value="Hand"/>
+                <Setter Property="Background"      Value="{DynamicResource Brush_TabStripBg}"/>
+                <Setter Property="Foreground"      Value="{DynamicResource Brush_TabStripTextInactive}"/>
+                <Setter Property="BorderBrush"     Value="{DynamicResource Brush_TabStripBorder}"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="Bd"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Bd" Property="Background" Value="#1A2A1A"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style x:Key="Style.CtxBtn" TargetType="Button">
+                <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                <Setter Property="Background"      Value="Transparent"/>
+                <Setter Property="Foreground"      Value="#CCC"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="Height"          Value="32"/>
+                <Setter Property="Padding"         Value="8,0"/>
+                <Setter Property="Cursor"          Value="Hand"/>
+                <Setter Property="FontSize"        Value="14"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="Bx" Background="{TemplateBinding Background}"
+                                    CornerRadius="4" Padding="{TemplateBinding Padding}">
+                                <ContentPresenter VerticalAlignment="Center"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Bx" Property="Background" Value="#2a2a2a"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style x:Key="Style.CtxSearchBox" TargetType="TextBox">
+                <Setter Property="Background"             Value="Transparent"/>
+                <Setter Property="Foreground"             Value="#CCC"/>
+                <Setter Property="BorderThickness"        Value="0"/>
+                <Setter Property="FontSize"               Value="12"/>
+                <Setter Property="Padding"                Value="5,3"/>
+                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="TextBox">
+                            <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                                <ScrollViewer x:Name="PART_ContentHost"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style x:Key="Style.StealthListItem" TargetType="ListBoxItem">
+                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Margin" Value="0,2"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ListBoxItem">
+                            <Border x:Name="Bd" Background="#111" BorderBrush="#222"
+                                    BorderThickness="1" CornerRadius="6" Padding="4">
+                                <ContentPresenter/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Bd" Property="Background" Value="#1A1A1A"/>
+                                    <Setter TargetName="Bd" Property="BorderBrush" Value="#444"/>
+                                </Trigger>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter TargetName="Bd" Property="Background" Value="#222"/>
+                                    <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Brush.Neon}"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style x:Key="Style.FluxListItem" TargetType="ListBoxItem">
+                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Margin" Value="0,2"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ListBoxItem">
+                            <Border x:Name="Bd" Background="{Binding ItemGradient}"
+                                    BorderBrush="#2a2a2a" BorderThickness="1" CornerRadius="6" Padding="4">
+                                <ContentPresenter/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Bd" Property="BorderBrush" Value="#666"/>
+                                </Trigger>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Brush.Neon}"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style x:Key="Style.PinListItem" TargetType="ListBoxItem">
+                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Margin" Value="0,2"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ListBoxItem">
+                            <Border x:Name="Bd" Background="{Binding Converter={StaticResource FluxGradientConverter}}"
+                                    BorderBrush="#2a2a2a" BorderThickness="1" CornerRadius="6" Padding="4">
+                                <ContentPresenter/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Bd" Property="BorderBrush" Value="#666"/>
+                                </Trigger>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Brush.Neon}"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <DataTemplate x:Key="Template.PinItem">
+                <Grid Margin="5,2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Icon cell: emoji > local file > favicon URL -->
+                    <Border Width="28" Height="28" CornerRadius="4" Background="White"
+                            Margin="0,0,10,0" ClipToBounds="True">
+                        <Grid>
+                            <!-- Favicon (default; hidden if overridden) -->
+                            <Image x:Name="ImgFavicon"
+                                   Source="{Binding Url, Converter={StaticResource FaviconConverter}}"
+                                   Stretch="UniformToFill"/>
+                            <!-- Local image file (shown when IconPath is set) -->
+                            <Image x:Name="ImgCustom"
+                                   Source="{Binding IconPath, Converter={StaticResource LocalImageConverter}}"
+                                   Stretch="UniformToFill" Visibility="Collapsed"/>
+                            <!-- Emoji override (shown when IconEmoji is set) -->
+                            <TextBlock x:Name="TbEmoji"
+                                       Text="{Binding IconEmoji}"
+                                       FontSize="18" HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       Visibility="Collapsed"/>
+                        </Grid>
+                    </Border>
+
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding Name}" Foreground="#EEE" FontSize="15"
+                                   FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Text="{Binding Category}"
+                                   Foreground="{Binding Category, Converter={StaticResource CategoryColorConverter}}"
+                                   FontSize="11" FontWeight="Bold"
+                                   TextTrimming="CharacterEllipsis" Margin="0,1,0,0"/>
+                    </StackPanel>
+                </Grid>
+                <DataTemplate.Triggers>
+                    <!-- Local file path set → show custom image, hide favicon -->
+                    <DataTrigger Binding="{Binding IconPath, Converter={StaticResource NullOrEmptyConverter}}" Value="False">
+                        <Setter TargetName="ImgFavicon" Property="Visibility" Value="Collapsed"/>
+                        <Setter TargetName="ImgCustom"  Property="Visibility" Value="Visible"/>
+                    </DataTrigger>
+                    <!-- Emoji set → show emoji, hide everything else -->
+                    <DataTrigger Binding="{Binding IconEmoji, Converter={StaticResource NullOrEmptyConverter}}" Value="False">
+                        <Setter TargetName="ImgFavicon" Property="Visibility" Value="Collapsed"/>
+                        <Setter TargetName="ImgCustom"  Property="Visibility" Value="Collapsed"/>
+                        <Setter TargetName="TbEmoji"    Property="Visibility" Value="Visible"/>
+                    </DataTrigger>
+                </DataTemplate.Triggers>
+            </DataTemplate>
+
+            <DataTemplate x:Key="Template.HistoryItem">
+                <Grid Margin="5,2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Width="23" Height="23" CornerRadius="3" Background="White" Margin="0,0,10,0" VerticalAlignment="Center">
+                        <Image Source="{Binding Url, Converter={StaticResource FaviconConverter}}" Stretch="UniformToFill"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding Title}" Foreground="#EEE" FontSize="13" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Text="{Binding Url}"   Foreground="#666" FontSize="10"  TextTrimming="CharacterEllipsis" Margin="0,1,0,0"/>
+                    </StackPanel>
+                </Grid>
+            </DataTemplate>
+
+            <DataTemplate x:Key="Template.FluxItem">
+                <Grid Margin="5,4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.RowSpan="2" Text="{Binding TypeIcon}" FontSize="18"
+                               Foreground="{StaticResource Brush_SoftText}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+
+                    <TextBlock Grid.Column="1" Grid.Row="0" Text="{Binding DisplayName}"
+                               Foreground="#F0F0F0" FontSize="13" FontWeight="SemiBold"
+                               TextTrimming="CharacterEllipsis" TextWrapping="NoWrap"/>
+
+                    <TextBlock Grid.Column="1" Grid.Row="1" Foreground="{StaticResource Brush_SoftText}" FontSize="10" Margin="0,2,0,0">
+                        <TextBlock.Text>
+                            <MultiBinding StringFormat="{}{0}  ·  {1}">
+                                <Binding Path="State"/>
+                                <Binding Path="FileSizeDisplay"/>
+                            </MultiBinding>
+                        </TextBlock.Text>
+                    </TextBlock>
+
+                    <ProgressBar Grid.Column="1" Grid.Row="1" Height="2" VerticalAlignment="Bottom"
+                                 Margin="0,4,0,0"
+                                 Value="{Binding ReceivedBytes, Mode=OneWay}" Maximum="{Binding TotalBytes, Mode=OneWay}"
+                                 Foreground="{StaticResource Brush.Neon}" Background="#222"
+                                 BorderThickness="0"
+                                 x:Name="BarProgress" Visibility="Collapsed"/>
+                </Grid>
+                <DataTemplate.Triggers>
+                    <DataTrigger Binding="{Binding State}" Value="DOWNLOADING">
+                        <Setter TargetName="BarProgress" Property="Visibility" Value="Visible"/>
+                    </DataTrigger>
+                </DataTemplate.Triggers>
+            </DataTemplate>
+
+        </ResourceDictionary>
+        </UserControl.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <TabControl Grid.Row="1" Background="Transparent" BorderThickness="0" Margin="0" Padding="0">
+            <TabControl.Template>
+                <ControlTemplate TargetType="TabControl">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="100"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <UniformGrid Grid.Row="0" Columns="3" Rows="2" IsItemsHost="True"/>
+                        <ContentPresenter Grid.Row="1"
+                                          Content="{TemplateBinding SelectedContent}"
+                                          ContentTemplate="{TemplateBinding SelectedContentTemplate}"/>
+                    </Grid>
+                </ControlTemplate>
+            </TabControl.Template>
+
+            <TabControl.Resources>
+                <Style TargetType="TabItem">
+                    <Setter Property="FontSize" Value="28"/>
+                    <Setter Property="Cursor"   Value="Hand"/>
+                    <Setter Property="Margin"   Value="0"/>
+                    <Setter Property="Padding"  Value="10,0"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="TabItem">
+                                <Border x:Name="Bd" Background="{StaticResource Brush_TabStripBg}" BorderBrush="{StaticResource Brush_TabStripBorder}"
+                                        BorderThickness="0,0,1,1" Height="58" Padding="{TemplateBinding Padding}">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" ContentSource="Header"/>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter TargetName="Bd" Property="Background"      Value="{StaticResource Brush_TabStripBgSelected}"/>
+                                        <Setter TargetName="Bd" Property="BorderBrush"     Value="{StaticResource Brush.Neon}"/>
+                                        <Setter TargetName="Bd" Property="BorderThickness" Value="0,0,0,2"/>
+                                        <Setter Property="Foreground" Value="{StaticResource Brush.Neon}"/>
+                                    </Trigger>
+                                    <Trigger Property="IsSelected" Value="False">
+                                        <Setter Property="Foreground" Value="{StaticResource Brush_TabStripTextInactive}"/>
+                                    </Trigger>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Foreground"                 Value="{StaticResource Brush_TabStripTextHover}"/>
+                                        <Setter TargetName="Bd" Property="Background" Value="{StaticResource Brush_TabStripBgSelected}"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </TabControl.Resources>
+
+            <TabItem Header="⭐" ToolTip="Favourites">
+                <Grid Margin="10,10,10,10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <UniformGrid Grid.Row="0" Rows="1" Columns="4" Margin="0,0,0,8">
+                        <Button x:Name="BtnPinSortName"   Content="🔤 NAME"   Click="BtnPinSortName_Click"
+                                Style="{StaticResource Style.SortBtn}"
+                                Background="#1a2a1a" Foreground="#00CC00" BorderBrush="#2a4a2a"
+                                ToolTip="Sort by name" MouseRightButtonUp="SortBtn_RightClick"/>
+                        <Button x:Name="BtnPinSortCat"    Content="📁 CATG"   Click="BtnPinSortCat_Click"
+                                Style="{StaticResource Style.SortBtn}"
+                                Background="{DynamicResource Brush_TabStripBg}" Foreground="{DynamicResource Brush_TabStripTextInactive}" BorderBrush="{DynamicResource Brush_TabStripBorder}"
+                                ToolTip="Sort by category" MouseRightButtonUp="SortBtn_RightClick"/>
+                        <Button x:Name="BtnPinSearch" Content="🔍 SRCH"   Click="BtnPinSearch_Click"
+                                Style="{StaticResource Style.SortBtn}"
+                                Background="{DynamicResource Brush_TabStripBg}" Foreground="{DynamicResource Brush_TabStripTextInactive}" BorderBrush="{DynamicResource Brush_TabStripBorder}"
+                                ToolTip="Search favourites"/>
+                        <Button x:Name="BtnPinSortDir"    Content="↓"         Click="BtnPinSortDir_Click"
+                                Style="{StaticResource Style.SortBtn}"
+                                Background="{DynamicResource Brush_TabStripBg}" Foreground="{DynamicResource Brush_TabStripTextInactive}" BorderBrush="{DynamicResource Brush_TabStripBorder}"
+                                ToolTip="Toggle sort direction" MouseRightButtonUp="SortBtn_RightClick"/>
+                    </UniformGrid>
+
+                    <Border x:Name="PinSearchRow" Grid.Row="1" Visibility="Collapsed"
+                            Background="#141414" BorderBrush="#2a2a2a" BorderThickness="1"
+                            CornerRadius="4" Margin="0,0,0,6">
+                        <Grid>
+                            <TextBox x:Name="TxtPinSearchBar" Style="{StaticResource Style.CtxSearchBox}"
+                                     TextChanged="TxtPinSearchBar_TextChanged"/>
+                            <TextBlock x:Name="TxtPinSearchBarHint" Text="🔍 search favourites…"
+                                       Foreground="#333" FontSize="13" VerticalAlignment="Center"
+                                       Margin="8,0,0,0" IsHitTestVisible="False"/>
+                        </Grid>
+                    </Border>
+
+                    <ListBox x:Name="ListPins" Grid.Row="2"
+                             ItemTemplate="{StaticResource Template.PinItem}"
+                             ItemContainerStyle="{StaticResource Style.PinListItem}"
+                             Background="Transparent" BorderThickness="0"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                             MouseDoubleClick="ListPins_MouseDoubleClick"
+                             MouseRightButtonUp="ListPins_RightClick"/>
+
+                    <UniformGrid Grid.Row="3" Rows="1" Columns="4" Margin="0,10,0,5">
+                        <Button Content="▲"  Click="BtnPinUp_Click"     Background="#111" Foreground="{StaticResource Brush_SoftText}" BorderThickness="0" Height="34" Margin="0,0,2,0"/>
+                        <Button Content="▼"  Click="BtnPinDown_Click"   Background="#111" Foreground="{StaticResource Brush_SoftText}" BorderThickness="0" Height="34" Margin="2,0,2,0"/>
+                        <Button Content="✎"  Click="BtnRenamePin_Click" Background="#111" Foreground="{StaticResource Brush_SoftText}" BorderThickness="0" Height="34" Margin="2,0,2,0"/>
+                        <Button Content="🗑" Click="BtnRemovePin_Click" Background="#331111" Foreground="{StaticResource Brush.Alert}" BorderThickness="0" Height="34" Margin="2,0,0,0"/>
+                    </UniformGrid>
+
+                    <Button Grid.Row="4" Content=" PIN CURRENT " Click="BtnAddPin_Click"
+                            Style="{StaticResource Style_StealthButton}" Foreground="#888" FontSize="14" Margin="0,5,0,0"/>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="🔖" ToolTip="Bookmarks">
+                <Grid Margin="10,10,10,10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <UniformGrid Grid.Row="0" Rows="1" Columns="4" Margin="0,0,0,8">
+                        <Button x:Name="BtnBmSortDate"   Content="📅 DATE"   Click="BtnBmSortDate_Click"
+                                Style="{StaticResource Style.SortBtn}"
+                                MouseRightButtonUp="SortBtn_RightClick"
+                                Background="#1a2a1a" Foreground="#00CC00" BorderBrush="#2a4a2a"
+                                ToolTip="Sort by date added"/>
+                        <Button x:Name="BtnBmSortName"   Content="🔤 NAME"   Click="BtnBmSortName_Click"
+                                Style="{StaticResource Style.SortBtn}"
+                                MouseRightButtonUp="SortBtn_RightClick"
+                                ToolTip="Sort by title"/>
+                        <Button x:Name="BtnBmSortDomain" Content="🌐 SITE"   Click="BtnBmSortDomain_Click"
+                                Style="{StaticResource Style.SortBtn}"
+                                MouseRightButtonUp="SortBtn_RightClick"
+                                ToolTip="Sort by domain"/>
+                        <Button x:Name="BtnBmSortDir"    Content="↓"         Click="BtnBmSortDir_Click"
+                                Style="{StaticResource Style.SortBtn}"
+                                MouseRightButtonUp="SortBtn_RightClick"
+                                ToolTip="Toggle sort direction"/>
+                    </UniformGrid>
+
+                    <ListBox x:Name="ListBookmarks" Grid.Row="1"
+                             ItemTemplate="{StaticResource Template.PinItem}"
+                             ItemContainerStyle="{StaticResource Style.StealthListItem}"
+                             Background="Transparent" BorderThickness="0"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                             MouseDoubleClick="ListBookmarks_MouseDoubleClick"
+                             MouseRightButtonUp="ListBookmarks_RightClick"/>
+
+                    <StackPanel x:Name="PanelBookmarkFallback" Grid.Row="1" VerticalAlignment="Center" Visibility="Collapsed">
+                        <TextBlock Text="Extraction Failed." Foreground="{StaticResource Brush.Alert}"
+                                   FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,15" FontSize="12"/>
+                        <TextBlock Text="1. Open your old browser." Foreground="{StaticResource Brush_SoftText}" TextWrapping="Wrap" Margin="0,4" FontSize="12"/>
+                        <TextBlock Text="2. Go to Bookmarks / Bookmark Manager." Foreground="{StaticResource Brush_SoftText}" TextWrapping="Wrap" Margin="0,4" FontSize="12"/>
+                        <TextBlock Text="3. Look for 'Export Bookmarks'." Foreground="{StaticResource Brush_SoftText}" TextWrapping="Wrap" Margin="0,4" FontSize="12"/>
+                        <TextBlock Text="4. Save the HTML file to your PC." Foreground="{StaticResource Brush_SoftText}" TextWrapping="Wrap" Margin="0,4" FontSize="12"/>
+                        <TextBlock Text="5. Click the button below." Foreground="{StaticResource Brush_SoftText}" TextWrapping="Wrap" Margin="0,4" FontSize="12"/>
+                    </StackPanel>
+
+                    <UniformGrid Grid.Row="2" Rows="1" Columns="3" Margin="0,10,0,5">
+                        <Button Content="📋" Click="BtnBookmarkCopy_Click"   Background="#111" Foreground="{StaticResource Brush_SoftText}" BorderThickness="0" Height="34" Margin="0,0,2,0" ToolTip="Copy URL"/>
+                        <Button Content="🔗" Click="BtnBookmarkOpen_Click"   Background="#111" Foreground="{StaticResource Brush_SoftText}" BorderThickness="0" Height="34" Margin="2,0,2,0" ToolTip="Open"/>
+                        <Button Content="🗑" Click="BtnBookmarkDelete_Click" Background="#331111" Foreground="{StaticResource Brush.Alert}" BorderThickness="0" Height="34" Margin="2,0,0,0" ToolTip="Remove"/>
+                    </UniformGrid>
+
+                    <Button Grid.Row="3" Content="[ IMPORT HTML ]" Click="BtnManualBookmarkImport_Click"
+                            Style="{StaticResource Style_StealthButton}" Foreground="#888" FontSize="12" Margin="0,5,0,0"/>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="🕒" ToolTip="History">
+                <Grid Margin="10,10,10,10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <UniformGrid Grid.Row="0" Rows="1" Columns="4" Margin="0,0,0,8">
+                        <Button x:Name="BtnHistSortDate"   Content="📅 DATE"   Click="BtnHistSortDate_Click"
+                                Style="{StaticResource Style.SortBtn}"
+                                MouseRightButtonUp="SortBtn_RightClick"
+                                Background="#1a2a1a" Foreground="#00CC00" BorderBrush="#2a4a2a"
+                                ToolTip="Sort by visit date"/>
+                        <Button x:Name="BtnHistSortTitle"  Content="🔤 TITLE"  Click="BtnHistSortTitle_Click"
+                                Style="{StaticResource Style.SortBtn}"
+                                MouseRightButtonUp="SortBtn_RightClick"
+                                ToolTip="Sort by page title"/>
+                        <Button x:Name="BtnHistSortDomain" Content="🌐 SITE"   Click="BtnHistSortDomain_Click"
+                                Style="{StaticResource Style.SortBtn}"
+                                MouseRightButtonUp="SortBtn_RightClick"
+                                ToolTip="Sort by domain"/>
+                        <Button x:Name="BtnHistSortDir"    Content="↓"         Click="BtnHistSortDir_Click"
+                                Style="{StaticResource Style.SortBtn}"
+                                MouseRightButtonUp="SortBtn_RightClick"
+                                ToolTip="Toggle sort direction"/>
+                    </UniformGrid>
+
+                    <ListBox x:Name="ListHistory" Grid.Row="1"
+                             ItemTemplate="{StaticResource Template.HistoryItem}"
+                             ItemContainerStyle="{StaticResource Style.FluxListItem}"
+                             Background="Transparent" BorderThickness="0"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                             MouseDoubleClick="ListHistory_MouseDoubleClick"
+                             MouseRightButtonUp="ListHistory_RightClick"/>
+
+                    <UniformGrid Grid.Row="2" Rows="1" Columns="3" Margin="0,10,0,5">
+                        <Button Content="📋" Click="BtnHistoryCopy_Click"   Background="#111" Foreground="{StaticResource Brush_SoftText}" BorderThickness="0" Height="34" Margin="0,0,2,0"/>
+                        <Button Content="🔗" Click="BtnHistoryOpen_Click"   Background="#111" Foreground="{StaticResource Brush_SoftText}" BorderThickness="0" Height="34" Margin="2,0,2,0"/>
+                        <Button Content="🗑" Click="BtnHistoryDelete_Click" Background="#331111" Foreground="{StaticResource Brush.Alert}" BorderThickness="0" Height="34" Margin="2,0,0,0"/>
+                    </UniformGrid>
+
+                    <Button Grid.Row="3" Content="[ CLEAR SIGNAL ]" Click="BtnClearHistory_Click"
+                            Style="{StaticResource Style_StealthButton}" Foreground="#663333" FontSize="12" Margin="0,5,0,0"/>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="⬇" ToolTip="Downloads">
+                <Grid Margin="10,10,10,10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Path bar: back button + current folder path, hidden at root -->
+                    <Grid x:Name="FluxPathBar" Grid.Row="0" Margin="0,0,0,6" Visibility="Collapsed">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Button x:Name="BtnFluxBack" Grid.Column="0"
+                                Content="🠔" Click="BtnFluxBack_Click"
+                                Background="#111" Foreground="{StaticResource Brush_SoftText}" BorderThickness="0"
+                                Width="28" Height="28" FontSize="14" Cursor="Hand"
+                                ToolTip="Back to parent folder"/>
+                        <TextBlock x:Name="TxtFluxPath" Grid.Column="1"
+                                   Foreground="#666" FontSize="10"
+                                   VerticalAlignment="Center" Margin="6,0,0,0"
+                                   TextTrimming="CharacterEllipsis"/>
+                    </Grid>
+
+                    <!-- Active download card — live during any ongoing download -->
+                    <Border x:Name="ActiveDownloadPanel" Grid.Row="1"
+                            Visibility="Collapsed"
+                            Background="#0D1A2D" BorderBrush="#1A3A5C" BorderThickness="1"
+                            CornerRadius="5" Padding="8,6" Margin="0,0,0,6"
+                            MouseRightButtonUp="ActiveDownloadPanel_RightClick">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="5"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid Grid.Row="0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock x:Name="TxtDlFileName" Grid.Column="0"
+                                           Foreground="{StaticResource Brush_SoftText}" FontSize="11" FontWeight="SemiBold"
+                                           TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="6,0,0,0">
+                                    <TextBlock x:Name="TxtDlSpeed"
+                                               Foreground="#4A9EFF" FontSize="10"
+                                               VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <TextBlock x:Name="TxtDlEta"
+                                               Foreground="#888" FontSize="10"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Grid>
+                            <ProgressBar x:Name="PbDlProgress" Grid.Row="1"
+                                         Minimum="0" Maximum="1" Value="0"
+                                         Height="4" VerticalAlignment="Center"
+                                         Background="#1A1A1A" Foreground="#4A9EFF"
+                                         BorderThickness="0"/>
+                            <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,4,0,0">
+                                <Button x:Name="BtnDlPause" Content="⏸"
+                                        Click="BtnDlPause_Click"
+                                        Height="20" Padding="6,0"
+                                        Background="#0D2A45" Foreground="#4A9EFF"
+                                        BorderBrush="#1A4A7C" BorderThickness="1"
+                                        FontSize="10" Cursor="Hand"
+                                        ToolTip="Pause / Resume">
+                                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="3"/></Style></Button.Resources>
+                                </Button>
+                                <Button Content="✕ Cancel"
+                                        Click="BtnDlCancel_Click"
+                                        Height="20" Padding="6,0" Margin="6,0,0,0"
+                                        Background="#2D0D0D" Foreground="#FF6666"
+                                        BorderBrush="#5C1A1A" BorderThickness="1"
+                                        FontSize="10" Cursor="Hand"
+                                        ToolTip="Cancel Download">
+                                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="3"/></Style></Button.Resources>
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <UniformGrid Grid.Row="2" Rows="1" Columns="4" Margin="0,0,0,8">
+
+                        <Button x:Name="BtnSortDate" Content="📅 DATE" Click="BtnSortDate_Click"
+                                Style="{StaticResource Style.SortBtn}"
+                                MouseRightButtonUp="SortBtn_RightClick"
+                                Background="#1a2a1a" Foreground="#00CC00" BorderBrush="#2a4a2a"/>
+                        <Button x:Name="BtnSortName" Content="🔤 NAME" Click="BtnSortName_Click"
+                                Style="{StaticResource Style.SortBtn}"
+                                MouseRightButtonUp="SortBtn_RightClick"/>
+                        <Button x:Name="BtnSortSize" Content="📦 SIZE" Click="BtnSortSize_Click"
+                                Style="{StaticResource Style.SortBtn}"
+                                MouseRightButtonUp="SortBtn_RightClick"/>
+                        <Button x:Name="BtnSortDir"  Content="↓"       Click="BtnSortDir_Click"
+                                Style="{StaticResource Style.SortBtn}"
+                                MouseRightButtonUp="SortBtn_RightClick"
+                                ToolTip="Toggle sort direction"/>
+                    </UniformGrid>
+
+                    <ListBox x:Name="ListFlux" Grid.Row="3"
+                             ItemTemplate="{StaticResource Template.FluxItem}"
+                             ItemContainerStyle="{StaticResource Style.FluxListItem}"
+                             Background="Transparent" BorderThickness="0"
+                             SelectionMode="Extended"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                             MouseDoubleClick="ListFlux_MouseDoubleClick"
+                             MouseRightButtonUp="ListFlux_RightClick"/>
+
+                    <UniformGrid Grid.Row="4" Rows="1" Columns="3" Margin="0,10,0,5">
+                        <Button Content="📂" Click="BtnFluxFolder_Click" Background="#111" Foreground="{StaticResource Brush_SoftText}" BorderThickness="0" Height="34" Margin="0,0,2,0"/>
+                        <Button Content="▶"  Click="BtnFluxOpen_Click"   Background="#111" Foreground="{StaticResource Brush_SoftText}" BorderThickness="0" Height="34" Margin="2,0,2,0"/>
+                        <Button Content="🗑" Click="BtnFluxDelete_Click" Background="#331111" Foreground="{StaticResource Brush.Alert}" BorderThickness="0" Height="34" Margin="2,0,0,0"/>
+                    </UniformGrid>
+
+                    <Button Grid.Row="5" Content="[ PREVIEW ]" Click="BtnPreviewFile_Click"
+                            Style="{StaticResource Style_StealthButton}" Foreground="#446688" FontSize="12" Margin="0,5,0,0"
+                            ToolTip="Preview selected file"/>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="🔒" ToolTip="Vault">
+                <local:VaultSidebar/>
+            </TabItem>
+
+            <TabItem Header="🧩" ToolTip="Extensions">
+                <Grid Margin="10,10,10,10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <UniformGrid Grid.Row="0" Rows="1" Columns="4" Margin="0,0,0,8">
+                        <Button x:Name="BtnExtSortName"   Content="🔤 NAME"   Click="BtnExtSortName_Click"
+                                Style="{StaticResource Style.SortBtn}"
+                                Background="#1a2a1a" Foreground="#00CC00" BorderBrush="#2a4a2a"
+                                ToolTip="Sort by name" MouseRightButtonUp="SortBtn_RightClick"/>
+                        <Button x:Name="BtnExtSortState"  Content="⚡ STATE"  Click="BtnExtSortState_Click"
+                                Style="{StaticResource Style.SortBtn}"
+                                ToolTip="Sort by enabled/disabled" MouseRightButtonUp="SortBtn_RightClick"/>
+                        <Button x:Name="BtnExtInstall" Content="🧩 ADD" Click="BtnExtInstall_Click"
+                                Style="{StaticResource Style.SortBtn}"
+                                Background="#0d0d1a" Foreground="#aabbff" BorderBrush="#223366"
+                                ToolTip="Browse Chrome Web Store to find extensions"/>
+                        <Button x:Name="BtnExtInstallUrl" Content="⬇ INSTALL" Click="BtnExtInstallUrl_Click"
+                                Style="{StaticResource Style.SortBtn}"
+                                Background="#1a0d0d" Foreground="#ffaaaa" BorderBrush="#663322"
+                                ToolTip="Install extension directly from a store URL"/>
+                    </UniformGrid>
+
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <StackPanel x:Name="PanelExtensions"/>
+                    </ScrollViewer>
+
+                    <UniformGrid Grid.Row="2" Rows="1" Columns="2" Margin="0,10,0,5">
+                        <Button Content="📂 Folder"  Click="BtnExtOpenFolder_Click"
+                                Background="#111" Foreground="{StaticResource Brush_SoftText}" BorderThickness="0"
+                                Height="34" Margin="0,0,2,0" ToolTip="Open Extensions install folder"/>
+                        <Button Content="⟳ Refresh" Click="BtnExtRefresh_Click"
+                                Background="#111" Foreground="{StaticResource Brush_SoftText}" BorderThickness="0"
+                                Height="34" Margin="2,0,0,0" ToolTip="Reload catalog from disk"/>
+                    </UniformGrid>
+
+                    <Border x:Name="BannerStatus" Grid.Row="3"
+                            Background="#0D1A0D" BorderBrush="{StaticResource Brush.NeonDim}"
+                            BorderThickness="1" CornerRadius="5" Padding="8,5" Margin="0,2,0,0"
+                            Visibility="Collapsed">
+                        <TextBlock x:Name="TxtStatus" Foreground="{StaticResource Brush.Neon}"
+                                   FontSize="10" FontWeight="SemiBold" TextWrapping="Wrap"
+                                   HorizontalAlignment="Center"/>
+                    </Border>
+                </Grid>
+            </TabItem>
+
+        </TabControl>
+
+        <Grid x:Name="OverlayPreview" Background="#CC000000"
+              Visibility="Collapsed" Grid.RowSpan="2" Panel.ZIndex="100">
+            <Border Background="#0f0f0f" BorderBrush="#2a2a2a" BorderThickness="1"
+                    CornerRadius="8" Margin="6" Padding="10">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0" Margin="0,0,0,6">
+                        <TextBlock x:Name="TxtPreviewFileName" Foreground="#00FF00" FontSize="12"
+                                   FontWeight="Bold" TextWrapping="Wrap"
+                                   VerticalAlignment="Center" Margin="0,0,24,0"/>
+                        <Button Content="✕" Click="BtnClosePreview_Click"
+                                HorizontalAlignment="Right" VerticalAlignment="Top"
+                                Width="23" Height="23" FontSize="13"
+                                Background="Transparent" Foreground="#666" BorderThickness="0" Cursor="Hand"/>
+                    </Grid>
+
+                    <Grid x:Name="PreviewSearchBar" Grid.Row="1" Margin="0,0,0,6" Visibility="Collapsed">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0" Background="#1a1a1a" BorderBrush="#333"
+                                BorderThickness="1" CornerRadius="3">
+                            <Grid>
+                                <TextBox x:Name="TxtPreviewSearch"
+                                         Style="{StaticResource Style.CtxSearchBox}"
+                                         TextChanged="TxtPreviewSearch_TextChanged"/>
+                                <TextBlock x:Name="TxtSearchHint" Text="search in file…"
+                                           Foreground="#444" FontSize="12"
+                                           VerticalAlignment="Center" Margin="8,0,0,0"
+                                           IsHitTestVisible="False"/>
+                            </Grid>
+                        </Border>
+                        <TextBlock x:Name="TxtSearchCount" Grid.Column="1"
+                                   Foreground="#555" FontSize="10"
+                                   VerticalAlignment="Center" Margin="5,0"/>
+                        <Button Grid.Column="2" Content="▲" Click="BtnSearchPrev_Click"
+                                Background="#111" Foreground="{StaticResource Brush_SoftText}" BorderThickness="0"
+                                Width="25" Height="25" FontSize="10" Cursor="Hand" Margin="0,0,2,0">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" CornerRadius="3">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                        <Button Grid.Column="3" Content="▼" Click="BtnSearchNext_Click"
+                                Background="#111" Foreground="{StaticResource Brush_SoftText}" BorderThickness="0"
+                                Width="25" Height="25" FontSize="10" Cursor="Hand">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" CornerRadius="3">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                    </Grid>
+
+                    <ScrollViewer x:Name="PreviewImageScroll" Grid.Row="2"
+                                  HorizontalScrollBarVisibility="Auto"
+                                  VerticalScrollBarVisibility="Auto"
+                                  Background="#0b0b0b" Visibility="Collapsed">
+                        <Image x:Name="PreviewImage" Stretch="None"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                               Margin="4" RenderTransformOrigin="0.5,0.5">
+                            <Image.RenderTransform>
+                                <ScaleTransform x:Name="PreviewImageScale" ScaleX="1" ScaleY="1"/>
+                            </Image.RenderTransform>
+                        </Image>
+                    </ScrollViewer>
+
+                    <ScrollViewer x:Name="PreviewTextScroll" Grid.Row="2"
+                                  VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Auto"
+                                  Background="#0b0b0b" Visibility="Collapsed" Margin="1">
+                        <RichTextBox x:Name="PreviewRichText"
+                                     Background="Transparent" BorderThickness="0"
+                                     FontFamily="Consolas" FontSize="12"
+                                     Foreground="{StaticResource Brush_SoftText}" IsReadOnly="True"
+                                     IsDocumentEnabled="False"
+                                     HorizontalAlignment="Left"
+                                     HorizontalScrollBarVisibility="Disabled"
+                                     VerticalScrollBarVisibility="Disabled"
+                                     Padding="6">
+                            <RichTextBox.Resources>
+                                <Style TargetType="Paragraph">
+                                    <Setter Property="Margin"     Value="0"/>
+                                    <Setter Property="LineHeight" Value="16"/>
+                                </Style>
+                            </RichTextBox.Resources>
+                        </RichTextBox>
+                    </ScrollViewer>
+
+                    <TextBlock x:Name="PreviewUnsupportedText" Grid.Row="2"
+                               Foreground="#555" FontSize="13"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                               TextWrapping="Wrap" TextAlignment="Center"
+                               Padding="16" Visibility="Collapsed"/>
+
+                    <Grid Grid.Row="3" Margin="0,6,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock x:Name="TxtPreviewInfo"
+                                   Grid.Column="0" Foreground="#444" FontSize="10"
+                                   VerticalAlignment="Center" TextWrapping="Wrap"/>
+                        <StackPanel x:Name="PreviewZoomPanel" Grid.Column="1"
+                                    Orientation="Horizontal" Visibility="Collapsed">
+                            <Button Content="−" Click="BtnZoomOut_Click"
+                                    Background="#111" Foreground="{StaticResource Brush_SoftText}" BorderThickness="0"
+                                    Width="27" Height="25" FontSize="16" Cursor="Hand" Margin="0,0,3,0">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}" CornerRadius="3">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                            <TextBlock x:Name="TxtZoomLevel" Text="100%"
+                                       Foreground="#555" FontSize="10"
+                                       VerticalAlignment="Center" Margin="0,0,3,0"
+                                       MinWidth="34" TextAlignment="Center"/>
+                            <Button Content="+" Click="BtnZoomIn_Click"
+                                    Background="#111" Foreground="{StaticResource Brush_SoftText}" BorderThickness="0"
+                                    Width="27" Height="25" FontSize="16" Cursor="Hand">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}" CornerRadius="3">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <Popup x:Name="PinsContextPopup" StaysOpen="False" AllowsTransparency="True" Placement="MousePoint">
+            <Border Background="#1e1e1e" BorderBrush="#333" BorderThickness="1" CornerRadius="6" Padding="4">
+                <Border.Effect><DropShadowEffect BlurRadius="10" ShadowDepth="3" Opacity="0.6"/></Border.Effect>
+                <StackPanel MinWidth="200">
+                    <Border Background="#141414" BorderBrush="#2a2a2a" BorderThickness="1" CornerRadius="4" Margin="0,0,0,4">
+                        <Grid>
+                            <TextBox x:Name="TxtPinsSearch" Style="{StaticResource Style.CtxSearchBox}"
+                                     TextChanged="TxtPinsSearch_TextChanged"/>
+                            <TextBlock x:Name="TxtPinsSearchHint" Text="🔍 search favourites…"
+                                       Foreground="#333" FontSize="13" VerticalAlignment="Center"
+                                       Margin="8,0,0,0" IsHitTestVisible="False"/>
+                        </Grid>
+                    </Border>
+                    <Separator Background="#333" Margin="4,2"/>
+                    <Button Content="▲  Move Up"           Click="CtxPinMoveUp_Click"           Style="{StaticResource Style.CtxBtn}"/>
+                    <Button Content="▼  Move Down"         Click="CtxPinMoveDown_Click"          Style="{StaticResource Style.CtxBtn}"/>
+                    <Separator Background="#333" Margin="4,2"/>
+                    <Button Content="✎  Rename"            Click="CtxPinRename_Click"            Style="{StaticResource Style.CtxBtn}"/>
+                    <Button Content="🌐  Change Website"   Click="CtxPinChangeWebsite_Click"     Style="{StaticResource Style.CtxBtn}"/>
+                    <Button Content="🏷  Change Category"  Click="CtxPinChangeCategory_Click"    Style="{StaticResource Style.CtxBtn}"/>
+                    <Button Content="🖼  Set Icon"         Click="CtxPinSetIcon_Click"           Style="{StaticResource Style.CtxBtn}" Foreground="#AADDFF"/>
+                    <Separator Background="#333" Margin="4,2"/>
+                    <TextBlock Text="CATEGORIES" Foreground="#444" FontSize="10" FontWeight="Bold" Margin="8,4,0,2"/>
+                    <Button Content="🗂  Add Category"     Click="CtxPinAddCategory_Click"       Style="{StaticResource Style.CtxBtn}"/>
+                    <Button Content="✎  Rename Category"  Click="CtxPinRenameCategory_Click"    Style="{StaticResource Style.CtxBtn}"/>
+                    <Button Content="🗑  Delete Category" Click="CtxPinDeleteCategory_Click"
+                            Style="{StaticResource Style.CtxBtn}" Foreground="{StaticResource Brush.Alert}"/>
+                    <Separator Background="#333" Margin="4,2"/>
+                    <Button Content="🗑  Remove Pin"      Click="BtnRemovePin_Click"
+                            Style="{StaticResource Style.CtxBtn}" Foreground="{StaticResource Brush.Alert}"/>
+                    <Separator Background="#333" Margin="4,2"/>
+                    <Button Content="🔖  Send to Bookmarks" Click="CtxPinSendToBookmarks_Click"
+                            Style="{StaticResource Style.CtxBtn}" Foreground="#AADDAA"/>
+                </StackPanel>
+            </Border>
+        </Popup>
+
+        <Popup x:Name="BookmarksContextPopup" StaysOpen="False" AllowsTransparency="True" Placement="MousePoint">
+            <Border Background="#1e1e1e" BorderBrush="#333" BorderThickness="1" CornerRadius="6" Padding="4">
+                <Border.Effect><DropShadowEffect BlurRadius="10" ShadowDepth="3" Opacity="0.6"/></Border.Effect>
+                <StackPanel MinWidth="200">
+                    <Border Background="#141414" BorderBrush="#2a2a2a" BorderThickness="1" CornerRadius="4" Margin="0,0,0,4">
+                        <Grid>
+                            <TextBox x:Name="TxtBookmarksSearch" Style="{StaticResource Style.CtxSearchBox}"
+                                     TextChanged="TxtBookmarksSearch_TextChanged"/>
+                            <TextBlock x:Name="TxtBookmarksSearchHint" Text="🔍 search bookmarks…"
+                                       Foreground="#333" FontSize="13" VerticalAlignment="Center"
+                                       Margin="8,0,0,0" IsHitTestVisible="False"/>
+                        </Grid>
+                    </Border>
+                    <Separator Background="#333" Margin="4,2"/>
+                    <Button Content="🔗  Open"             Click="BtnBookmarkOpen_Click"         Style="{StaticResource Style.CtxBtn}"/>
+                    <Button Content="📋  Copy URL"         Click="BtnBookmarkCopy_Click"         Style="{StaticResource Style.CtxBtn}"/>
+                    <Separator Background="#333" Margin="4,2"/>
+                    <TextBlock Text="SORT BY" Foreground="#444" FontSize="10" FontWeight="Bold" Margin="8,4,0,2"/>
+                    <Button Content="📅  By Date"          Click="CtxBmSortDate_Click"           Style="{StaticResource Style.CtxBtn}"/>
+                    <Button Content="🔤  By Name"          Click="CtxBmSortName_Click"           Style="{StaticResource Style.CtxBtn}"/>
+                    <Button Content="🌐  By Domain"        Click="CtxBmSortDomain_Click"         Style="{StaticResource Style.CtxBtn}"/>
+                    <Separator Background="#333" Margin="4,2"/>
+                    <Button Content="➕  Add New Bookmark"  Click="CtxBmAddNew_Click"
+                            Style="{StaticResource Style.CtxBtn}" Foreground="#AAAADD"/>
+                    <Button Content="💾  Export Bookmarks"  Click="CtxBmExport_Click"
+                            Style="{StaticResource Style.CtxBtn}" Foreground="#AAAADD"/>
+                    <Separator Background="#333" Margin="4,2"/>
+                    <Button Content="🗑  Remove"           Click="BtnBookmarkDelete_Click"
+                            Style="{StaticResource Style.CtxBtn}" Foreground="{StaticResource Brush.Alert}"/>
+                    <Separator Background="#333" Margin="4,2"/>
+                    <Button Content="⭐  Send to Favourites" Click="CtxBmSendToFavourites_Click"
+                            Style="{StaticResource Style.CtxBtn}" Foreground="#AADDAA"/>
+                </StackPanel>
+            </Border>
+        </Popup>
+
+        <Popup x:Name="HistoryContextPopup" StaysOpen="False" AllowsTransparency="True" Placement="MousePoint">
+            <Border Background="#1e1e1e" BorderBrush="#333" BorderThickness="1" CornerRadius="6" Padding="4">
+                <Border.Effect><DropShadowEffect BlurRadius="10" ShadowDepth="3" Opacity="0.6"/></Border.Effect>
+                <StackPanel MinWidth="200">
+                    <Border Background="#141414" BorderBrush="#2a2a2a" BorderThickness="1" CornerRadius="4" Margin="0,0,0,4">
+                        <Grid>
+                            <TextBox x:Name="TxtHistorySearch" Style="{StaticResource Style.CtxSearchBox}"
+                                     TextChanged="TxtHistorySearch_TextChanged"/>
+                            <TextBlock x:Name="TxtHistorySearchHint" Text="🔍 search history…"
+                                       Foreground="#333" FontSize="13" VerticalAlignment="Center"
+                                       Margin="8,0,0,0" IsHitTestVisible="False"/>
+                        </Grid>
+                    </Border>
+                    <Separator Background="#333" Margin="4,2"/>
+                    <Button Content="🔗  Open"             Click="BtnHistoryOpen_Click"          Style="{StaticResource Style.CtxBtn}"/>
+                    <Button Content="📋  Copy URL"         Click="BtnHistoryCopy_Click"          Style="{StaticResource Style.CtxBtn}"/>
+                    <Separator Background="#333" Margin="4,2"/>
+                    <TextBlock Text="SORT BY" Foreground="#444" FontSize="10" FontWeight="Bold" Margin="8,4,0,2"/>
+                    <Button Content="📅  By Date"          Click="CtxHistSortDate_Click"         Style="{StaticResource Style.CtxBtn}"/>
+                    <Button Content="🔤  By Title"         Click="CtxHistSortTitle_Click"        Style="{StaticResource Style.CtxBtn}"/>
+                    <Button Content="🌐  By Domain"        Click="CtxHistSortDomain_Click"       Style="{StaticResource Style.CtxBtn}"/>
+                    <Separator Background="#333" Margin="4,2"/>
+                    <Button Content="🗑  Delete Entry"     Click="BtnHistoryDelete_Click"
+                            Style="{StaticResource Style.CtxBtn}" Foreground="{StaticResource Brush.Alert}"/>
+                </StackPanel>
+            </Border>
+        </Popup>
+
+        <!-- Active download right-click popup -->
+        <Popup x:Name="DlContextPopup" StaysOpen="False" AllowsTransparency="True" Placement="MousePoint">
+            <Border Background="#1e1e1e" BorderBrush="#333" BorderThickness="1" CornerRadius="6" Padding="4">
+                <Border.Effect><DropShadowEffect BlurRadius="10" ShadowDepth="3" Opacity="0.6"/></Border.Effect>
+                <StackPanel MinWidth="190">
+                    <Button Content="📂  Show in Folder"  Click="DlCtxShowFolder_Click" Style="{StaticResource Style.CtxBtn}"/>
+                    <Button Content="🔗  Copy Link"        Click="DlCtxCopyLink_Click"   Style="{StaticResource Style.CtxBtn}"/>
+                    <Separator Background="#333" Margin="4,2"/>
+                    <Button Content="✕  Dismiss"           Click="DlCtxDismiss_Click"
+                            Style="{StaticResource Style.CtxBtn}" Foreground="{StaticResource Brush.Alert}"/>
+                </StackPanel>
+            </Border>
+        </Popup>
+
+        <!-- FIX: Added BtnCtxPinLocation button that was referenced in code-behind but missing from XAML -->
+        <Popup x:Name="FluxContextPopup" StaysOpen="False" AllowsTransparency="True" Placement="MousePoint">
+            <Border Background="#1e1e1e" BorderBrush="#333" BorderThickness="1" CornerRadius="6" Padding="4">
+                <Border.Effect><DropShadowEffect BlurRadius="10" ShadowDepth="3" Opacity="0.6"/></Border.Effect>
+                <StackPanel MinWidth="200">
+                    <Border Background="#141414" BorderBrush="#2a2a2a" BorderThickness="1" CornerRadius="4" Margin="0,0,0,4">
+                        <Grid>
+                            <TextBox x:Name="TxtFluxSearch" Style="{StaticResource Style.CtxSearchBox}"
+                                     TextChanged="TxtFluxSearch_TextChanged"/>
+                            <TextBlock x:Name="TxtFluxSearchHint" Text="🔍 search downloads…"
+                                       Foreground="#333" FontSize="13" VerticalAlignment="Center"
+                                       Margin="8,0,0,0" IsHitTestVisible="False"/>
+                        </Grid>
+                    </Border>
+                    <Separator Background="#333" Margin="4,2"/>
+                    <Button Content="ℹ  File Info"         Click="CtxFileInfo_Click"             Style="{StaticResource Style.CtxBtn}"/>
+                    <Button Content="📂  Show in Folder"   Click="BtnFluxFolder_Click"           Style="{StaticResource Style.CtxBtn}"/>
+                    <Button Content="🖥  Browse Files…"    Click="CtxBrowseFiles_Click"          Style="{StaticResource Style.CtxBtn}"/>
+                    <Button Content="▶  Open"              Click="BtnFluxOpen_Click"             Style="{StaticResource Style.CtxBtn}"/>
+                    <Button Content="👁  Preview"          Click="CtxPreview_Click"              Style="{StaticResource Style.CtxBtn}" Foreground="#AADDFF"/>
+                    <!-- Pin current folder location -->
+                    <Separator x:Name="SepPinLocation" Background="#333" Margin="4,2" Visibility="Collapsed"/>
+                    <Button x:Name="BtnCtxPinLocation"
+                            Content="📌  Pin This Location"
+                            Click="CtxPinLocation_Click"
+                            Style="{StaticResource Style.CtxBtn}"
+                            Foreground="#AADDAA"
+                            Visibility="Collapsed"/>
+                    <!-- Copy / Cut / Paste -->
+                    <Separator Background="#333" Margin="4,2"/>
+                    <Button Content="📋  Copy"              Click="CtxCopy_Click"                 Style="{StaticResource Style.CtxBtn}"/>
+                    <Button Content="✂  Cut"               Click="CtxCut_Click"                  Style="{StaticResource Style.CtxBtn}"/>
+                    <Button x:Name="BtnCtxPaste"
+                            Content="📌  Paste"
+                            Click="CtxPaste_Click"
+                            Style="{StaticResource Style.CtxBtn}"
+                            Foreground="#AADDAA"
+                            Visibility="Collapsed"/>
+                    <!-- Archive extraction — only shown when an archive is right-clicked -->
+                    <Separator x:Name="SepExtractHere" Background="#333" Margin="4,2" Visibility="Collapsed"/>
+                    <Button x:Name="BtnCtxExtractHere"
+                            Content="📦  Extract Here"
+                            Click="CtxExtractHere_Click"
+                            Style="{StaticResource Style.CtxBtn}"
+                            Foreground="#AADDAA"
+                            Visibility="Collapsed"/>
+                    <Separator Background="#333" Margin="4,2"/>
+                    <TextBlock Text="SORT BY" Foreground="#444" FontSize="10" FontWeight="Bold" Margin="8,4,0,2"/>
+                    <Button Content="📅  By Date"          Click="CtxSortDate_Click"             Style="{StaticResource Style.CtxBtn}"/>
+                    <Button Content="🔤  By Name"          Click="CtxSortName_Click"             Style="{StaticResource Style.CtxBtn}"/>
+                    <Button Content="📦  By Size"          Click="CtxSortSize_Click"             Style="{StaticResource Style.CtxBtn}"/>
+                    <Separator Background="#333" Margin="4,2"/>
+                    <Button Content="🗑  Delete File"      Click="BtnFluxDelete_Click"
+                            Style="{StaticResource Style.CtxBtn}" Foreground="{StaticResource Brush.Alert}"/>
+                </StackPanel>
+            </Border>
+        </Popup>
+
+        <Popup x:Name="ExtContextPopup" StaysOpen="False" AllowsTransparency="True" Placement="MousePoint">
+            <Border Background="#1e1e1e" BorderBrush="#333" BorderThickness="1" CornerRadius="6" Padding="4">
+                <Border.Effect><DropShadowEffect BlurRadius="10" ShadowDepth="3" Opacity="0.6"/></Border.Effect>
+                <StackPanel MinWidth="200">
+                    <Border Background="#141414" BorderBrush="#2a2a2a" BorderThickness="1" CornerRadius="4" Margin="0,0,0,4">
+                        <Grid>
+                            <TextBox x:Name="TxtExtSearch" Style="{StaticResource Style.CtxSearchBox}"
+                                     TextChanged="TxtExtSearch_TextChanged"/>
+                            <TextBlock x:Name="TxtExtSearchHint" Text="🔍 search extensions…"
+                                       Foreground="#333" FontSize="13" VerticalAlignment="Center"
+                                       Margin="8,0,0,0" IsHitTestVisible="False"/>
+                        </Grid>
+                    </Border>
+                    <Separator Background="#333" Margin="4,2"/>
+                    <Button Content="⚡  Toggle On / Off" Click="CtxExtToggle_Click"            Style="{StaticResource Style.CtxBtn}"/>
+                    <Button Content="🧩  Open Extension"  Click="CtxExtOpen_Click"              Style="{StaticResource Style.CtxBtn}" Foreground="#AADDAA"/>
+                    <Separator Background="#333" Margin="4,2"/>
+                    <TextBlock Text="SORT BY" Foreground="#444" FontSize="10" FontWeight="Bold" Margin="8,4,0,2"/>
+                    <Button Content="🔤  By Name"          Click="CtxExtSortName_Click"          Style="{StaticResource Style.CtxBtn}"/>
+                    <Button Content="⚡  By State"        Click="CtxExtSortState_Click"         Style="{StaticResource Style.CtxBtn}"/>
+                    <Button Content="📦  By Source"        Click="CtxExtSortSource_Click"        Style="{StaticResource Style.CtxBtn}"/>
+                    <Separator Background="#333" Margin="4,2"/>
+                    <Button Content="🗑  Uninstall"       Click="CtxExtUninstall_Click"
+                            Style="{StaticResource Style.CtxBtn}" Foreground="{StaticResource Brush.Alert}"/>
+                </StackPanel>
+            </Border>
+        </Popup>
+
+        <Grid x:Name="OverlayFileInfo" Background="#CC000000"
+              Visibility="Collapsed" Grid.RowSpan="2" Panel.ZIndex="101">
+            <Border Background="#151515" BorderBrush="#333" BorderThickness="1" CornerRadius="8"
+                    VerticalAlignment="Center" HorizontalAlignment="Center"
+                    Width="260" Padding="16" Margin="10">
+                <Border.Effect><DropShadowEffect BlurRadius="16" ShadowDepth="4" Opacity="0.7"/></Border.Effect>
+                <StackPanel>
+                    <Grid Margin="0,0,0,10">
+                        <TextBlock Text="FILE INFO" Foreground="#00FF00" FontWeight="Bold" FontSize="12"/>
+                        <Button Content="✕" Click="BtnCloseFileInfo_Click"
+                                HorizontalAlignment="Right" Background="Transparent"
+                                Foreground="#555" BorderThickness="0"
+                                Width="23" Height="23" FontSize="12" Cursor="Hand"/>
+                    </Grid>
+                    <TextBlock x:Name="TxtFileInfoName" Foreground="#EEE" FontSize="13" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,0,0,6"/>
+                    <TextBlock x:Name="TxtFileInfoSize" Foreground="{StaticResource Brush_SoftText}" FontSize="12" TextWrapping="Wrap" Margin="0,2"/>
+                    <TextBlock x:Name="TxtFileInfoDate" Foreground="{StaticResource Brush_SoftText}" FontSize="12" TextWrapping="Wrap" Margin="0,2"/>
+                    <TextBlock x:Name="TxtFileInfoType" Foreground="{StaticResource Brush_SoftText}" FontSize="12" TextWrapping="Wrap" Margin="0,2"/>
+                    <TextBlock x:Name="TxtFileInfoPath" Foreground="#555" FontSize="10"  TextWrapping="Wrap" Margin="0,6,0,0"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <Grid x:Name="OverlayRename" Background="#AA000000" Visibility="Collapsed" Grid.RowSpan="3">
+            <Border Background="#151515" BorderBrush="#333" BorderThickness="1" CornerRadius="8"
+                    VerticalAlignment="Center" HorizontalAlignment="Center" Width="220" Padding="15">
+                <StackPanel>
+                    <TextBlock Text="RENAME SHORTCUT" Foreground="{StaticResource Brush.Neon}"
+                               FontWeight="Bold" FontSize="12" Margin="0,0,0,10"/>
+                    <TextBox x:Name="TxtRenameInput" Background="#222" Foreground="White"
+                             BorderThickness="0" Height="30" VerticalContentAlignment="Center" Padding="5,0"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+                        <Button Content="CANCEL" Click="BtnCancelRename_Click"
+                                Style="{StaticResource Style_StealthButton}" Width="60" Height="25" Margin="0,0,5,0"/>
+                        <Button Content="SAVE" Click="BtnSaveRename_Click"
+                                Background="{StaticResource Brush.Neon}" Foreground="Black"
+                                FontWeight="Bold" Width="60" Height="25">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" CornerRadius="2">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <Grid x:Name="OverlayChangeCategory" Background="#AA000000" Visibility="Collapsed" Grid.RowSpan="3" Panel.ZIndex="102">
+            <Border Background="#151515" BorderBrush="#333" BorderThickness="1" CornerRadius="8"
+                    VerticalAlignment="Center" HorizontalAlignment="Center" Width="240" Padding="15">
+                <StackPanel>
+                    <TextBlock Text="CHANGE CATEGORY" Foreground="{StaticResource Brush.Neon}"
+                               FontWeight="Bold" FontSize="12" Margin="0,0,0,10"/>
+                    <TextBlock Text="Current pin:" Foreground="#666" FontSize="10" Margin="0,0,0,4"/>
+                    <TextBlock x:Name="TxtChangeCatPinName" Foreground="#EEE" FontSize="13"
+                               FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,0,0,10"/>
+                    <TextBlock Text="Select category:" Foreground="#666" FontSize="10" Margin="0,0,0,4"/>
+                    <ListBox x:Name="ListChangeCatOptions"
+                             Background="#1a1a1a" BorderBrush="#333" BorderThickness="1"
+                             Foreground="{StaticResource Brush_SoftText}" FontSize="13" MaxHeight="160"
+                             SelectionChanged="ListChangeCatOptions_SelectionChanged"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+                        <Button Content="CANCEL" Click="BtnCancelChangeCategory_Click"
+                                Style="{StaticResource Style_StealthButton}" Width="60" Height="25" Margin="0,0,5,0"/>
+                        <Button Content="APPLY" Click="BtnApplyChangeCategory_Click"
+                                Background="{StaticResource Brush.Neon}" Foreground="Black"
+                                FontWeight="Bold" Width="60" Height="25">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" CornerRadius="2">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <Grid x:Name="OverlayCategoryEdit" Background="#AA000000" Visibility="Collapsed" Grid.RowSpan="3" Panel.ZIndex="103">
+            <Border Background="#151515" BorderBrush="#333" BorderThickness="1" CornerRadius="8"
+                    VerticalAlignment="Center" HorizontalAlignment="Center" Width="240" Padding="15">
+                <StackPanel>
+                    <TextBlock x:Name="TxtCategoryEditTitle" Foreground="{StaticResource Brush.Neon}"
+                               FontWeight="Bold" FontSize="12" Margin="0,0,0,10"/>
+                    <TextBox x:Name="TxtCategoryEditInput" Background="#222" Foreground="White"
+                             BorderThickness="0" Height="30" VerticalContentAlignment="Center" Padding="5,0"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+                        <Button Content="CANCEL" Click="BtnCancelCategoryEdit_Click"
+                                Style="{StaticResource Style_StealthButton}" Width="60" Height="25" Margin="0,0,5,0"/>
+                        <Button Content="SAVE" Click="BtnSaveCategoryEdit_Click"
+                                Background="{StaticResource Brush.Neon}" Foreground="Black"
+                                FontWeight="Bold" Width="60" Height="25">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" CornerRadius="2">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+    </Grid>
+</UserControl>
