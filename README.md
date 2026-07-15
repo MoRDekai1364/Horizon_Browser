@@ -1,4 +1,4 @@
-# Horizon Browser
+# Horizon_Browser
 
 A custom WPF/WebView2 browser focused on stealth, speed, and a clean UI.
 
