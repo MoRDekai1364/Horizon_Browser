@@ -18,6 +18,17 @@ A custom WPF/WebView2 browser focused on stealth, speed, and a clean UI.
 
 ---
 
+##Purpose:
+
+A  fingerprint layer — avoiding bot detection where possible 
+
+
+A heavily personalized UX that off-the-shelf browsers don't offer — auto-hide sidebar, sleeping tabs, drag & drop tab management, sidebar categories, adaptive tab switcher layouts, per-tab domain-only titles, etc.
+
+
+Full control over the browsing experience — down to things like custom cookie blocking, media key remapping, and multi-selection tab operations
+
+
 ## Installation
 
 > ⚠️ **Temporarily disabling your antivirus is highly recommended before installation.**
