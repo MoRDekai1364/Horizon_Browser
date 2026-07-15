@@ -1,0 +1,62 @@
+# Terms of Service — Horizon Browser
+
+**Last updated:** 15.07.2026
+
+These Terms of Service ("Terms") govern your use of Horizon Browser (the "Software"), a desktop web browser application developed by MoRDekai1364. By downloading, installing, or using Horizon Browser, you agree to be bound by these Terms. If you do not agree, do not install or use the Software.
+
+## 1. Description of Service
+
+Horizon Browser is a Windows desktop application that provides web browsing functionality along with optional productivity features, including but not limited to notes, a calendar widget, and the ability to connect third-party accounts (such as Google or Microsoft) to sync calendar events and notes/tasks.
+
+## 2. Eligibility
+
+You must be at least 13 years old (or the minimum age of digital consent in your jurisdiction) to use the Software. By using Horizon Browser, you represent that you meet this requirement.
+
+## 3. Third-Party Account Connections
+
+Horizon Browser allows you to voluntarily connect third-party accounts (e.g., Google, Microsoft) to enable optional features such as calendar synchronization and notes/tasks import.
+
+- You authenticate directly with the third-party provider (e.g., Google) using their own official sign-in page. Horizon Browser does not see or store your account password.
+- Access tokens obtained through this process are stored locally on your device and used solely to retrieve and display your calendar events and notes/tasks within the Software, and to optionally push notes/tasks you create back to your account.
+- You may disconnect any connected account at any time from within the Software (Calendar widget → Accounts tab), which removes the locally stored tokens.
+- Your use of connected third-party services remains subject to that provider's own terms of service and privacy policy (e.g., Google's Terms of Service and Privacy Policy).
+
+**Limited Use Disclosure:** Horizon Browser's use and transfer of information received from Google APIs adheres to the [Google API Services User Data Policy](https://developers.google.com/terms/api-services-user-data-policy), including the Limited Use requirements.
+
+## 4. User Responsibilities
+
+You agree to:
+- Use the Software only for lawful purposes.
+- Not attempt to reverse-engineer, decompile, or misuse the Software beyond what is permitted by applicable law.
+- Not use the Software to violate the terms of service of any connected third-party account provider.
+- Maintain the security of your own device and connected account credentials.
+
+## 5. Intellectual Property
+
+The Software, including its design, code, and branding, is the property of [YOUR NAME / COMPANY NAME], except for open-source or third-party components incorporated into it, which remain subject to their own licenses.
+
+## 6. No Warranty
+
+THE SOFTWARE IS PROVIDED "AS IS" AND "AS AVAILABLE," WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR NON-INFRINGEMENT. WE DO NOT GUARANTEE THAT THE SOFTWARE WILL BE ERROR-FREE, SECURE, OR UNINTERRUPTED.
+
+## 7. Limitation of Liability
+
+TO THE MAXIMUM EXTENT PERMITTED BY LAW, [YOUR NAME / COMPANY NAME] SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF DATA, PROFITS, OR REVENUE, ARISING FROM YOUR USE OF (OR INABILITY TO USE) THE SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+
+## 8. Termination
+
+We reserve the right to discontinue or modify the Software, or your access to specific features (including third-party account integrations), at any time without notice.
+
+## 9. Changes to These Terms
+
+We may update these Terms from time to time. Continued use of the Software after changes are posted constitutes acceptance of the revised Terms. The "Last updated" date above will reflect the most recent revision.
+
+## 10. Governing Law
+
+These Terms are governed by the laws of Bulgaria, without regard to its conflict-of-law principles.
+
+## 11. Contact
+
+Questions about these Terms can be directed to: mrdchannel1364@gmail.com or https://feedbackcol-nszemvwz.manus.space/
+
+---
