@@ -29,41 +29,13 @@ A heavily personalized UX that off-the-shelf browsers don't offer — auto-hide 
 Full control over the browsing experience — down to things like custom cookie blocking, media key remapping, and multi-selection tab operations
 
 
-## Installation
-
-> ⚠️ **Temporarily disabling your antivirus is highly recommended before installation.**
-
-### Recommended — Full release zip
-1. Download **`Horizon_Browser_official_release.zip`**
-2. Unarchive to a location of your choice
-3. Launch via the **`Horizon_Browser`** shortcut
-
-### Alternative — Executable only
-1. Download **only** the release files containing **`.exe` and `.pak`**
-2. Make sure they are in the same folder
-3. Run the **`Horizon.START`** shortcut
-   - If the shortcut doesn't work, run directly: `bin/release/Horizon.Stealth.exe`
-
-> ⚠️ The alternative method includes a setup file that may be flagged by some antivirus software.
-
----
-
-## Updating
-
-Before updating to a new version, run **`Update_manager.bat`** and follow the on-screen instructions.
-
----
-
 ## Known Issues
 
 > *The number of ⛔ symbols indicates how soon an issue will be fixed.*
 
 | | Issue |
 |---|---|
-| ⛔ | Secondary installation method may be blocked by antivirus software |
-| ⛔ | Bot detection triggered on some websites (e.g. Claude) due to the custom browser fingerprint |
-| ⛔⛔⛔ | Per-tab language UI switches correctly, but does not change the actual keyboard layout |
-
+| ⛔ | 
 
 ---
 
@@ -74,10 +46,7 @@ Before updating to a new version, run **`Update_manager.bat`** and follow the on
 | | Feature |
 |---|---|
 
-| ⭐⭐ | Automated Chrome Web Store extension install flow |
-| ⭐⭐ | Dedicated installer |
-| ⭐ | Vastly improved customisability |
-
+| ⭐⭐ | A
 ---
 
 ## Recently Added
