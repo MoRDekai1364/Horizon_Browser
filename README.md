@@ -6,6 +6,9 @@ A custom WPF/WebView2 browser focused on stealth, speed, and a clean UI.
 
 **Feedback & contact:** https://feedbackcol-nszemvwz.manus.space/
 
+
+**Privacy policy** https://github.com/MoRDekai1364/Horizon_Browser/blob/official_release/PRIVACY_POLICY.md/
+
 ---
 
 <img width="480" height="270" alt="image" src="https://github.com/user-attachments/assets/f9dac41e-128a-4ce7-97c6-3c05f66a37d5" />
