@@ -1,5 +1,6 @@
 import os
 import sys
+import re
 import json
 import time
 import subprocess
@@ -17,40 +18,65 @@ BRANCH_FOLDER_MAP = {
 }
 
 
-class ProgressBar:
-    def __init__(self, steps):
-        self.steps = steps
-        self.total = len(steps)
-        self.done = 0
-        self.start = time.time()
-        self._render(label="Starting...")
+def ensure_gitignore(directory):
+    gi_path = os.path.join(directory, ".gitignore")
+    entry = "github_push/"
+    existing = ""
+    if os.path.exists(gi_path):
+        with open(gi_path, "r") as f:
+            existing = f.read()
+    if entry not in existing:
+        with open(gi_path, "a") as f:
+            if existing and not existing.endswith("\n"):
+                f.write("\n")
+            f.write(entry + "\n")
 
-    def _render(self, label):
-        pct = int((self.done / self.total) * 100)
-        filled = int((self.done / self.total) * 20)
-        bar = "#" * filled + "." * (20 - filled)
 
-        elapsed = time.time() - self.start
-        if self.done > 0:
-            avg = elapsed / self.done
-            remaining = avg * (self.total - self.done)
-            eta = f"ETA {int(remaining)}s"
+def run_push_with_progress(push_args, directory):
+    process = subprocess.Popen(
+        push_args,
+        cwd=directory,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        bufsize=1,
+    )
+
+    pattern = re.compile(r"(Compressing objects|Writing objects):\s+(\d+)%")
+    start = None
+    output_lines = []
+    buf = ""
+
+    while True:
+        char = process.stdout.read(1)
+        if char == "":
+            if process.poll() is not None:
+                break
+            continue
+        if char in ("\r", "\n"):
+            if buf.strip():
+                output_lines.append(buf)
+                match = pattern.search(buf)
+                if match:
+                    pct = int(match.group(2))
+                    if start is None:
+                        start = time.time()
+                    elapsed = time.time() - start
+                    eta = int((elapsed / pct) * (100 - pct)) if pct > 0 else 0
+                    filled = int(pct / 5)
+                    bar = "#" * filled + "." * (20 - filled)
+                    sys.stdout.write(f"\r[{bar}] {pct:3d}%  ETA {eta:>3}s  Pushing...       ")
+                    sys.stdout.flush()
+            buf = ""
         else:
-            eta = "ETA --s"
+            buf += char
 
-        sys.stdout.write(f"\r[{bar}] {pct:3d}%  {eta}  {label:<30}")
-        sys.stdout.flush()
-
-    def step(self, label):
-        self._render(label)
-
-    def advance(self):
-        self.done += 1
-        label = self.steps[self.done - 1] if self.done <= self.total else "Done"
-        self._render(label)
-        if self.done >= self.total:
-            sys.stdout.write("\n")
-            sys.stdout.flush()
+    sys.stdout.write("\n")
+    returncode = process.wait()
+    if returncode != 0:
+        print("ERROR running git push")
+        print("\n".join(output_lines[-25:]))
+        sys.exit(1)
 
 
 def kill_running_instances():
@@ -236,14 +262,15 @@ def ensure_repo_mode(cfg):
         print("Repo initialized. Local folder content will overwrite the remote branch on push.")
 
 
-def do_push(cfg, bar):
+def do_push(cfg):
     directory = cfg["directory"]
     branch = cfg["branch"]
     token = cfg["token"]
     repo_path = cfg["repo_path"]
 
+    ensure_gitignore(directory)
+
     run_git(["git", "add", "."], directory)
-    bar.advance()
 
     msg = input("Commit message [Automated update via push script]: ").strip()
     if not msg:
@@ -254,41 +281,31 @@ def do_push(cfg, bar):
     )
     if commit.returncode != 0:
         if "nothing to commit" in (commit.stdout + commit.stderr).lower():
-            print("\nNothing to commit — working tree clean.")
+            print("Nothing to commit — working tree clean.")
         else:
             print(commit.stderr.strip())
             sys.exit(1)
-    bar.advance()
 
     push_url = f"https://{token}@github.com/{repo_path}.git"
-    push_args = ["git", "push", push_url, f"HEAD:{branch}"]
+    push_args = ["git", "push", "--progress", push_url, f"HEAD:{branch}"]
     if cfg.get("no_git_mode") == "override":
         push_args.insert(2, "--force")
-    run_git(push_args, directory)
+
+    run_push_with_progress(push_args, directory)
     print(f"Pushed to branch '{branch}'.")
 
 
 def main():
-    cfg_existing = os.path.exists(CONFIG_FILE)
-
-    steps = ["Closing running instances", "Loading configuration",
-             "Preparing repository", "Staging changes", "Committing", "Pushing"]
-    bar = ProgressBar(steps)
-
     kill_running_instances()
-    bar.advance()
 
-    if cfg_existing:
+    if os.path.exists(CONFIG_FILE):
         cfg = load_config()
         cfg = subsequent_run(cfg)
     else:
         cfg = first_run_setup()
-    bar.advance()
 
     ensure_repo_mode(cfg)
-    bar.advance()
-
-    do_push(cfg, bar)
+    do_push(cfg)
 
 
 if __name__ == "__main__":
