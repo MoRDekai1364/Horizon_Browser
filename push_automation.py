@@ -1,6 +1,7 @@
 import os
 import sys
 import json
+import time
 import subprocess
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -14,6 +15,42 @@ BRANCH_FOLDER_MAP = {
     "development_version_beta": "beta",
     "Horizon_Browser_official_release": "official_release",
 }
+
+
+class ProgressBar:
+    def __init__(self, steps):
+        self.steps = steps
+        self.total = len(steps)
+        self.done = 0
+        self.start = time.time()
+        self._render(label="Starting...")
+
+    def _render(self, label):
+        pct = int((self.done / self.total) * 100)
+        filled = int((self.done / self.total) * 20)
+        bar = "#" * filled + "." * (20 - filled)
+
+        elapsed = time.time() - self.start
+        if self.done > 0:
+            avg = elapsed / self.done
+            remaining = avg * (self.total - self.done)
+            eta = f"ETA {int(remaining)}s"
+        else:
+            eta = "ETA --s"
+
+        sys.stdout.write(f"\r[{bar}] {pct:3d}%  {eta}  {label:<30}")
+        sys.stdout.flush()
+
+    def step(self, label):
+        self._render(label)
+
+    def advance(self):
+        self.done += 1
+        label = self.steps[self.done - 1] if self.done <= self.total else "Done"
+        self._render(label)
+        if self.done >= self.total:
+            sys.stdout.write("\n")
+            sys.stdout.flush()
 
 
 def kill_running_instances():
@@ -199,15 +236,14 @@ def ensure_repo_mode(cfg):
         print("Repo initialized. Local folder content will overwrite the remote branch on push.")
 
 
-def do_push(cfg):
+def do_push(cfg, bar):
     directory = cfg["directory"]
     branch = cfg["branch"]
     token = cfg["token"]
     repo_path = cfg["repo_path"]
 
-    ensure_repo_mode(cfg)
-
     run_git(["git", "add", "."], directory)
+    bar.advance()
 
     msg = input("Commit message [Automated update via push script]: ").strip()
     if not msg:
@@ -218,12 +254,11 @@ def do_push(cfg):
     )
     if commit.returncode != 0:
         if "nothing to commit" in (commit.stdout + commit.stderr).lower():
-            print("Nothing to commit — working tree clean.")
+            print("\nNothing to commit — working tree clean.")
         else:
             print(commit.stderr.strip())
             sys.exit(1)
-    else:
-        print(commit.stdout.strip())
+    bar.advance()
 
     push_url = f"https://{token}@github.com/{repo_path}.git"
     push_args = ["git", "push", push_url, f"HEAD:{branch}"]
@@ -234,15 +269,26 @@ def do_push(cfg):
 
 
 def main():
+    cfg_existing = os.path.exists(CONFIG_FILE)
+
+    steps = ["Closing running instances", "Loading configuration",
+             "Preparing repository", "Staging changes", "Committing", "Pushing"]
+    bar = ProgressBar(steps)
+
     kill_running_instances()
+    bar.advance()
 
-    cfg = load_config()
-    if cfg is None:
-        cfg = first_run_setup()
-    else:
+    if cfg_existing:
+        cfg = load_config()
         cfg = subsequent_run(cfg)
+    else:
+        cfg = first_run_setup()
+    bar.advance()
 
-    do_push(cfg)
+    ensure_repo_mode(cfg)
+    bar.advance()
+
+    do_push(cfg, bar)
 
 
 if __name__ == "__main__":
