@@ -1,0 +1,10 @@
++ reordered the settings menu
++ renamed settings window tabs
++ increased settings window text font and made it bold
++ added min/max/close buttons to the settings window
++ made the settings window movable
++ added optional splash screen on startup (turned on by default)
++ improved media player widget multitasking behavior. added controls
++ added rigth click taskbar controls for the independent media player widget
++ improved image and video download
++ improved notes link handling, added tickboxes and numberings

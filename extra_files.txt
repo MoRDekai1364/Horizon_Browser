@@ -1,0 +1,2 @@
+version.txt
+LICENSE.txt

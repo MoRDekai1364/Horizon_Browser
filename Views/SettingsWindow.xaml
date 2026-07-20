@@ -1,0 +1,867 @@
+<Window x:Class="Horizon.Stealth.Views.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"
+        mc:Ignorable="po"
+        Title="Horizon Configuration" MinWidth="700"
+        SizeToContent="WidthAndHeight"
+        WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
+        Loaded="SettingsWindow_Loaded"
+        Background="{DynamicResource Brush_DeepBackground}"
+        WindowStyle="None" BorderBrush="{DynamicResource Brush_Accent}" BorderThickness="1">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                
+            </ResourceDictionary.MergedDictionaries>
+
+            <SolidColorBrush x:Key="Brush_SoftText" Color="#EAEAEA" po:Freeze="False"/>
+
+            <Style TargetType="ToolTip">
+                <Setter Property="Background" Value="#222"/>
+                <Setter Property="Foreground" Value="#DDD"/>
+                <Setter Property="BorderBrush" Value="#444"/>
+                <Setter Property="BorderThickness" Value="1"/>
+            </Style>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Grid Margin="32">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Grid x:Name="TitleBarRow" VerticalAlignment="Top" MouseLeftButtonDown="TitleBarRow_MouseLeftButtonDown">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="CONFIGURATION //" Foreground="{StaticResource Brush_Accent}" FontSize="20" FontWeight="Bold" VerticalAlignment="Center"/>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Right">
+                <Button Content="🗕" Click="BtnSettingsMinimize_Click" Style="{StaticResource Style_StealthButton}" Width="36" Height="30"/>
+                <Button Content="🗖" Click="BtnSettingsMaximize_Click" Style="{StaticResource Style_StealthButton}" Width="36" Height="30"/>
+                <Button Content="✕" Click="BtnSettingsClose_Click" Style="{StaticResource Style_StealthButton}" Width="36" Height="30"/>
+            </StackPanel>
+        </Grid>
+
+        <TabControl x:Name="TabsMain" Grid.Row="1" Margin="0,02" Background="Transparent" BorderThickness="0"
+                    SelectionChanged="TabsMain_SelectionChanged">
+            <TabControl.Resources>
+                <Style TargetType="TabItem">
+                    <Setter Property="FontSize" Value="16.5"/>
+                    <Setter Property="FontWeight" Value="Bold"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="TabItem">
+                                <Border x:Name="TabBorder" Background="Transparent" CornerRadius="4"
+                                        Padding="12,6" Margin="0,0,4,0">
+                                    <ContentPresenter x:Name="TabHeaderContent" ContentSource="Header"
+                                                      HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                      TextElement.Foreground="{StaticResource Brush_SoftText}"/>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter TargetName="TabBorder" Property="Background" Value="{StaticResource Brush_Accent}"/>
+                                        <Setter TargetName="TabHeaderContent" Property="TextElement.Foreground" Value="Black"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </TabControl.Resources>
+            <TabControl.Template>
+                <ControlTemplate TargetType="TabControl">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <ScrollViewer Grid.Row="0" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled"
+                                      PanningMode="HorizontalOnly">
+                            <TabPanel IsItemsHost="True" Background="Transparent"/>
+                        </ScrollViewer>
+                        <ContentPresenter Grid.Row="1" ContentSource="SelectedContent" Margin="0,4,0,0"/>
+                    </Grid>
+                </ControlTemplate>
+            </TabControl.Template>
+            
+            <TabItem Header="GENERAL">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" PanningMode="VerticalOnly">
+                    <StackPanel Margin="10,10,20,10">
+                        <TextBlock Text="Home Page" Foreground="{StaticResource Brush_Text}"/>
+                        <TextBox x:Name="TxtHome" Height="30" Margin="0,5,0,15" Background="#222" Foreground="White" BorderThickness="0"
+                                 ToolTip="The URL that loads when you open a new tab or the browser starts."/>
+                        
+                        <TextBlock Text="Search Engine" Foreground="{StaticResource Brush_Text}"/>
+                        <ComboBox x:Name="CboSearch" Height="30" Margin="0,5,0,5"
+                                  SelectionChanged="CboSearch_SelectionChanged"
+                                  ToolTip="The search provider used when entering non-URL text in the address bar.">
+                            <ComboBoxItem Content="AlohFind"    Tag="https://alohafind.com/search/?q={query}"/>
+                            <ComboBoxItem Content="DuckDuckGo"  Tag="https://duckduckgo.com/?q={query}"/>
+                            <ComboBoxItem Content="Google"      Tag="https://www.google.com/search?q={query}"/>
+                            <ComboBoxItem Content="Bing"        Tag="https://www.bing.com/search?q={query}"/>
+                            <ComboBoxItem Content="Brave"       Tag="https://search.brave.com/search?q={query}"/>
+                            <ComboBoxItem Content="Ecosia"      Tag="https://www.ecosia.org/search?q={query}"/>
+                            <ComboBoxItem Content="Custom…"     Tag="custom"/>
+                        </ComboBox>
+                        <StackPanel x:Name="PanelCustomSearch" Visibility="Collapsed" Margin="0,0,0,5">
+                            <TextBlock Text="Custom search URL (use {query} as placeholder):" Foreground="#888" FontSize="11" Margin="0,0,0,3"/>
+                            <TextBox x:Name="TxtCustomSearchUrl" Height="30" Background="#222" Foreground="White"
+                                     BorderThickness="0" Padding="8,5"
+                                     ToolTip="e.g. https://example.com/search?q={query}"/>
+                        </StackPanel>
+                        <TextBlock Text=" " Margin="0,0,0,10"/>
+
+                        <TextBlock Text="Default Google Account" Foreground="{StaticResource Brush_Text}"/>
+                        <ComboBox x:Name="CboDefaultGoogleAccount" Height="30" Margin="0,5,0,5"
+                                  ToolTip="The Google account used by default on google.com pages."/>
+                        <TextBlock x:Name="TblDefaultGoogleAccountHint" Text="No Google accounts detected. Visit google.com while logged in to populate this list."
+                                   Foreground="#999" FontSize="10" Margin="0,0,0,10" TextWrapping="Wrap" Visibility="Collapsed"/>
+
+                        <TextBlock Text="Startup" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" Margin="0,15,0,5"/>
+                        <CheckBox x:Name="ChkSessionRestore" Content="Ask to Restore Session" 
+                                  Foreground="{StaticResource Brush_Text}" Margin="0,5"
+                                  ToolTip="Show a prompt to restore previous tabs when the browser opens."/>
+                        <CheckBox x:Name="ChkAutoRestoreSession" Content="Auto-restore previous session on startup"
+                                  Foreground="{StaticResource Brush_Text}" Margin="16,2,0,5"
+                                  ToolTip="Automatically restore the previous session without asking. Requires 'Ask to Restore Session' to be enabled."/>
+                        <CheckBox x:Name="ChkBackgroundKeepAlive" Content="Keep browser alive in background (instant restart)"
+                                  Foreground="{StaticResource Brush_Text}" Margin="0,5"
+                                  ToolTip="Instead of exiting on close, Horizon hides to the system tray. The WebView2 engine stays warm so the next open is near-instant. Right-click the tray icon to fully exit."/>
+                        <CheckBox x:Name="ChkStartOnSystemStartup" Content="Start automatically when Windows starts"
+                                  Foreground="{StaticResource Brush_Text}" Margin="0,5"
+                                  ToolTip="Adds Horizon to your Windows login startup items. Launches hidden in the system tray — click the tray icon to open."/>
+
+                        <TextBlock Text="Maintenance" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" Margin="0,15,0,5"/>
+                        <StackPanel Orientation="Horizontal">
+                            <Button Content="BACKUP &amp; UPDATE" Click="BtnBackupUpdate_Click" 
+                                    Style="{StaticResource Style_StealthButton}" 
+                                    Height="35" HorizontalAlignment="Left" Width="200"
+                                    ToolTip="Runs Update_manager.bat to check for updates and backup project data."/>
+                            <Button x:Name="BtnCheckForUpdates" Content="CHECK FOR UPDATES" Click="BtnCheckForUpdates_Click" 
+                                    Style="{StaticResource Style_StealthButton}" 
+                                    Height="35" HorizontalAlignment="Left" Width="200" Margin="10,0,0,0"
+                                    ToolTip="Checks GitHub for a newer release matching your current update channel."/>
+                        </StackPanel>
+                        <CheckBox x:Name="ChkSilentUpdateCheck" Content="Silently check for updates on startup"
+                                  Foreground="{StaticResource Brush_Text}" Margin="0,10,0,5"
+                                  ToolTip="Checks GitHub for updates in the background when Horizon starts. No popup unless an update is found."/>
+                        <CheckBox x:Name="ChkAutoDownloadUpdates" Content="Automatically download updates when found"
+                                  Foreground="{StaticResource Brush_Text}" Margin="16,2,0,5"
+                                  ToolTip="Downloads the matching update zip to your Downloads folder automatically. Requires silent check to be enabled."/>
+
+                        <TextBlock Text="PDF" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" Margin="0,15,0,5"/>
+                        <TextBlock Text="Reset the remembered choice for how PDFs are opened." Foreground="#AAA" TextWrapping="Wrap" FontSize="11" Margin="0,0,0,6"/>
+                        <Button Content="RESET PDF OPEN PREFERENCE" Click="BtnResetPdfPref_Click"
+                                Style="{StaticResource Style_StealthButton}"
+                                Height="35" HorizontalAlignment="Left" Width="240"
+                                ToolTip="Clears the saved choice so you are asked again next time a PDF is opened."/>
+
+                        <TextBlock Text="System Integration" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" Margin="0,15,0,5"/>
+                        <TextBlock Text="Register Horizon with Windows so it appears in Default Apps settings." Foreground="#AAA" TextWrapping="Wrap" FontSize="11" Margin="0,0,0,6"/>
+                        <Button Content="🌐  SET AS DEFAULT BROWSER" Click="BtnSetDefaultBrowser_Click"
+                                Background="#0D1A0D" Foreground="#00FF00"
+                                BorderBrush="#005500" BorderThickness="1"
+                                Height="35" HorizontalAlignment="Left" Width="230" Cursor="Hand"
+                                ToolTip="Registers Horizon in the Windows registry and opens Default Apps settings.">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="4">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" TextElement.FontWeight="Bold"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="#1A331A"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="VISUALS">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" PanningMode="VerticalOnly">
+                    <StackPanel Margin="10,10,20,10">
+                        <TextBlock Text="Theme" Foreground="{StaticResource Brush_Text}"/>
+                        <ComboBox x:Name="CboTheme" Height="30" Margin="0,5,0,15"
+                                  ToolTip="Select the visual style of the browser interface.">
+                            <ComboBoxItem Content="Horizon (Dark)" Tag="Horizon"/>
+                            <ComboBoxItem Content="Horizon (Light)" Tag="Light"/>
+                            <ComboBoxItem Content="Redmond (Classic)" Tag="Redmond"/>
+                        </ComboBox>
+
+                        <TextBlock Text="Tab Title Display" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" Margin="0,10,0,5"/>
+                        <TextBlock Text="Controls what is shown on each tab label." Foreground="#AAA" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,6"/>
+                        <ComboBox x:Name="CboTabTitleMode" Height="30" Margin="0,0,0,6"
+                                  ToolTip="Full Title shows the complete page title. Domain Only shows just the domain name (e.g. youtube.com).">
+                            <ComboBoxItem Content="Full Title"   Tag="Full"/>
+                            <ComboBoxItem Content="Domain Only"  Tag="DomainOnly"/>
+                        </ComboBox>
+
+                        <TextBlock Text="Visualizer Color Scheme" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" Margin="0,10,0,5"/>
+                        <TextBlock Text="Source used for tab colors when media is playing." Foreground="#AAA" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,6"/>
+                        <ComboBox x:Name="CboVisualizerScheme" Height="30" Margin="0,0,0,6"
+                                  ToolTip="Favicon uses the website's icon. Thumbnail dynamically extracts colors from the active video.">
+                            <ComboBoxItem Content="Website Favicon" Tag="Favicon"/>
+                            <ComboBoxItem Content="Video Thumbnail" Tag="Thumbnail"/>
+                        </ComboBox>
+
+                        <TextBlock Text="Palette Sample Rate" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" Margin="0,10,0,5"/>
+                        <TextBlock Text="How often tab colors refresh during media playback. Lower = more reactive, higher = more stable." Foreground="#AAA" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,6"/>
+                        <Grid Margin="0,4,0,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="52"/>
+                            </Grid.ColumnDefinitions>
+                            <Slider x:Name="SliderPaletteSampleRate" Grid.Column="0"
+                                    Minimum="0.5" Maximum="5.0" TickFrequency="0.1"
+                                    IsSnapToTickEnabled="True" VerticalAlignment="Center"
+                                    Margin="0,0,10,0"
+                                    ValueChanged="SliderPaletteSampleRate_ValueChanged"/>
+                            <TextBlock x:Name="TblPaletteSampleRateValue" Grid.Column="1"
+                                       VerticalAlignment="Center"
+                                       Foreground="{StaticResource Brush_Text}" FontSize="11"
+                                       Text="1.5 s"/>
+                        </Grid>
+
+                        <TextBlock Text="Startup" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" Margin="0,10,0,5"/>
+                        <CheckBox x:Name="ChkStartupVideo" Content="Play animated logo video on startup"
+                                  Foreground="{StaticResource Brush_Text}" Margin="0,0,0,6"
+                                  Checked="ChkStartupVideo_Toggled" Unchecked="ChkStartupVideo_Toggled"
+                                  ToolTip="Plays a video from start_videos\ before the browser window opens. Click, Esc, Space or Enter skips it."/>
+
+                        <StackPanel x:Name="PnlStartupVideoOptions" Margin="18,4,0,0">
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Button x:Name="BtnOpenVideosFolder" Grid.Column="0" Content="Open Videos Folder"
+                                        HorizontalAlignment="Left" Padding="10,4" Margin="0,0,8,0"
+                                        Click="BtnOpenVideosFolder_Click"/>
+                                <Button x:Name="BtnChangeStartupVideo" Grid.Column="1" Content="Add Video..."
+                                        HorizontalAlignment="Left" Padding="10,4"
+                                        Click="BtnChangeStartupVideo_Click"/>
+                            </Grid>
+
+                            <TextBlock Text="Playback mode" Foreground="{StaticResource Brush_Text}" FontSize="11" Margin="0,4,0,2"/>
+                            <RadioButton x:Name="RbVideoModeFixed" Content="Fixed video" GroupName="StartupVideoMode"
+                                         Foreground="{StaticResource Brush_Text}" Margin="0,0,0,4"
+                                         Checked="VideoMode_Changed"/>
+                            <ComboBox x:Name="CboStartupVideoFile" Margin="18,0,0,8" Width="260" HorizontalAlignment="Left"
+                                      SelectionChanged="CboStartupVideoFile_SelectionChanged"/>
+
+                            <RadioButton x:Name="RbVideoModeRandom" Content="Random video every launch" GroupName="StartupVideoMode"
+                                         Foreground="{StaticResource Brush_Text}" Margin="0,0,0,4"
+                                         Checked="VideoMode_Changed"/>
+
+                            <RadioButton x:Name="RbVideoModeCustom" Content="Custom selection" GroupName="StartupVideoMode"
+                                         Foreground="{StaticResource Brush_Text}" Margin="0,0,0,4"
+                                         Checked="VideoMode_Changed"/>
+                            <ListBox x:Name="LstCustomVideos" Margin="18,0,0,6" Width="260" Height="100" HorizontalAlignment="Left"
+                                     SelectionMode="Multiple">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <CheckBox Content="{Binding Name}" IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                                  Checked="CustomVideoCheck_Changed" Unchecked="CustomVideoCheck_Changed"/>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+
+                            <TextBlock Text="Custom selection order" Foreground="{StaticResource Brush_Text}" FontSize="11" Margin="18,0,0,2"/>
+                            <ComboBox x:Name="CboVideoPlayOrder" Margin="18,0,0,0" Width="150" HorizontalAlignment="Left"
+                                      SelectionChanged="CboVideoPlayOrder_SelectionChanged">
+                                <ComboBoxItem Content="Sequential" Tag="Sequential"/>
+                                <ComboBoxItem Content="Random" Tag="Random"/>
+                            </ComboBox>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="INPUT">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" PanningMode="VerticalOnly">
+                    <StackPanel Margin="10,10,20,10">
+                        <CheckBox x:Name="ChkHideHeader" Content="Auto-Hide Header" Foreground="{StaticResource Brush_Text}" Margin="0,10"
+                                  ToolTip="Hides the top navigation bar. Move mouse to top edge to reveal."/>
+                        <CheckBox x:Name="ChkHideSidebar" Content="Auto-Hide Sidebar" Foreground="{StaticResource Brush_Text}" Margin="0,10"
+                                  ToolTip="Hides the right sidebar. Move mouse to right edge to reveal."/>
+
+                        <Rectangle Height="1" Fill="#333" Margin="0,10"/>
+                        <TextBlock Text="Per-Tab Language" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" Margin="0,5,0,5"/>
+                        <TextBlock Text="When enabled, each tab remembers its own Accept-Language. Change a tab's language via its right-click menu." 
+                                   Foreground="#AAA" TextWrapping="Wrap" FontSize="11" Margin="0,0,0,8"/>
+                        <CheckBox x:Name="ChkPerTabLang" Content="Enable per-tab language preference"
+                                  Foreground="{StaticResource Brush_Text}" Margin="0,5"
+                                  ToolTip="Each tab independently tracks its language setting."/>
+                        <TextBlock Text="Default language for new tabs:" Foreground="{StaticResource Brush_Text}" Margin="0,10,0,4"/>
+                        <ComboBox x:Name="CboDefaultLanguage" Height="30" Margin="0,0,0,5"
+                                  ToolTip="Language applied to new tabs. Individual tabs can override this via right-click.">
+                            <ComboBoxItem Content="English"    Tag="en"/>
+                            <ComboBoxItem Content="Deutsch"    Tag="de"/>
+                            <ComboBoxItem Content="Français"   Tag="fr"/>
+                            <ComboBoxItem Content="Español"    Tag="es"/>
+                            <ComboBoxItem Content="Italiano"   Tag="it"/>
+                            <ComboBoxItem Content="Polski"     Tag="pl"/>
+                            <ComboBoxItem Content="Português"  Tag="pt"/>
+                            <ComboBoxItem Content="Русский"    Tag="ru"/>
+                            <ComboBoxItem Content="中文"         Tag="zh"/>
+                            <ComboBoxItem Content="日本語"       Tag="ja"/>
+                            <ComboBoxItem Content="한국어"       Tag="ko"/>
+                        </ComboBox>
+
+                        <Rectangle Height="1" Fill="#333" Margin="0,10"/>
+                        <TextBlock Text="Scroll Speed" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" Margin="0,5,0,5"/>
+                        <TextBlock Text="Controls scroll speed in both the sidebar and WebView pages. 1.07× = Chrome default (recommended). Changes apply after restarting the browser."
+                                   Foreground="#AAA" TextWrapping="Wrap" FontSize="11" Margin="0,0,0,8"/>
+                        <Grid Margin="0,4,0,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="52"/>
+                            </Grid.ColumnDefinitions>
+                            <Slider x:Name="SliderScrollSpeed" Grid.Column="0"
+                                    Minimum="0.25" Maximum="3.0" TickFrequency="0.05"
+                                    IsSnapToTickEnabled="True" VerticalAlignment="Center"
+                                    Margin="0,0,10,0"
+                                    ValueChanged="SliderScrollSpeed_ValueChanged"/>
+                            <TextBlock x:Name="TblScrollSpeedValue" Grid.Column="1"
+                                       VerticalAlignment="Center"
+                                       Foreground="{StaticResource Brush_Text}" FontSize="11"
+                                       Text="1.07×"/>
+                        </Grid>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+            
+             <TabItem Header="CONTENT &amp; EXTENSIONS">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" PanningMode="VerticalOnly">
+                    <StackPanel Margin="10,10,20,10">
+
+                        <TextBlock Text="PRIVACY &amp; BLOCKING" Foreground="{StaticResource Brush_Accent}" FontSize="15" FontWeight="Bold" Margin="0,0,0,12"/>
+
+                        <CheckBox x:Name="ChkStealth" Content="Enable Stealth Mode (Anti-Fingerprinting)" Foreground="{StaticResource Brush_Text}" Margin="0,10"
+                                  ToolTip="Randomizes fingerprinting metrics to reduce tracking."/>
+                        <TextBlock Text="NextDNS ID (Optional)" Foreground="{StaticResource Brush_Text}" Margin="0,10,0,0"/>
+                        <TextBox x:Name="TxtDns" Height="30" Margin="0,5" Background="#222" Foreground="White" BorderThickness="0"
+                                 ToolTip="Enter your NextDNS ID to use encrypted DNS over HTTPS."/>
+
+                        <Rectangle Height="1" Fill="#333" Margin="0,20"/>
+
+                        <TextBlock Text="Content Blocking" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" Margin="0,0,0,10"/>
+                        <CheckBox x:Name="ChkSponsorBlock" Content="Enable SponsorBlock Extension"
+                                  Foreground="{StaticResource Brush_Text}" FontWeight="SemiBold" Margin="0,5,0,5"
+                                  ToolTip="Master switch for the SponsorBlock extension."
+                                  Checked="ChkSponsorBlock_CheckedChanged" Unchecked="ChkSponsorBlock_CheckedChanged"/>
+                        <StackPanel x:Name="PanelSponsorBlockOpts" Margin="25,5,0,0">
+                            <TextBlock Text="Segments to Skip:" Foreground="Gray" FontSize="11" Margin="0,0,0,5"/>
+                            <CheckBox x:Name="ChkSbSponsors"    Content="Sponsors (Paid Promotion)"         Foreground="#DDD" Margin="0,3" ToolTip="Skipping paid product placements."/>
+                            <CheckBox x:Name="ChkSbSelfPromo"   Content="Self-Promotion (Merch/Blogs)"      Foreground="#DDD" Margin="0,3" ToolTip="Skipping 'Check out my store' or 'Buy my book'."/>
+                            <CheckBox x:Name="ChkSbIntro"       Content="Intermission / Intros"             Foreground="#DDD" Margin="0,3" ToolTip="Skipping long intros or animations."/>
+                            <CheckBox x:Name="ChkSbOutro"       Content="Endcards / Credits"                Foreground="#DDD" Margin="0,3" ToolTip="Skipping end credits and 'Thanks for watching'."/>
+                            <CheckBox x:Name="ChkSbInteraction" Content="Interaction Reminders"             Foreground="#DDD" Margin="0,3" ToolTip="Skipping 'Like and Subscribe' begging."/>
+                            <CheckBox x:Name="ChkSbMusic"       Content="Non-Music Sections (Music Videos)" Foreground="#DDD" Margin="0,3" ToolTip="Skipping skits in music videos."/>
+                        </StackPanel>
+
+                        <CheckBox x:Name="ChkHideSponsoredResults" Content="Hide Sponsored Search Results"
+                                  Foreground="{StaticResource Brush_Text}" FontWeight="SemiBold" Margin="0,15,0,5"
+                                  ToolTip="Hides ad/sponsored listings on Google, Bing, DuckDuckGo, Yahoo, Brave, and Ecosia search results."/>
+
+                        <Rectangle Height="2" Fill="{StaticResource Brush_Accent}" Opacity="0.3" Margin="0,28"/>
+
+                        <TextBlock Text="EXTENSIONS" Foreground="{StaticResource Brush_Accent}" FontSize="15" FontWeight="Bold" Margin="0,0,0,12"/>
+
+                        <Grid Margin="0,0,0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Installed Extensions" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" VerticalAlignment="Center"/>
+                            <Button Grid.Column="1" Content="📂 Folder" Click="BtnOpenExtensionsFolder_Click"
+                                    Background="#2a2a2a" Foreground="#CCC" BorderBrush="#555" BorderThickness="1"
+                                    Padding="8,4" Cursor="Hand" ToolTip="Open Extensions install folder in Explorer"/>
+                        </Grid>
+
+                        <TextBlock Foreground="#999" FontSize="10" TextWrapping="Wrap" Margin="0,0,0,10"
+                                   Text="Navigate to the Chrome, Edge, or Firefox extension store in Horizon, open the sidebar → 🧩 tab and click Install. Changes take effect after restart."/>
+
+                        <!-- Code-behind fills this with one card per extension -->
+                        <StackPanel x:Name="PanelInstalledExtensions"/>
+
+                        <Border x:Name="BannerSettingsRestart" Background="#0D1A0D"
+                                BorderBrush="#005500" BorderThickness="1" CornerRadius="5"
+                                Padding="10,7" Margin="0,10,0,0" Visibility="Collapsed">
+                            <TextBlock Text="⚡ Changes will take effect after restarting Horizon."
+                                       Foreground="#00FF00" FontSize="10" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                        </Border>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="IMPORT &amp; SYNC">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" PanningMode="VerticalOnly">
+                    <StackPanel Margin="10,10,20,10">
+
+                        <TextBlock Text="BRING YOUR DATA IN" Foreground="{StaticResource Brush_Accent}" FontSize="15" FontWeight="Bold" Margin="0,0,0,12"/>
+
+                        <TextBlock Text="Bookmarks Import" Foreground="{StaticResource Brush_Accent}" FontSize="14" FontWeight="Bold" Margin="0,0,0,5"/>
+                        <TextBlock Text="Import bookmarks from your default browser (Chrome/Edge)." Foreground="#DDD" TextWrapping="Wrap" Margin="0,0,0,5"/>
+                        <Button Content="IMPORT BOOKMARKS" Click="BtnImportBookmarks_Click" 
+                                Style="{StaticResource Style_StealthButton}" 
+                                Height="35" HorizontalAlignment="Left" Width="200"
+                                ToolTip="Scans default browser paths for bookmarks and adds them to the Bookmarks tab."/>
+
+                        <Rectangle Height="1" Fill="#333" Margin="0,25"/>
+
+                        <TextBlock Text="Vault Import (Passwords)" Foreground="{StaticResource Brush_Accent}" FontSize="14" FontWeight="Bold" Margin="0,0,0,5"/>
+                        <TextBlock Text="Import your saved passwords from other browsers or managers (like Chrome or LastPass)." Foreground="#DDD" TextWrapping="Wrap" Margin="0,0,0,5"/>
+                        <TextBlock Text="• Required File Type: .CSV" Foreground="Gray" FontSize="11" Margin="0,0,0,2"/>
+                        <TextBlock Text="• Format: url, username, password" Foreground="Gray" FontSize="11" Margin="0,0,0,10"/>
+                        
+                        <Button Content="SELECT CSV FILE..." Click="BtnImport_Click" Style="{StaticResource Style_StealthButton}" Height="35" HorizontalAlignment="Left" Width="200"
+                                ToolTip="Browse for a .csv file to import into your secure Vault."/>
+
+                        <Rectangle Height="1" Fill="#333" Margin="0,25"/>
+                    
+                        <TextBlock Text="Session Cookies Sync" Foreground="{StaticResource Brush_Accent}" FontSize="14" FontWeight="Bold" Margin="0,0,0,5"/>
+                        <TextBlock Text="Transfer your logged-in sessions from Chrome or Edge into Horizon — no need to sign in again." Foreground="#DDD" TextWrapping="Wrap" Margin="0,0,0,6"/>
+                        <TextBlock Text="⚠  Close Chrome / Edge before syncing, or the copy may fail." Foreground="#FFAA44" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,12"/>
+
+                        <TextBlock Text="Step 1 — Which browser to copy from?" Foreground="#AAA" FontSize="11" Margin="0,0,0,6"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                            <RadioButton x:Name="RboCookieChrome" Content="Chrome" GroupName="CookieSource" IsChecked="True"
+                                         Foreground="#DDD" Margin="0,0,16,0" VerticalAlignment="Center"/>
+                            <RadioButton x:Name="RboCookieEdge"   Content="Edge"   GroupName="CookieSource"
+                                         Foreground="#DDD" Margin="0,0,16,0" VerticalAlignment="Center"/>
+                            <RadioButton x:Name="RboCookieBoth"   Content="Both"   GroupName="CookieSource"
+                                         Foreground="#DDD" VerticalAlignment="Center"/>
+                        </StackPanel>
+
+                        <TextBlock Text="Step 2 — Which sites to include?" Foreground="#AAA" FontSize="11" Margin="0,0,0,6"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                            <RadioButton x:Name="RboCookieScopeAll"     Content="All sites"        GroupName="CookieScope" IsChecked="True"
+                                         Foreground="#DDD" Margin="0,0,16,0" VerticalAlignment="Center"/>
+                            <RadioButton x:Name="RboCookieScopeCurrent" Content="Current tab only" GroupName="CookieScope"
+                                         Foreground="#DDD" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <TextBlock Text="'Current tab only' is useful when you only need one site (e.g. Gmail) without importing everything." Foreground="#999" FontSize="10" TextWrapping="Wrap" Margin="0,0,0,14"/>
+
+                        <Button x:Name="BtnSyncCookies" Content="SYNC NOW" Click="BtnSyncCookies_Click"
+                                Style="{StaticResource Style_StealthButton}"
+                                Height="35" HorizontalAlignment="Left" Width="140"
+                                ToolTip="Copy session cookies from the selected browser into Horizon. Cookies are saved and restored automatically on every restart."/>
+
+                        <TextBlock x:Name="TblCookieSyncStatus" Text="" Foreground="#888" FontSize="11"
+                                   Margin="0,10,0,0" TextWrapping="Wrap"/>
+
+                        <Rectangle Height="2" Fill="{StaticResource Brush_Accent}" Opacity="0.3" Margin="0,28"/>
+
+                        <TextBlock Text="CONNECTED ACCOUNTS" Foreground="{StaticResource Brush_Accent}" FontSize="15" FontWeight="Bold" Margin="0,0,0,12"/>
+
+                        <TextBlock Text="Google Integration" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" Margin="0,0,0,10"/>
+                        <TextBlock Text="No setup needed — click &quot;Add Google Account&quot; in the Calendar widget → Accounts tab and sign in normally." Foreground="#999" FontSize="10" TextWrapping="Wrap" Margin="0,0,0,20"/>
+
+                        <TextBlock Text="Microsoft Integration" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" Margin="0,0,0,10"/>
+                        <TextBlock Text="Client ID" Foreground="{StaticResource Brush_Text}" FontSize="11" Margin="0,0,0,2"/>
+                        <TextBox x:Name="TxtMicrosoftClientId" Height="30" Margin="0,0,0,4" Background="#222" Foreground="White" BorderThickness="0" Padding="8,5" FontFamily="Consolas" FontSize="11"/>
+                        <TextBlock Text="From portal.azure.com → App registrations (no secret needed). Needed for Calendar sync and OneNote." Foreground="#999" FontSize="10" TextWrapping="Wrap" Margin="0,0,0,20"/>
+
+                        <Rectangle Height="1" Fill="#222" Margin="0,0,0,15"/>
+                        <TextBlock Text="Connected accounts are managed inside the browser in the Calendar widget → Accounts tab." Foreground="#999" FontSize="11" TextWrapping="Wrap"/>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="PERFORMANCE">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" PanningMode="VerticalOnly">
+                    <StackPanel Margin="10,10,20,10">
+                        <TextBlock Text="TAB &amp; MEMORY MANAGEMENT" Foreground="{StaticResource Brush_Accent}" FontSize="15" FontWeight="Bold" Margin="0,0,0,12"/>
+                        <TextBlock Text="Tab Widths" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" Margin="0,0,0,6"/>
+                        <TextBlock Text="All values in pixels. Changes apply after saving and restarting the browser." Foreground="Gray" FontSize="10" TextWrapping="Wrap" Margin="0,0,0,8"/>
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Margin="0,0,5,0">
+                                <TextBlock Text="Default (px)" Foreground="{StaticResource Brush_Text}" FontSize="11"/>
+                                <TextBox x:Name="TxtTabDefaultWidth" Height="30" Background="#222" Foreground="White" BorderThickness="0" Margin="0,5" ToolTip="Standard tab width when the tab bar has room. Range: 90–400."/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Margin="5,0">
+                                <TextBlock Text="Media Tab (px)" Foreground="{StaticResource Brush_Text}" FontSize="11"/>
+                                <TextBox x:Name="TxtTabMediaWidth" Height="30" Background="#222" Foreground="White" BorderThickness="0" Margin="0,5" ToolTip="Minimum width granted to a tab that is playing audio. Range: 90–400."/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Margin="5,0,0,0">
+                                <TextBlock Text="Download Tab (px)" Foreground="{StaticResource Brush_Text}" FontSize="11"/>
+                                <TextBox x:Name="TxtTabDownloadWidth" Height="30" Background="#222" Foreground="White" BorderThickness="0" Margin="0,5" ToolTip="Minimum width granted to a tab with an active download. Range: 90–400."/>
+                            </StackPanel>
+                        </Grid>
+                        <Grid Margin="0,0,0,18">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Margin="0,0,5,0">
+                                <TextBlock Text="Media Hover Width (px)" Foreground="{StaticResource Brush_Text}" FontSize="11"/>
+                                <TextBox x:Name="TxtTabMediaHoverWidth" Height="30" Background="#222" Foreground="White" BorderThickness="0" Margin="0,5" ToolTip="Width a media-playback tab expands to on mouse hover. Range: 120–500."/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Margin="5,0,0,0">
+                                <TextBlock Text="Download Hover Width (px)" Foreground="{StaticResource Brush_Text}" FontSize="11"/>
+                                <TextBox x:Name="TxtTabDownloadHoverWidth" Height="30" Background="#222" Foreground="White" BorderThickness="0" Margin="0,5" ToolTip="Width a download-mode tab expands to on mouse hover. Range: 120–500."/>
+                            </StackPanel>
+                        </Grid>
+                        <Rectangle Height="1" Fill="#333" Margin="0,0,0,18"/>
+
+                        <TextBlock Text="Sleeping Tabs" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" Margin="0,0,0,6"/>
+                        <Grid Margin="0,0,0,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Enable sleeping tabs (auto-suspend idle tabs to free RAM)" Foreground="{StaticResource Brush_Text}" FontSize="11" VerticalAlignment="Center" ToolTip="When disabled, no tabs will ever be auto-suspended."/>
+                            <CheckBox x:Name="ChkSleepingTabsEnabled" Grid.Column="1" VerticalAlignment="Center"/>
+                        </Grid>
+                        <TextBlock Text="Top 5 most-clicked tabs are always protected. Suspending is skipped when RAM is below 2 GB and fewer than 6 tabs are open." Foreground="Gray" FontSize="10" TextWrapping="Wrap" Margin="0,0,0,18"/>
+
+                        <TextBlock Text="Flux Janitor Rules" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" Margin="0,0,0,10"/>
+                        
+                        <Grid Margin="0,0,0,15" ToolTip="Automatically delete downloads based on file size and age.">
+                                <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <StackPanel Grid.Column="0" Margin="0,0,5,0">
+                                <TextBlock Text="Small File (MB)" Foreground="{StaticResource Brush_Text}" FontSize="11"/>
+                                <TextBox x:Name="TxtJanitorSmall" Height="30" Background="#222" Foreground="White" BorderThickness="0" Margin="0,5"/>
+                            </StackPanel>
+                        
+                            <StackPanel Grid.Column="1" Margin="5,0">
+                                <TextBlock Text="Large File (GB)" Foreground="{StaticResource Brush_Text}" FontSize="11"/>
+                                <TextBox x:Name="TxtJanitorLarge" Height="30" Background="#222" Foreground="White" BorderThickness="0" Margin="0,5"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2" Margin="5,0,0,0">
+                                <TextBlock Text="Retention (Min)" Foreground="{StaticResource Brush_Text}" FontSize="11"/>
+                                <TextBox x:Name="TxtJanitorTime" Height="30" Background="#222" Foreground="White" BorderThickness="0" Margin="0,5"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <TextBlock Text="System Health" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" Margin="0,10,0,10"/>
+                        <Button x:Name="BtnNuclear" Content="⚠ EXECUTE PURGE" Click="BtnNuclear_Click" 
+                                Background="#330000" Foreground="#FF3333" BorderBrush="#FF3333" BorderThickness="1"
+                                Height="40" Cursor="Hand"
+                                ToolTip="Forcefully releases RAM from all browser processes. May cause tabs to reload.">
+                            <Button.Template>
+                                 <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="4">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" TextElement.FontWeight="Bold"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                        <TextBlock Text="Forcefully clears Working Sets for all Browser processes." Foreground="Gray" FontSize="11" Margin="0,5"/>
+
+                        </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="DEVELOPER">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" PanningMode="VerticalOnly">
+                    <StackPanel Margin="10,10,20,10">
+                        <TextBlock x:Name="TblVersionDisplay" Text="-----version—" Foreground="#FF2222" FontSize="20" FontWeight="Bold" Margin="0,0,0,8"/>
+
+                        <TextBlock Text="Update Channel" FontWeight="SemiBold" Margin="0,0,0,6"
+                                   Foreground="{StaticResource Brush_Accent}"/>
+                        <ComboBox x:Name="CboUpdateChannel" Width="200" HorizontalAlignment="Left"
+                                  SelectionChanged="CboUpdateChannel_SelectionChanged"
+                                  Margin="0,0,0,18"
+                                  ToolTip="Sets the channel written to version.txt. Determines which release asset matches on update check.">
+                            <ComboBoxItem Content="Official Release" Tag="release"/>
+                            <ComboBoxItem Content="Beta" Tag="beta"/>
+                        </ComboBox>
+
+                        <TextBlock Text="PROJECT TOOLS" Foreground="{StaticResource Brush_Accent}" FontSize="15" FontWeight="Bold" Margin="0,0,0,12"/>
+                        <TextBlock Text="Project Mapping" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" Margin="0,10,0,10"/>
+                        <StackPanel Orientation="Horizontal">
+                            <Button Content="PROJECT MAP" Click="BtnMapProject_Click" 
+                                    Style="{StaticResource Style_StealthButton}" Height="35" Width="140" Margin="0,0,10,0"
+                                    ToolTip="Runs start_mapper.bat to generate a new project structure report."/>
+                             <Button Content="OPEN CURRENT MAP" Click="BtnOpenMap_Click" 
+                                    Style="{StaticResource Style_StealthButton}" Height="35" Width="140"
+                                    ToolTip="Opens the most recently generated project_map text file."/>
+                        </StackPanel>
+
+                        <Rectangle Height="2" Fill="{StaticResource Brush_Accent}" Opacity="0.3" Margin="0,28"/>
+
+                        <TextBlock Text="WINDOW BEHAVIOR" Foreground="{StaticResource Brush_Accent}" FontSize="15" FontWeight="Bold" Margin="0,0,0,12"/>
+                        <TextBlock Text="Narrow Window Behavior" FontWeight="SemiBold" Margin="0,0,0,6"
+                                   Foreground="{StaticResource Brush_Accent}"/>
+                        <ComboBox x:Name="CmbNarrowWindowMode" Width="280" HorizontalAlignment="Left"
+                                  SelectionChanged="CmbNarrowWindowMode_Changed">
+                            <ComboBoxItem Content="Enforce minimum width (refuse to shrink)"/>
+                            <ComboBoxItem Content="Auto mobile header below threshold"/>
+                            <ComboBoxItem Content="Always use compact tab badge"/>
+                        </ComboBox>
+                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                            <TextBlock Text="Width threshold (px):" VerticalAlignment="Center" Margin="0,0,8,0"
+                                       Foreground="{StaticResource Brush_Text}"/>
+                            <TextBox x:Name="TxtNarrowThreshold" Width="80" Text="1270"
+                                     PreviewTextInput="NumericOnly_PreviewTextInput"
+                                     LostFocus="TxtNarrowThreshold_LostFocus"
+                                     Background="#222" Foreground="White" BorderThickness="0" Padding="8,5"/>
+                            <TextBlock Text="  (default 1270 = 66% of 1920px)" Foreground="#999"
+                                       VerticalAlignment="Center" FontSize="10"/>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="HELP &amp; SHORTCUTS">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" PanningMode="VerticalOnly">
+                    <StackPanel Margin="10,10,20,10">
+
+                        <TextBlock Text="Keyboard Shortcuts" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" Margin="0,0,0,10"/>
+
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <Border Background="#1A1A1A" CornerRadius="3" Padding="8,4">
+                                <TextBlock Text="Ctrl + T" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" FontFamily="Consolas"/>
+                            </Border>
+                            <TextBlock Grid.Column="1" Text="Open new tab" Foreground="#DDD" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <Border Background="#1A1A1A" CornerRadius="3" Padding="8,4">
+                                <TextBlock Text="Ctrl + W" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" FontFamily="Consolas"/>
+                            </Border>
+                            <TextBlock Grid.Column="1" Text="Close current tab" Foreground="#DDD" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <Border Background="#1A1A1A" CornerRadius="3" Padding="8,4">
+                                <TextBlock Text="Ctrl + Tab" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" FontFamily="Consolas"/>
+                            </Border>
+                            <TextBlock Grid.Column="1" Text="Switch to next tab (+ Shift = previous)" Foreground="#DDD" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <Border Background="#1A1A1A" CornerRadius="3" Padding="8,4">
+                                <TextBlock Text="F5 / Ctrl + R" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" FontFamily="Consolas"/>
+                            </Border>
+                            <TextBlock Grid.Column="1" Text="Reload current page" Foreground="#DDD" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <Border Background="#1A1A1A" CornerRadius="3" Padding="8,4">
+                                <TextBlock Text="Alt + ← / →" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" FontFamily="Consolas"/>
+                            </Border>
+                            <TextBlock Grid.Column="1" Text="Browser Back / Forward" Foreground="#DDD" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <Border Background="#1A1A1A" CornerRadius="3" Padding="8,4">
+                                <TextBlock Text="F11" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" FontFamily="Consolas"/>
+                            </Border>
+                            <TextBlock Grid.Column="1" Text="Toggle fullscreen mode" Foreground="#DDD" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <Border Background="#1A1A1A" CornerRadius="3" Padding="8,4">
+                                <TextBlock Text="Q" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" FontFamily="Consolas"/>
+                            </Border>
+                            <TextBlock Grid.Column="1" Text="Toggle Picture-in-Picture for the active video" Foreground="#DDD" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <Border Background="#1A1A1A" CornerRadius="3" Padding="8,4">
+                                <TextBlock Text="Alt + Scroll" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" FontFamily="Consolas"/>
+                            </Border>
+                            <TextBlock Grid.Column="1" Text="5× speed scroll boost on any scrollable element" Foreground="#DDD" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
+                        </Grid>
+
+                        <Rectangle Height="1" Fill="#333" Margin="0,15"/>
+                        <TextBlock Text="Tab Management" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" Margin="0,0,0,10"/>
+
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <Border Background="#1A1A1A" CornerRadius="3" Padding="8,4">
+                                <TextBlock Text="Drag tab" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" FontFamily="Consolas"/>
+                            </Border>
+                            <TextBlock Grid.Column="1" Text="Drag a tab left or right to reorder it" Foreground="#DDD" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <Border Background="#1A1A1A" CornerRadius="3" Padding="8,4">
+                                <TextBlock Text="Right-click tab" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" FontFamily="Consolas"/>
+                            </Border>
+                            <TextBlock Grid.Column="1" Text="Opens tab menu: Duplicate, Rename, Change Position, Bring to Top, Set Language" Foreground="#DDD" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <Border Background="#1A1A1A" CornerRadius="3" Padding="8,4">
+                                <TextBlock Text="Change Position" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" FontFamily="Consolas"/>
+                            </Border>
+                            <TextBlock Grid.Column="1" Text="Enter flat position (e.g. 12) or row,col (e.g. 2,3). Row+col takes priority." Foreground="#DDD" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <Border Background="#1A1A1A" CornerRadius="3" Padding="8,4">
+                                <TextBlock Text="Tab Language" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" FontFamily="Consolas"/>
+                            </Border>
+                            <TextBlock Grid.Column="1" Text="Right-click tab → Tab Language to set Accept-Language per tab. Default set in Settings → Input." Foreground="#DDD" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
+                        </Grid>
+
+                        <Rectangle Height="1" Fill="#333" Margin="0,15"/>
+                        <TextBlock Text="Automation" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" Margin="0,0,0,10"/>
+
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <Border Background="#1A1A1A" CornerRadius="3" Padding="8,4">
+                                <TextBlock Text="Auto Consent" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" FontFamily="Consolas"/>
+                            </Border>
+                            <TextBlock Grid.Column="1" Text="Automatically clicks 'Reject All' on cookie consent popups" Foreground="#DDD" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <Border Background="#1A1A1A" CornerRadius="3" Padding="8,4">
+                                <TextBlock Text="SponsorBlock" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" FontFamily="Consolas"/>
+                            </Border>
+                            <TextBlock Grid.Column="1" Text="Auto-skips sponsors, intros, outros, self-promo and interaction reminders on YouTube" Foreground="#DDD" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <Border Background="#1A1A1A" CornerRadius="3" Padding="8,4">
+                                <TextBlock Text="YT Pause Block" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" FontFamily="Consolas"/>
+                            </Border>
+                            <TextBlock Grid.Column="1" Text="Suppresses YouTube's 'Video paused, continue watching?' prompt entirely" Foreground="#DDD" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <Border Background="#1A1A1A" CornerRadius="3" Padding="8,4">
+                                <TextBlock Text="Flux Janitor" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" FontFamily="Consolas"/>
+                            </Border>
+                            <TextBlock Grid.Column="1" Text="Automatically deletes downloads based on size and age rules defined in Advanced settings" Foreground="#DDD" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
+                        </Grid>
+
+                        <Rectangle Height="1" Fill="#333" Margin="0,15"/>
+                        <TextBlock Text="Privacy &amp; Security" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" Margin="0,0,0,10"/>
+
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <Border Background="#1A1A1A" CornerRadius="3" Padding="8,4">
+                                <TextBlock Text="Stealth Mode" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" FontFamily="Consolas"/>
+                            </Border>
+                            <TextBlock Grid.Column="1" Text="Randomizes browser fingerprint metrics to reduce tracking across sites" Foreground="#DDD" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <Border Background="#1A1A1A" CornerRadius="3" Padding="8,4">
+                                <TextBlock Text="NextDNS" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" FontFamily="Consolas"/>
+                            </Border>
+                            <TextBlock Grid.Column="1" Text="Routes DNS through your NextDNS profile for encrypted, ad-free DNS resolution" Foreground="#DDD" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <Border Background="#1A1A1A" CornerRadius="3" Padding="8,4">
+                                <TextBlock Text="Vault" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" FontFamily="Consolas"/>
+                            </Border>
+                            <TextBlock Grid.Column="1" Text="Encrypted local password manager. Import from Chrome/LastPass CSV or add manually" Foreground="#DDD" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
+                        </Grid>
+
+                        <Rectangle Height="1" Fill="#333" Margin="0,15"/>
+                        <TextBlock Text="Interface" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" Margin="0,0,0,10"/>
+
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <Border Background="#1A1A1A" CornerRadius="3" Padding="8,4">
+                                <TextBlock Text="Auto-Hide Header" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" FontFamily="Consolas"/>
+                            </Border>
+                            <TextBlock Grid.Column="1" Text="Hides the top navigation bar. Move mouse to the top edge to reveal it" Foreground="#DDD" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <Border Background="#1A1A1A" CornerRadius="3" Padding="8,4">
+                                <TextBlock Text="Auto-Hide Sidebar" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" FontFamily="Consolas"/>
+                            </Border>
+                            <TextBlock Grid.Column="1" Text="Hides the right sidebar. Move mouse to the right edge to reveal it" Foreground="#DDD" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <Border Background="#1A1A1A" CornerRadius="3" Padding="8,4">
+                                <TextBlock Text="Custom Fav Icons" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" FontFamily="Consolas"/>
+                            </Border>
+                            <TextBlock Grid.Column="1" Text="When editing a favourite, choose a custom icon file. Stored in HorizonData/FavouriteIcons/" Foreground="#DDD" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <Border Background="#1A1A1A" CornerRadius="3" Padding="8,4">
+                                <TextBlock Text="Identity Bridge" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" FontFamily="Consolas"/>
+                            </Border>
+                            <TextBlock Grid.Column="1" Text="Syncs session cookies from Chrome/Edge to fix login issues on sites like Twitch or ChatGPT" Foreground="#DDD" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <Border Background="#1A1A1A" CornerRadius="3" Padding="8,4">
+                                <TextBlock Text="Memory Purge" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" FontFamily="Consolas"/>
+                            </Border>
+                            <TextBlock Grid.Column="1" Text="Forcefully releases RAM from all browser processes. Tabs may reload" Foreground="#DDD" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <Border Background="#1A1A1A" CornerRadius="3" Padding="8,4">
+                                <TextBlock Text="Session Restore" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" FontFamily="Consolas"/>
+                            </Border>
+                            <TextBlock Grid.Column="1" Text="On startup, prompts to reopen tabs from the previous session" Foreground="#DDD" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
+                        </Grid>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+        </TabControl>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="CANCEL" Click="BtnCancel_Click" Style="{StaticResource Style_StealthButton}" Width="100" Height="35" Margin="0,0,10,0"/>
+            <Button Content="SAVE &amp; APPLY" Click="BtnSave_Click" Background="{StaticResource Brush_Accent}" Foreground="Black" FontWeight="Bold" Width="120" Height="35">
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="4">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Button.Template>
+            </Button>
+        </StackPanel>
+    </Grid>
+</Window>

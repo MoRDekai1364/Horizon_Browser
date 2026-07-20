@@ -1,0 +1,29 @@
+<UserControl x:Class="Horizon.Stealth.Controls.Omnibox"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"
+             mc:Ignorable="po">
+    <UserControl.Resources>
+        <ResourceDictionary Source="/Themes/Horizon.xaml"/>
+    </UserControl.Resources>
+
+    <Border Background="{DynamicResource Brush_DeepBackground}" CornerRadius="5" BorderBrush="{DynamicResource Brush_ButtonBorder}" BorderThickness="1">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0" Text="🔒" Foreground="{DynamicResource Brush_Accent}" 
+                       VerticalAlignment="Center" Margin="10,0,5,0" FontSize="14"/>
+
+            <TextBox x:Name="UrlInput" Grid.Column="1"
+                     Background="Transparent" BorderThickness="0"
+                     Foreground="{DynamicResource Brush_Text}" CaretBrush="{DynamicResource Brush_Accent}"
+                     VerticalContentAlignment="Center" FontSize="14"
+                     Padding="5,0"
+                     KeyDown="UrlInput_KeyDown"/>
+        </Grid>
+    </Border>
+</UserControl>

@@ -1,0 +1,57 @@
+<UserControl x:Class="Horizon.Stealth.Controls.BrowserView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Border x:Name="ScriptWarningBar" Grid.Row="0" Visibility="Collapsed"
+                Background="#1e1200" BorderBrush="#cc7000" BorderThickness="0,0,0,1">
+            <DockPanel Margin="12,6">
+                <Button x:Name="DisableScriptBtn" DockPanel.Dock="Right"
+                        Content="Disable for this site" Margin="8,0,0,0" Padding="10,4"
+                        Cursor="Hand" Background="#cc7000" Foreground="White" BorderThickness="0"/>
+                <Button x:Name="DismissWarningBtn" DockPanel.Dock="Right"
+                        Content="✕" Margin="6,0,0,0" Padding="7,4"
+                        Cursor="Hand" Background="Transparent" Foreground="#888" BorderThickness="0"/>
+                <TextBlock x:Name="ScriptWarningText" VerticalAlignment="Center"
+                           Foreground="#ffcc80" FontSize="13"
+                           Text="⚠  Automation script may be causing a reload loop on this page."/>
+            </DockPanel>
+        </Border>
+        <Border x:Name="SavePasswordBar" Grid.Row="1" Visibility="Collapsed"
+                Background="#0d1a0d" BorderBrush="#00BB00" BorderThickness="0,0,0,1">
+            <DockPanel Margin="12,6">
+                <Button x:Name="SavePassDismissBtn" DockPanel.Dock="Right"
+                        Content="✕" Margin="6,0,0,0" Padding="7,4"
+                        Cursor="Hand" Background="Transparent" Foreground="#888" BorderThickness="0"/>
+                <Button x:Name="SavePassSaveBtn" DockPanel.Dock="Right"
+                        Content="Save" Margin="8,0,0,0" Padding="10,4"
+                        Cursor="Hand" Background="#00BB00" Foreground="Black" BorderThickness="0" FontWeight="Bold"/>
+                <TextBlock x:Name="SavePasswordText" VerticalAlignment="Center"
+                           Foreground="#88ff88" FontSize="13"
+                           Text="🔑  Save password for this site?"/>
+            </DockPanel>
+        </Border>
+        <Border x:Name="ExtensionInstallBar" Grid.Row="2" Visibility="Collapsed"
+                Background="#0d0d1a" BorderBrush="#4466cc" BorderThickness="0,0,0,1">
+            <DockPanel Margin="12,6">
+                <Button x:Name="InstallExtDismissBtn" DockPanel.Dock="Right"
+                        Content="✕" Margin="6,0,0,0" Padding="7,4"
+                        Cursor="Hand" Background="Transparent" Foreground="#888" BorderThickness="0"/>
+                <Button x:Name="InstallExtensionBtn" DockPanel.Dock="Right"
+                        Content="Install" Margin="8,0,0,0" Padding="10,4"
+                        Cursor="Hand" Background="#4466cc" Foreground="White" BorderThickness="0" FontWeight="Bold"/>
+                <TextBlock x:Name="ExtensionInstallText" VerticalAlignment="Center"
+                           Foreground="#aabbff" FontSize="13"
+                           Text="🧩  Install extension?"/>
+            </DockPanel>
+        </Border>
+        <Rectangle Grid.Row="3" Fill="#131313"/>
+        <wv2:WebView2 x:Name="MainWebView" Grid.Row="3"/>
+    </Grid>
+</UserControl>
