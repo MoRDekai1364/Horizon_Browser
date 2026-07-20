@@ -18,6 +18,18 @@ BRANCH_FOLDER_MAP = {
 }
 
 
+GREEN = "\033[92m"
+RESET = "\033[0m"
+
+
+def get_staged_files(directory):
+    result = subprocess.run(
+        ["git", "diff", "--cached", "--name-only"],
+        cwd=directory, capture_output=True, text=True,
+    )
+    return [f for f in result.stdout.splitlines() if f.strip()]
+
+
 def ensure_gitignore(directory):
     gi_path = os.path.join(directory, ".gitignore")
     entry = "github_push/"
@@ -43,7 +55,6 @@ def run_push_with_progress(push_args, directory):
     )
 
     pattern = re.compile(r"(Compressing objects|Writing objects):\s+(\d+)%")
-    start = None
     output_lines = []
     buf = ""
 
@@ -59,13 +70,9 @@ def run_push_with_progress(push_args, directory):
                 match = pattern.search(buf)
                 if match:
                     pct = int(match.group(2))
-                    if start is None:
-                        start = time.time()
-                    elapsed = time.time() - start
-                    eta = int((elapsed / pct) * (100 - pct)) if pct > 0 else 0
                     filled = int(pct / 5)
                     bar = "#" * filled + "." * (20 - filled)
-                    sys.stdout.write(f"\r[{bar}] {pct:3d}%  ETA {eta:>3}s  Pushing...       ")
+                    sys.stdout.write(f"\r[{bar}] {pct:3d}%  Pushing...       ")
                     sys.stdout.flush()
             buf = ""
         else:
@@ -271,6 +278,7 @@ def do_push(cfg):
     ensure_gitignore(directory)
 
     run_git(["git", "add", "."], directory)
+    staged_files = get_staged_files(directory)
 
     msg = input("Commit message [Automated update via push script]: ").strip()
     if not msg:
@@ -293,6 +301,11 @@ def do_push(cfg):
 
     run_push_with_progress(push_args, directory)
     print(f"Pushed to branch '{branch}'.")
+
+    if staged_files:
+        print("Files pushed:")
+        for f in staged_files:
+            print(f"  {GREEN}{f}{RESET}")
 
 
 def main():
