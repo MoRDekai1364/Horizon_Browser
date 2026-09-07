@@ -1,0 +1,844 @@
+<UserControl x:Class="Horizon.Stealth.Views.HomePageView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:Horizon.Stealth.Controls"
+             Loaded="HomePageView_Loaded"
+             Unloaded="HomePageView_Unloaded">
+
+    <UserControl.Resources>
+        <controls:PinIconConverter x:Key="PinIconConverter"/>
+        <controls:BookmarkIconConverter x:Key="BookmarkIconConverter"/>
+        <controls:FirstLetterConverter x:Key="BookmarkInitialConverter"/>
+
+        <!-- Shared text brush: keeps favorites text color in sync with the search bar text color -->
+        <SolidColorBrush x:Key="HomeTextBrush" Color="White"/>
+        <!-- Shared accent brush: updated every time the wallpaper-derived pill color changes,
+             so the context menu (and anything else using DynamicResource) re-tints with it. -->
+        <SolidColorBrush x:Key="HomeAccentBrush" Color="#CC000000"/>
+        <RadialGradientBrush x:Key="HomeTileFadeBrush" Center="0.5,0.5" GradientOrigin="0.5,0.5" RadiusX="0.75" RadiusY="0.75">
+            <GradientStop Color="#99000000" Offset="0.0"/>
+            <GradientStop Color="#40555555" Offset="0.55"/>
+            <GradientStop Color="#00555555" Offset="1.0"/>
+        </RadialGradientBrush>
+
+        <Style TargetType="ContextMenu">
+            <Setter Property="Background" Value="#FF1A1A1A"/>
+            <Setter Property="BorderBrush" Value="#33FFFFFF"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ContextMenu">
+                        <Border x:Name="CtxMenuBg" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="24" Padding="4">
+                            <Border.OpacityMask>
+                                <VisualBrush Stretch="None">
+                                    <VisualBrush.Visual>
+                                        <Border Width="{Binding ActualWidth, ElementName=CtxMenuBg}"
+                                                Height="{Binding ActualHeight, ElementName=CtxMenuBg}"
+                                                CornerRadius="24"
+                                                Background="Black">
+                                            <Border.Effect>
+                                                <BlurEffect Radius="16" KernelType="Gaussian"/>
+                                            </Border.Effect>
+                                        </Border>
+                                    </VisualBrush.Visual>
+                                </VisualBrush>
+                            </Border.OpacityMask>
+                            <ItemsPresenter/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="MenuItem">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="MenuItem">
+                        <Border x:Name="ItemBd" Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <Grid IsHitTestVisible="True">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <ContentPresenter ContentSource="Header" VerticalAlignment="Center" Grid.Column="0"/>
+                                <TextBlock x:Name="Arrow" Text="▶" FontSize="10" Foreground="White" VerticalAlignment="Center" Margin="12,0,0,0" Grid.Column="1" Visibility="Collapsed"/>
+                                <Popup x:Name="PART_Popup" AllowsTransparency="True" IsOpen="{Binding IsSubmenuOpen, RelativeSource={RelativeSource TemplatedParent}}" Placement="Right" PopupAnimation="Fade" HorizontalOffset="4">
+                                    <Border x:Name="SubMenuBg" Background="#D91A1A1A" BorderBrush="#33FFFFFF" BorderThickness="1" CornerRadius="24" Padding="4">
+                                        <Border.OpacityMask>
+                                            <VisualBrush Stretch="None">
+                                                <VisualBrush.Visual>
+                                                    <Border Width="{Binding ActualWidth, ElementName=SubMenuBg}"
+                                                            Height="{Binding ActualHeight, ElementName=SubMenuBg}"
+                                                            CornerRadius="24"
+                                                            Background="Black">
+                                                        <Border.Effect>
+                                                            <BlurEffect Radius="16" KernelType="Gaussian"/>
+                                                        </Border.Effect>
+                                                    </Border>
+                                                </VisualBrush.Visual>
+                                            </VisualBrush>
+                                        </Border.OpacityMask>
+                                        <ItemsPresenter/>
+                                    </Border>
+                                </Popup>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="Role" Value="SubmenuHeader">
+                                <Setter TargetName="Arrow" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="Role" Value="TopLevelHeader">
+                                <Setter TargetName="Arrow" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter TargetName="ItemBd" Property="Background" Value="{DynamicResource HomeAccentBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="PillButtonStyle" TargetType="Button">
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="Padding" Value="18,0"/>
+            <Setter Property="Background" Value="#B3202020"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#33FFFFFF"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid>
+                            <Border x:Name="PillBorder"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    CornerRadius="20">
+                            </Border>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="PillBorder" Property="Background" Value="#CC202020"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="MediaButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="46"/>
+            <Setter Property="Height" Value="46"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
+            <Setter Property="Background" Value="#B3202020"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#33FFFFFF"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+            <Setter Property="RenderTransform">
+                <Setter.Value>
+                    <ScaleTransform ScaleX="1.0" ScaleY="1.0"/>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid>
+                            <Border x:Name="PillBorder"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    CornerRadius="23">
+                            </Border>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="PillBorder" Property="Background" Value="#CC202020"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Trigger.EnterActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleX)" To="1.08" Duration="0:0:0.18">
+                                    <DoubleAnimation.EasingFunction>
+                                        <QuadraticEase EasingMode="EaseOut"/>
+                                    </DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                                <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleY)" To="1.08" Duration="0:0:0.18">
+                                    <DoubleAnimation.EasingFunction>
+                                        <QuadraticEase EasingMode="EaseOut"/>
+                                    </DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </Trigger.EnterActions>
+                    <Trigger.ExitActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleX)" To="1.0" Duration="0:0:0.15">
+                                    <DoubleAnimation.EasingFunction>
+                                        <QuadraticEase EasingMode="EaseIn"/>
+                                    </DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                                <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleY)" To="1.0" Duration="0:0:0.15">
+                                    <DoubleAnimation.EasingFunction>
+                                        <QuadraticEase EasingMode="EaseIn"/>
+                                    </DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </Trigger.ExitActions>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="InteractiveItemStyle" TargetType="StackPanel">
+            <Setter Property="Width" Value="115"/>
+            <Setter Property="Margin" Value="8,8"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+            <Setter Property="RenderTransform">
+                <Setter.Value>
+                    <ScaleTransform ScaleX="1.0" ScaleY="1.0"/>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Trigger.EnterActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleX)" To="1.06" Duration="0:0:0.18">
+                                    <DoubleAnimation.EasingFunction>
+                                        <QuadraticEase EasingMode="EaseOut"/>
+                                    </DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                                <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleY)" To="1.06" Duration="0:0:0.18">
+                                    <DoubleAnimation.EasingFunction>
+                                        <QuadraticEase EasingMode="EaseOut"/>
+                                    </DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </Trigger.EnterActions>
+                    <Trigger.ExitActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleX)" To="1.0" Duration="0:0:0.15">
+                                    <DoubleAnimation.EasingFunction>
+                                        <QuadraticEase EasingMode="EaseIn"/>
+                                    </DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                                <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleY)" To="1.0" Duration="0:0:0.15">
+                                    <DoubleAnimation.EasingFunction>
+                                        <QuadraticEase EasingMode="EaseIn"/>
+                                    </DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </Trigger.ExitActions>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="HomeScrollBarThumb" TargetType="Thumb">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Thumb">
+                        <Border CornerRadius="6" Background="{DynamicResource HomeAccentBrush}"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="HomeScrollBarStyle" TargetType="ScrollBar">
+            <EventSetter Event="ScrollBar.Scroll" Handler="HomeScrollBar_Scroll"/>
+            <Setter Property="Width" Value="8"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ScrollBar">
+                        <Grid>
+                            <Border CornerRadius="4" Background="#14FFFFFF" Width="8" HorizontalAlignment="Center"/>
+                            <Track x:Name="PART_Track" IsDirectionReversed="True" Margin="0,4">
+                                <Track.Thumb>
+                                    <Thumb Style="{StaticResource HomeScrollBarThumb}" Width="8" MinHeight="24"/>
+                                </Track.Thumb>
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Command="ScrollBar.PageUpCommand" Opacity="0" Focusable="False"/>
+                                </Track.DecreaseRepeatButton>
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Command="ScrollBar.PageDownCommand" Opacity="0" Focusable="False"/>
+                                </Track.IncreaseRepeatButton>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="ScrollViewer" x:Key="HomeScrollViewerStyle">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ScrollViewer">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <ScrollContentPresenter Grid.Column="0"/>
+                            <ScrollBar Grid.Column="1" Style="{StaticResource HomeScrollBarStyle}"
+                                       Value="{TemplateBinding VerticalOffset}"
+                                       Maximum="{TemplateBinding ScrollableHeight}"
+                                       ViewportSize="{TemplateBinding ViewportHeight}"
+                                       Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Pill-shaped ComboBox (search engine switcher). Shape only - matches the search bar's
+             corner radius / pill silhouette. Colors are left as whatever is set on the control. -->
+        <Style x:Key="PillComboBoxStyle" TargetType="ComboBox">
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="Padding" Value="14,0,28,0"/>
+            <Setter Property="ItemContainerStyle">
+                <Setter.Value>
+                    <Style TargetType="ComboBoxItem">
+                        <Setter Property="Foreground" Value="White"/>
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="Padding" Value="10,6"/>
+                        <Style.Triggers>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter Property="Background" Value="#33FFFFFF"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <ToggleButton x:Name="PART_Toggle"
+                                          IsChecked="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
+                                          Background="{TemplateBinding Background}"
+                                          BorderBrush="{TemplateBinding BorderBrush}"
+                                          BorderThickness="{TemplateBinding BorderThickness}"
+                                          Focusable="False" ClickMode="Press">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Grid>
+                                            <Border x:Name="PillBorder"
+                                                    Background="{Binding Background, RelativeSource={RelativeSource TemplatedParent}}"
+                                                    BorderBrush="{Binding BorderBrush, RelativeSource={RelativeSource TemplatedParent}}"
+                                                    BorderThickness="{Binding BorderThickness, RelativeSource={RelativeSource TemplatedParent}}"
+                                                    CornerRadius="20">
+                                            </Border>
+                                        </Grid>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+                            <ContentPresenter x:Name="ContentSite" IsHitTestVisible="False"
+                                               Content="{TemplateBinding SelectionBoxItem}"
+                                               ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                               ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
+                                               TextElement.Foreground="{TemplateBinding Foreground}"
+                                               VerticalAlignment="Center" HorizontalAlignment="Stretch"
+                                               Margin="{TemplateBinding Padding}"/>
+                            <Path Data="M0,0 L4,4 L8,0" Stroke="{TemplateBinding Foreground}" StrokeThickness="1.5"
+                                  HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,12,0"
+                                  IsHitTestVisible="False"/>
+                            <Popup x:Name="PART_Popup" IsOpen="{TemplateBinding IsDropDownOpen}"
+                                   AllowsTransparency="True" Placement="Bottom" PopupAnimation="Fade"
+                                   Width="180">
+                                <Border Background="#E01C1C1C" BorderBrush="#26FFFFFF" BorderThickness="1"
+                                        CornerRadius="12" Padding="4" MaxHeight="240">
+                                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                        <ItemsPresenter/>
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid x:Name="RootHomeGrid" PreviewMouseLeftButtonDown="RootHomeGrid_PreviewMouseLeftButtonDown">
+        <Grid.ContextMenu>
+            <ContextMenu>
+                <MenuItem Header="Add new favorite" Click="MenuAddFavorite_Click"/>
+                <MenuItem Header="Add new bookmark" Click="MenuAddBookmark_Click"/>
+                <Separator Background="#26FFFFFF" Margin="0,4"/>
+                <MenuItem Header="Enter workspace edit mode // reorder widgets" Click="MenuEnterEditMode_Click"/>
+            </ContextMenu>
+        </Grid.ContextMenu>
+        <Grid.Background>
+            <ImageBrush x:Name="BgImageBrush" Stretch="UniformToFill" Opacity="1"/>
+        </Grid.Background>
+
+        <MediaElement x:Name="BgVideoElement" Stretch="UniformToFill"
+                      LoadedBehavior="Manual" UnloadedBehavior="Manual"
+                      Visibility="Collapsed"/>
+
+        <Grid Margin="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <Border x:Name="PnlBatteryPill" Grid.Row="0" Width="76" Height="26"
+                    HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,31,84,0"
+                    ClipToBounds="True" Cursor="Hand"
+                    Background="#0D0D0D" CornerRadius="13" BorderBrush="#80FFFFFF" BorderThickness="1.5"
+                    MouseLeftButtonUp="PnlBatteryPill_Click"
+                    MouseRightButtonUp="PnlBatteryPill_Click">
+                <Border.OpacityMask>
+                    <VisualBrush Stretch="None">
+                        <VisualBrush.Visual>
+                            <Border Width="{Binding ActualWidth, ElementName=PnlBatteryPill}"
+                                    Height="{Binding ActualHeight, ElementName=PnlBatteryPill}"
+                                    CornerRadius="{Binding CornerRadius, ElementName=PnlBatteryPill}"
+                                    Background="Black">
+                                <Border.Effect>
+                                    <BlurEffect Radius="16" KernelType="Gaussian"/>
+                                </Border.Effect>
+                            </Border>
+                        </VisualBrush.Visual>
+                    </VisualBrush>
+                </Border.OpacityMask>
+                <Grid>
+                    <Border x:Name="BatteryPillFill"
+                            HorizontalAlignment="Left" VerticalAlignment="Stretch"
+                            CornerRadius="13" Width="0" Margin="1"/>
+                    <TextBlock x:Name="TxtBatteryPill" Text="🔋 --%"
+                               Foreground="White" FontSize="11" FontWeight="Bold"
+                               HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBlock.Effect>
+                            <DropShadowEffect Color="Black" Direction="270" ShadowDepth="1" BlurRadius="4" Opacity="0.9"/>
+                        </TextBlock.Effect>
+                    </TextBlock>
+                </Grid>
+            </Border>
+
+            <Button x:Name="BtnHomeSettings" Grid.Row="0" Width="58" Height="58"
+                    HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,16,16,0"
+                    Click="BtnHomeSettings_Click" BorderThickness="0" Cursor="Hand"
+                    Background="Transparent" Padding="0">
+                <Border x:Name="BtnHomeSettingsBg" Background="#33000000" CornerRadius="16">
+                    <TextBlock x:Name="BtnHomeSettingsIcon" Text="⚙" FontSize="24"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+            </Button>
+
+            <Button x:Name="BtnChangeWallpaper" Grid.Row="1" Width="58" Height="58"
+                    HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,16,16"
+                    Click="BtnChangeWallpaper_Click" BorderThickness="0" Cursor="Hand"
+                    Background="Transparent" Padding="0">
+                <Border x:Name="BtnChangeWallpaperBg" Background="#33000000" CornerRadius="16">
+                    <TextBlock x:Name="BtnChangeWallpaperIcon" Text="🖼" FontSize="24"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+            </Button>
+
+            <!-- Overlapping centered layout: Left section sits anchored to the top-left, while the search area spans the entire width with horizontal centering so it remains permanently centered against the true viewport regardless of left panel dimensions or widget visibility. -->
+            <Grid x:Name="GridHomeLayout" Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition x:Name="ColClockWeather" Width="Auto"/>
+                    <ColumnDefinition x:Name="ColSearchArea" Width="*"/>
+                    <ColumnDefinition x:Name="ColRightBalance" Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition x:Name="RowClockWeather" Height="Auto"/>
+                    <RowDefinition x:Name="RowSearchArea" Height="*"/>
+                </Grid.RowDefinitions>
+
+            <Border x:Name="ClockWeatherIslandBorder" Grid.Row="0" Grid.Column="0"
+                    HorizontalAlignment="Left" VerticalAlignment="Top"
+                    Margin="30,40,40,0"
+                    CornerRadius="{Binding CornerRadius, ElementName=SearchBoxBorder}"
+                    Background="{Binding Background, ElementName=SearchBoxBorder}"
+                    BorderBrush="{Binding BorderBrush, ElementName=SearchBoxBorder}"
+                    BorderThickness="{Binding BorderThickness, ElementName=SearchBoxBorder}"
+                    IsHitTestVisible="False"
+                    Opacity="0">
+                <Border.OpacityMask>
+                    <VisualBrush Stretch="None">
+                        <VisualBrush.Visual>
+                            <Border Width="{Binding ActualWidth, ElementName=ClockWeatherIslandBorder}"
+                                    Height="{Binding ActualHeight, ElementName=ClockWeatherIslandBorder}"
+                                    CornerRadius="{Binding CornerRadius, ElementName=SearchBoxBorder}"
+                                    Background="Black">
+                                <Border.Effect>
+                                    <BlurEffect Radius="16" KernelType="Gaussian"/>
+                                </Border.Effect>
+                            </Border>
+                        </VisualBrush.Visual>
+                    </VisualBrush>
+                </Border.OpacityMask>
+            </Border>
+            <StackPanel x:Name="PnlClockWeather" Grid.Row="0" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="40,50,40,0">
+                <StackPanel x:Name="PnlClockWeatherSub" Tag="ClockWeather" RenderTransformOrigin="0,0" Background="Transparent" Cursor="Hand" MouseLeftButtonUp="WidgetClockWeather_Click" PreviewMouseLeftButtonDown="Widget_PreviewMouseLeftButtonDown" MouseMove="Widget_MouseMove">
+                    <StackPanel.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform x:Name="ClockScale" ScaleX="1.0" ScaleY="1.0"/>
+                            <TranslateTransform x:Name="ClockTrans" X="0" Y="0"/>
+                        </TransformGroup>
+                    </StackPanel.RenderTransform>
+                    <TextBlock x:Name="TblClock" FontSize="62" FontWeight="Light" Foreground="White" HorizontalAlignment="Left"/>
+                    <TextBlock x:Name="TblWeather" Text="⛅ N/A" FontSize="29" Foreground="#CCC" HorizontalAlignment="Left" Margin="2,6,0,0"/>
+                    <TextBlock x:Name="TblWeatherCity" Text="" FontSize="23" Foreground="#888" HorizontalAlignment="Left" Margin="2,2,0,0"/>
+                </StackPanel>
+
+                <StackPanel x:Name="PnlCalendar" Tag="Calendar" Margin="0,20,0,0" Background="Transparent" Cursor="Hand" MouseLeftButtonUp="WidgetCalendar_Click" PreviewMouseLeftButtonDown="Widget_PreviewMouseLeftButtonDown" MouseMove="Widget_MouseMove">
+                    <StackPanel x:Name="PnlCalendarDate" RenderTransformOrigin="0,0">
+                        <StackPanel.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform x:Name="CalendarScale" ScaleX="1.0" ScaleY="1.0"/>
+                                <TranslateTransform x:Name="CalendarTrans" X="0" Y="0"/>
+                            </TransformGroup>
+                        </StackPanel.RenderTransform>
+                        <TextBlock x:Name="TblCalendarDate" FontSize="24" Foreground="#AAA" HorizontalAlignment="Left"/>
+                    </StackPanel>
+                    <StackPanel x:Name="PnlCalendarEvents" RenderTransformOrigin="0,0">
+                        <StackPanel.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform x:Name="EventsScale" ScaleX="1.0" ScaleY="1.0"/>
+                                <TranslateTransform x:Name="EventsTrans" X="0" Y="0"/>
+                            </TransformGroup>
+                        </StackPanel.RenderTransform>
+                        <TextBlock x:Name="TblCalendarPrev" FontSize="21" Foreground="#777" HorizontalAlignment="Left"
+                                   MaxWidth="352" TextTrimming="CharacterEllipsis" Margin="0,6,0,0"/>
+                        <TextBlock x:Name="TblCalendarNext" FontSize="21" Foreground="#8fd6a0" HorizontalAlignment="Left"
+                                   MaxWidth="352" TextTrimming="CharacterEllipsis" Margin="0,2,0,0"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel x:Name="PnlDownloads" Tag="Downloads" Margin="0,20,0,0" Visibility="Collapsed" RenderTransformOrigin="0,0" PreviewMouseLeftButtonDown="Widget_PreviewMouseLeftButtonDown" MouseMove="Widget_MouseMove">
+                    <StackPanel.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform x:Name="DownloadsScale" ScaleX="1.0" ScaleY="1.0"/>
+                            <TranslateTransform x:Name="DownloadsTrans" X="0" Y="0"/>
+                        </TransformGroup>
+                    </StackPanel.RenderTransform>
+                    <ItemsControl x:Name="IcnDownloads">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Width="352" Margin="0,0,0,8">
+                                    <TextBlock Text="{Binding FileName}" Foreground="#DDD" FontSize="18"
+                                               TextTrimming="CharacterEllipsis"/>
+                                    <ProgressBar Height="10" Minimum="0" Maximum="100" Value="{Binding Percent, Mode=OneWay}"
+                                                 Margin="0,3,0,0"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+
+                <StackPanel x:Name="PnlMedia" Tag="Media" Margin="0,26,0,0" Visibility="Collapsed" RenderTransformOrigin="0,0" PreviewMouseLeftButtonDown="Widget_PreviewMouseLeftButtonDown" MouseMove="Widget_MouseMove">
+                    <StackPanel.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform x:Name="MediaScale" ScaleX="1.0" ScaleY="1.0"/>
+                            <TranslateTransform x:Name="MediaTrans" X="0" Y="0"/>
+                        </TransformGroup>
+                    </StackPanel.RenderTransform>
+                    <TextBlock x:Name="TblMediaTitle" Text="" FontSize="24" Foreground="#DDD" HorizontalAlignment="Left"
+                               MaxWidth="352" TextWrapping="Wrap" TextTrimming="None" Cursor="Hand"
+                               MouseLeftButtonUp="TblMediaTitle_Click"/>
+                    <TextBlock x:Name="TblMediaArtist" Text="" FontSize="16" Foreground="#999" HorizontalAlignment="Left"
+                               MaxWidth="352" TextWrapping="Wrap" TextTrimming="None" Margin="2,4,0,0" Visibility="Collapsed"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                        <Button x:Name="BtnMediaPrev" Content="⏮" Style="{StaticResource MediaButtonStyle}" Click="BtnMediaPrev_Click"/>
+                        <Button x:Name="BtnMediaPlayPause" Content="▶" Style="{StaticResource MediaButtonStyle}" Click="BtnMediaPlayPause_Click"/>
+                        <Button x:Name="BtnMediaNext" Content="⏭" Style="{StaticResource MediaButtonStyle}" Click="BtnMediaNext_Click"/>
+                        <Button x:Name="BtnMediaMute" Content="🔊" Style="{StaticResource MediaButtonStyle}" Click="BtnMediaMute_Click"/>
+                        <Button x:Name="BtnMediaAudioOnly" Content="🎧" Style="{StaticResource MediaButtonStyle}" Margin="0" Click="BtnMediaAudioOnly_Click"/>
+                    </StackPanel>
+                </StackPanel>
+            </StackPanel>
+
+            <!-- Centered search + pins, confined to the middle column so it can never
+                 overlap the left/right side columns (e.g. the media widget) regardless
+                 of how wide their content gets. -->
+            <Grid x:Name="PnlSearchArea" Grid.Row="0" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="10,60,10,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Border x:Name="SearchBoxBorder" Grid.Row="0" HorizontalAlignment="Center" ClipToBounds="True"
+                        Background="#D91A1A1A" CornerRadius="24" MaxWidth="900" MinHeight="48" BorderBrush="#33FFFFFF" BorderThickness="1">
+                    <Border.OpacityMask>
+                        <VisualBrush Stretch="None">
+                            <VisualBrush.Visual>
+                                <Border Width="{Binding ActualWidth, ElementName=SearchBoxBorder}"
+                                        Height="{Binding ActualHeight, ElementName=SearchBoxBorder}"
+                                        CornerRadius="{Binding CornerRadius, ElementName=SearchBoxBorder}"
+                                        Background="Black">
+                                    <Border.Effect>
+                                        <BlurEffect Radius="16" KernelType="Gaussian"/>
+                                    </Border.Effect>
+                                </Border>
+                            </VisualBrush.Visual>
+                        </VisualBrush>
+                    </Border.OpacityMask>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid Grid.Column="0" Margin="8,8,0,8" VerticalAlignment="Top">
+                            <ComboBox x:Name="CmbSearchEngine" Width="120"
+                                      DisplayMemberPath="Name" BorderThickness="2"
+                                      Background="#CC000000" Foreground="White"
+                                      Style="{StaticResource PillComboBoxStyle}"
+                                      SelectionChanged="CmbSearchEngine_SelectionChanged"/>
+                            <ComboBox x:Name="CmbCategoryFilter" Width="140" Visibility="Collapsed"
+                                      BorderThickness="2" Background="#CC000000" Foreground="White"
+                                      Style="{StaticResource PillComboBoxStyle}"
+                                      SelectionChanged="CmbCategoryFilter_SelectionChanged"/>
+                        </Grid>
+                        <Grid Grid.Column="1">
+                            <TextBlock x:Name="TxtHomeSearchPlaceholder" Text="Search here ..." Foreground="#888"
+                                       FontSize="18" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="12,12,20,12" IsHitTestVisible="False"/>
+                            <TextBox x:Name="TxtHomeSearch" Background="Transparent" BorderThickness="0" Foreground="{DynamicResource HomeTextBrush}"
+                                     CaretBrush="White" FontSize="18" VerticalContentAlignment="Center" HorizontalAlignment="Left" Margin="12,12,20,12"
+                                     MinWidth="{Binding ActualWidth, ElementName=TxtHomeSearchPlaceholder}" MaxWidth="740"
+                                     TextWrapping="Wrap" AcceptsReturn="False" MaxHeight="140" VerticalScrollBarVisibility="Auto"
+                                     KeyDown="TxtHomeSearch_KeyDown" TextChanged="TxtHomeSearch_TextChanged"/>
+                        </Grid>
+                    </Grid>
+                </Border>
+
+                <Grid x:Name="GridFavBookmarksIsland" Grid.Row="1" Grid.RowSpan="2" HorizontalAlignment="Center">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Visual-only island: mirrors ClockWeatherIslandBorder so favorites + bookmarks read as one widget -->
+                    <Border x:Name="FavBookmarksIslandBorder" Grid.Row="0" Grid.RowSpan="2"
+                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                            Margin="-15,16,-15,-15"
+                            CornerRadius="{Binding CornerRadius, ElementName=SearchBoxBorder}"
+                            Background="{Binding Background, ElementName=SearchBoxBorder}"
+                            BorderBrush="{Binding BorderBrush, ElementName=SearchBoxBorder}"
+                            BorderThickness="{Binding BorderThickness, ElementName=SearchBoxBorder}"
+                            IsHitTestVisible="False">
+                        <Border.OpacityMask>
+                            <VisualBrush Stretch="None">
+                                <VisualBrush.Visual>
+                                    <Border Width="{Binding ActualWidth, ElementName=FavBookmarksIslandBorder}"
+                                            Height="{Binding ActualHeight, ElementName=FavBookmarksIslandBorder}"
+                                            CornerRadius="{Binding CornerRadius, ElementName=SearchBoxBorder}"
+                                            Background="Black">
+                                        <Border.Effect>
+                                            <BlurEffect Radius="16" KernelType="Gaussian"/>
+                                        </Border.Effect>
+                                    </Border>
+                                </VisualBrush.Visual>
+                            </VisualBrush>
+                        </Border.OpacityMask>
+                    </Border>
+
+                    <!-- Divider marking the two parts of the merged widget -->
+                    <Border Grid.Row="1" Height="1" Background="#22FFFFFF" HorizontalAlignment="Stretch"
+                            VerticalAlignment="Top" Margin="40,14,40,0" IsHitTestVisible="False"/>
+
+                <StackPanel x:Name="PnlFavoritesContainer" Tag="Favorites" Grid.Row="0" Margin="0,14,0,0" HorizontalAlignment="Center" PreviewMouseWheel="WidgetContainer_PreviewMouseWheel" PreviewMouseLeftButtonDown="Widget_PreviewMouseLeftButtonDown" MouseMove="Widget_MouseMove">
+                    <ScrollViewer x:Name="ScvFavorites" MaxHeight="320" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" HorizontalAlignment="Center" Style="{StaticResource HomeScrollViewerStyle}">
+                    <ItemsControl x:Name="IcnColumns" HorizontalAlignment="Center">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.GroupStyle>
+                            <GroupStyle>
+                                <GroupStyle.HeaderTemplate>
+                                    <DataTemplate>
+                                        <TextBlock FontSize="14" FontWeight="Bold" Foreground="{DynamicResource HomeTextBrush}"
+                                                   Opacity="0.55" HorizontalAlignment="Center" Margin="0,10,0,2">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Text" Value="{Binding Name}"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Name}" Value="">
+                                                            <Setter Property="Text" Value="GENERAL"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </DataTemplate>
+                                </GroupStyle.HeaderTemplate>
+                            </GroupStyle>
+                        </ItemsControl.GroupStyle>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Style="{StaticResource InteractiveItemStyle}" MouseLeftButtonUp="Pin_Click">
+                                    <Grid HorizontalAlignment="Center" Width="77" Height="77">
+                                        <Border Width="77" Height="77" CornerRadius="19" Background="{DynamicResource HomeAccentBrush}" BorderBrush="#26FFFFFF" BorderThickness="1" ClipToBounds="True">
+                                            <Border.Effect>
+                                                <DropShadowEffect Color="Black" Direction="270" ShadowDepth="4" BlurRadius="10" Opacity="0.4"/>
+                                            </Border.Effect>
+                                            <Grid>
+                                                <Image Source="{Binding Converter={StaticResource PinIconConverter}}" Width="48" Height="48" Stretch="Uniform"
+                                                       HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                    <Image.Style>
+                                                        <Style TargetType="Image">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IconEmoji}" Value="">
+                                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Image.Style>
+                                                </Image>
+                                                <TextBlock Text="{Binding IconEmoji}" FontSize="35" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IconEmoji}" Value="">
+                                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                            </Grid>
+                                        </Border>
+                                    </Grid>
+                                    <TextBlock Text="{Binding Name}" Foreground="{DynamicResource HomeTextBrush}" FontSize="18" HorizontalAlignment="Center"
+                                               Margin="0,6,0,0" TextTrimming="CharacterEllipsis"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    </ScrollViewer>
+                    <Button x:Name="BtnToggleFavorites" Style="{StaticResource PillButtonStyle}" HorizontalAlignment="Center" Margin="0,12,0,0" Click="BtnToggleFavorites_Click" Visibility="Collapsed">
+                        <TextBlock x:Name="TxtToggleFavorites" Text="▼ Show more" FontSize="14" FontWeight="Bold"/>
+                    </Button>
+                </StackPanel>
+
+                <StackPanel x:Name="PnlBookmarksContainer" Tag="Bookmarks" Grid.Row="1" Margin="0,14,0,0" HorizontalAlignment="Center" PreviewMouseWheel="WidgetContainer_PreviewMouseWheel" PreviewMouseLeftButtonDown="Widget_PreviewMouseLeftButtonDown" MouseMove="Widget_MouseMove">
+                    <ScrollViewer x:Name="ScvBookmarks" MaxHeight="220" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" HorizontalAlignment="Center" Style="{StaticResource HomeScrollViewerStyle}">
+                    <ItemsControl x:Name="IcnBookmarks" HorizontalAlignment="Center">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Style="{StaticResource InteractiveItemStyle}" MouseLeftButtonUp="Bookmark_Click">
+                                    <Grid HorizontalAlignment="Center" Width="77" Height="77">
+                                        <Border Width="77" Height="77" CornerRadius="19" Background="{DynamicResource HomeAccentBrush}" BorderBrush="#26FFFFFF" BorderThickness="1" ClipToBounds="True">
+                                            <Border.Effect>
+                                                <DropShadowEffect Color="Black" Direction="270" ShadowDepth="4" BlurRadius="10" Opacity="0.4"/>
+                                            </Border.Effect>
+                                            <Grid>
+                                                <Image Source="{Binding AsPin, Converter={StaticResource PinIconConverter}, IsAsync=True}" Width="48" Height="48" Stretch="Uniform"
+                                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Grid>
+                                        </Border>
+                                    </Grid>
+                                    <TextBlock Text="{Binding Name}" Foreground="{DynamicResource HomeTextBrush}" FontSize="18" HorizontalAlignment="Center"
+                                               Margin="0,6,0,0" TextTrimming="CharacterEllipsis"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    </ScrollViewer>
+                    <Button x:Name="BtnToggleBookmarks" Style="{StaticResource PillButtonStyle}" HorizontalAlignment="Center" Margin="0,12,0,0" Click="BtnToggleBookmarks_Click" Visibility="Collapsed">
+                        <TextBlock x:Name="TxtToggleBookmarks" Text="▼ Show more" FontSize="14" FontWeight="Bold"/>
+                    </Button>
+                </StackPanel>
+                </Grid>
+            </Grid>
+            </Grid>
+        </Grid>
+
+        <!-- Bottom fade: blends the homepage content into the page/tab area below it -->
+        <Border VerticalAlignment="Bottom" Height="140" IsHitTestVisible="False">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Color="#00000000" Offset="0"/>
+                    <GradientStop Color="#66000000" Offset="1"/>
+                </LinearGradientBrush>
+            </Border.Background>
+        </Border>
+
+        <!-- Audio visualizer: glow bleeding in from all four edges, colors cross-fading -->
+        <Grid x:Name="HomeVizCanvas" IsHitTestVisible="False" Visibility="Collapsed">
+            <Rectangle x:Name="VizEdgeTop" Height="220" VerticalAlignment="Top">
+                <Rectangle.Effect><BlurEffect Radius="60"/></Rectangle.Effect>
+            </Rectangle>
+            <Rectangle x:Name="VizEdgeBottom" Height="220" VerticalAlignment="Bottom">
+                <Rectangle.Effect><BlurEffect Radius="60"/></Rectangle.Effect>
+            </Rectangle>
+            <Rectangle x:Name="VizEdgeLeft" Width="220" HorizontalAlignment="Left">
+                <Rectangle.Effect><BlurEffect Radius="60"/></Rectangle.Effect>
+            </Rectangle>
+            <Rectangle x:Name="VizEdgeRight" Width="220" HorizontalAlignment="Right">
+                <Rectangle.Effect><BlurEffect Radius="60"/></Rectangle.Effect>
+            </Rectangle>
+        </Grid>
+
+        <Border x:Name="DropIndicatorBorder" BorderBrush="#44AAFF" BorderThickness="2" Background="#1A44AAFF"
+                CornerRadius="16" Visibility="Collapsed" IsHitTestVisible="False"
+                HorizontalAlignment="Left" VerticalAlignment="Top"/>
+
+        <Grid x:Name="EditModeOverlay" Background="#99000000" Visibility="Collapsed"
+              AllowDrop="True" DragOver="EditModeOverlay_DragOver" Drop="EditModeOverlay_Drop">
+            <Border VerticalAlignment="Top" Background="#E0141414" BorderBrush="#33FFFFFF" BorderThickness="0,0,0,1" Padding="20,12">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="EDIT MODE //" Foreground="#44AAFF" FontSize="16" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,16,0"/>
+                        <ComboBox x:Name="CmbLayoutSet" Width="180" Height="32" DisplayMemberPath="Name"
+                                  Style="{StaticResource PillComboBoxStyle}" SelectionChanged="CmbLayoutSet_SelectionChanged"/>
+                        <Button x:Name="BtnNewLayoutSet" Content="+" Width="32" Style="{StaticResource PillButtonStyle}" Margin="6,0,0,0" Padding="0" Click="BtnNewLayoutSet_Click"/>
+                        <Button x:Name="BtnDeleteLayoutSet" Content="🗑" Width="36" Style="{StaticResource PillButtonStyle}" Margin="6,0,0,0" Padding="0" Click="BtnDeleteLayoutSet_Click"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <RadioButton x:Name="RbEditNormal" Content="Normal Layout" Foreground="White" FontWeight="Bold" GroupName="EditStateGroup" IsChecked="True" Margin="0,0,16,0" Checked="EditState_Checked"/>
+                        <RadioButton x:Name="RbEditInactivity" Content="Inactivity Layout" Foreground="White" FontWeight="Bold" GroupName="EditStateGroup" Checked="EditState_Checked"/>
+                    </StackPanel>
+
+                    <Button x:Name="BtnExitEditMode" Grid.Column="2" Content="SAVE &amp; EXIT" Height="32" Width="120"
+                            Style="{StaticResource PillButtonStyle}" Background="#2266AA" Click="BtnExitEditMode_Click"/>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

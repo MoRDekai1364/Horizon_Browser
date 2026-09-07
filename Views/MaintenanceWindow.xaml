@@ -1,0 +1,84 @@
+<Window x:Class="Horizon.Stealth.Views.MaintenanceWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Horizon Maintenance" Height="460" Width="360"
+        WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
+        Background="#1E1E1E" Foreground="#E0E0E0">
+    
+    <Window.Resources>
+        <Style TargetType="Button">
+            <Setter Property="Background" Value="#2D2D30"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Margin" Value="0,5,0,5"/>
+            <Setter Property="Padding" Value="10"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#3E3E42"/>
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Opacity" Value="0.5"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="25">
+        <StackPanel>
+            <TextBlock Text="MAINTENANCE" FontSize="12" Foreground="#888888" HorizontalAlignment="Center" Margin="0,0,0,5"/>
+            <TextBlock Text="System Tools" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,25"/>
+
+            <Button x:Name="BtnBackup" Click="BtnBackup_Click" Height="65">
+                <StackPanel>
+                    <TextBlock Text="Save My Data" FontSize="14" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Backup vault, history &amp; config" FontSize="11" Foreground="#AAAAAA" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                </StackPanel>
+            </Button>
+
+            <Button x:Name="BtnUpdate" Click="BtnUpdate_Click" Height="65">
+                <StackPanel>
+                    <TextBlock Text="Update Browser" FontSize="14" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Check for latest patches" FontSize="11" Foreground="#AAAAAA" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                </StackPanel>
+            </Button>
+
+            <Button x:Name="BtnFixSync" Click="BtnFixSync_Click" Height="65">
+                <StackPanel>
+                    <TextBlock Text="Fix Logins &amp; Sync" FontSize="14" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Repair corrupt sessions" FontSize="11" Foreground="#AAAAAA" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                </StackPanel>
+            </Button>
+
+            <Separator Background="#333333" Margin="0,15,0,15"/>
+
+            <Button x:Name="BtnReset" Click="BtnReset_Click" Height="65">
+                <Button.Style>
+                    <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                        <Setter Property="Background" Value="#4A1818"/>
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#662222"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+                <StackPanel>
+                    <TextBlock Text="Factory Reset" FontSize="14" FontWeight="SemiBold" HorizontalAlignment="Center" Foreground="#FFDDDD"/>
+                    <TextBlock Text="Wipe data &amp; restore defaults" FontSize="11" Foreground="#FF9999" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                </StackPanel>
+            </Button>
+
+            <TextBlock x:Name="StatusText" Text="Ready." Margin="0,15,0,0" FontSize="11" HorizontalAlignment="Center" Foreground="#666666" TextWrapping="Wrap"/>
+        </StackPanel>
+    </Grid>
+</Window>

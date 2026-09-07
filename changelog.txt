@@ -1,0 +1,2 @@
++ added custom homepage
++ startup bugfixes
