@@ -88,7 +88,8 @@ def select_repo():
         logger.info("Detected remotes:")
         names = list(remotes.keys())
         for i, name in enumerate(names, 1):
-            logger.info(f"  {i}. {name} -> {remotes[name]}")
+            marker = " (default — Enter selects this)" if i == 1 else ""
+            logger.info(f"  {i}. {name} -> {remotes[name]}{marker}")
         logger.info(f"  {len(names)+1}. Enter a new repository URL")
         choice = input("Select repository: ").strip()
         if not choice:
@@ -146,7 +147,8 @@ def select_branch(remote_name):
         if all_branches:
             logger.info("Detected branches:")
             for i, name in enumerate(all_branches, 1):
-                logger.info(f"  {i}. {name}")
+                marker = " (default — Enter selects this)" if i == 1 else ""
+                logger.info(f"  {i}. {name}{marker}")
             logger.info(f"  {len(all_branches)+1}. Enter a new branch name")
             choice = input("Select branch: ").strip()
             if not choice:
@@ -215,6 +217,27 @@ def checkout_branch(branch):
 
 def get_changed_files():
     run(["git", "add", "-A"])
+    result = run(["git", "diff", "--cached", "--name-status", "--no-renames", "-z"])
+    parts = result.stdout.split("\0")
+    new_files = []
+    modified_files = []
+    deleted_files = []
+    index = 0
+    while index + 1 < len(parts):
+        code = parts[index]
+        path = parts[index + 1]
+        index += 2
+        if code.startswith("A"):
+            new_files.append(path)
+        elif code.startswith("D"):
+            deleted_files.append(path)
+        else:
+            modified_files.append(path)
+    return new_files, modified_files, deleted_files
+
+
+def get_changed_files_legacy():
+    run(["git", "add", "-A"])
     status = run(["git", "status", "--porcelain"])
     new_files = []
     modified_files = []
@@ -236,7 +259,18 @@ def stage_and_commit(message):
     if not status.stdout.strip():
         logger.info("No changes to commit.")
         return False
-    run(["git", "commit", "-m", message])
+    fd, msg_path = tempfile.mkstemp(prefix="commit_msg_", suffix=".txt", text=True)
+    os.close(fd)
+    try:
+        with open(msg_path, "w", encoding="utf-8", newline="\n") as handle:
+            handle.write(message)
+        logger.debug(f"Commit message written to {msg_path} ({len(message)} chars)")
+        run(["git", "commit", "--cleanup=whitespace", "-F", msg_path])
+    finally:
+        try:
+            os.remove(msg_path)
+        except OSError as e:
+            logger.debug(f"Could not remove temp commit message file: {e}")
     return True
 
 def sync_with_remote(remote_name, branch):
@@ -364,6 +398,25 @@ def push_with_progress(remote_name, branch):
         raise RuntimeError(f"git push exited with code {process.returncode}")
     logger.info(f"Push finished in {total_elapsed:.1f}s. Done.")
 
+ECHO_LIMIT = 50
+
+def echo_commit_message(message):
+    logger.info("----------------------------------------")
+    lines = message.splitlines()
+    shown = 0
+    skipped = 0
+    for line in lines:
+        stripped = line.strip()
+        if stripped.startswith("[new]") or stripped.startswith("[modified]") or stripped.startswith("[deleted]"):
+            if shown >= ECHO_LIMIT:
+                skipped += 1
+                continue
+            shown += 1
+        logger.info(line)
+    if skipped:
+        logger.info(f"  ... and {skipped} more file entries (full list is in the commit message)")
+    logger.info("----------------------------------------")
+
 def main():
     logger.info(f"Source folder: {SOURCE_DIR}")
     logger.info(f"Temp log: {TEMP_LOG}")
@@ -374,23 +427,22 @@ def main():
         remote_name, remote_url = select_repo()
         branch = select_branch(remote_name)
         checkout_branch(branch)
-        new_files, modified_files = get_changed_files()
+        new_files, modified_files, deleted_files = get_changed_files()
         message = input("Enter commit message: ").strip()
         if not message:
             lines = [f"(this is automated commit message) {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"]
-            if new_files or modified_files:
+            if new_files or modified_files or deleted_files:
                 lines.append("")
                 lines.append(f"Repository: {remote_url}")
                 for path in new_files:
                     lines.append(f"  [new] {path}")
                 for path in modified_files:
                     lines.append(f"  [modified] {path}")
+                for path in deleted_files:
+                    lines.append(f"  [deleted] {path}")
             message = "\n".join(lines)
             logger.info("No commit message entered — using automated message:")
-            logger.info("----------------------------------------")
-            for line in message.splitlines():
-                logger.info(line)
-            logger.info("----------------------------------------")
+            echo_commit_message(message)
         committed = stage_and_commit(message)
         sync_with_remote(remote_name, branch)
         push_with_progress(remote_name, branch)
