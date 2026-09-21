@@ -1,0 +1,82 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Color x:Key="Color_Accent">#606060</Color> 
+    
+    <SolidColorBrush x:Key="Brush_Background" Color="#000000"/> 
+    <SolidColorBrush x:Key="Brush_DeepBackground" Color="#141414"/> 
+    <SolidColorBrush x:Key="Brush_Accent" Color="{StaticResource Color_Accent}"/>
+    
+    <SolidColorBrush x:Key="Brush_Text" Color="#FFFFFF"/> 
+    <SolidColorBrush x:Key="Brush_SoftText" Color="#EAEAEA"/>
+    <SolidColorBrush x:Key="Brush_Alert" Color="#FF453A"/> 
+
+    <SolidColorBrush x:Key="Brush_TabStripBg" Color="#111111"/>
+    <SolidColorBrush x:Key="Brush_TabStripBgSelected" Color="#1A1A1A"/>
+    <SolidColorBrush x:Key="Brush_TabStripBorder" Color="#222222"/>
+    <SolidColorBrush x:Key="Brush_TabStripTextInactive" Color="#444444"/>
+    <SolidColorBrush x:Key="Brush_TabStripTextHover" Color="#AAAAAA"/>
+
+    <SolidColorBrush x:Key="Brush_ButtonBorder" Color="#333333"/>
+    <SolidColorBrush x:Key="Brush_ButtonHoverBg" Color="#222222"/>
+    <SolidColorBrush x:Key="Brush_ButtonHoverBorder" Color="#666666"/>
+    <SolidColorBrush x:Key="Brush_ButtonPressedBg" Color="#111111"/> 
+
+    <Style TargetType="Button" x:Key="Style_StealthButton">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{StaticResource Brush_Text}"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding" Value="8,4"/>
+        <Setter Property="Template">
+           <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Bd" Background="{TemplateBinding Background}" 
+                            CornerRadius="8" 
+                            BorderBrush="{StaticResource Brush_ButtonBorder}" BorderThickness="1">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource Brush_ButtonHoverBg}"/>
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Brush_ButtonHoverBorder}"/>
+                        </Trigger>
+                         <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource Brush_ButtonPressedBg}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+               </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+<Style TargetType="TabItem">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{StaticResource Brush_Text}"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding" Value="12,6"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TabItem">
+                    <Border x:Name="Bd"
+                            Background="{TemplateBinding Background}"
+                            BorderThickness="0,0,0,2"
+                            BorderBrush="Transparent"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter ContentSource="Header"
+                                          HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Brush_Accent}"/>
+                            <Setter TargetName="Bd" Property="Background" Value="#1A1A1A"/>
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="#111111"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+</ResourceDictionary>

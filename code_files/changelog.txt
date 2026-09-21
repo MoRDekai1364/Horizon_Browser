@@ -1,0 +1,5 @@
++ reordered the settings menu
++ renamed settings window tabs
++ increased settings window text font and made it bold
++ added min/max/close buttons to the settings window
++ made the settings window movable

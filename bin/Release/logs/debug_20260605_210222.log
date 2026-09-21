@@ -1,0 +1,44 @@
+[21:02:22.673] [SYSTEM] Black Box Logging Initialized.
+[21:02:22.687] [SYSTEM] Log Path: H:\Programming\Personal_projects\Horizon_Browser\Horizon_Browser_official_release\bin\Release\logs\debug_20260605_210222.log
+[21:02:22.688] [BOOT] Horizon Stealth Browser is starting...
+[21:02:22.692] [BOOT] Mode: Standard Browser
+[21:02:22.714] [ENGINE] Initializing Stealth Environment...
+[21:02:22.777] [ENGINE] WebView2 Environment Created.
+[21:02:22.895] [VAULT] Initialized. Loaded 0 credentials.
+[21:02:22.903] [HISTORY] Loaded 238 history entries.
+[21:02:22.911] [JANITOR] Initializing Service...
+[21:02:22.913] [JANITOR] Timer started. Interval: 60s.
+[21:02:23.509] [UI] MainWindow Ready (Multi-Instance + Shortcuts).
+[21:02:26.226] [EXT] WARNING: Extension folder missing for 'mmioliijnhnoblpgimnlajmefafdfilb'
+[21:02:26.226] [EXT] WARNING: Extension folder missing for 'gighmmpiobklfepjocnamgkkbiglidom'
+[21:02:26.227] [EXT] WARNING: Extension folder missing for 'efaidnbmnnnibpcajpcglclefindmkaj'
+[21:02:26.228] [EXT] WARNING: Extension folder missing for 'kjchkpkjpiloipaonppkmepcbhcncedo'
+[21:02:26.229] [EXT] WARNING: Extension folder missing for 'eimadpbcbfnmbkopoojfekhnkhdbieeh'
+[21:02:28.502] [EXT] Skipped Firefox-only extension: 'traduzir_paginas_web-10.1.1.1'
+[21:02:28.907] [EXT] Loaded: 'adguard' → ID=gjbcdalockdbdpjilfijigifebblleeo
+[21:02:28.970] [EXT] Loaded: 'autoskip-for-youtube™-ads-chrome-web-store' → ID=enpiaeoobofcpedppdnooadnbaldkjih
+[21:02:28.988] [EXT] Loaded: 'consent-o-matic' → ID=fennofgmefeblbegldihhmpehdehoflg
+[21:02:29.018] [EXT] Loaded: 'crx-extractor-downloader-chrome-web-store' → ID=aagoielimgdcaagiedmdildgfdhcmogh
+[21:02:29.225] [EXT] Loaded: 'dark-mode-chrome-web-store' → ID=pnbopgbekiomlhlfodahgbchgghkkkie
+[21:02:29.232] [EXT] Loaded: 'document-preview-exporter-for-google-drive-chrome-web-store' → ID=igdgheonliiohfnmpdnpimnojhednhon
+[21:02:29.307] [EXT] Loaded: 'google-docs-offline-chrome-web-store' → ID=fjfcaoomjhlpbniopilcfbpefalbhpba
+[21:02:29.440] [EXT] Loaded: 'linguist-web-page-translator-chrome-web-store' → ID=cknpchhamkghepdgmebdeeiklbmhajjb
+[21:02:29.447] [EXT] Loaded: 'manus-ai-browser-operator-chrome-web-store' → ID=mahdomgfmegkjcelplonolabemigokdm
+[21:02:29.456] [EXT] Loaded: 'pip-youtube-pip-chrome-web-store' → ID=genekjfjfkimebghjfadgkigblpjbfaf
+[21:02:29.458] [EXT] Loaded: 'remove-paywalls-chrome-web-store' → ID=mlfdcdoeelfhknfbpcjgffjbcjcipccl
+[21:02:29.470] [EXT] Loaded: 'save-it-later-chrome-web-store' → ID=dbhoefmijjkdalpfhgfcpakjilijegok
+[21:02:29.679] [EXT] Loaded: 'sponsorblock-for-youtube-skip-sponsorships-chrome-web-store' → ID=llafjhmkffdlhpiojoipllmmedhckpgh
+[21:02:29.687] [EXT] Loaded: 'tldr-this-free-automatic-text-summary-tool-chrome-web-store' → ID=bjchemafiampldmkfmpigfoakogialkl
+[21:02:29.784] [EXT] Loaded: 'twp-translate-[beta]-chrome-web-store' → ID=micabgbmbfjdcifaljgbioeiflcemnmo
+[21:02:29.785] [EXT] Extension loading done — 15 loaded, 0 failed.
+[21:02:43.522] [SESSION] Saved 1 tabs for session restore.
+[21:03:03.541] [SESSION] Saved 1 tabs for session restore.
+[21:03:22.920] [JANITOR] Starting scan of: C:\Users\MoRDekai1364\Downloads
+[21:03:22.923] [JANITOR] Found 39 files.
+[21:03:23.548] [SESSION] Saved 1 tabs for session restore.
+[21:03:43.548] [SESSION] Saved 1 tabs for session restore.
+[21:04:03.552] [SESSION] Saved 1 tabs for session restore.
+[21:04:22.921] [JANITOR] Starting scan of: C:\Users\MoRDekai1364\Downloads
+[21:04:22.925] [JANITOR] Found 39 files.
+[21:04:23.565] [SESSION] Saved 1 tabs for session restore.
+[21:04:43.586] [SESSION] Saved 1 tabs for session restore.

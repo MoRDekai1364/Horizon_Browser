@@ -1,0 +1,12 @@
+{
+  "PinSort": "Category",
+  "PinAsc": true,
+  "BmSort": "Date",
+  "BmAsc": false,
+  "HistSort": "Date",
+  "HistAsc": false,
+  "ExtSort": "Name",
+  "ExtAsc": true,
+  "FluxSort": "Date",
+  "FluxAsc": false
+}

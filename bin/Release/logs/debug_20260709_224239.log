@@ -1,0 +1,48 @@
+[22:42:39.170] [SYSTEM] Black Box Logging Initialized.
+[22:42:39.710] [SYSTEM] Log Path: H:\Programming\Personal_projects\Horizon_Browser\Horizon_Browser_official_release\bin\Release\logs\debug_20260709_224239.log
+[22:42:39.712] [BOOT] Horizon Stealth Browser is starting...
+[22:42:39.717] [BOOT] Mode: Standard Browser
+[22:42:39.722] [ENGINE] Initializing Stealth Environment...
+[22:42:39.830] [ENGINE] WebView2 Environment Created.
+[22:42:39.937] [VAULT] Initialized. Loaded 0 credentials.
+[22:42:39.946] [HISTORY] Loaded 290 history entries.
+[22:42:39.960] [JANITOR] Initializing Service...
+[22:42:39.962] [JANITOR] Timer started. Interval: 60s.
+[22:42:40.553] [UI] MainWindow Ready (Multi-Instance + Shortcuts).
+[22:42:50.083] [EXT] WARNING: Extension folder missing for 'mmioliijnhnoblpgimnlajmefafdfilb'
+[22:42:50.086] [EXT] WARNING: Extension folder missing for 'gighmmpiobklfepjocnamgkkbiglidom'
+[22:42:50.087] [EXT] WARNING: Extension folder missing for 'eimadpbcbfnmbkopoojfekhnkhdbieeh'
+[22:42:50.089] [EXT] WARNING: Extension folder missing for 'okpidcojinmlaakglciglbpcpajaibco'
+[22:42:52.450] [EXT] Skipped Firefox-only extension: 'traduzir_paginas_web-10.1.1.1'
+[22:42:52.491] [GACCT] DetectCalled — url=https://alohafind.com/
+[22:42:52.841] [EXT] Loaded: 'adguard' → ID=gjbcdalockdbdpjilfijigifebblleeo
+[22:42:52.933] [EXT] Loaded: 'autoskip-for-youtube™-ads-chrome-web-store' → ID=enpiaeoobofcpedppdnooadnbaldkjih
+[22:42:52.943] [EXT] Loaded: 'consent-o-matic' → ID=fennofgmefeblbegldihhmpehdehoflg
+[22:42:52.959] [EXT] Loaded: 'crx-extractor-downloader-chrome-web-store' → ID=aagoielimgdcaagiedmdildgfdhcmogh
+[22:42:52.985] [EXT] Loaded: 'dark-mode-chrome-web-store' → ID=pnbopgbekiomlhlfodahgbchgghkkkie
+[22:42:52.993] [EXT] Loaded: 'document-preview-exporter-for-google-drive-chrome-web-store' → ID=igdgheonliiohfnmpdnpimnojhednhon
+[22:42:53.254] [EXT] Loaded: 'efaidnbmnnnibpcajpcglclefindmkaj' → ID=idompkcebcckjachidfhndpicmhicmjf
+[22:42:53.391] [EXT] Loaded: 'ghbmnnjooekpmoecnnnilnnbdlolhkhi' → ID=ikofmhjegkmohfaglioagcphlgakpmff
+[22:42:53.526] [EXT] Loaded: 'google-docs-offline-chrome-web-store' → ID=fjfcaoomjhlpbniopilcfbpefalbhpba
+[22:42:53.641] [EXT] Loaded: 'kjchkpkjpiloipaonppkmepcbhcncedo' → ID=kjchkpkjpiloipaonppkmepcbhcncedo
+[22:42:55.843] [CRASH] WebView2 process failed [AlohaFind Private web search - Private search for VPN]: BrowserProcessExited
+
+[CRITICAL FAILURE DETECTED - MERGING TAPE]
+==========================================
+===       HORIZON BLACK BOX TAPE       ===
+==========================================
+Timestamp: 9.7.2026 г. 22:42:55
+Context:   WebView2 BrowserProcessExited reinit
+Exception: InvalidOperationException
+Message:   The WebView control is no longer valid because the browser process crashed.To work around this, please listen for the CoreWebView2.ProcessFailed event to explicitly manage the lifetime of the WebView2 control in the event of a browser failure.https://docs.microsoft.com/en-us/dotnet/api/microsoft.web.webview2.core.corewebview2.processfailed
+------------------------------------------
+Stack Trace:
+   at Microsoft.Web.WebView2.Wpf.WebView2Base.VerifyBrowserNotCrashed()
+   at Microsoft.Web.WebView2.Wpf.WebView2Base.get_CoreWebView2()
+   at Microsoft.Web.WebView2.Wpf.WebView2.get_CoreWebView2()
+   at Horizon.Stealth.MainWindow.<>c__DisplayClass322_5.<<CreateNewTab>b__16>d.MoveNext() in H:\Programming\Personal_projects\Horizon_Browser\development_version_beta\MainWindow.xaml.cs:line 1868
+==========================================
+[TAPE MERGE COMPLETE]
+[22:42:57.059] [SWITCHER] Snapshot timed out for: ⚠ Crashed
+[22:42:58.688] [SESSION] Saved 2 tabs for session restore.
+[22:42:58.756] [SESSION] Saved 2 tabs for session restore.

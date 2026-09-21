@@ -1,0 +1,1 @@
+{"net":{"http_server_properties":{"servers":[{"anonymization":["HAAAABUAAABodHRwczovL2Fsb2hhZmluZC5jb20AAAA=",false,0],"network_stats":{"srtt":74051},"server":"https://fonts.gstatic.com"}],"supports_quic":{"address":"192.168.88.7","used_quic":true},"version":5},"network_qualities":{"CAISABiAgICA+P////8B":"4G"}}}

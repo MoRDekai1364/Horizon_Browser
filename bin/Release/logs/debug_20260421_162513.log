@@ -1,0 +1,39 @@
+[16:25:13.427] [SYSTEM] Black Box Logging Initialized.
+[16:25:13.434] [SYSTEM] Log Path: E:\Programming\Personal_projects\Horizon_Browser\development_version\bin\Release\logs\debug_20260421_162513.log
+[16:25:13.435] [BOOT] Horizon Stealth Browser is starting...
+[16:25:13.439] [BOOT] Mode: Standard Browser
+[16:25:13.448] [ENGINE] Initializing Stealth Environment...
+[16:25:13.473] [ENGINE] WebView2 Environment Created.
+[16:25:13.563] [VAULT] Initialized. Loaded 0 credentials.
+[16:25:13.574] [HISTORY] Loaded 297 history entries.
+[16:25:13.575] [JANITOR] Initializing Service...
+[16:25:13.576] [JANITOR] Timer started. Interval: 60s.
+[16:25:14.086] [UI] MainWindow Ready (Multi-Instance + Shortcuts).
+[16:25:18.812] [EXT] Skipped Firefox-only extension: 'traduzir_paginas_web-10.1.1.1'
+[16:25:19.081] [EXT] Loaded: 'adguard' → ID=gjbcdalockdbdpjilfijigifebblleeo
+[16:25:19.186] [EXT] Loaded: 'autoskip-for-youtube™-ads-chrome-web-store' → ID=enpiaeoobofcpedppdnooadnbaldkjih
+[16:25:19.195] [EXT] Loaded: 'consent-o-matic' → ID=fennofgmefeblbegldihhmpehdehoflg
+[16:25:19.203] [EXT] Loaded: 'crx-extractor-downloader-chrome-web-store' → ID=aagoielimgdcaagiedmdildgfdhcmogh
+[16:25:19.240] [EXT] Loaded: 'dark-mode-chrome-web-store' → ID=pnbopgbekiomlhlfodahgbchgghkkkie
+[16:25:19.248] [EXT] Loaded: 'document-preview-exporter-for-google-drive-chrome-web-store' → ID=igdgheonliiohfnmpdnpimnojhednhon
+[16:25:19.403] [EXT] Loaded: 'google-docs-offline-chrome-web-store' → ID=fjfcaoomjhlpbniopilcfbpefalbhpba
+[16:25:19.571] [EXT] Loaded: 'linguist-web-page-translator-chrome-web-store' → ID=cknpchhamkghepdgmebdeeiklbmhajjb
+[16:25:19.582] [EXT] Loaded: 'manus-ai-browser-operator-chrome-web-store' → ID=mahdomgfmegkjcelplonolabemigokdm
+[16:25:19.591] [EXT] Loaded: 'pip-youtube-pip-chrome-web-store' → ID=genekjfjfkimebghjfadgkigblpjbfaf
+[16:25:19.603] [EXT] Loaded: 'remove-paywalls-chrome-web-store' → ID=mlfdcdoeelfhknfbpcjgffjbcjcipccl
+[16:25:19.615] [EXT] Loaded: 'save-it-later-chrome-web-store' → ID=dbhoefmijjkdalpfhgfcpakjilijegok
+[16:25:19.924] [EXT] Loaded: 'sponsorblock-for-youtube-skip-sponsorships-chrome-web-store' → ID=llafjhmkffdlhpiojoipllmmedhckpgh
+[16:25:19.936] [EXT] Loaded: 'tldr-this-free-automatic-text-summary-tool-chrome-web-store' → ID=bjchemafiampldmkfmpigfoakogialkl
+[16:25:19.937] [EXT] Extension loading done — 14 loaded, 0 failed.
+[16:26:13.585] [JANITOR] Starting scan of: C:\Users\MoRDekai1364\Downloads
+[16:26:13.586] [JANITOR] Found 60 files.
+[16:27:13.579] [JANITOR] Starting scan of: C:\Users\MoRDekai1364\Downloads
+[16:27:13.580] [JANITOR] Found 60 files.
+[16:28:13.588] [JANITOR] Starting scan of: C:\Users\MoRDekai1364\Downloads
+[16:28:13.589] [JANITOR] Found 60 files.
+[16:29:13.590] [JANITOR] Starting scan of: C:\Users\MoRDekai1364\Downloads
+[16:29:13.591] [JANITOR] Found 60 files.
+[16:30:13.580] [JANITOR] Starting scan of: C:\Users\MoRDekai1364\Downloads
+[16:30:13.582] [JANITOR] Found 60 files.
+[16:30:32.712] [SESSION] Saved 1 tabs for session restore.
+[16:30:32.768] [SESSION] Saved 1 tabs for session restore.

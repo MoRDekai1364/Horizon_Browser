@@ -1,0 +1,5 @@
+[??? 19.06.2026 ?. 11:54:26,05] [INFO] Bootstrapper initialized. 
+[??? 19.06.2026 ?. 11:54:26,06] [INFO] Root: H:\Programming\Personal_projects\Horizon_Browser\development_version_alpha\ 
+[??? 19.06.2026 ?. 11:54:26,10] [INFO] .NET 8 Desktop Runtime found. 
+[??? 19.06.2026 ?. 11:54:26,14] [INFO] WebView2 Runtime found. 
+[??? 19.06.2026 ?. 11:54:26,15] [FATAL] Target binary not found at: H:\Programming\Personal_projects\Horizon_Browser\development_version_alpha\bin\Release\net8.0-windows10.0.19041.0\win-x64\Horizon.Stealth.exe 

@@ -1,0 +1,14 @@
+2026/06/05-20:59:29.858 6e74 Reusing MANIFEST H:\Programming\Personal_projects\Horizon_Browser\Horizon_Browser_official_release\bin\Release\HorizonData\EBWebView\Default\IndexedDB\chrome-extension_gjbcdalockdbdpjilfijigifebblleeo_0.indexeddb.leveldb/MANIFEST-000001
+2026/06/05-20:59:29.859 6e74 Recovering log #26
+2026/06/05-20:59:29.967 6e74 Reusing old log H:\Programming\Personal_projects\Horizon_Browser\Horizon_Browser_official_release\bin\Release\HorizonData\EBWebView\Default\IndexedDB\chrome-extension_gjbcdalockdbdpjilfijigifebblleeo_0.indexeddb.leveldb/000026.log 
+2026/06/05-20:59:29.967 6e74 Delete type=2 #24
+2026/06/05-20:59:29.996 697c Level-0 table #31: started
+2026/06/05-20:59:30.011 697c Level-0 table #31: 88203 bytes OK
+2026/06/05-20:59:30.013 697c Delete type=0 #26
+2026/06/05-20:59:30.014 3e6c Manual compaction at level-0 from '\x00\x0b\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00\x0c\x00\x00\x00' @ 0 : 0; will stop at '\x00\x0b\x00\x00\x05' @ 661 : 1
+2026/06/05-20:59:30.014 3e6c Compacting 1@0 + 1@1 files
+2026/06/05-20:59:30.018 3e6c Generated table #32@0: 39 keys, 43936 bytes
+2026/06/05-20:59:30.018 3e6c Compacted 1@0 + 1@1 files => 43936 bytes
+2026/06/05-20:59:30.018 3e6c compacted to: files[ 0 1 0 0 0 0 0 ]
+2026/06/05-20:59:30.019 3e6c Delete type=2 #31
+2026/06/05-20:59:30.020 3e6c Manual compaction at level-0 from '\x00\x0b\x00\x00\x05' @ 661 : 1 .. '\x00\x0c\x00\x00\x00' @ 0 : 0; will stop at (end)

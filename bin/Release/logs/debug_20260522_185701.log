@@ -1,0 +1,32 @@
+[18:57:01.915] [SYSTEM] Black Box Logging Initialized.
+[18:57:01.924] [SYSTEM] Log Path: E:\Programming\Personal_projects\Horizon_Browser\Horizon_Browser\bin\Release\logs\debug_20260522_185701.log
+[18:57:01.924] [BOOT] Horizon Stealth Browser is starting...
+[18:57:01.932] [BOOT] Mode: Standard Browser
+[18:57:01.938] [ENGINE] Initializing Stealth Environment...
+[18:57:01.994] [ENGINE] WebView2 Environment Created.
+[18:57:02.111] [VAULT] Initialized. Loaded 0 credentials.
+[18:57:02.130] [HISTORY] Loaded 510 history entries.
+[18:57:02.132] [JANITOR] Initializing Service...
+[18:57:02.133] [JANITOR] Timer started. Interval: 60s.
+[18:57:03.100] [UI] MainWindow Ready (Multi-Instance + Shortcuts).
+[18:57:09.031] [EXT] Skipped Firefox-only extension: 'traduzir_paginas_web-10.1.1.1'
+[18:57:09.467] [EXT] Loaded: 'adguard' → ID=gjbcdalockdbdpjilfijigifebblleeo
+[18:57:09.700] [EXT] Loaded: 'autoskip-for-youtube™-ads-chrome-web-store' → ID=enpiaeoobofcpedppdnooadnbaldkjih
+[18:57:09.716] [EXT] Loaded: 'consent-o-matic' → ID=fennofgmefeblbegldihhmpehdehoflg
+[18:57:09.728] [EXT] Loaded: 'crx-extractor-downloader-chrome-web-store' → ID=aagoielimgdcaagiedmdildgfdhcmogh
+[18:57:09.778] [EXT] Loaded: 'dark-mode-chrome-web-store' → ID=pnbopgbekiomlhlfodahgbchgghkkkie
+[18:57:09.793] [EXT] Loaded: 'document-preview-exporter-for-google-drive-chrome-web-store' → ID=igdgheonliiohfnmpdnpimnojhednhon
+[18:57:10.148] [EXT] Loaded: 'google-docs-offline-chrome-web-store' → ID=fjfcaoomjhlpbniopilcfbpefalbhpba
+[18:57:10.434] [EXT] Loaded: 'linguist-web-page-translator-chrome-web-store' → ID=cknpchhamkghepdgmebdeeiklbmhajjb
+[18:57:10.462] [EXT] Loaded: 'manus-ai-browser-operator-chrome-web-store' → ID=mahdomgfmegkjcelplonolabemigokdm
+[18:57:10.469] [EXT] Loaded: 'pip-youtube-pip-chrome-web-store' → ID=genekjfjfkimebghjfadgkigblpjbfaf
+[18:57:10.477] [EXT] Loaded: 'remove-paywalls-chrome-web-store' → ID=mlfdcdoeelfhknfbpcjgffjbcjcipccl
+[18:57:10.498] [EXT] Loaded: 'save-it-later-chrome-web-store' → ID=dbhoefmijjkdalpfhgfcpakjilijegok
+[18:57:11.162] [EXT] Loaded: 'sponsorblock-for-youtube-skip-sponsorships-chrome-web-store' → ID=llafjhmkffdlhpiojoipllmmedhckpgh
+[18:57:11.175] [EXT] Loaded: 'tldr-this-free-automatic-text-summary-tool-chrome-web-store' → ID=bjchemafiampldmkfmpigfoakogialkl
+[18:57:11.177] [EXT] Extension loading done — 14 loaded, 0 failed.
+[18:57:13.688] [SWITCHER] Snapshot timed out for: AlohaFind Private web search - Private search for VPN
+[18:57:24.862] [SWITCHER] Snapshot timed out for: My Browser - Manus
+[18:57:28.055] [SWITCHER] Snapshot timed out for: TLDR This Chrome Extension | TLDR This
+[18:57:36.835] [SESSION] Saved 1 tabs for session restore.
+[18:57:36.870] [SESSION] Saved 1 tabs for session restore.

@@ -1,0 +1,359 @@
+[14:46:09.454] [SYSTEM] Black Box Logging Initialized.
+[14:46:09.464] [SYSTEM] Log Path: H:\Programming\Personal_projects\Horizon_Browser\development_version_alpha\bin\Release\logs\debug_20260430_144609.log
+[14:46:09.629] [BOOT] Horizon Stealth Browser is starting...
+[14:46:09.650] [BOOT] Mode: Standard Browser
+[14:46:09.659] [ENGINE] Initializing Stealth Environment...
+[14:46:09.701] [ENGINE] WebView2 Environment Created.
+[14:46:09.870] [VAULT] Initialized. Loaded 0 credentials.
+[14:46:09.885] [HISTORY] Loaded 25 history entries.
+[14:46:09.892] [JANITOR] Initializing Service...
+[14:46:09.894] [JANITOR] Timer started. Interval: 60s.
+[14:46:10.544] [UI] MainWindow Ready (Multi-Instance + Shortcuts).
+[14:46:16.867] [EXT] Skipped Firefox-only extension: 'traduzir_paginas_web-10.1.1.1'
+[14:46:17.163] [EXT] Loaded: 'adguard' → ID=gjbcdalockdbdpjilfijigifebblleeo
+[14:46:17.343] [EXT] Loaded: 'autoskip-for-youtube™-ads-chrome-web-store' → ID=enpiaeoobofcpedppdnooadnbaldkjih
+[14:46:17.370] [EXT] Loaded: 'consent-o-matic' → ID=fennofgmefeblbegldihhmpehdehoflg
+[14:46:17.397] [EXT] Loaded: 'crx-extractor-downloader-chrome-web-store' → ID=aagoielimgdcaagiedmdildgfdhcmogh
+[14:46:17.468] [EXT] Loaded: 'dark-mode-chrome-web-store' → ID=pnbopgbekiomlhlfodahgbchgghkkkie
+[14:46:17.476] [EXT] Loaded: 'document-preview-exporter-for-google-drive-chrome-web-store' → ID=igdgheonliiohfnmpdnpimnojhednhon
+[14:46:17.768] [EXT] Loaded: 'google-docs-offline-chrome-web-store' → ID=fjfcaoomjhlpbniopilcfbpefalbhpba
+[14:46:18.048] [EXT] Loaded: 'linguist-web-page-translator-chrome-web-store' → ID=cknpchhamkghepdgmebdeeiklbmhajjb
+[14:46:18.086] [EXT] Loaded: 'manus-ai-browser-operator-chrome-web-store' → ID=mahdomgfmegkjcelplonolabemigokdm
+[14:46:18.095] [EXT] Loaded: 'pip-youtube-pip-chrome-web-store' → ID=genekjfjfkimebghjfadgkigblpjbfaf
+[14:46:18.097] [EXT] Loaded: 'remove-paywalls-chrome-web-store' → ID=mlfdcdoeelfhknfbpcjgffjbcjcipccl
+[14:46:18.125] [EXT] Loaded: 'save-it-later-chrome-web-store' → ID=dbhoefmijjkdalpfhgfcpakjilijegok
+[14:46:18.593] [EXT] Loaded: 'sponsorblock-for-youtube-skip-sponsorships-chrome-web-store' → ID=llafjhmkffdlhpiojoipllmmedhckpgh
+[14:46:18.626] [EXT] Loaded: 'tldr-this-free-automatic-text-summary-tool-chrome-web-store' → ID=bjchemafiampldmkfmpigfoakogialkl
+[14:46:18.629] [EXT] Extension loading done — 14 loaded, 0 failed.
+[14:46:21.886] [SWITCHER] Snapshot timed out for: AlohaFind Private web search - Private search for VPN
+[14:46:27.768] [SWITCHER] Snapshot timed out for: AlohaFind Private web search - Private search for VPN
+[14:46:28.141] [SWITCHER] Snapshot timed out for: AlohaFind Private web search - Private search for VPN
+[14:46:29.137] [SWITCHER] Snapshot timed out for: Features of CRX extractor and downloader extension · The Bytes Effect
+[14:46:29.646] [SWITCHER] Snapshot timed out for: My Browser - Manus
+
+[CRITICAL FAILURE DETECTED - MERGING TAPE]
+==========================================
+===       HORIZON BLACK BOX TAPE       ===
+==========================================
+Timestamp: 30.4.2026 г. 14:46:30
+Context:   Background Task
+Exception: AggregateException
+Message:   A Task's exception(s) were not observed either by Waiting on the Task or accessing its Exception property. As a result, the unobserved exception was rethrown by the finalizer thread. (Cannot access a closed Stream.)
+------------------------------------------
+Stack Trace:
+
+------------------------------------------
+Inner Exception:
+System.ObjectDisposedException: Cannot access a closed Stream.
+   at System.Runtime.InteropServices.Marshal.ThrowExceptionForHR(Int32 errorCode)
+   at Microsoft.Web.WebView2.Core.CoreWebView2.CapturePreviewAsync(CoreWebView2CapturePreviewImageFormat imageFormat, Stream imageStream)
+==========================================
+[TAPE MERGE COMPLETE]
+[14:46:30.318] [SWITCHER] Snapshot timed out for: chrome-extension
+[14:46:30.693] [SWITCHER] Snapshot timed out for: Features of CRX extractor and downloader extension · The Bytes Effect
+[14:46:30.910] [SWITCHER] Snapshot timed out for: Features of CRX extractor and downloader extension · The Bytes Effect
+[14:46:31.236] [SWITCHER] Snapshot timed out for: TLDR This Chrome Extension | TLDR This
+
+[CRITICAL FAILURE DETECTED - MERGING TAPE]
+==========================================
+===       HORIZON BLACK BOX TAPE       ===
+==========================================
+Timestamp: 30.4.2026 г. 14:46:32
+Context:   Background Task
+Exception: AggregateException
+Message:   A Task's exception(s) were not observed either by Waiting on the Task or accessing its Exception property. As a result, the unobserved exception was rethrown by the finalizer thread. (Cannot access a closed Stream.)
+------------------------------------------
+Stack Trace:
+
+------------------------------------------
+Inner Exception:
+System.ObjectDisposedException: Cannot access a closed Stream.
+   at System.Runtime.InteropServices.Marshal.ThrowExceptionForHR(Int32 errorCode)
+   at Microsoft.Web.WebView2.Core.CoreWebView2.CapturePreviewAsync(CoreWebView2CapturePreviewImageFormat imageFormat, Stream imageStream)
+==========================================
+[TAPE MERGE COMPLETE]
+
+[CRITICAL FAILURE DETECTED - MERGING TAPE]
+==========================================
+===       HORIZON BLACK BOX TAPE       ===
+==========================================
+Timestamp: 30.4.2026 г. 14:46:33
+Context:   Background Task
+Exception: AggregateException
+Message:   A Task's exception(s) were not observed either by Waiting on the Task or accessing its Exception property. As a result, the unobserved exception was rethrown by the finalizer thread. (Cannot access a closed Stream.)
+------------------------------------------
+Stack Trace:
+
+------------------------------------------
+Inner Exception:
+System.ObjectDisposedException: Cannot access a closed Stream.
+   at System.Runtime.InteropServices.Marshal.ThrowExceptionForHR(Int32 errorCode)
+   at Microsoft.Web.WebView2.Core.CoreWebView2.CapturePreviewAsync(CoreWebView2CapturePreviewImageFormat imageFormat, Stream imageStream)
+==========================================
+[TAPE MERGE COMPLETE]
+[14:46:35.769] [SWITCHER] Snapshot timed out for: AlohaFind Private web search - Private search for VPN
+[14:46:36.550] [SWITCHER] Snapshot timed out for: AlohaFind Private web search - Private search for VPN
+[14:46:38.284] [SWITCHER] Snapshot timed out for: Features of CRX extractor and downloader extension · The Bytes Effect
+[14:46:38.392] [SWITCHER] Snapshot timed out for: Features of CRX extractor and downloader extension · The Bytes Effect
+[14:46:40.175] [SWITCHER] Snapshot timed out for: AlohaFind Private web search - Private search for VPN
+[14:46:40.488] [SWITCHER] Snapshot timed out for: Features of CRX extractor and downloader extension · The Bytes Effect
+
+[CRITICAL FAILURE DETECTED - MERGING TAPE]
+==========================================
+===       HORIZON BLACK BOX TAPE       ===
+==========================================
+Timestamp: 30.4.2026 г. 14:46:43
+Context:   Background Task
+Exception: AggregateException
+Message:   A Task's exception(s) were not observed either by Waiting on the Task or accessing its Exception property. As a result, the unobserved exception was rethrown by the finalizer thread. (Cannot access a closed Stream.)
+------------------------------------------
+Stack Trace:
+
+------------------------------------------
+Inner Exception:
+System.ObjectDisposedException: Cannot access a closed Stream.
+   at System.Runtime.InteropServices.Marshal.ThrowExceptionForHR(Int32 errorCode)
+   at Microsoft.Web.WebView2.Core.CoreWebView2.CapturePreviewAsync(CoreWebView2CapturePreviewImageFormat imageFormat, Stream imageStream)
+==========================================
+[TAPE MERGE COMPLETE]
+
+[CRITICAL FAILURE DETECTED - MERGING TAPE]
+==========================================
+===       HORIZON BLACK BOX TAPE       ===
+==========================================
+Timestamp: 30.4.2026 г. 14:46:43
+Context:   Background Task
+Exception: AggregateException
+Message:   A Task's exception(s) were not observed either by Waiting on the Task or accessing its Exception property. As a result, the unobserved exception was rethrown by the finalizer thread. (Cannot access a closed Stream.)
+------------------------------------------
+Stack Trace:
+
+------------------------------------------
+Inner Exception:
+System.ObjectDisposedException: Cannot access a closed Stream.
+   at System.Runtime.InteropServices.Marshal.ThrowExceptionForHR(Int32 errorCode)
+   at Microsoft.Web.WebView2.Core.CoreWebView2.CapturePreviewAsync(CoreWebView2CapturePreviewImageFormat imageFormat, Stream imageStream)
+==========================================
+[TAPE MERGE COMPLETE]
+
+[CRITICAL FAILURE DETECTED - MERGING TAPE]
+==========================================
+===       HORIZON BLACK BOX TAPE       ===
+==========================================
+Timestamp: 30.4.2026 г. 14:46:43
+Context:   Background Task
+Exception: AggregateException
+Message:   A Task's exception(s) were not observed either by Waiting on the Task or accessing its Exception property. As a result, the unobserved exception was rethrown by the finalizer thread. (Cannot access a closed Stream.)
+------------------------------------------
+Stack Trace:
+
+------------------------------------------
+Inner Exception:
+System.ObjectDisposedException: Cannot access a closed Stream.
+   at System.Runtime.InteropServices.Marshal.ThrowExceptionForHR(Int32 errorCode)
+   at Microsoft.Web.WebView2.Core.CoreWebView2.CapturePreviewAsync(CoreWebView2CapturePreviewImageFormat imageFormat, Stream imageStream)
+==========================================
+[TAPE MERGE COMPLETE]
+
+[CRITICAL FAILURE DETECTED - MERGING TAPE]
+==========================================
+===       HORIZON BLACK BOX TAPE       ===
+==========================================
+Timestamp: 30.4.2026 г. 14:46:43
+Context:   Background Task
+Exception: AggregateException
+Message:   A Task's exception(s) were not observed either by Waiting on the Task or accessing its Exception property. As a result, the unobserved exception was rethrown by the finalizer thread. (Cannot access a closed Stream.)
+------------------------------------------
+Stack Trace:
+
+------------------------------------------
+Inner Exception:
+System.ObjectDisposedException: Cannot access a closed Stream.
+   at System.Runtime.InteropServices.Marshal.ThrowExceptionForHR(Int32 errorCode)
+   at Microsoft.Web.WebView2.Core.CoreWebView2.CapturePreviewAsync(CoreWebView2CapturePreviewImageFormat imageFormat, Stream imageStream)
+==========================================
+[TAPE MERGE COMPLETE]
+
+[CRITICAL FAILURE DETECTED - MERGING TAPE]
+==========================================
+===       HORIZON BLACK BOX TAPE       ===
+==========================================
+Timestamp: 30.4.2026 г. 14:46:43
+Context:   Background Task
+Exception: AggregateException
+Message:   A Task's exception(s) were not observed either by Waiting on the Task or accessing its Exception property. As a result, the unobserved exception was rethrown by the finalizer thread. (Cannot access a closed Stream.)
+------------------------------------------
+Stack Trace:
+
+------------------------------------------
+Inner Exception:
+System.ObjectDisposedException: Cannot access a closed Stream.
+   at System.Runtime.InteropServices.Marshal.ThrowExceptionForHR(Int32 errorCode)
+   at Microsoft.Web.WebView2.Core.CoreWebView2.CapturePreviewAsync(CoreWebView2CapturePreviewImageFormat imageFormat, Stream imageStream)
+==========================================
+[TAPE MERGE COMPLETE]
+
+[CRITICAL FAILURE DETECTED - MERGING TAPE]
+==========================================
+===       HORIZON BLACK BOX TAPE       ===
+==========================================
+Timestamp: 30.4.2026 г. 14:46:43
+Context:   Background Task
+Exception: AggregateException
+Message:   A Task's exception(s) were not observed either by Waiting on the Task or accessing its Exception property. As a result, the unobserved exception was rethrown by the finalizer thread. (Cannot access a closed Stream.)
+------------------------------------------
+Stack Trace:
+
+------------------------------------------
+Inner Exception:
+System.ObjectDisposedException: Cannot access a closed Stream.
+   at System.Runtime.InteropServices.Marshal.ThrowExceptionForHR(Int32 errorCode)
+   at Microsoft.Web.WebView2.Core.CoreWebView2.CapturePreviewAsync(CoreWebView2CapturePreviewImageFormat imageFormat, Stream imageStream)
+==========================================
+[TAPE MERGE COMPLETE]
+
+[CRITICAL FAILURE DETECTED - MERGING TAPE]
+==========================================
+===       HORIZON BLACK BOX TAPE       ===
+==========================================
+Timestamp: 30.4.2026 г. 14:46:48
+Context:   Background Task
+Exception: AggregateException
+Message:   A Task's exception(s) were not observed either by Waiting on the Task or accessing its Exception property. As a result, the unobserved exception was rethrown by the finalizer thread. (Cannot access a closed Stream.)
+------------------------------------------
+Stack Trace:
+
+------------------------------------------
+Inner Exception:
+System.ObjectDisposedException: Cannot access a closed Stream.
+   at System.Runtime.InteropServices.Marshal.ThrowExceptionForHR(Int32 errorCode)
+   at Microsoft.Web.WebView2.Core.CoreWebView2.CapturePreviewAsync(CoreWebView2CapturePreviewImageFormat imageFormat, Stream imageStream)
+==========================================
+[TAPE MERGE COMPLETE]
+
+[CRITICAL FAILURE DETECTED - MERGING TAPE]
+==========================================
+===       HORIZON BLACK BOX TAPE       ===
+==========================================
+Timestamp: 30.4.2026 г. 14:46:48
+Context:   Background Task
+Exception: AggregateException
+Message:   A Task's exception(s) were not observed either by Waiting on the Task or accessing its Exception property. As a result, the unobserved exception was rethrown by the finalizer thread. (Cannot access a closed Stream.)
+------------------------------------------
+Stack Trace:
+
+------------------------------------------
+Inner Exception:
+System.ObjectDisposedException: Cannot access a closed Stream.
+   at System.Runtime.InteropServices.Marshal.ThrowExceptionForHR(Int32 errorCode)
+   at Microsoft.Web.WebView2.Core.CoreWebView2.CapturePreviewAsync(CoreWebView2CapturePreviewImageFormat imageFormat, Stream imageStream)
+==========================================
+[TAPE MERGE COMPLETE]
+
+[CRITICAL FAILURE DETECTED - MERGING TAPE]
+==========================================
+===       HORIZON BLACK BOX TAPE       ===
+==========================================
+Timestamp: 30.4.2026 г. 14:46:48
+Context:   Background Task
+Exception: AggregateException
+Message:   A Task's exception(s) were not observed either by Waiting on the Task or accessing its Exception property. As a result, the unobserved exception was rethrown by the finalizer thread. (Cannot access a closed Stream.)
+------------------------------------------
+Stack Trace:
+
+------------------------------------------
+Inner Exception:
+System.ObjectDisposedException: Cannot access a closed Stream.
+   at System.Runtime.InteropServices.Marshal.ThrowExceptionForHR(Int32 errorCode)
+   at Microsoft.Web.WebView2.Core.CoreWebView2.CapturePreviewAsync(CoreWebView2CapturePreviewImageFormat imageFormat, Stream imageStream)
+==========================================
+[TAPE MERGE COMPLETE]
+
+[CRITICAL FAILURE DETECTED - MERGING TAPE]
+==========================================
+===       HORIZON BLACK BOX TAPE       ===
+==========================================
+Timestamp: 30.4.2026 г. 14:46:48
+Context:   Background Task
+Exception: AggregateException
+Message:   A Task's exception(s) were not observed either by Waiting on the Task or accessing its Exception property. As a result, the unobserved exception was rethrown by the finalizer thread. (Cannot access a closed Stream.)
+------------------------------------------
+Stack Trace:
+
+------------------------------------------
+Inner Exception:
+System.ObjectDisposedException: Cannot access a closed Stream.
+   at System.Runtime.InteropServices.Marshal.ThrowExceptionForHR(Int32 errorCode)
+   at Microsoft.Web.WebView2.Core.CoreWebView2.CapturePreviewAsync(CoreWebView2CapturePreviewImageFormat imageFormat, Stream imageStream)
+==========================================
+[TAPE MERGE COMPLETE]
+
+[CRITICAL FAILURE DETECTED - MERGING TAPE]
+==========================================
+===       HORIZON BLACK BOX TAPE       ===
+==========================================
+Timestamp: 30.4.2026 г. 14:46:48
+Context:   Background Task
+Exception: AggregateException
+Message:   A Task's exception(s) were not observed either by Waiting on the Task or accessing its Exception property. As a result, the unobserved exception was rethrown by the finalizer thread. (Cannot access a closed Stream.)
+------------------------------------------
+Stack Trace:
+
+------------------------------------------
+Inner Exception:
+System.ObjectDisposedException: Cannot access a closed Stream.
+   at System.Runtime.InteropServices.Marshal.ThrowExceptionForHR(Int32 errorCode)
+   at Microsoft.Web.WebView2.Core.CoreWebView2.CapturePreviewAsync(CoreWebView2CapturePreviewImageFormat imageFormat, Stream imageStream)
+==========================================
+[TAPE MERGE COMPLETE]
+
+[CRITICAL FAILURE DETECTED - MERGING TAPE]
+==========================================
+===       HORIZON BLACK BOX TAPE       ===
+==========================================
+Timestamp: 30.4.2026 г. 14:46:48
+Context:   Background Task
+Exception: AggregateException
+Message:   A Task's exception(s) were not observed either by Waiting on the Task or accessing its Exception property. As a result, the unobserved exception was rethrown by the finalizer thread. (Cannot access a closed Stream.)
+------------------------------------------
+Stack Trace:
+
+------------------------------------------
+Inner Exception:
+System.ObjectDisposedException: Cannot access a closed Stream.
+   at System.Runtime.InteropServices.Marshal.ThrowExceptionForHR(Int32 errorCode)
+   at Microsoft.Web.WebView2.Core.CoreWebView2.CapturePreviewAsync(CoreWebView2CapturePreviewImageFormat imageFormat, Stream imageStream)
+==========================================
+[TAPE MERGE COMPLETE]
+[14:46:53.572] [SWITCHER] Snapshot timed out for: AlohaFind Private web search - Private search for VPN
+[14:46:53.579] [SWITCHER] Snapshot timed out for: AlohaFind Private web search - Private search for VPN
+[14:46:54.713] [SWITCHER] Snapshot timed out for: AlohaFind Private web search - Private search for VPN
+[14:46:55.110] [SWITCHER] Snapshot timed out for: AlohaFind Private web search - Private search for VPN
+[14:46:56.128] [SWITCHER] Snapshot timed out for: AlohaFind Private web search - Private search for VPN
+[14:46:57.334] [SWITCHER] Snapshot timed out for: AlohaFind Private web search - Private search for VPN
+[14:46:58.737] [SWITCHER] Snapshot timed out for: AlohaFind Private web search - Private search for VPN
+
+[CRITICAL FAILURE DETECTED - MERGING TAPE]
+==========================================
+===       HORIZON BLACK BOX TAPE       ===
+==========================================
+Timestamp: 30.4.2026 г. 14:46:59
+Context:   Background Task
+Exception: AggregateException
+Message:   A Task's exception(s) were not observed either by Waiting on the Task or accessing its Exception property. As a result, the unobserved exception was rethrown by the finalizer thread. (Cannot access a closed Stream.)
+------------------------------------------
+Stack Trace:
+
+------------------------------------------
+Inner Exception:
+System.ObjectDisposedException: Cannot access a closed Stream.
+   at System.Runtime.InteropServices.Marshal.ThrowExceptionForHR(Int32 errorCode)
+   at Microsoft.Web.WebView2.Core.CoreWebView2.CapturePreviewAsync(CoreWebView2CapturePreviewImageFormat imageFormat, Stream imageStream)
+==========================================
+[TAPE MERGE COMPLETE]
+[14:46:59.662] [SWITCHER] Snapshot timed out for: AlohaFind Private web search - Private search for VPN
+[14:47:01.176] [SWITCHER] Snapshot timed out for: AlohaFind Private web search - Private search for VPN
+[14:47:09.906] [JANITOR] Starting scan of: C:\Users\MoRDekai1364\Downloads
+[14:47:09.908] [JANITOR] Found 68 files.
+[14:47:33.014] [SESSION] Saved 1 tabs for session restore.
+[14:47:33.095] [SESSION] Saved 1 tabs for session restore.
