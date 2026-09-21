@@ -213,8 +213,25 @@ def checkout_branch(branch):
                     logger.error(f"  - {file}")
             fail("Merge conflict during stash pop. Resolve manually in terminal before continuing.")
 
-def stage_and_commit(message):
+def get_changed_files():
     run(["git", "add", "-A"])
+    status = run(["git", "status", "--porcelain"])
+    new_files = []
+    modified_files = []
+    for line in status.stdout.splitlines():
+        if not line.strip():
+            continue
+        code = line[:2]
+        path = line[3:].strip()
+        if "->" in path:
+            path = path.split("->")[-1].strip()
+        if "A" in code:
+            new_files.append(path)
+        elif "M" in code:
+            modified_files.append(path)
+    return new_files, modified_files
+
+def stage_and_commit(message):
     status = run(["git", "status", "--porcelain"])
     if not status.stdout.strip():
         logger.info("No changes to commit.")
@@ -248,13 +265,34 @@ def sync_with_remote(remote_name, branch):
     result = run(["git", "rebase", remote_ref], check=False)
     if result.returncode != 0:
         run(["git", "rebase", "--abort"], check=False)
-        fail(
-            "Rebase failed — the remote has changes that conflict with yours. "
-            f"Resolve manually: open a terminal in {SOURCE_DIR} and run "
-            f"'git pull --rebase {remote_name} {branch}', fix the conflicts, "
-            "then re-run this script."
-        )
+        resolve_conflict_interactively(remote_name, branch, remote_ref)
+        return
     logger.info("Rebased local commits on top of remote changes.")
+
+def merge_unrelated(remote_name, remote_ref, strategy):
+    result = run(["git", "merge", "-X", strategy, remote_ref, "-m",
+                   f"Merge {remote_ref}, prefer {strategy}", "--allow-unrelated-histories"], check=False)
+    if result.returncode != 0:
+        fail(f"Merge with -X {strategy} failed unexpectedly: {result.stderr.strip() or result.stdout.strip()}")
+
+def resolve_conflict_interactively(remote_name, branch, remote_ref):
+    logger.info("Rebase failed — local and remote history conflict (often because the local")
+    logger.info("repo was freshly initialized and shares no commit history with the remote).")
+    logger.info("How should conflicting lines be resolved?")
+    logger.info("  1. Keep MY local version wherever content conflicts")
+    logger.info("  2. Keep the REMOTE version wherever content conflicts")
+    logger.info("  3. Abort — I'll resolve manually in a terminal")
+    choice = input("Select option: ").strip()
+    if choice == "1":
+        merge_unrelated(remote_name, remote_ref, "ours")
+    elif choice == "2":
+        merge_unrelated(remote_name, remote_ref, "theirs")
+    else:
+        fail(
+            "Resolve manually: open a terminal in "
+            f"{SOURCE_DIR} and run 'git pull --rebase {remote_name} {branch}', "
+            "fix the conflicts, then re-run this script."
+        )
 
 def push_with_progress(remote_name, branch):
     cmd = ["git", "push", "-u", remote_name, branch, "--progress"]
@@ -265,9 +303,11 @@ def push_with_progress(remote_name, branch):
     last_done = 0
     last_total = 0
     buffer = ""
+    captured_lines = []
 
     def process_line(line):
         nonlocal last_percent, last_done, last_total
+        captured_lines.append(line)
         logger.debug(line.strip())
         elapsed = (datetime.now() - start_time).total_seconds()
         match = re.search(r"(\d{1,3})%\s*\((\d+)/(\d+)\)", line)
@@ -307,6 +347,17 @@ def push_with_progress(remote_name, branch):
         print_progress(100, total_elapsed, last_total, last_total, prefix="Pushing: ")
     sys.stdout.write("\n")
     if process.returncode != 0:
+        full_output = "\n".join(captured_lines)
+        large_files = re.findall(r"error: File (.+?) is ([\d.]+ ?[KMG]?i?B); this exceeds GitHub's file size limit", full_output)
+        if large_files:
+            logger.error("Push rejected: these files exceed GitHub's 100 MB file size limit:")
+            for path, size in large_files:
+                logger.error(f"  - {path} ({size})")
+            raise RuntimeError(
+                "Push rejected — files over GitHub's 100 MB limit (listed above). "
+                "Untrack them with 'git rm --cached <file>', add them to .gitignore, "
+                "or set up Git LFS with 'git lfs track \"<pattern>\"' before pushing again."
+            )
         raise RuntimeError(f"git push exited with code {process.returncode}")
     logger.info(f"Push finished in {total_elapsed:.1f}s. Done.")
 
@@ -319,10 +370,23 @@ def main():
         remote_name, remote_url = select_repo()
         branch = select_branch(remote_name)
         checkout_branch(branch)
+        new_files, modified_files = get_changed_files()
         message = input("Enter commit message: ").strip()
         if not message:
-            message = f"(this is automated commit message) {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
-            logger.info(f"No commit message entered — using: {message}")
+            lines = [f"(this is automated commit message) {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"]
+            if new_files or modified_files:
+                lines.append("")
+                lines.append(f"Repository: {remote_url}")
+                for path in new_files:
+                    lines.append(f"  [new] {path}")
+                for path in modified_files:
+                    lines.append(f"  [modified] {path}")
+            message = "\n".join(lines)
+            logger.info("No commit message entered — using automated message:")
+            logger.info("----------------------------------------")
+            for line in message.splitlines():
+                logger.info(line)
+            logger.info("----------------------------------------")
         committed = stage_and_commit(message)
         sync_with_remote(remote_name, branch)
         push_with_progress(remote_name, branch)
