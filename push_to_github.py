@@ -264,7 +264,10 @@ def sync_with_remote(remote_name, branch):
     logger.info(f"Remote has {behind} commit(s) you don't have locally — rebasing before push.")
     result = run(["git", "rebase", remote_ref], check=False)
     if result.returncode != 0:
+        rebase_output = (result.stdout or "") + (result.stderr or "")
         run(["git", "rebase", "--abort"], check=False)
+        if "CONFLICT" not in rebase_output:
+            fail("Rebase failed for a non-conflict reason: " + rebase_output.strip())
         resolve_conflict_interactively(remote_name, branch, remote_ref)
         return
     logger.info("Rebased local commits on top of remote changes.")
@@ -367,6 +370,7 @@ def main():
     check_git_available()
     try:
         ensure_repo()
+        run(["git", "config", "core.longpaths", "true"])
         remote_name, remote_url = select_repo()
         branch = select_branch(remote_name)
         checkout_branch(branch)

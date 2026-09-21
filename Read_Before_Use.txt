@@ -1,0 +1,63 @@
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  HORIZON BROWSER — QUICK START & HELP
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Everything is already installed.
+Move the Horizon_Browser folder from Downloads to a directory of your choice.
+
+
+─────────────────────────────────────────────────
+  STARTING THE BROWSER
+─────────────────────────────────────────────────
+
+Use the  Horizon_Browser  shortcut to launch.
+
+If the shortcut doesn't work:
+  1. Open the  bin  folder
+  2. Open the  release  folder
+  3. Run  Horizon.Stealth.exe
+
+You can pin Horizon.Stealth.exe to your taskbar, Start menu, or desktop.
+
+
+─────────────────────────────────────────────────
+  RECOMMENDED SETTINGS
+─────────────────────────────────────────────────
+
+For the best experience, go to:
+  Configuration → Input  and enable:  Auto-hide Sidebar
+
+
+─────────────────────────────────────────────────
+  BACKUP & RESTORE
+─────────────────────────────────────────────────
+
+Location:  Configuration → Backup & Update
+
+  CREATE BACKUP
+    Click  Option 1  →  Choose Default
+    The browser will restart automatically. You're done.
+
+  RESTORE BACKUP
+    Click  Option 2  →  Choose Default
+    The browser will restart automatically. You're done.
+
+  Note: If you uninstall the browser, your backup remains on the PC.
+  After reinstalling, simply follow the restore steps above.
+
+
+─────────────────────────────────────────────────
+  UPDATING
+─────────────────────────────────────────────────
+
+Before installing a new version:
+  Run  Update_manager.bat  and follow the on-screen instructions.
+
+
+─────────────────────────────────────────────────
+  FEEDBACK & SUPPORT
+─────────────────────────────────────────────────
+
+  https://feedbackcol-nszemvwz.manus.space/
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
