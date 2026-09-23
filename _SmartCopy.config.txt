@@ -1,0 +1,5 @@
+﻿Mode=Exclude
+Selection=.git|bin|obj|.gitignore|dir|restore.bat|Setup_Horizon_Browser_Alpha.ifp|update.txt|update_status.txt|version.txt
+CopyOrCut=Copy
+TargetFolder=E:\Programming\Personal_projects\Horizon_Browser\Horizon_Browser_official_release
+SavedAt=2026-07-30 01:45:00

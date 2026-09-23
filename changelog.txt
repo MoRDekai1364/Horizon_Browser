@@ -1,0 +1,2 @@
++ modernized weather widget interface
++ weather bugfixes

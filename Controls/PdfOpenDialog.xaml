@@ -1,0 +1,15 @@
+<Window x:Class="Horizon.Stealth.Controls.PdfOpenDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Open PDF" SizeToContent="WidthAndHeight"
+        ResizeMode="NoResize" WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False" WindowStyle="ToolWindow">
+    <StackPanel Margin="20" MinWidth="320">
+        <TextBlock Text="How do you want to open this PDF?" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,14"/>
+        <Button Content="🖥  Open with default PDF viewer" Click="BtnExternal_Click"
+                Padding="12,8" Margin="0,0,0,8" HorizontalAlignment="Stretch"/>
+        <Button Content="🌐  Open in browser" Click="BtnBrowser_Click"
+                Padding="12,8" Margin="0,0,0,14" HorizontalAlignment="Stretch"/>
+        <CheckBox x:Name="ChkRemember" Content="Remember my choice (can be reset in Settings)" Margin="0,0,0,0"/>
+    </StackPanel>
+</Window>

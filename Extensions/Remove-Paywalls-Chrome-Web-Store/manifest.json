@@ -1,0 +1,19 @@
+{
+"update_url": "https://clients2.google.com/service/update2/crx",
+
+  "manifest_version": 3,
+  "name": "Remove Paywalls",
+  "version": "1.0",
+  "description": "Bypass paywalls by accessing archived versions of articles",
+  "permissions": ["activeTab"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_icon": {
+      "16": "icon16.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    }
+  }
+}
