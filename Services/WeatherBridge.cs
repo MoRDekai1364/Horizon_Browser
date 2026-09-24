@@ -13,6 +13,7 @@ public static class WeatherBridge
     public static event Action? Updated;
 
     public static System.Windows.Media.Imaging.BitmapSource? ThemeWallpaper { get; private set; }
+    public static System.Windows.FrameworkElement? WallpaperSurface { get; private set; }
     public static bool       HasTheme             { get; private set; }
     public static bool       ThemeDarkWallpaper   { get; private set; } = true;
     public static bool       ThemeAdaptive        { get; private set; } = true;
@@ -24,10 +25,17 @@ public static class WeatherBridge
     public static MediaColor ThemeAccentSubtle    { get; private set; } = MediaColor.FromRgb(0xA0, 0xA0, 0xA0);
 
     public static event Action? ThemeUpdated;
+    public static event Action? SurfaceChanged;
 
     public static void SetWallpaper(System.Windows.Media.Imaging.BitmapSource? wallpaper)
     {
         ThemeWallpaper = wallpaper;
+    }
+
+    public static void SetWallpaperSurface(System.Windows.FrameworkElement? surface)
+    {
+        WallpaperSurface = surface;
+        SurfaceChanged?.Invoke();
     }
 
     public static void PublishTheme(MediaColor average, MediaColor pill, MediaColor text, MediaColor accent,

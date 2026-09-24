@@ -640,6 +640,9 @@
                     <StackPanel Margin="10,10,20,10">
                         <TextBlock x:Name="TblVersionDisplay" Text="-----version—" Foreground="#FF2222" FontSize="20" FontWeight="Bold" Margin="0,0,0,8"/>
 
+                        <TextBlock x:Name="TblChangelog" Text="" Foreground="{StaticResource Brush_Text}" FontSize="12"
+                                   TextWrapping="Wrap" Margin="0,0,0,18"/>
+
                         <TextBlock Text="Update Channel" FontWeight="SemiBold" Margin="0,0,0,6"
                                    Foreground="{StaticResource Brush_Accent}"/>
                         <ComboBox x:Name="CboUpdateChannel" Width="200" HorizontalAlignment="Left"

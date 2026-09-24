@@ -546,6 +546,20 @@ public partial class MainWindow : Window
     [DllImport("shell32.dll")]
     private static extern IntPtr SHAppBarMessage(uint dwMessage, ref APPBARDATA pData);
 
+    private void ApplyWindowRoundedCorners(Window w)
+    {
+        w.SourceInitialized += (s, e) =>
+        {
+            try
+            {
+                var hwndW = new WindowInteropHelper(w).Handle;
+                int pref = DWMWCP_ROUND;
+                DwmSetWindowAttribute(hwndW, DWMWA_WINDOW_CORNER_PREFERENCE, ref pref, sizeof(int));
+            }
+            catch { }
+        };
+    }
+
     protected override void OnSourceInitialized(EventArgs e)
     {
         base.OnSourceInitialized(e);
@@ -6799,6 +6813,7 @@ private sealed class WeatherRetryHandler : DelegatingHandler
             Topmost          = true,
         };
         _mediaWidgetWindow = win;
+        ApplyWindowRoundedCorners(win);
 
         var root = new StackPanel { Margin = new Thickness(12) };
 
@@ -7579,14 +7594,16 @@ private sealed class WeatherRetryHandler : DelegatingHandler
         btn.BorderThickness = active ? new Thickness(0, 0, 0, 2) : new Thickness(0);
     }
 
-    private (Grid Root, Action Detach) BuildWeatherBackdrop()
+    private (Grid Root, Action Detach) BuildWidgetBackdrop(Window owner)
     {
         var root = new Grid { ClipToBounds = true, IsHitTestVisible = false };
         var baseLayer = new Border();
+        var wallBrush = new ImageBrush();
         var wallLayer = new Border
         {
             RenderTransformOrigin = new Point(0.5, 0.5),
-            RenderTransform = new ScaleTransform(1.15, 1.15),
+            RenderTransform = new ScaleTransform(1.08, 1.08),
+            Background = wallBrush,
             Effect = new System.Windows.Media.Effects.BlurEffect
             {
                 Radius = 32,
@@ -7604,19 +7621,14 @@ private sealed class WeatherRetryHandler : DelegatingHandler
         root.Children.Add(tintLayer);
         root.Children.Add(shadeLayer);
 
+        var unbind = WidgetBackdropService.Bind(owner, wallBrush);
+
         void Apply()
         {
             baseLayer.Background = new SolidColorBrush(WxPanel);
-            var wp = WeatherBridge.ThemeWallpaper;
-            if (wp != null)
-            {
-                wallLayer.Background = new ImageBrush(wp) { Stretch = Stretch.UniformToFill };
-                wallLayer.Opacity = Math.Clamp(0.55 * SettingsService.Current.BackgroundOpacity, 0.0, 1.0);
-            }
-            else
-            {
-                wallLayer.Background = null;
-            }
+            wallLayer.Opacity = WeatherBridge.ThemeWallpaper != null
+                ? Math.Clamp(0.55 * SettingsService.Current.BackgroundOpacity, 0.0, 1.0)
+                : 0.0;
             var pill = WeatherBridge.ThemePill;
             tintLayer.Background = new SolidColorBrush(Color.FromArgb(0x1C, pill.R, pill.G, pill.B));
         }
@@ -7624,7 +7636,7 @@ private sealed class WeatherRetryHandler : DelegatingHandler
         Apply();
         Action handler = () => Dispatcher.BeginInvoke(new Action(Apply));
         WeatherBridge.ThemeUpdated += handler;
-        return (root, () => WeatherBridge.ThemeUpdated -= handler);
+        return (root, () => { WeatherBridge.ThemeUpdated -= handler; unbind(); });
     }
 
     private void OpenWeatherDetailPopup()
@@ -7634,8 +7646,9 @@ private sealed class WeatherRetryHandler : DelegatingHandler
             Title = "Weather", Width = 400, MinHeight = 400, MaxHeight = 860,
             SizeToContent = SizeToContent.Height,
             WindowStyle = WindowStyle.ToolWindow, ResizeMode = ResizeMode.CanResizeWithGrip,
-            Owner = this, ShowInTaskbar = false, Topmost = true,
+            Owner = null, ShowInTaskbar = false, Topmost = true,
         };
+        ApplyWindowRoundedCorners(win);
 
         var animBrush = new LinearGradientBrush
         {
@@ -7648,7 +7661,7 @@ private sealed class WeatherRetryHandler : DelegatingHandler
             }
         };
         var bgGrid = new Grid { ClipToBounds = true };
-        var backdrop = BuildWeatherBackdrop();
+        var backdrop = BuildWidgetBackdrop(win);
         bgGrid.Children.Add(backdrop.Root);
         _ = HomePageView.EnsureWeatherThemeAsync();
         var animBgBorder = new Border { Background = animBrush };

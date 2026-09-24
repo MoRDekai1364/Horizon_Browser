@@ -1,2 +1,8 @@
+version 2.7.6
 + modernized weather widget interface
 + weather bugfixes
++ set Owner = null on both window-creation points so clicking a widget no longer pulls the browser window forward.
++ added search to settings
++ made all widget windows with rounded corners
++ made changelog.txt show its content at the browser settings
++ applied monitor-based visual blur system

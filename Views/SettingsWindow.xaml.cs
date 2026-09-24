@@ -750,6 +750,21 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
 
         SetComboByTag(CboUpdateChannel, channel);
         _isLoadingVersion = false;
+
+        LoadChangelogDisplay();
+    }
+
+    private void LoadChangelogDisplay()
+    {
+        string? changelogPath = ResolvePath("changelog.txt");
+        if (changelogPath == null)
+        {
+            TblChangelog.Text = "";
+            return;
+        }
+
+        try { TblChangelog.Text = File.ReadAllText(changelogPath).Trim(); }
+        catch { TblChangelog.Text = ""; }
     }
 
     private void CboUpdateChannel_SelectionChanged(object sender, SelectionChangedEventArgs e)

@@ -42,6 +42,12 @@ public partial class HomePageView : UserControl
     public HomePageView()
     {
         InitializeComponent();
+        Loaded += (_, __) => WeatherBridge.SetWallpaperSurface(RootHomeGrid);
+        Unloaded += (_, __) =>
+        {
+            if (WeatherBridge.WallpaperSurface == RootHomeGrid)
+                WeatherBridge.SetWallpaperSurface(null);
+        };
         PnlClockWeather.SizeChanged += (_, __) => UpdateClockWeatherIslandBounds();
         IsVisibleChanged += (_, e) => { if (IsVisible) { RefreshSearchEngineList(); } };
         MouseMove += (_, _) => RegisterUserActivity();

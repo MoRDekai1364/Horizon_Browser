@@ -1,0 +1,543 @@
+2026-09-24 21:56:30,025 [INFO] Source folder: E:\Programming\Personal_projects\Horizon_Browser\development_version_beta
+2026-09-24 21:56:30,026 [INFO] Temp log: C:\Users\MORDEK~1\AppData\Local\Temp\push_to_github_20260924_215630.log
+2026-09-24 21:56:30,026 [INFO] 
+Options:
+2026-09-24 21:56:30,026 [INFO]   1. Push to GitHub (Default)
+2026-09-24 21:56:30,027 [INFO]   2. Reset instrument data (delete .git and logs)
+2026-09-24 21:56:32,946 [DEBUG] Running: git --version
+2026-09-24 21:56:33,060 [DEBUG] stdout: git version 2.55.0.windows.2
+2026-09-24 21:56:33,060 [DEBUG] stderr: 
+2026-09-24 21:56:33,060 [INFO] Existing git repository detected.
+2026-09-24 21:56:33,061 [DEBUG] Running: git config core.longpaths true
+2026-09-24 21:56:33,170 [DEBUG] stdout: 
+2026-09-24 21:56:33,170 [DEBUG] stderr: 
+2026-09-24 21:56:33,170 [DEBUG] Running: git remote -v
+2026-09-24 21:56:33,260 [DEBUG] stdout: origin	https://github.com/MoRDekai1364/Horizon_Browser.git (fetch)
+origin	https://github.com/MoRDekai1364/Horizon_Browser.git (push)
+2026-09-24 21:56:33,260 [DEBUG] stderr: 
+2026-09-24 21:56:33,260 [INFO] Detected remotes:
+2026-09-24 21:56:33,261 [INFO]   1. origin -> https://github.com/MoRDekai1364/Horizon_Browser.git (default — Enter selects this)
+2026-09-24 21:56:33,261 [INFO]   2. Enter a new repository URL
+2026-09-24 21:56:34,087 [INFO] Verifying repository access.
+2026-09-24 21:56:34,088 [DEBUG] Running: git ls-remote https://github.com/MoRDekai1364/Horizon_Browser.git
+2026-09-24 21:56:35,223 [DEBUG] stdout: 188ad8a4b5b4223ca1edfad34ba4621b7de85f3a	HEAD
+1f480c5ae926148db1a62fd966e085e0f6ee314a	refs/heads/new_changes
+188ad8a4b5b4223ca1edfad34ba4621b7de85f3a	refs/heads/official_release
+80c2e9b562c2a11b3ad8993e03429efa743ac1eb	refs/tags/Horizon
+5ffe45035b989122fa937a9a2afc6a67a4663fb2	refs/tags/Horizon_2.6.1
+5ffe45035b989122fa937a9a2afc6a67a4663fb2	refs/tags/Horizon_2.6.2
+80c2e9b562c2a11b3ad8993e03429efa743ac1eb	refs/tags/Horizon_Browser_2.0
+88531221ba30ce81d7a808e5d04115b71364a32f	refs/tags/Horizon_Browser_2.1
+e97fdaa873ede316dfccdc9d1f357ea89c9b30a8	refs/tags/Horizon_Browser_2.2
+65aabcd91d50749048d80e690951c1c6840c9cff	refs/tags/Horizon_Browser_2.3
+1704d5bb9db2807f1c7b248ab078a590f10a3722	refs/tags/Horizon_Browser_2.4
+5ffe45035b989122fa937a9a2afc6a67a4663fb2	refs/tags/Horizon_Browser_2.6.3
+f320c7c49374bb613c339116b1cf43998b74ed90	refs/tags/Horizon_Browser_2.6.4
+f320c7c49374bb613c339116b1cf43998b74ed90	refs/tags/Horizon_Browser_2.6.5
+f320c7c49374bb613c339116b1cf43998b74ed90	refs/tags/Horizon_Browser_2.6.6
+f320c7c49374bb613c339116b1cf43998b74ed90	refs/tags/Horizon_Browser_2.6.8
+d46a996ea50e9554d2821c113e6bab9af9dc1f3e	refs/tags/Horizon_Browser_2.6.9
+369bc34b0eb442f66bc59b53de084935ad0164a2	refs/tags/Horizon_Browser_2.7.3
+369bc34b0eb442f66bc59b53de084935ad0164a2	refs/tags/Horizon_Browser_2.7.4
+8d27432c7e58db0d1d7e54a9edc4d274e7317c93	refs/tags/Horizon_Browser_2.7.4_Beta
+369bc34b0eb442f66bc59b53de084935ad0164a2	refs/tags/Horizon_Browser_2.7.5_Release
+d46a996ea50e9554d2821c113e6bab9af9dc1f3e	refs/tags/Horizon_Browser_Beta
+d46a996ea50e9554d2821c113e6bab9af9dc1f3e	refs/tags/Horizon_Browser_Official_Release
+369bc34b0eb442f66bc59b53de084935ad0164a2	refs/tags/Horizon_Browser_version_2.7.3
+80c2e9b562c2a11b3ad8993e03429efa743ac1eb	refs/tags/Horizon_browser
+5ffe45035b989122fa937a9a2afc6a67a4663fb2	refs/tags/Horizon_browser_2.6
+2026-09-24 21:56:35,223 [DEBUG] stderr: 
+2026-09-24 21:56:35,224 [DEBUG] Running: git branch --list
+2026-09-24 21:56:35,343 [DEBUG] stdout: * new_changes
+2026-09-24 21:56:35,343 [DEBUG] stderr: 
+2026-09-24 21:56:35,343 [DEBUG] Running: git ls-remote --heads origin
+2026-09-24 21:56:36,077 [DEBUG] stdout: 1f480c5ae926148db1a62fd966e085e0f6ee314a	refs/heads/new_changes
+188ad8a4b5b4223ca1edfad34ba4621b7de85f3a	refs/heads/official_release
+2026-09-24 21:56:36,077 [DEBUG] stderr: 
+2026-09-24 21:56:36,078 [INFO] Detected branches:
+2026-09-24 21:56:36,078 [INFO]   1. new_changes (default — Enter selects this)
+2026-09-24 21:56:36,078 [INFO]   2. official_release
+2026-09-24 21:56:36,079 [INFO]   3. Enter a new branch name
+2026-09-24 21:56:39,897 [DEBUG] Running: git status --porcelain
+2026-09-24 21:56:40,168 [DEBUG] stdout: 
+2026-09-24 21:56:40,168 [DEBUG] stderr: 
+2026-09-24 21:56:40,168 [DEBUG] Running: git branch --show-current
+2026-09-24 21:56:40,256 [DEBUG] stdout: new_changes
+2026-09-24 21:56:40,256 [DEBUG] stderr: 
+2026-09-24 21:56:40,256 [DEBUG] Running: git add -A
+2026-09-24 21:56:40,467 [DEBUG] stdout: 
+2026-09-24 21:56:40,468 [DEBUG] stderr: 
+2026-09-24 21:56:40,468 [DEBUG] Running: git diff --cached --name-status --no-renames -z
+2026-09-24 21:56:40,576 [DEBUG] stdout: 
+2026-09-24 21:56:40,576 [DEBUG] stderr: 
+2026-09-24 21:56:41,734 [INFO] No commit message entered — using automated message:
+2026-09-24 21:56:41,734 [INFO] ----------------------------------------
+2026-09-24 21:56:41,734 [INFO] (this is automated commit message) 2026-09-24 21:56:41
+2026-09-24 21:56:41,735 [INFO] ----------------------------------------
+2026-09-24 21:56:41,735 [DEBUG] Running: git status --porcelain
+2026-09-24 21:56:41,880 [DEBUG] stdout: 
+2026-09-24 21:56:41,880 [DEBUG] stderr: 
+2026-09-24 21:56:41,880 [INFO] No changes to commit.
+2026-09-24 21:56:41,880 [INFO] Checking for remote changes before pushing.
+2026-09-24 21:56:41,880 [DEBUG] Running: git fetch origin
+2026-09-24 21:56:43,164 [DEBUG] stdout: 
+2026-09-24 21:56:43,165 [DEBUG] stderr: 
+2026-09-24 21:56:43,165 [DEBUG] Running: git rev-parse --verify --quiet origin/new_changes
+2026-09-24 21:56:43,259 [DEBUG] stdout: 1f480c5ae926148db1a62fd966e085e0f6ee314a
+2026-09-24 21:56:43,259 [DEBUG] stderr: 
+2026-09-24 21:56:43,259 [DEBUG] Running: git rev-parse new_changes
+2026-09-24 21:56:43,350 [DEBUG] stdout: f8af01d8462953e670b6316b9acf89fe0130696c
+2026-09-24 21:56:43,350 [DEBUG] stderr: 
+2026-09-24 21:56:43,351 [DEBUG] Running: git rev-parse origin/new_changes
+2026-09-24 21:56:43,445 [DEBUG] stdout: 1f480c5ae926148db1a62fd966e085e0f6ee314a
+2026-09-24 21:56:43,445 [DEBUG] stderr: 
+2026-09-24 21:56:43,445 [DEBUG] Running: git rev-list --count new_changes..origin/new_changes
+2026-09-24 21:56:43,542 [DEBUG] stdout: 76
+2026-09-24 21:56:43,542 [DEBUG] stderr: 
+2026-09-24 21:56:43,542 [INFO] Remote has 76 commit(s) you don't have locally.
+2026-09-24 21:56:43,542 [INFO] How would you like to proceed?
+2026-09-24 21:56:43,542 [INFO]   1. Rebase local commits on top of remote changes (default)
+2026-09-24 21:56:43,542 [INFO]   2. OVERRIDE remote branch with my local code (Force Push)
+2026-09-24 21:56:43,543 [INFO]   3. Abort
+2026-09-24 21:56:50,602 [INFO] Will force push to override remote branch.
+2026-09-24 21:56:50,602 [DEBUG] Running: git push --force -u origin new_changes --progress
+2026-09-24 21:56:53,198 [DEBUG] Enumerating objects: 1229, done.
+2026-09-24 21:56:53,346 [DEBUG] Counting objects:   0% (1/1229)
+2026-09-24 21:56:53,348 [DEBUG] Counting objects:   1% (13/1229)
+2026-09-24 21:56:53,348 [DEBUG] Counting objects:   2% (25/1229)
+2026-09-24 21:56:53,349 [DEBUG] Counting objects:   3% (37/1229)
+2026-09-24 21:56:53,352 [DEBUG] Counting objects:   4% (50/1229)
+2026-09-24 21:56:53,353 [DEBUG] Counting objects:   5% (62/1229)
+2026-09-24 21:56:53,353 [DEBUG] Counting objects:   6% (74/1229)
+2026-09-24 21:56:53,353 [DEBUG] Counting objects:   7% (87/1229)
+2026-09-24 21:56:53,353 [DEBUG] Counting objects:   8% (99/1229)
+2026-09-24 21:56:53,354 [DEBUG] Counting objects:   9% (111/1229)
+2026-09-24 21:56:53,354 [DEBUG] Counting objects:  10% (123/1229)
+2026-09-24 21:56:53,354 [DEBUG] Counting objects:  11% (136/1229)
+2026-09-24 21:56:53,355 [DEBUG] Counting objects:  12% (148/1229)
+2026-09-24 21:56:53,355 [DEBUG] Counting objects:  13% (160/1229)
+2026-09-24 21:56:53,355 [DEBUG] Counting objects:  14% (173/1229)
+2026-09-24 21:56:53,355 [DEBUG] Counting objects:  15% (185/1229)
+2026-09-24 21:56:53,356 [DEBUG] Counting objects:  16% (197/1229)
+2026-09-24 21:56:53,356 [DEBUG] Counting objects:  17% (209/1229)
+2026-09-24 21:56:53,356 [DEBUG] Counting objects:  18% (222/1229)
+2026-09-24 21:56:53,356 [DEBUG] Counting objects:  19% (234/1229)
+2026-09-24 21:56:53,358 [DEBUG] Counting objects:  20% (246/1229)
+2026-09-24 21:56:53,358 [DEBUG] Counting objects:  21% (259/1229)
+2026-09-24 21:56:53,358 [DEBUG] Counting objects:  22% (271/1229)
+2026-09-24 21:56:53,358 [DEBUG] Counting objects:  23% (283/1229)
+2026-09-24 21:56:53,359 [DEBUG] Counting objects:  24% (295/1229)
+2026-09-24 21:56:53,366 [DEBUG] Counting objects:  25% (308/1229)
+2026-09-24 21:56:53,366 [DEBUG] Counting objects:  26% (320/1229)
+2026-09-24 21:56:53,366 [DEBUG] Counting objects:  27% (332/1229)
+2026-09-24 21:56:53,366 [DEBUG] Counting objects:  28% (345/1229)
+2026-09-24 21:56:53,367 [DEBUG] Counting objects:  29% (357/1229)
+2026-09-24 21:56:53,367 [DEBUG] Counting objects:  30% (369/1229)
+2026-09-24 21:56:53,368 [DEBUG] Counting objects:  31% (381/1229)
+2026-09-24 21:56:53,368 [DEBUG] Counting objects:  32% (394/1229)
+2026-09-24 21:56:53,368 [DEBUG] Counting objects:  33% (406/1229)
+2026-09-24 21:56:53,373 [DEBUG] Counting objects:  34% (418/1229)
+2026-09-24 21:56:53,374 [DEBUG] Counting objects:  35% (431/1229)
+2026-09-24 21:56:53,376 [DEBUG] Counting objects:  36% (443/1229)
+2026-09-24 21:56:53,376 [DEBUG] Counting objects:  37% (455/1229)
+2026-09-24 21:56:53,376 [DEBUG] Counting objects:  38% (468/1229)
+2026-09-24 21:56:53,376 [DEBUG] Counting objects:  39% (480/1229)
+2026-09-24 21:56:53,378 [DEBUG] Counting objects:  40% (492/1229)
+2026-09-24 21:56:53,381 [DEBUG] Counting objects:  41% (504/1229)
+2026-09-24 21:56:53,382 [DEBUG] Counting objects:  42% (517/1229)
+2026-09-24 21:56:53,382 [DEBUG] Counting objects:  43% (529/1229)
+2026-09-24 21:56:53,383 [DEBUG] Counting objects:  44% (541/1229)
+2026-09-24 21:56:53,383 [DEBUG] Counting objects:  45% (554/1229)
+2026-09-24 21:56:53,383 [DEBUG] Counting objects:  46% (566/1229)
+2026-09-24 21:56:53,383 [DEBUG] Counting objects:  47% (578/1229)
+2026-09-24 21:56:53,384 [DEBUG] Counting objects:  48% (590/1229)
+2026-09-24 21:56:53,384 [DEBUG] Counting objects:  49% (603/1229)
+2026-09-24 21:56:53,384 [DEBUG] Counting objects:  50% (615/1229)
+2026-09-24 21:56:53,385 [DEBUG] Counting objects:  51% (627/1229)
+2026-09-24 21:56:53,385 [DEBUG] Counting objects:  52% (640/1229)
+2026-09-24 21:56:53,385 [DEBUG] Counting objects:  53% (652/1229)
+2026-09-24 21:56:53,385 [DEBUG] Counting objects:  54% (664/1229)
+2026-09-24 21:56:53,385 [DEBUG] Counting objects:  55% (676/1229)
+2026-09-24 21:56:53,386 [DEBUG] Counting objects:  56% (689/1229)
+2026-09-24 21:56:53,386 [DEBUG] Counting objects:  57% (701/1229)
+2026-09-24 21:56:53,386 [DEBUG] Counting objects:  58% (713/1229)
+2026-09-24 21:56:53,386 [DEBUG] Counting objects:  59% (726/1229)
+2026-09-24 21:56:53,387 [DEBUG] Counting objects:  60% (738/1229)
+2026-09-24 21:56:53,388 [DEBUG] Counting objects:  61% (750/1229)
+2026-09-24 21:56:53,388 [DEBUG] Counting objects:  62% (762/1229)
+2026-09-24 21:56:53,388 [DEBUG] Counting objects:  63% (775/1229)
+2026-09-24 21:56:53,389 [DEBUG] Counting objects:  64% (787/1229)
+2026-09-24 21:56:53,389 [DEBUG] Counting objects:  65% (799/1229)
+2026-09-24 21:56:53,389 [DEBUG] Counting objects:  66% (812/1229)
+2026-09-24 21:56:53,396 [DEBUG] Counting objects:  67% (824/1229)
+2026-09-24 21:56:53,396 [DEBUG] Counting objects:  68% (836/1229)
+2026-09-24 21:56:53,402 [DEBUG] Counting objects:  69% (849/1229)
+2026-09-24 21:56:53,441 [DEBUG] Counting objects:  70% (861/1229)
+2026-09-24 21:56:53,460 [DEBUG] Counting objects:  71% (873/1229)
+2026-09-24 21:56:53,463 [DEBUG] Counting objects:  72% (885/1229)
+2026-09-24 21:56:53,468 [DEBUG] Counting objects:  73% (898/1229)
+2026-09-24 21:56:53,475 [DEBUG] Counting objects:  74% (910/1229)
+2026-09-24 21:56:53,483 [DEBUG] Counting objects:  75% (922/1229)
+2026-09-24 21:56:53,498 [DEBUG] Counting objects:  76% (935/1229)
+2026-09-24 21:56:53,499 [DEBUG] Counting objects:  77% (947/1229)
+2026-09-24 21:56:53,499 [DEBUG] Counting objects:  78% (959/1229)
+2026-09-24 21:56:53,499 [DEBUG] Counting objects:  79% (971/1229)
+2026-09-24 21:56:53,500 [DEBUG] Counting objects:  80% (984/1229)
+2026-09-24 21:56:53,500 [DEBUG] Counting objects:  81% (996/1229)
+2026-09-24 21:56:53,500 [DEBUG] Counting objects:  82% (1008/1229)
+2026-09-24 21:56:53,513 [DEBUG] Counting objects:  83% (1021/1229)
+2026-09-24 21:56:53,522 [DEBUG] Counting objects:  84% (1033/1229)
+2026-09-24 21:56:53,522 [DEBUG] Counting objects:  85% (1045/1229)
+2026-09-24 21:56:53,522 [DEBUG] Counting objects:  86% (1057/1229)
+2026-09-24 21:56:53,524 [DEBUG] Counting objects:  87% (1070/1229)
+2026-09-24 21:56:53,524 [DEBUG] Counting objects:  88% (1082/1229)
+2026-09-24 21:56:53,526 [DEBUG] Counting objects:  89% (1094/1229)
+2026-09-24 21:56:53,584 [DEBUG] Counting objects:  90% (1107/1229)
+2026-09-24 21:56:53,639 [DEBUG] Counting objects:  91% (1119/1229)
+2026-09-24 21:56:53,711 [DEBUG] Counting objects:  92% (1131/1229)
+2026-09-24 21:56:53,789 [DEBUG] Counting objects:  93% (1143/1229)
+2026-09-24 21:56:53,859 [DEBUG] Counting objects:  94% (1156/1229)
+2026-09-24 21:56:53,929 [DEBUG] Counting objects:  95% (1168/1229)
+2026-09-24 21:56:54,005 [DEBUG] Counting objects:  96% (1180/1229)
+2026-09-24 21:56:54,072 [DEBUG] Counting objects:  97% (1193/1229)
+2026-09-24 21:56:54,100 [DEBUG] Counting objects:  98% (1205/1229)
+2026-09-24 21:56:54,115 [DEBUG] Counting objects:  99% (1217/1229)
+2026-09-24 21:56:54,115 [DEBUG] Counting objects: 100% (1229/1229)
+2026-09-24 21:56:54,116 [DEBUG] Counting objects: 100% (1229/1229), done.
+2026-09-24 21:56:54,116 [DEBUG] Delta compression using up to 16 threads
+2026-09-24 21:56:54,116 [DEBUG] Compressing objects:   0% (1/743)
+2026-09-24 21:56:54,116 [DEBUG] Compressing objects:   1% (8/743)
+2026-09-24 21:56:54,116 [DEBUG] Compressing objects:   2% (15/743)
+2026-09-24 21:56:54,116 [DEBUG] Compressing objects:   3% (23/743)
+2026-09-24 21:56:54,116 [DEBUG] Compressing objects:   4% (30/743)
+2026-09-24 21:56:54,117 [DEBUG] Compressing objects:   5% (38/743)
+2026-09-24 21:56:54,117 [DEBUG] Compressing objects:   6% (45/743)
+2026-09-24 21:56:54,117 [DEBUG] Compressing objects:   7% (53/743)
+2026-09-24 21:56:54,117 [DEBUG] Compressing objects:   8% (60/743)
+2026-09-24 21:56:54,117 [DEBUG] Compressing objects:   9% (67/743)
+2026-09-24 21:56:54,117 [DEBUG] Compressing objects:  10% (75/743)
+2026-09-24 21:56:54,118 [DEBUG] Compressing objects:  11% (82/743)
+2026-09-24 21:56:54,118 [DEBUG] Compressing objects:  12% (90/743)
+2026-09-24 21:56:54,118 [DEBUG] Compressing objects:  13% (97/743)
+2026-09-24 21:56:54,118 [DEBUG] Compressing objects:  14% (105/743)
+2026-09-24 21:56:54,118 [DEBUG] Compressing objects:  15% (112/743)
+2026-09-24 21:56:54,118 [DEBUG] Compressing objects:  16% (119/743)
+2026-09-24 21:56:54,118 [DEBUG] Compressing objects:  17% (127/743)
+2026-09-24 21:56:54,118 [DEBUG] Compressing objects:  18% (134/743)
+2026-09-24 21:56:54,118 [DEBUG] Compressing objects:  19% (142/743)
+2026-09-24 21:56:54,118 [DEBUG] Compressing objects:  20% (149/743)
+2026-09-24 21:56:54,119 [DEBUG] Compressing objects:  21% (157/743)
+2026-09-24 21:56:54,119 [DEBUG] Compressing objects:  22% (164/743)
+2026-09-24 21:56:54,119 [DEBUG] Compressing objects:  23% (171/743)
+2026-09-24 21:56:54,119 [DEBUG] Compressing objects:  24% (179/743)
+2026-09-24 21:56:54,119 [DEBUG] Compressing objects:  25% (186/743)
+2026-09-24 21:56:54,119 [DEBUG] Compressing objects:  26% (194/743)
+2026-09-24 21:56:54,119 [DEBUG] Compressing objects:  27% (201/743)
+2026-09-24 21:56:54,119 [DEBUG] Compressing objects:  28% (209/743)
+2026-09-24 21:56:54,119 [DEBUG] Compressing objects:  29% (216/743)
+2026-09-24 21:56:54,119 [DEBUG] Compressing objects:  30% (223/743)
+2026-09-24 21:56:54,120 [DEBUG] Compressing objects:  31% (231/743)
+2026-09-24 21:56:54,120 [DEBUG] Compressing objects:  32% (238/743)
+2026-09-24 21:56:54,120 [DEBUG] Compressing objects:  33% (246/743)
+2026-09-24 21:56:54,120 [DEBUG] Compressing objects:  34% (253/743)
+2026-09-24 21:56:54,120 [DEBUG] Compressing objects:  35% (261/743)
+2026-09-24 21:56:54,120 [DEBUG] Compressing objects:  36% (268/743)
+2026-09-24 21:56:54,120 [DEBUG] Compressing objects:  37% (275/743)
+2026-09-24 21:56:54,120 [DEBUG] Compressing objects:  38% (283/743)
+2026-09-24 21:56:54,120 [DEBUG] Compressing objects:  39% (290/743)
+2026-09-24 21:56:54,121 [DEBUG] Compressing objects:  40% (298/743)
+2026-09-24 21:56:54,121 [DEBUG] Compressing objects:  41% (305/743)
+2026-09-24 21:56:54,121 [DEBUG] Compressing objects:  42% (313/743)
+2026-09-24 21:56:54,121 [DEBUG] Compressing objects:  43% (320/743)
+2026-09-24 21:56:54,121 [DEBUG] Compressing objects:  44% (327/743)
+2026-09-24 21:56:54,121 [DEBUG] Compressing objects:  45% (335/743)
+2026-09-24 21:56:54,121 [DEBUG] Compressing objects:  46% (342/743)
+2026-09-24 21:56:54,121 [DEBUG] Compressing objects:  47% (350/743)
+2026-09-24 21:56:54,121 [DEBUG] Compressing objects:  48% (357/743)
+2026-09-24 21:56:54,121 [DEBUG] Compressing objects:  49% (365/743)
+2026-09-24 21:56:54,121 [DEBUG] Compressing objects:  50% (372/743)
+2026-09-24 21:56:54,121 [DEBUG] Compressing objects:  51% (379/743)
+2026-09-24 21:56:54,121 [DEBUG] Compressing objects:  52% (387/743)
+2026-09-24 21:56:54,121 [DEBUG] Compressing objects:  53% (394/743)
+2026-09-24 21:56:54,121 [DEBUG] Compressing objects:  54% (402/743)
+2026-09-24 21:56:54,121 [DEBUG] Compressing objects:  55% (409/743)
+2026-09-24 21:56:54,121 [DEBUG] Compressing objects:  56% (417/743)
+2026-09-24 21:56:54,121 [DEBUG] Compressing objects:  57% (424/743)
+2026-09-24 21:56:54,122 [DEBUG] Compressing objects:  58% (431/743)
+2026-09-24 21:56:54,122 [DEBUG] Compressing objects:  59% (439/743)
+2026-09-24 21:56:54,122 [DEBUG] Compressing objects:  60% (446/743)
+2026-09-24 21:56:54,122 [DEBUG] Compressing objects:  61% (454/743)
+2026-09-24 21:56:54,122 [DEBUG] Compressing objects:  62% (461/743)
+2026-09-24 21:56:54,122 [DEBUG] Compressing objects:  63% (469/743)
+2026-09-24 21:56:54,122 [DEBUG] Compressing objects:  64% (476/743)
+2026-09-24 21:56:54,122 [DEBUG] Compressing objects:  65% (483/743)
+2026-09-24 21:56:54,122 [DEBUG] Compressing objects:  66% (491/743)
+2026-09-24 21:56:54,122 [DEBUG] Compressing objects:  67% (498/743)
+2026-09-24 21:56:54,122 [DEBUG] Compressing objects:  68% (506/743)
+2026-09-24 21:56:54,122 [DEBUG] Compressing objects:  69% (513/743)
+2026-09-24 21:56:54,122 [DEBUG] Compressing objects:  70% (521/743)
+2026-09-24 21:56:54,122 [DEBUG] Compressing objects:  71% (528/743)
+2026-09-24 21:56:54,122 [DEBUG] Compressing objects:  72% (535/743)
+2026-09-24 21:56:54,122 [DEBUG] Compressing objects:  73% (543/743)
+2026-09-24 21:56:54,122 [DEBUG] Compressing objects:  74% (550/743)
+2026-09-24 21:56:54,122 [DEBUG] Compressing objects:  75% (558/743)
+2026-09-24 21:56:54,123 [DEBUG] Compressing objects:  76% (565/743)
+2026-09-24 21:56:54,123 [DEBUG] Compressing objects:  77% (573/743)
+2026-09-24 21:56:54,123 [DEBUG] Compressing objects:  78% (580/743)
+2026-09-24 21:56:54,123 [DEBUG] Compressing objects:  79% (587/743)
+2026-09-24 21:56:54,123 [DEBUG] Compressing objects:  80% (595/743)
+2026-09-24 21:56:54,123 [DEBUG] Compressing objects:  81% (602/743)
+2026-09-24 21:56:54,123 [DEBUG] Compressing objects:  82% (610/743)
+2026-09-24 21:56:54,123 [DEBUG] Compressing objects:  83% (617/743)
+2026-09-24 21:56:54,123 [DEBUG] Compressing objects:  84% (625/743)
+2026-09-24 21:56:54,123 [DEBUG] Compressing objects:  85% (632/743)
+2026-09-24 21:56:54,123 [DEBUG] Compressing objects:  86% (639/743)
+2026-09-24 21:56:54,136 [DEBUG] Compressing objects:  87% (647/743)
+2026-09-24 21:56:54,139 [DEBUG] Compressing objects:  88% (654/743)
+2026-09-24 21:56:54,139 [DEBUG] Compressing objects:  89% (662/743)
+2026-09-24 21:56:54,148 [DEBUG] Compressing objects:  90% (669/743)
+2026-09-24 21:56:54,150 [DEBUG] Compressing objects:  91% (677/743)
+2026-09-24 21:56:54,150 [DEBUG] Compressing objects:  92% (684/743)
+2026-09-24 21:56:54,151 [DEBUG] Compressing objects:  93% (691/743)
+2026-09-24 21:56:54,179 [DEBUG] Compressing objects:  94% (699/743)
+2026-09-24 21:56:54,203 [DEBUG] Compressing objects:  95% (706/743)
+2026-09-24 21:56:54,216 [DEBUG] Compressing objects:  96% (714/743)
+2026-09-24 21:56:54,218 [DEBUG] Compressing objects:  97% (721/743)
+2026-09-24 21:56:54,219 [DEBUG] Compressing objects:  98% (729/743)
+2026-09-24 21:56:54,219 [DEBUG] Compressing objects:  99% (736/743)
+2026-09-24 21:56:54,219 [DEBUG] Compressing objects: 100% (743/743)
+2026-09-24 21:56:54,220 [DEBUG] Compressing objects: 100% (743/743), done.
+2026-09-24 21:56:54,233 [DEBUG] Writing objects:   0% (1/1229)
+2026-09-24 21:56:54,234 [DEBUG] Writing objects:   1% (13/1229)
+2026-09-24 21:56:54,234 [DEBUG] Writing objects:   2% (25/1229)
+2026-09-24 21:56:54,242 [DEBUG] Writing objects:   3% (37/1229)
+2026-09-24 21:56:54,242 [DEBUG] Writing objects:   4% (50/1229)
+2026-09-24 21:56:54,242 [DEBUG] Writing objects:   5% (62/1229)
+2026-09-24 21:56:54,242 [DEBUG] Writing objects:   6% (74/1229)
+2026-09-24 21:56:54,242 [DEBUG] Writing objects:   7% (87/1229)
+2026-09-24 21:56:54,242 [DEBUG] Writing objects:   8% (99/1229)
+2026-09-24 21:56:54,243 [DEBUG] Writing objects:   9% (111/1229)
+2026-09-24 21:56:54,243 [DEBUG] Writing objects:  10% (123/1229)
+2026-09-24 21:56:54,243 [DEBUG] Writing objects:  11% (136/1229)
+2026-09-24 21:56:54,244 [DEBUG] Writing objects:  12% (148/1229)
+2026-09-24 21:56:54,244 [DEBUG] Writing objects:  13% (160/1229)
+2026-09-24 21:56:54,244 [DEBUG] Writing objects:  14% (173/1229)
+2026-09-24 21:56:54,244 [DEBUG] Writing objects:  15% (185/1229)
+2026-09-24 21:56:54,245 [DEBUG] Writing objects:  16% (197/1229)
+2026-09-24 21:56:54,245 [DEBUG] Writing objects:  17% (209/1229)
+2026-09-24 21:56:54,245 [DEBUG] Writing objects:  18% (222/1229)
+2026-09-24 21:56:54,247 [DEBUG] Writing objects:  19% (234/1229)
+2026-09-24 21:56:54,249 [DEBUG] Writing objects:  20% (246/1229)
+2026-09-24 21:56:55,306 [DEBUG] Writing objects:  21% (259/1229)
+2026-09-24 21:56:55,308 [DEBUG] Writing objects:  21% (268/1229), 1.06 MiB | 954.00 KiB/s
+2026-09-24 21:56:55,522 [DEBUG] Writing objects:  22% (271/1229), 1.06 MiB | 954.00 KiB/s
+2026-09-24 21:56:55,883 [DEBUG] Writing objects:  23% (283/1229), 1.06 MiB | 954.00 KiB/s
+2026-09-24 21:56:55,883 [DEBUG] Writing objects:  24% (295/1229), 3.62 MiB | 2.24 MiB/s
+2026-09-24 21:56:55,883 [DEBUG] Writing objects:  25% (308/1229), 3.62 MiB | 2.24 MiB/s
+2026-09-24 21:56:55,884 [DEBUG] Writing objects:  26% (320/1229), 3.62 MiB | 2.24 MiB/s
+2026-09-24 21:56:55,921 [DEBUG] Writing objects:  27% (332/1229), 3.62 MiB | 2.24 MiB/s
+2026-09-24 21:56:55,985 [DEBUG] Writing objects:  28% (345/1229), 3.62 MiB | 2.24 MiB/s
+2026-09-24 21:56:55,986 [DEBUG] Writing objects:  29% (357/1229), 3.62 MiB | 2.24 MiB/s
+2026-09-24 21:56:55,986 [DEBUG] Writing objects:  30% (369/1229), 3.62 MiB | 2.24 MiB/s
+2026-09-24 21:56:55,988 [DEBUG] Writing objects:  31% (381/1229), 3.62 MiB | 2.24 MiB/s
+2026-09-24 21:56:56,016 [DEBUG] Writing objects:  32% (394/1229), 3.62 MiB | 2.24 MiB/s
+2026-09-24 21:56:56,028 [DEBUG] Writing objects:  33% (406/1229), 3.62 MiB | 2.24 MiB/s
+2026-09-24 21:56:56,089 [DEBUG] Writing objects:  34% (418/1229), 3.62 MiB | 2.24 MiB/s
+2026-09-24 21:56:56,127 [DEBUG] Writing objects:  35% (431/1229), 3.62 MiB | 2.24 MiB/s
+2026-09-24 21:56:56,132 [DEBUG] Writing objects:  36% (444/1229), 3.62 MiB | 2.24 MiB/s
+2026-09-24 21:56:56,132 [DEBUG] Writing objects:  37% (456/1229), 3.62 MiB | 2.24 MiB/s
+2026-09-24 21:56:56,155 [DEBUG] Writing objects:  38% (468/1229), 3.62 MiB | 2.24 MiB/s
+2026-09-24 21:56:56,190 [DEBUG] Writing objects:  39% (480/1229), 3.62 MiB | 2.24 MiB/s
+2026-09-24 21:56:56,193 [DEBUG] Writing objects:  40% (492/1229), 3.62 MiB | 2.24 MiB/s
+2026-09-24 21:56:56,226 [DEBUG] Writing objects:  41% (504/1229), 3.62 MiB | 2.24 MiB/s
+2026-09-24 21:56:56,227 [DEBUG] Writing objects:  42% (517/1229), 3.62 MiB | 2.24 MiB/s
+2026-09-24 21:56:56,227 [DEBUG] Writing objects:  43% (529/1229), 3.62 MiB | 2.24 MiB/s
+2026-09-24 21:56:56,231 [DEBUG] Writing objects:  44% (541/1229), 3.62 MiB | 2.24 MiB/s
+2026-09-24 21:56:56,231 [DEBUG] Writing objects:  45% (555/1229), 3.62 MiB | 2.24 MiB/s
+2026-09-24 21:56:56,231 [DEBUG] Writing objects:  46% (566/1229), 3.62 MiB | 2.24 MiB/s
+2026-09-24 21:56:56,236 [DEBUG] Writing objects:  47% (579/1229), 3.62 MiB | 2.24 MiB/s
+2026-09-24 21:56:56,236 [DEBUG] Writing objects:  48% (590/1229), 3.62 MiB | 2.24 MiB/s
+2026-09-24 21:56:56,236 [DEBUG] Writing objects:  49% (603/1229), 3.62 MiB | 2.24 MiB/s
+2026-09-24 21:56:56,292 [DEBUG] Writing objects:  50% (615/1229), 3.62 MiB | 2.24 MiB/s
+2026-09-24 21:56:56,294 [DEBUG] Writing objects:  50% (621/1229), 3.62 MiB | 2.24 MiB/s
+2026-09-24 21:56:56,294 [DEBUG] Writing objects:  51% (627/1229), 3.62 MiB | 2.24 MiB/s
+2026-09-24 21:56:56,295 [DEBUG] Writing objects:  52% (640/1229), 3.62 MiB | 2.24 MiB/s
+2026-09-24 21:56:56,297 [DEBUG] Writing objects:  53% (652/1229), 3.62 MiB | 2.24 MiB/s
+2026-09-24 21:56:56,297 [DEBUG] Writing objects:  54% (664/1229), 3.62 MiB | 2.24 MiB/s
+2026-09-24 21:56:56,297 [DEBUG] Writing objects:  55% (676/1229), 3.62 MiB | 2.24 MiB/s
+2026-09-24 21:56:56,298 [DEBUG] Writing objects:  56% (689/1229), 3.62 MiB | 2.24 MiB/s
+2026-09-24 21:56:56,298 [DEBUG] Writing objects:  57% (701/1229), 3.62 MiB | 2.24 MiB/s
+2026-09-24 21:56:56,300 [DEBUG] Writing objects:  58% (713/1229), 3.62 MiB | 2.24 MiB/s
+2026-09-24 21:56:56,300 [DEBUG] Writing objects:  59% (726/1229), 3.62 MiB | 2.24 MiB/s
+2026-09-24 21:56:56,300 [DEBUG] Writing objects:  60% (738/1229), 3.62 MiB | 2.24 MiB/s
+2026-09-24 21:56:56,301 [DEBUG] Writing objects:  61% (750/1229), 3.62 MiB | 2.24 MiB/s
+2026-09-24 21:56:56,302 [DEBUG] Writing objects:  62% (762/1229), 3.62 MiB | 2.24 MiB/s
+2026-09-24 21:56:56,303 [DEBUG] Writing objects:  63% (775/1229), 3.62 MiB | 2.24 MiB/s
+2026-09-24 21:56:56,303 [DEBUG] Writing objects:  64% (787/1229), 3.62 MiB | 2.24 MiB/s
+2026-09-24 21:56:56,390 [DEBUG] Writing objects:  65% (799/1229), 3.62 MiB | 2.24 MiB/s
+2026-09-24 21:56:56,390 [DEBUG] Writing objects:  66% (812/1229), 6.94 MiB | 3.29 MiB/s
+2026-09-24 21:56:56,390 [DEBUG] Writing objects:  67% (824/1229), 6.94 MiB | 3.29 MiB/s
+2026-09-24 21:56:56,391 [DEBUG] Writing objects:  68% (836/1229), 6.94 MiB | 3.29 MiB/s
+2026-09-24 21:56:56,648 [DEBUG] Writing objects:  69% (849/1229), 6.94 MiB | 3.29 MiB/s
+2026-09-24 21:56:57,046 [DEBUG] Writing objects:  70% (861/1229), 6.94 MiB | 3.29 MiB/s
+2026-09-24 21:56:57,104 [DEBUG] Writing objects:  71% (873/1229), 12.62 MiB | 4.84 MiB/s
+2026-09-24 21:56:57,109 [DEBUG] Writing objects:  72% (885/1229), 12.62 MiB | 4.84 MiB/s
+2026-09-24 21:56:57,212 [DEBUG] Writing objects:  73% (898/1229), 12.62 MiB | 4.84 MiB/s
+2026-09-24 21:56:57,262 [DEBUG] Writing objects:  74% (910/1229), 12.62 MiB | 4.84 MiB/s
+2026-09-24 21:56:57,263 [DEBUG] Writing objects:  74% (921/1229), 12.62 MiB | 4.84 MiB/s
+2026-09-24 21:56:57,323 [DEBUG] Writing objects:  75% (922/1229), 12.62 MiB | 4.84 MiB/s
+2026-09-24 21:56:57,344 [DEBUG] Writing objects:  76% (935/1229), 12.62 MiB | 4.84 MiB/s
+2026-09-24 21:56:57,344 [DEBUG] Writing objects:  77% (947/1229), 18.99 MiB | 6.12 MiB/s
+2026-09-24 21:56:57,344 [DEBUG] Writing objects:  78% (960/1229), 18.99 MiB | 6.12 MiB/s
+2026-09-24 21:56:57,344 [DEBUG] Writing objects:  79% (971/1229), 18.99 MiB | 6.12 MiB/s
+2026-09-24 21:56:57,344 [DEBUG] Writing objects:  80% (984/1229), 18.99 MiB | 6.12 MiB/s
+2026-09-24 21:56:57,345 [DEBUG] Writing objects:  81% (996/1229), 18.99 MiB | 6.12 MiB/s
+2026-09-24 21:56:57,345 [DEBUG] Writing objects:  82% (1008/1229), 18.99 MiB | 6.12 MiB/s
+2026-09-24 21:56:57,370 [DEBUG] Writing objects:  83% (1021/1229), 18.99 MiB | 6.12 MiB/s
+2026-09-24 21:56:58,338 [DEBUG] Writing objects:  84% (1033/1229), 18.99 MiB | 6.12 MiB/s
+2026-09-24 21:56:59,359 [DEBUG] Writing objects:  84% (1034/1229), 32.49 MiB | 7.90 MiB/s
+2026-09-24 21:57:00,379 [DEBUG] Writing objects:  84% (1034/1229), 43.61 MiB | 8.50 MiB/s
+2026-09-24 21:57:01,334 [DEBUG] Writing objects:  84% (1034/1229), 55.11 MiB | 11.31 MiB/s
+2026-09-24 21:57:01,341 [DEBUG] Writing objects:  84% (1035/1229), 60.79 MiB | 11.80 MiB/s
+2026-09-24 21:57:01,342 [DEBUG] Writing objects:  85% (1045/1229), 60.79 MiB | 11.80 MiB/s
+2026-09-24 21:57:01,343 [DEBUG] Writing objects:  86% (1057/1229), 60.79 MiB | 11.80 MiB/s
+2026-09-24 21:57:01,349 [DEBUG] Writing objects:  87% (1070/1229), 60.79 MiB | 11.80 MiB/s
+2026-09-24 21:57:01,355 [DEBUG] Writing objects:  88% (1082/1229), 60.79 MiB | 11.80 MiB/s
+2026-09-24 21:57:01,356 [DEBUG] Writing objects:  89% (1094/1229), 60.79 MiB | 11.80 MiB/s
+2026-09-24 21:57:01,710 [DEBUG] Writing objects:  90% (1107/1229), 60.79 MiB | 11.80 MiB/s
+2026-09-24 21:57:02,429 [DEBUG] Writing objects:  91% (1119/1229), 66.60 MiB | 11.82 MiB/s
+2026-09-24 21:57:03,446 [DEBUG] Writing objects:  91% (1124/1229), 78.10 MiB | 11.17 MiB/s
+2026-09-24 21:57:04,469 [DEBUG] Writing objects:  91% (1125/1229), 89.60 MiB | 11.26 MiB/s
+2026-09-24 21:57:05,390 [DEBUG] Writing objects:  91% (1126/1229), 101.03 MiB | 11.24 MiB/s
+2026-09-24 21:57:05,595 [DEBUG] Writing objects:  91% (1128/1229), 106.78 MiB | 11.24 MiB/s
+2026-09-24 21:57:06,328 [DEBUG] Writing objects:  92% (1131/1229), 112.59 MiB | 11.26 MiB/s
+2026-09-24 21:57:06,483 [DEBUG] Writing objects:  92% (1140/1229), 118.34 MiB | 11.24 MiB/s
+2026-09-24 21:57:07,441 [DEBUG] Writing objects:  93% (1143/1229), 118.34 MiB | 11.24 MiB/s
+2026-09-24 21:57:08,376 [DEBUG] Writing objects:  93% (1148/1229), 129.33 MiB | 11.11 MiB/s
+2026-09-24 21:57:08,386 [DEBUG] Writing objects:  93% (1154/1229), 140.77 MiB | 11.12 MiB/s
+2026-09-24 21:57:09,392 [DEBUG] Writing objects:  94% (1156/1229), 140.77 MiB | 11.12 MiB/s
+2026-09-24 21:57:09,808 [DEBUG] Writing objects:  94% (1166/1229), 152.26 MiB | 11.13 MiB/s
+2026-09-24 21:57:10,534 [DEBUG] Writing objects:  95% (1168/1229), 158.01 MiB | 11.13 MiB/s
+2026-09-24 21:57:11,360 [DEBUG] Writing objects:  95% (1169/1229), 163.70 MiB | 11.11 MiB/s
+2026-09-24 21:57:11,949 [DEBUG] Writing objects:  95% (1176/1229), 175.26 MiB | 11.13 MiB/s
+2026-09-24 21:57:12,457 [DEBUG] Writing objects:  96% (1180/1229), 181.00 MiB | 11.26 MiB/s
+2026-09-24 21:57:13,410 [DEBUG] Writing objects:  96% (1183/1229), 186.69 MiB | 11.16 MiB/s
+2026-09-24 21:57:14,190 [DEBUG] Writing objects:  96% (1188/1229), 198.56 MiB | 11.27 MiB/s
+2026-09-24 21:57:14,436 [DEBUG] Writing objects:  97% (1193/1229), 204.00 MiB | 11.21 MiB/s
+2026-09-24 21:57:15,388 [DEBUG] Writing objects:  97% (1195/1229), 210.18 MiB | 11.32 MiB/s
+2026-09-24 21:57:16,157 [DEBUG] Writing objects:  97% (1200/1229), 221.62 MiB | 11.21 MiB/s
+2026-09-24 21:57:16,476 [DEBUG] Writing objects:  98% (1205/1229), 227.49 MiB | 11.33 MiB/s
+2026-09-24 21:57:17,513 [DEBUG] Writing objects:  98% (1207/1229), 233.24 MiB | 11.35 MiB/s
+2026-09-24 21:57:17,934 [DEBUG] Writing objects:  98% (1214/1229), 244.67 MiB | 11.35 MiB/s
+2026-09-24 21:57:18,464 [DEBUG] Writing objects:  99% (1217/1229), 250.36 MiB | 11.27 MiB/s
+2026-09-24 21:57:19,498 [DEBUG] Writing objects:  99% (1220/1229), 256.17 MiB | 11.36 MiB/s
+2026-09-24 21:57:19,829 [DEBUG] Writing objects:  99% (1227/1229), 267.66 MiB | 11.24 MiB/s
+2026-09-24 21:57:19,829 [DEBUG] Writing objects: 100% (1229/1229), 273.41 MiB | 11.25 MiB/s
+2026-09-24 21:57:19,829 [DEBUG] Writing objects: 100% (1229/1229), 273.42 MiB | 10.68 MiB/s, done.
+2026-09-24 21:57:19,829 [DEBUG] Total 1229 (delta 233), reused 1207 (delta 226), pack-reused 0 (from 0)
+2026-09-24 21:57:20,446 [DEBUG] remote: Resolving deltas:   0% (0/233)
+2026-09-24 21:57:20,446 [DEBUG] remote: Resolving deltas:   1% (3/233)
+2026-09-24 21:57:20,447 [DEBUG] remote: Resolving deltas:   2% (5/233)
+2026-09-24 21:57:20,447 [DEBUG] remote: Resolving deltas:   3% (7/233)
+2026-09-24 21:57:20,447 [DEBUG] remote: Resolving deltas:   4% (10/233)
+2026-09-24 21:57:20,447 [DEBUG] remote: Resolving deltas:   5% (12/233)
+2026-09-24 21:57:20,447 [DEBUG] remote: Resolving deltas:   6% (14/233)
+2026-09-24 21:57:20,447 [DEBUG] remote: Resolving deltas:   7% (17/233)
+2026-09-24 21:57:20,448 [DEBUG] remote: Resolving deltas:   8% (19/233)
+2026-09-24 21:57:20,448 [DEBUG] remote: Resolving deltas:   9% (21/233)
+2026-09-24 21:57:20,448 [DEBUG] remote: Resolving deltas:  10% (24/233)
+2026-09-24 21:57:20,448 [DEBUG] remote: Resolving deltas:  11% (26/233)
+2026-09-24 21:57:20,448 [DEBUG] remote: Resolving deltas:  12% (28/233)
+2026-09-24 21:57:20,448 [DEBUG] remote: Resolving deltas:  13% (31/233)
+2026-09-24 21:57:20,448 [DEBUG] remote: Resolving deltas:  14% (33/233)
+2026-09-24 21:57:20,448 [DEBUG] remote: Resolving deltas:  15% (35/233)
+2026-09-24 21:57:20,448 [DEBUG] remote: Resolving deltas:  16% (38/233)
+2026-09-24 21:57:20,448 [DEBUG] remote: Resolving deltas:  17% (40/233)
+2026-09-24 21:57:20,448 [DEBUG] remote: Resolving deltas:  18% (42/233)
+2026-09-24 21:57:20,448 [DEBUG] remote: Resolving deltas:  19% (45/233)
+2026-09-24 21:57:20,448 [DEBUG] remote: Resolving deltas:  20% (47/233)
+2026-09-24 21:57:20,449 [DEBUG] remote: Resolving deltas:  21% (49/233)
+2026-09-24 21:57:20,449 [DEBUG] remote: Resolving deltas:  22% (52/233)
+2026-09-24 21:57:20,449 [DEBUG] remote: Resolving deltas:  23% (54/233)
+2026-09-24 21:57:20,449 [DEBUG] remote: Resolving deltas:  24% (56/233)
+2026-09-24 21:57:20,449 [DEBUG] remote: Resolving deltas:  25% (59/233)
+2026-09-24 21:57:20,449 [DEBUG] remote: Resolving deltas:  26% (61/233)
+2026-09-24 21:57:20,449 [DEBUG] remote: Resolving deltas:  27% (63/233)
+2026-09-24 21:57:20,449 [DEBUG] remote: Resolving deltas:  28% (66/233)
+2026-09-24 21:57:20,449 [DEBUG] remote: Resolving deltas:  29% (68/233)
+2026-09-24 21:57:20,450 [DEBUG] remote: Resolving deltas:  30% (70/233)
+2026-09-24 21:57:20,450 [DEBUG] remote: Resolving deltas:  31% (73/233)
+2026-09-24 21:57:20,450 [DEBUG] remote: Resolving deltas:  32% (75/233)
+2026-09-24 21:57:20,450 [DEBUG] remote: Resolving deltas:  33% (77/233)
+2026-09-24 21:57:20,450 [DEBUG] remote: Resolving deltas:  34% (80/233)
+2026-09-24 21:57:20,450 [DEBUG] remote: Resolving deltas:  35% (82/233)
+2026-09-24 21:57:20,450 [DEBUG] remote: Resolving deltas:  36% (84/233)
+2026-09-24 21:57:20,450 [DEBUG] remote: Resolving deltas:  37% (87/233)
+2026-09-24 21:57:20,450 [DEBUG] remote: Resolving deltas:  38% (89/233)
+2026-09-24 21:57:20,450 [DEBUG] remote: Resolving deltas:  39% (91/233)
+2026-09-24 21:57:20,450 [DEBUG] remote: Resolving deltas:  40% (94/233)
+2026-09-24 21:57:20,451 [DEBUG] remote: Resolving deltas:  41% (96/233)
+2026-09-24 21:57:20,451 [DEBUG] remote: Resolving deltas:  42% (98/233)
+2026-09-24 21:57:20,451 [DEBUG] remote: Resolving deltas:  43% (101/233)
+2026-09-24 21:57:20,451 [DEBUG] remote: Resolving deltas:  44% (103/233)
+2026-09-24 21:57:20,451 [DEBUG] remote: Resolving deltas:  45% (105/233)
+2026-09-24 21:57:20,451 [DEBUG] remote: Resolving deltas:  46% (108/233)
+2026-09-24 21:57:20,452 [DEBUG] remote: Resolving deltas:  47% (110/233)
+2026-09-24 21:57:20,452 [DEBUG] remote: Resolving deltas:  48% (112/233)
+2026-09-24 21:57:20,452 [DEBUG] remote: Resolving deltas:  49% (115/233)
+2026-09-24 21:57:20,452 [DEBUG] remote: Resolving deltas:  50% (117/233)
+2026-09-24 21:57:20,452 [DEBUG] remote: Resolving deltas:  51% (119/233)
+2026-09-24 21:57:20,452 [DEBUG] remote: Resolving deltas:  52% (122/233)
+2026-09-24 21:57:20,452 [DEBUG] remote: Resolving deltas:  53% (124/233)
+2026-09-24 21:57:20,452 [DEBUG] remote: Resolving deltas:  54% (126/233)
+2026-09-24 21:57:20,453 [DEBUG] remote: Resolving deltas:  55% (129/233)
+2026-09-24 21:57:20,453 [DEBUG] remote: Resolving deltas:  56% (131/233)
+2026-09-24 21:57:20,549 [DEBUG] remote: Resolving deltas:  57% (133/233)
+2026-09-24 21:57:20,549 [DEBUG] remote: Resolving deltas:  58% (136/233)
+2026-09-24 21:57:20,549 [DEBUG] remote: Resolving deltas:  59% (138/233)
+2026-09-24 21:57:20,549 [DEBUG] remote: Resolving deltas:  60% (140/233)
+2026-09-24 21:57:20,549 [DEBUG] remote: Resolving deltas:  61% (143/233)
+2026-09-24 21:57:20,549 [DEBUG] remote: Resolving deltas:  62% (145/233)
+2026-09-24 21:57:20,549 [DEBUG] remote: Resolving deltas:  63% (147/233)
+2026-09-24 21:57:20,550 [DEBUG] remote: Resolving deltas:  64% (150/233)
+2026-09-24 21:57:20,550 [DEBUG] remote: Resolving deltas:  65% (152/233)
+2026-09-24 21:57:20,550 [DEBUG] remote: Resolving deltas:  66% (154/233)
+2026-09-24 21:57:20,550 [DEBUG] remote: Resolving deltas:  67% (157/233)
+2026-09-24 21:57:20,550 [DEBUG] remote: Resolving deltas:  68% (159/233)
+2026-09-24 21:57:20,550 [DEBUG] remote: Resolving deltas:  69% (161/233)
+2026-09-24 21:57:20,550 [DEBUG] remote: Resolving deltas:  70% (164/233)
+2026-09-24 21:57:20,550 [DEBUG] remote: Resolving deltas:  71% (166/233)
+2026-09-24 21:57:20,550 [DEBUG] remote: Resolving deltas:  72% (168/233)
+2026-09-24 21:57:20,550 [DEBUG] remote: Resolving deltas:  73% (171/233)
+2026-09-24 21:57:20,550 [DEBUG] remote: Resolving deltas:  74% (173/233)
+2026-09-24 21:57:20,619 [DEBUG] remote: Resolving deltas:  75% (175/233)
+2026-09-24 21:57:20,619 [DEBUG] remote: Resolving deltas:  76% (178/233)
+2026-09-24 21:57:20,620 [DEBUG] remote: Resolving deltas:  77% (180/233)
+2026-09-24 21:57:20,620 [DEBUG] remote: Resolving deltas:  78% (182/233)
+2026-09-24 21:57:20,620 [DEBUG] remote: Resolving deltas:  79% (185/233)
+2026-09-24 21:57:20,620 [DEBUG] remote: Resolving deltas:  80% (187/233)
+2026-09-24 21:57:20,620 [DEBUG] remote: Resolving deltas:  81% (189/233)
+2026-09-24 21:57:20,620 [DEBUG] remote: Resolving deltas:  82% (192/233)
+2026-09-24 21:57:20,621 [DEBUG] remote: Resolving deltas:  83% (194/233)
+2026-09-24 21:57:20,621 [DEBUG] remote: Resolving deltas:  84% (196/233)
+2026-09-24 21:57:20,621 [DEBUG] remote: Resolving deltas:  85% (199/233)
+2026-09-24 21:57:21,486 [DEBUG] remote: Resolving deltas:  86% (201/233)
+2026-09-24 21:57:21,486 [DEBUG] remote: Resolving deltas:  87% (203/233)
+2026-09-24 21:57:21,486 [DEBUG] remote: Resolving deltas:  88% (206/233)
+2026-09-24 21:57:21,486 [DEBUG] remote: Resolving deltas:  89% (208/233)
+2026-09-24 21:57:21,487 [DEBUG] remote: Resolving deltas:  90% (210/233)
+2026-09-24 21:57:21,487 [DEBUG] remote: Resolving deltas:  91% (213/233)
+2026-09-24 21:57:21,487 [DEBUG] remote: Resolving deltas:  92% (215/233)
+2026-09-24 21:57:21,487 [DEBUG] remote: Resolving deltas:  93% (217/233)
+2026-09-24 21:57:21,487 [DEBUG] remote: Resolving deltas:  94% (220/233)
+2026-09-24 21:57:21,487 [DEBUG] remote: Resolving deltas:  95% (222/233)
+2026-09-24 21:57:21,487 [DEBUG] remote: Resolving deltas:  96% (224/233)
+2026-09-24 21:57:21,487 [DEBUG] remote: Resolving deltas:  97% (227/233)
+2026-09-24 21:57:21,487 [DEBUG] remote: Resolving deltas:  98% (229/233)
+2026-09-24 21:57:21,488 [DEBUG] remote: Resolving deltas:  99% (231/233)
+2026-09-24 21:57:21,488 [DEBUG] remote: Resolving deltas: 100% (233/233)
+2026-09-24 21:57:21,488 [DEBUG] remote: Resolving deltas: 100% (233/233), done.
+2026-09-24 21:57:21,781 [DEBUG] To https://github.com/MoRDekai1364/Horizon_Browser.git
+2026-09-24 21:57:21,781 [DEBUG] + 1f480c5...f8af01d new_changes -> new_changes (forced update)
+2026-09-24 21:57:21,801 [DEBUG] branch 'new_changes' set up to track 'origin/new_changes'.
+2026-09-24 21:57:21,811 [INFO] Push finished in 31.2s. Done.

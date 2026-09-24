@@ -2435,8 +2435,9 @@ public partial class MainWindow
             Background = new SolidColorBrush(C(0x161616)),
             WindowStyle = WindowStyle.ToolWindow,
             ResizeMode = resizable ? ResizeMode.CanResizeWithGrip : ResizeMode.NoResize,
-            Owner = this, ShowInTaskbar = false, Topmost = true
+            Owner = null, ShowInTaskbar = false, Topmost = true
         };
+        ApplyWindowRoundedCorners(w);
         w.Closing += (s, e) => { w.Owner = null; };
         w.Closed  += (s, e) => Dispatcher.BeginInvoke(new Action(() => { try { if (WindowState != WindowState.Minimized) Activate(); } catch { } }));
         return w;
