@@ -1,6 +1,10 @@
 using System;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Threading;
@@ -276,5 +280,235 @@ public static class HomeGlassService
             host.Unloaded -= onUnloaded;
             Detach();
         };
+    }
+}
+
+public sealed class HomeGlassInlineLayer
+{
+    private enum Mode { None, Image, Video }
+
+    private const double Pad = 48;
+    private const double BlurRadius = 32;
+
+    private readonly Grid _root;
+    private readonly ImageBrush _imageSource;
+    private readonly MediaElement _video;
+    private readonly Grid _layer;
+    private readonly Border _base;
+    private readonly Border _blur;
+    private readonly ImageBrush _blurImage;
+    private VisualBrush? _blurVideo;
+    private readonly Canvas _maskCanvas;
+    private readonly Dictionary<FrameworkElement, Border> _shapes = new();
+    private Mode _mode = Mode.None;
+    private bool _refreshQueued;
+
+    public HomeGlassInlineLayer(Grid root, ImageBrush imageSource, MediaElement video)
+    {
+        _root = root;
+        _imageSource = imageSource;
+        _video = video;
+
+        _base = new Border { Background = Brushes.Black };
+
+        _blurImage = new ImageBrush
+        {
+            Stretch = Stretch.Fill,
+            ViewboxUnits = BrushMappingMode.RelativeToBoundingBox
+        };
+        BindingOperations.SetBinding(_blurImage, ImageBrush.ImageSourceProperty,
+            new Binding(nameof(ImageBrush.ImageSource)) { Source = _imageSource });
+
+        _blur = new Border
+        {
+            Margin = new Thickness(-Pad),
+            Effect = new System.Windows.Media.Effects.BlurEffect
+            {
+                Radius = BlurRadius,
+                KernelType = System.Windows.Media.Effects.KernelType.Gaussian,
+                RenderingBias = System.Windows.Media.Effects.RenderingBias.Performance
+            }
+        };
+
+        _layer = new Grid { IsHitTestVisible = false, ClipToBounds = true, Visibility = Visibility.Collapsed };
+        _layer.Children.Add(_base);
+        _layer.Children.Add(_blur);
+
+        _maskCanvas = new Canvas { IsHitTestVisible = false };
+        _layer.OpacityMask = new VisualBrush(_maskCanvas)
+        {
+            Stretch = Stretch.None,
+            AlignmentX = AlignmentX.Left,
+            AlignmentY = AlignmentY.Top
+        };
+
+        int idx = _root.Children.IndexOf(_video);
+        _root.Children.Insert(idx >= 0 ? idx + 1 : 0, _layer);
+
+        DependencyPropertyDescriptor.FromProperty(ImageBrush.ImageSourceProperty, typeof(ImageBrush))
+            ?.AddValueChanged(_imageSource, OnSourceChanged);
+        DependencyPropertyDescriptor.FromProperty(UIElement.VisibilityProperty, typeof(MediaElement))
+            ?.AddValueChanged(_video, OnSourceChanged);
+
+        _root.SizeChanged += OnRootSizeChanged;
+        _root.IsVisibleChanged += OnRootVisibleChanged;
+        if (_root.IsVisible) _root.LayoutUpdated += OnLayoutUpdated;
+        QueueRefresh();
+    }
+
+    public void Register(FrameworkElement el)
+    {
+        if (_shapes.ContainsKey(el)) return;
+        var shape = new Border { Background = Brushes.Black, IsHitTestVisible = false, Visibility = Visibility.Collapsed };
+        _shapes[el] = shape;
+        _maskCanvas.Children.Add(shape);
+        el.SizeChanged += OnElementSizeChanged;
+        el.IsVisibleChanged += OnElementVisibleChanged;
+        QueueRefresh();
+    }
+
+    public void Unregister(FrameworkElement el)
+    {
+        if (!_shapes.TryGetValue(el, out var shape)) return;
+        _shapes.Remove(el);
+        _maskCanvas.Children.Remove(shape);
+        el.SizeChanged -= OnElementSizeChanged;
+        el.IsVisibleChanged -= OnElementVisibleChanged;
+        QueueRefresh();
+    }
+
+    public void Invalidate() => QueueRefresh();
+
+    private void OnSourceChanged(object? sender, EventArgs e) => QueueRefresh();
+    private void OnRootSizeChanged(object sender, SizeChangedEventArgs e) => QueueRefresh();
+    private void OnElementSizeChanged(object sender, SizeChangedEventArgs e) => QueueRefresh();
+    private void OnElementVisibleChanged(object sender, DependencyPropertyChangedEventArgs e) => QueueRefresh();
+    private void OnLayoutUpdated(object? sender, EventArgs e) => QueueRefresh();
+
+    private void OnRootVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+    {
+        _root.LayoutUpdated -= OnLayoutUpdated;
+        if (_root.IsVisible) _root.LayoutUpdated += OnLayoutUpdated;
+        QueueRefresh();
+    }
+
+    private void QueueRefresh()
+    {
+        if (_refreshQueued) return;
+        _refreshQueued = true;
+        _root.Dispatcher.BeginInvoke(new Action(Refresh), DispatcherPriority.Render);
+    }
+
+    private Mode ResolveMode()
+    {
+        if (_video.Visibility == Visibility.Visible && _video.Source != null) return Mode.Video;
+        return _imageSource.ImageSource != null ? Mode.Image : Mode.None;
+    }
+
+    private void Refresh()
+    {
+        _refreshQueued = false;
+        try
+        {
+            double w = _root.ActualWidth;
+            double h = _root.ActualHeight;
+            var mode = ResolveMode();
+            if (!_root.IsVisible || w <= 0 || h <= 0 || mode == Mode.None || _shapes.Count == 0)
+            {
+                _layer.Visibility = Visibility.Collapsed;
+                return;
+            }
+            ApplySource(mode, w, h);
+            UpdateMask(w, h);
+            _layer.Visibility = Visibility.Visible;
+        }
+        catch (Exception ex)
+        {
+            LogService.Write("HomeGlass", "Inline refresh failed, falling back to transparency: " + ex);
+            _layer.Visibility = Visibility.Collapsed;
+        }
+    }
+
+    private void ApplySource(Mode mode, double w, double h)
+    {
+        var baseBrush = (Window.GetWindow(_root)?.Background as SolidColorBrush) ?? Brushes.Black;
+        if (!ReferenceEquals(_base.Background, baseBrush)) _base.Background = baseBrush;
+
+        if (mode != _mode)
+        {
+            _mode = mode;
+            var opacityBinding = mode == Mode.Video
+                ? new Binding(nameof(UIElement.Opacity)) { Source = _video }
+                : new Binding(nameof(Brush.Opacity)) { Source = _imageSource };
+            BindingOperations.SetBinding(_blur, UIElement.OpacityProperty, opacityBinding);
+        }
+
+        if (mode == Mode.Video)
+        {
+            _blurVideo ??= new VisualBrush(_video)
+            {
+                Stretch = Stretch.Fill,
+                ViewboxUnits = BrushMappingMode.Absolute
+            };
+            _blurVideo.Viewbox = new Rect(-Pad, -Pad, w + 2 * Pad, h + 2 * Pad);
+            if (!ReferenceEquals(_blur.Background, _blurVideo)) _blur.Background = _blurVideo;
+            return;
+        }
+
+        var src = _imageSource.ImageSource;
+        if (src == null || src.Width <= 0 || src.Height <= 0) throw new InvalidOperationException("wallpaper image has no size");
+        var frame = HomeGlassService.GetWallpaperFrame(new Rect(0, 0, w, h), src.Width / src.Height);
+        _blurImage.Viewbox = new Rect(
+            (-Pad - frame.X) / frame.Width,
+            (-Pad - frame.Y) / frame.Height,
+            (w + 2 * Pad) / frame.Width,
+            (h + 2 * Pad) / frame.Height);
+        if (!ReferenceEquals(_blur.Background, _blurImage)) _blur.Background = _blurImage;
+    }
+
+    private double EffectiveOpacity(FrameworkElement el)
+    {
+        double op = 1.0;
+        DependencyObject? cur = el;
+        while (cur != null && !ReferenceEquals(cur, _root))
+        {
+            if (cur is UIElement u) op *= u.Opacity;
+            cur = cur is Visual || cur is System.Windows.Media.Media3D.Visual3D ? VisualTreeHelper.GetParent(cur) : null;
+        }
+        return op;
+    }
+
+    private void UpdateMask(double w, double h)
+    {
+        _maskCanvas.Width = w;
+        _maskCanvas.Height = h;
+        foreach (var pair in _shapes)
+        {
+            var el = pair.Key;
+            var shape = pair.Value;
+            double op = EffectiveOpacity(el);
+            if (op <= 0.001 || !el.IsVisible || el.ActualWidth <= 0 || el.ActualHeight <= 0)
+            {
+                shape.Visibility = Visibility.Collapsed;
+                continue;
+            }
+            Rect b;
+            try
+            {
+                b = el.TransformToVisual(_root).TransformBounds(new Rect(0, 0, el.ActualWidth, el.ActualHeight));
+            }
+            catch (InvalidOperationException)
+            {
+                shape.Visibility = Visibility.Collapsed;
+                continue;
+            }
+            Canvas.SetLeft(shape, b.X);
+            Canvas.SetTop(shape, b.Y);
+            shape.Width = b.Width;
+            shape.Height = b.Height;
+            shape.CornerRadius = el is Border border ? border.CornerRadius : new CornerRadius(0);
+            shape.Opacity = op;
+            shape.Visibility = Visibility.Visible;
+        }
     }
 }

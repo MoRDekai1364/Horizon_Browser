@@ -37,11 +37,15 @@ public partial class HomePageView : UserControl
     private double _homeVizFade = 0.0;
     private LinearGradientBrush? _vizBrushTop, _vizBrushBottom, _vizBrushLeft, _vizBrushRight;
 
+    private readonly HomeGlassInlineLayer _homeGlass;
+
     public event Action<string>? NavigateRequested;
 
     public HomePageView()
     {
         InitializeComponent();
+        _homeGlass = new HomeGlassInlineLayer(RootHomeGrid, BgImageBrush, BgVideoElement);
+        _homeGlass.Register(SearchBoxBorder);
         Loaded += (_, __) => WeatherBridge.SetWallpaperSurface(RootHomeGrid);
         Unloaded += (_, __) =>
         {
