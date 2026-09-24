@@ -943,6 +943,9 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
         SliderPaletteSampleRate.Value    = s.PaletteSampleRateSec > 0 ? s.PaletteSampleRateSec : 1.5;
         TblPaletteSampleRateValue.Text   = $"{SliderPaletteSampleRate.Value:F1} s";
 
+        SliderWidgetTint.Value          = s.HomeTintStrength;
+        TblWidgetTintValue.Text         = $"{SliderWidgetTint.Value:0}%";
+
         ChkStartupVideo.IsChecked = s.ShowStartupVideo;
         LoadStartupVideoOptions();
         
@@ -1034,6 +1037,7 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
         if (CboVisualizerScheme.SelectedItem is ComboBoxItem vci)
             s.VisualizerColorScheme = vci.Tag?.ToString() ?? "Favicon";
         s.PaletteSampleRateSec = SliderPaletteSampleRate.Value;
+        s.HomeTintStrength     = SliderWidgetTint.Value;
 
         s.ShowStartupVideo = ChkStartupVideo.IsChecked == true;
         SaveStartupVideoOptions();
@@ -1502,6 +1506,12 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
         g.Children.Add(lbl);
         g.Children.Add(chk);
         return g;
+    }
+
+    private void SliderWidgetTint_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (TblWidgetTintValue != null)
+            TblWidgetTintValue.Text = $"{e.NewValue:0}%";
     }
 
     private void SliderPaletteSampleRate_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)

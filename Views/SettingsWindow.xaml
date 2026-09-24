@@ -261,6 +261,25 @@
                                        Text="1.5 s"/>
                         </Grid>
 
+                        <TextBlock Text="Widget Tint" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" Margin="0,10,0,5"/>
+                        <TextBlock Text="How opaque tinted widget backgrounds are (homepage, weather, and future widgets). Lower = more transparent, more blur visible." Foreground="#AAA" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,6"/>
+                        <Grid Margin="0,4,0,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="52"/>
+                            </Grid.ColumnDefinitions>
+                            <Slider x:Name="SliderWidgetTint" Grid.Column="0"
+                                    local:SearchIndex.Label="Widget Tint" local:SearchIndex.Description="How opaque tinted widget backgrounds are."
+                                    Minimum="0" Maximum="100" TickFrequency="5"
+                                    IsSnapToTickEnabled="True" VerticalAlignment="Center"
+                                    Margin="0,0,10,0"
+                                    ValueChanged="SliderWidgetTint_ValueChanged"/>
+                            <TextBlock x:Name="TblWidgetTintValue" Grid.Column="1"
+                                       VerticalAlignment="Center"
+                                       Foreground="{StaticResource Brush_Text}" FontSize="11"
+                                       Text="30%"/>
+                        </Grid>
+
                         <TextBlock Text="Startup" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" Margin="0,10,0,5"/>
                         <CheckBox x:Name="ChkStartupVideo" Content="Play animated logo video on startup"
                                   Foreground="{StaticResource Brush_Text}" Margin="0,0,0,6"

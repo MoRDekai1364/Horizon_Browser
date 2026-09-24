@@ -1263,8 +1263,7 @@ public partial class HomePageView : UserControl
         double pillSat = Math.Min(Math.Max(sat, 0.65), 0.95);
         double pillLum = darkWallpaperForContrast ? 0.46 : 0.68;
         Color pillHueColor = HslToRgb(hue, pillSat, pillLum);
-        double tintFraction = Math.Clamp(SettingsService.Current.HomeTintStrength / 100.0, 0.0, 1.0);
-        byte pillAlpha = (byte)Math.Round((darkWallpaperForContrast ? 0x8C : 0x99) * tintFraction);
+        byte pillAlpha = TintService.Apply(darkWallpaperForContrast ? (byte)0x8C : (byte)0x99);
         Color pillBg = Color.FromArgb(pillAlpha, pillHueColor.R, pillHueColor.G, pillHueColor.B);
         Brush pillTextBrush = GetContrastingTextBrush(pillBg);
         CmbSearchEngine.Background = new SolidColorBrush(pillBg);
@@ -1316,7 +1315,7 @@ public partial class HomePageView : UserControl
         TblMediaTitle.Foreground = new SolidColorBrush(baseColor);
         TblMediaTitle.Effect = MakeOutline(baseColor);
 
-        byte bgAlpha = (byte)Math.Round(0xD9 * tintFraction);
+        byte bgAlpha = TintService.Apply(0xD9);
         Color searchBg = darkWallpaper ? Color.FromArgb(bgAlpha, 0x1A, 0x1A, 0x1A) : Color.FromArgb(bgAlpha, 0xFF, 0xFF, 0xFF);
         SearchBoxBorder.Background = CreateSearchBarBackgroundBrush(searchBg);
         SearchBoxBorder.BorderBrush = new SolidColorBrush(Color.FromArgb(0x55, accentPrimary.R, accentPrimary.G, accentPrimary.B));

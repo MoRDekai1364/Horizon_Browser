@@ -7641,7 +7641,7 @@ private sealed class WeatherRetryHandler : DelegatingHandler
                 ? Math.Clamp(0.55 * SettingsService.Current.BackgroundOpacity, 0.0, 1.0)
                 : 0.0;
             var pill = WeatherBridge.ThemePill;
-            tintLayer.Background = new SolidColorBrush(Color.FromArgb(0x1C, pill.R, pill.G, pill.B));
+            tintLayer.Background = new SolidColorBrush(Color.FromArgb(TintService.Apply((byte)0x1C), pill.R, pill.G, pill.B));
         }
 
         Apply();
