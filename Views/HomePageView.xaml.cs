@@ -47,6 +47,8 @@ public partial class HomePageView : UserControl
         InitializeComponent();
         _homeGlass = new HomeGlassInlineLayer(RootHomeGrid, BgImageBrush, BgVideoElement);
         _homeGlass.Register(SearchBoxBorder);
+        _homeGlass.Register(ClockWeatherIslandBorder);
+        _homeGlass.Register(FavBookmarksIslandBorder);
         Loaded += (_, __) => WeatherBridge.SetWallpaperSurface(RootHomeGrid);
         Unloaded += (_, __) =>
         {
