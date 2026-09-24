@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace Horizon.Stealth.Services;
 
@@ -10,6 +11,7 @@ public static class WidgetBackdropService
 {
     [DllImport("user32.dll")] private static extern IntPtr MonitorFromWindow(IntPtr hwnd, uint flags);
     [DllImport("user32.dll")] private static extern bool GetMonitorInfo(IntPtr hMonitor, ref MONITORINFO lpmi);
+    [DllImport("user32.dll")] private static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
     private const uint MONITOR_DEFAULTTONEAREST = 2u;
 
     [StructLayout(LayoutKind.Sequential)]
@@ -91,48 +93,127 @@ public static class WidgetBackdropService
         if (double.IsNaN(widgetRect.Left) || double.IsNaN(widgetRect.Top))
             return new Rect(0, 0, 1, 1);
 
-        double u0 = Clamp01((widgetRect.Left - offsetX) / dispW);
-        double v0 = Clamp01((widgetRect.Top - offsetY) / dispH);
-        double u1 = Clamp01((widgetRect.Right - offsetX) / dispW);
-        double v1 = Clamp01((widgetRect.Bottom - offsetY) / dispH);
-
-        if (u1 <= u0) u1 = Math.Min(1.0, u0 + 0.01);
-        if (v1 <= v0) v1 = Math.Min(1.0, v0 + 0.01);
+        double u0 = (widgetRect.Left - offsetX) / dispW;
+        double v0 = (widgetRect.Top - offsetY) / dispH;
+        double u1 = (widgetRect.Right - offsetX) / dispW;
+        double v1 = (widgetRect.Bottom - offsetY) / dispH;
 
         return new Rect(u0, v0, u1 - u0, v1 - v0);
     }
 
-    public static Action Bind(Window widget, ImageBrush brush)
+    private static Rect? GetOwnerScreenRect(Window widget)
+    {
+        var owner = widget.Owner ?? Application.Current?.MainWindow;
+        if (owner == null || !owner.IsVisible || owner.WindowState == WindowState.Minimized) return null;
+        var hwnd = new WindowInteropHelper(owner).Handle;
+        if (hwnd == IntPtr.Zero || !GetWindowRect(hwnd, out var r)) return null;
+        return new Rect(r.Left, r.Top, r.Right - r.Left, r.Bottom - r.Top);
+    }
+
+    private static bool IsAppActive()
+    {
+        if (Application.Current == null) return false;
+        foreach (Window w in Application.Current.Windows)
+            if (w.IsActive) return true;
+        return false;
+    }
+
+    private static Rect? GetOverlapLocal(Window widget)
+    {
+        if (!IsAppActive()) return null;
+
+        var region = GetSurfaceScreenRect() ?? GetOwnerScreenRect(widget);
+        if (region == null) return null;
+
+        var widgetRect = GetWindowScreenRect(widget);
+        if (double.IsNaN(widgetRect.Left) || double.IsNaN(widgetRect.Top)) return null;
+
+        var o = Rect.Intersect(widgetRect, region.Value);
+        if (o.IsEmpty || o.Width < 1 || o.Height < 1) return null;
+
+        double dpi = GetDpiScale(widget);
+        return new Rect((o.Left - widgetRect.Left) / dpi, (o.Top - widgetRect.Top) / dpi, o.Width / dpi, o.Height / dpi);
+    }
+
+    public static Action Bind(Window widget, ImageBrush brush, Action<Rect?>? onOverlapChanged = null)
     {
         FrameworkElement? boundSurface = null;
+        Window? owner = widget.Owner ?? Application.Current?.MainWindow;
+        bool pending = false;
 
         void Recompute()
         {
-            var wallpaper = WeatherBridge.ThemeWallpaper;
-            if (wallpaper == null)
+            try
             {
-                brush.ImageSource = null;
-                return;
+                onOverlapChanged?.Invoke(GetOverlapLocal(widget));
+                var wallpaper = WeatherBridge.ThemeWallpaper;
+                if (wallpaper == null)
+                {
+                    brush.ImageSource = null;
+                    return;
+                }
+                brush.ImageSource = wallpaper;
+                brush.Stretch = Stretch.Fill;
+                brush.ViewboxUnits = BrushMappingMode.RelativeToBoundingBox;
+                brush.Viewbox = GetUvRect(widget);
             }
-            brush.ImageSource = wallpaper;
-            brush.Stretch = Stretch.Fill;
-            brush.ViewboxUnits = BrushMappingMode.RelativeToBoundingBox;
-            brush.Viewbox = GetUvRect(widget);
+            catch (Exception ex)
+            {
+                LogService.Write("WidgetBackdrop", "Recompute failed: " + ex);
+            }
         }
 
-        void OnSurfaceSizeChanged(object? s, SizeChangedEventArgs e) => Recompute();
+        void Schedule()
+        {
+            Recompute();
+            if (pending) return;
+            pending = true;
+            widget.Dispatcher.BeginInvoke(new Action(() =>
+            {
+                pending = false;
+                Recompute();
+            }), DispatcherPriority.Loaded);
+        }
+
+        void OnSurfaceSizeChanged(object? s, SizeChangedEventArgs e) => Schedule();
+        void OnSurfaceVisibleChanged(object? s, DependencyPropertyChangedEventArgs e) => Schedule();
+        void OnOwnerChanged(object? s, EventArgs e) => Schedule();
+        void OnOwnerSizeChanged(object? s, SizeChangedEventArgs e) => Schedule();
 
         void RebindSurface()
         {
-            if (boundSurface != null) boundSurface.SizeChanged -= OnSurfaceSizeChanged;
+            if (boundSurface != null)
+            {
+                boundSurface.SizeChanged -= OnSurfaceSizeChanged;
+                boundSurface.IsVisibleChanged -= OnSurfaceVisibleChanged;
+            }
             boundSurface = WeatherBridge.WallpaperSurface;
-            if (boundSurface != null) boundSurface.SizeChanged += OnSurfaceSizeChanged;
-            Recompute();
+            if (boundSurface != null)
+            {
+                boundSurface.SizeChanged += OnSurfaceSizeChanged;
+                boundSurface.IsVisibleChanged += OnSurfaceVisibleChanged;
+            }
+            Schedule();
         }
 
         widget.LocationChanged += (s, e) => Recompute();
         widget.SizeChanged += (s, e) => Recompute();
+        widget.StateChanged += (s, e) => Schedule();
         widget.Loaded += (s, e) => Recompute();
+
+        if (owner != null)
+        {
+            owner.LocationChanged += OnOwnerChanged;
+            owner.StateChanged += OnOwnerChanged;
+            owner.SizeChanged += OnOwnerSizeChanged;
+        }
+
+        EventHandler onAppActivation = (s, e) => Schedule();
+        if (Application.Current != null)
+        {
+            Application.Current.Activated += onAppActivation;
+            Application.Current.Deactivated += onAppActivation;
+        }
 
         Action themeHandler = () => widget.Dispatcher.BeginInvoke(new Action(Recompute));
         WeatherBridge.ThemeUpdated += themeHandler;
@@ -146,7 +227,22 @@ public static class WidgetBackdropService
         {
             WeatherBridge.ThemeUpdated -= themeHandler;
             WeatherBridge.SurfaceChanged -= surfaceHandler;
-            if (boundSurface != null) boundSurface.SizeChanged -= OnSurfaceSizeChanged;
+            if (boundSurface != null)
+            {
+                boundSurface.SizeChanged -= OnSurfaceSizeChanged;
+                boundSurface.IsVisibleChanged -= OnSurfaceVisibleChanged;
+            }
+            if (owner != null)
+            {
+                owner.LocationChanged -= OnOwnerChanged;
+                owner.StateChanged -= OnOwnerChanged;
+                owner.SizeChanged -= OnOwnerSizeChanged;
+            }
+            if (Application.Current != null)
+            {
+                Application.Current.Activated -= onAppActivation;
+                Application.Current.Deactivated -= onAppActivation;
+            }
         };
     }
 }

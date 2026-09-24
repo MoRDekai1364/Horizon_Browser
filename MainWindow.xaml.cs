@@ -7616,12 +7616,23 @@ private sealed class WeatherRetryHandler : DelegatingHandler
         {
             Background = new LinearGradientBrush(Color.FromArgb(0x60, 0, 0, 0), Color.FromArgb(0xA0, 0, 0, 0), 90)
         };
+        var glassHost = new Grid { Visibility = Visibility.Collapsed };
+        glassHost.Children.Add(wallLayer);
+        glassHost.Children.Add(tintLayer);
+        glassHost.Children.Add(shadeLayer);
         root.Children.Add(baseLayer);
-        root.Children.Add(wallLayer);
-        root.Children.Add(tintLayer);
-        root.Children.Add(shadeLayer);
+        root.Children.Add(glassHost);
 
-        var unbind = WidgetBackdropService.Bind(owner, wallBrush);
+        var unbind = WidgetBackdropService.Bind(owner, wallBrush, overlap =>
+        {
+            if (overlap == null)
+            {
+                glassHost.Visibility = Visibility.Collapsed;
+                return;
+            }
+            glassHost.Clip = new RectangleGeometry(overlap.Value);
+            glassHost.Visibility = Visibility.Visible;
+        });
 
         void Apply()
         {
