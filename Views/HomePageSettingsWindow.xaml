@@ -113,6 +113,15 @@
                     <CheckBox x:Name="ChkAdaptiveColors" Content="Adapt clock/search colors to wallpaper" Foreground="White"
                               Margin="0,0,0,8" Checked="AdaptiveColors_Changed" Unchecked="AdaptiveColors_Changed"/>
 
+                    <TextBlock Text="Widget Tint" Foreground="{DynamicResource Brush_Accent}" FontSize="13" Margin="0,14,0,6"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
+                        <Slider x:Name="SldTintStrength" Width="220" Minimum="0" Maximum="100"
+                                TickFrequency="5" IsSnapToTickEnabled="True"
+                                ValueChanged="TintStrength_ValueChanged"/>
+                        <TextBlock x:Name="TblTintStrengthValue" Text="50%" Foreground="White"
+                                   FontSize="12" VerticalAlignment="Center" Margin="10,0,0,0" Width="35"/>
+                    </StackPanel>
+
                     <TextBlock Text="Inactivity Timeout" Foreground="{DynamicResource Brush_Accent}" FontSize="13" Margin="0,14,0,6"/>
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
                         <Slider x:Name="SldInactivityTimeout" Width="220" Minimum="3" Maximum="60"

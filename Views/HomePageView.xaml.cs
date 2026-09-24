@@ -34,6 +34,7 @@ public partial class HomePageView : UserControl
     private bool _bookmarksAnimating = false;
     private DispatcherTimer? _inactivityTimer;
     private Color _lastPillBg = Color.FromArgb(0x80, 0x00, 0x00, 0x00);
+    private Color? _lastAdaptiveAvgColor = null;
     private double _homeVizFade = 0.0;
     private LinearGradientBrush? _vizBrushTop, _vizBrushBottom, _vizBrushLeft, _vizBrushRight;
 
@@ -1055,7 +1056,7 @@ public partial class HomePageView : UserControl
         bool dark = lum < 0.5;
         bool adaptive = SettingsService.Current.HomeAdaptiveColorsEnabled;
 
-        double pillSat = Math.Min(Math.Max(sat, 0.65), 0.95);
+        double pillSat = Math.Min(Math.Max(sat, 0.4225), 0.6175);
         double pillLum = dark ? 0.46 : 0.68;
         Color pillHue = HslToRgb(hue, pillSat, pillLum);
         Color pill = Color.FromArgb(dark ? (byte)0xCC : (byte)0xD9, pillHue.R, pillHue.G, pillHue.B);
@@ -1237,8 +1238,15 @@ public partial class HomePageView : UserControl
         b.BorderThickness = new Thickness(2);
     }
 
+    public void RefreshAdaptiveTint()
+    {
+        if (_lastAdaptiveAvgColor.HasValue)
+            ApplyAdaptiveColors(_lastAdaptiveAvgColor.Value);
+    }
+
     private void ApplyAdaptiveColors(Color avg)
     {
+        _lastAdaptiveAvgColor = avg;
         PublishWeatherTheme(avg);
         RgbToHsl(avg, out double hue, out double sat, out double lum);
         bool darkWallpaperForContrast = lum < 0.5;
@@ -1255,7 +1263,9 @@ public partial class HomePageView : UserControl
         double pillSat = Math.Min(Math.Max(sat, 0.65), 0.95);
         double pillLum = darkWallpaperForContrast ? 0.46 : 0.68;
         Color pillHueColor = HslToRgb(hue, pillSat, pillLum);
-        Color pillBg = Color.FromArgb(darkWallpaperForContrast ? (byte)0x8C : (byte)0x99, pillHueColor.R, pillHueColor.G, pillHueColor.B);
+        double tintFraction = Math.Clamp(SettingsService.Current.HomeTintStrength / 100.0, 0.0, 1.0);
+        byte pillAlpha = (byte)Math.Round((darkWallpaperForContrast ? 0x8C : 0x99) * tintFraction);
+        Color pillBg = Color.FromArgb(pillAlpha, pillHueColor.R, pillHueColor.G, pillHueColor.B);
         Brush pillTextBrush = GetContrastingTextBrush(pillBg);
         CmbSearchEngine.Background = new SolidColorBrush(pillBg);
         CmbSearchEngine.BorderBrush = CreateFadingBorderBrush(((SolidColorBrush)pillTextBrush).Color);
@@ -1306,7 +1316,7 @@ public partial class HomePageView : UserControl
         TblMediaTitle.Foreground = new SolidColorBrush(baseColor);
         TblMediaTitle.Effect = MakeOutline(baseColor);
 
-        byte bgAlpha = 0xD9;
+        byte bgAlpha = (byte)Math.Round(0xD9 * tintFraction);
         Color searchBg = darkWallpaper ? Color.FromArgb(bgAlpha, 0x1A, 0x1A, 0x1A) : Color.FromArgb(bgAlpha, 0xFF, 0xFF, 0xFF);
         SearchBoxBorder.Background = CreateSearchBarBackgroundBrush(searchBg);
         SearchBoxBorder.BorderBrush = new SolidColorBrush(Color.FromArgb(0x55, accentPrimary.R, accentPrimary.G, accentPrimary.B));
@@ -2013,7 +2023,9 @@ public partial class HomePageView : UserControl
     {
         var win = new HomePageSettingsWindow();
         win.Owner = Window.GetWindow(this);
+        win.TintStrengthChanged += RefreshAdaptiveTint;
         win.ShowDialog();
+        win.TintStrengthChanged -= RefreshAdaptiveTint;
         if (_inactivityTimer != null)
             _inactivityTimer.Interval = TimeSpan.FromSeconds(SettingsService.Current.HomeInactivityTimeoutSeconds);
         ApplySectionAndWidgetVisibility();

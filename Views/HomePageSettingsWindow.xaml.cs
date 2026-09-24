@@ -11,6 +11,7 @@ namespace Horizon.Stealth.Views;
 
 public partial class HomePageSettingsWindow : Window
 {
+    public event Action? TintStrengthChanged;
     public bool WallpaperChanged { get; private set; } = false;
     private int _editingHomepageIndex = -1;
     private bool _loadingWallpaperUi = false;
@@ -53,6 +54,9 @@ public partial class HomePageSettingsWindow : Window
         CmbHomeFont.SelectedItem = HomeFontChoices.Contains(current) ? current : HomeFontChoices[0];
 
         ChkAdaptiveColors.IsChecked = SettingsService.Current.HomeAdaptiveColorsEnabled;
+
+        SldTintStrength.Value = SettingsService.Current.HomeTintStrength;
+        TblTintStrengthValue.Text = $"{SettingsService.Current.HomeTintStrength:0}%";
 
         SldInactivityTimeout.Value = SettingsService.Current.HomeInactivityTimeoutSeconds;
         TblInactivityTimeoutValue.Text = $"{SettingsService.Current.HomeInactivityTimeoutSeconds:0}s";
@@ -140,6 +144,15 @@ public partial class HomePageSettingsWindow : Window
         if (_loadingToggles) return;
         SettingsService.Current.HomeAdaptiveColorsEnabled = ChkAdaptiveColors.IsChecked == true;
         SettingsService.Save();
+    }
+
+    private void TintStrength_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_loadingToggles || TblTintStrengthValue == null) return;
+        SettingsService.Current.HomeTintStrength = SldTintStrength.Value;
+        TblTintStrengthValue.Text = $"{SldTintStrength.Value:0}%";
+        SettingsService.Save();
+        TintStrengthChanged?.Invoke();
     }
 
     private void InactivityTimeout_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
