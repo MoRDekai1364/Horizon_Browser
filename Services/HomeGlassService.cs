@@ -4,9 +4,11 @@ using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Interop;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 
 namespace Horizon.Stealth.Services;
@@ -281,6 +283,32 @@ public static class HomeGlassService
             Detach();
         };
     }
+
+    public const double MinGlassSize = 8.0;
+
+    public static bool IsGlassEligible(FrameworkElement el)
+    {
+        if (HomeGlass.GetExclude(el)) return false;
+        if (el.ActualWidth < MinGlassSize || el.ActualHeight < MinGlassSize) return false;
+        Brush? bg = el switch
+        {
+            Border b => b.Background,
+            Panel p => p.Background,
+            Control c => c.Background,
+            _ => null
+        };
+        return bg is SolidColorBrush scb && scb.Color.A > 0 && scb.Color.A < 255;
+    }
+}
+
+public static class HomeGlass
+{
+    public static readonly DependencyProperty ExcludeProperty =
+        DependencyProperty.RegisterAttached("Exclude", typeof(bool), typeof(HomeGlass),
+            new PropertyMetadata(false));
+
+    public static void SetExclude(DependencyObject el, bool value) => el.SetValue(ExcludeProperty, value);
+    public static bool GetExclude(DependencyObject el) => (bool)el.GetValue(ExcludeProperty);
 }
 
 public sealed class HomeGlassInlineLayer
@@ -335,12 +363,6 @@ public sealed class HomeGlassInlineLayer
         _layer.Children.Add(_blur);
 
         _maskCanvas = new Canvas { IsHitTestVisible = false };
-        _layer.OpacityMask = new VisualBrush(_maskCanvas)
-        {
-            Stretch = Stretch.None,
-            AlignmentX = AlignmentX.Left,
-            AlignmentY = AlignmentY.Top
-        };
 
         int idx = _root.Children.IndexOf(_video);
         _root.Children.Insert(idx >= 0 ? idx + 1 : 0, _layer);
@@ -364,6 +386,7 @@ public sealed class HomeGlassInlineLayer
         _maskCanvas.Children.Add(shape);
         el.SizeChanged += OnElementSizeChanged;
         el.IsVisibleChanged += OnElementVisibleChanged;
+        el.Unloaded += OnElementUnloaded;
         QueueRefresh();
     }
 
@@ -374,7 +397,20 @@ public sealed class HomeGlassInlineLayer
         _maskCanvas.Children.Remove(shape);
         el.SizeChanged -= OnElementSizeChanged;
         el.IsVisibleChanged -= OnElementVisibleChanged;
+        el.Unloaded -= OnElementUnloaded;
         QueueRefresh();
+    }
+
+    private void OnElementUnloaded(object sender, RoutedEventArgs e) => Unregister((FrameworkElement)sender);
+
+    public void RegisterSubtree(DependencyObject node)
+    {
+        if (node is FrameworkElement fe && !ReferenceEquals(fe, _root) && HomeGlassService.IsGlassEligible(fe))
+            Register(fe);
+
+        int count = VisualTreeHelper.GetChildrenCount(node);
+        for (int i = 0; i < count; i++)
+            RegisterSubtree(VisualTreeHelper.GetChild(node, i));
     }
 
     public void Invalidate() => QueueRefresh();
@@ -410,6 +446,7 @@ public sealed class HomeGlassInlineLayer
         _refreshQueued = false;
         try
         {
+            RegisterSubtree(_root);
             double w = _root.ActualWidth;
             double h = _root.ActualHeight;
             var mode = ResolveMode();
@@ -510,5 +547,33 @@ public sealed class HomeGlassInlineLayer
             shape.Opacity = op;
             shape.Visibility = Visibility.Visible;
         }
+        RasterizeMask(w, h);
+    }
+
+    private double GetMaskDeviceScale()
+    {
+        var src = PresentationSource.FromVisual(_root);
+        return src?.CompositionTarget != null ? src.CompositionTarget.TransformToDevice.M11 : 1.0;
+    }
+
+    private void RasterizeMask(double w, double h)
+    {
+        double k = GetMaskDeviceScale();
+        int pw = Math.Max(1, (int)Math.Round(w * k));
+        int ph = Math.Max(1, (int)Math.Round(h * k));
+
+        _maskCanvas.Measure(new Size(w, h));
+        _maskCanvas.Arrange(new Rect(0, 0, w, h));
+        _maskCanvas.UpdateLayout();
+
+        var rtb = new RenderTargetBitmap(pw, ph, 96 * k, 96 * k, PixelFormats.Pbgra32);
+        rtb.Render(_maskCanvas);
+
+        _layer.OpacityMask = new ImageBrush(rtb)
+        {
+            Stretch = Stretch.Fill,
+            ViewportUnits = BrushMappingMode.Absolute,
+            Viewport = new Rect(0, 0, w, h)
+        };
     }
 }

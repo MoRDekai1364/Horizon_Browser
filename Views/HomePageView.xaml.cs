@@ -1137,7 +1137,7 @@ public partial class HomePageView : UserControl
         TxtHomeSearch.Effect = MakeOutline(Colors.White);
         SearchBoxBorder.Background = CreateSearchBarBackgroundBrush(Color.FromArgb(0xD9, 0x1A, 0x1A, 0x1A));
         SearchBoxBorder.BorderBrush = new SolidColorBrush(Color.FromArgb(0x33, 0xFF, 0xFF, 0xFF));
-        Color defaultPillBg = Color.FromArgb(0x80, 0x00, 0x00, 0x00);
+        Color defaultPillBg = Color.FromArgb(0x40, 0x00, 0x00, 0x00);
         Brush defaultPillTextBrush = GetContrastingTextBrush(defaultPillBg);
         CmbSearchEngine.Background = new SolidColorBrush(defaultPillBg);
         CmbSearchEngine.BorderBrush = CreateFadingBorderBrush(((SolidColorBrush)defaultPillTextBrush).Color);
@@ -1255,7 +1255,7 @@ public partial class HomePageView : UserControl
         double pillSat = Math.Min(Math.Max(sat, 0.65), 0.95);
         double pillLum = darkWallpaperForContrast ? 0.46 : 0.68;
         Color pillHueColor = HslToRgb(hue, pillSat, pillLum);
-        Color pillBg = Color.FromArgb(darkWallpaperForContrast ? (byte)0xCC : (byte)0xD9, pillHueColor.R, pillHueColor.G, pillHueColor.B);
+        Color pillBg = Color.FromArgb(darkWallpaperForContrast ? (byte)0x8C : (byte)0x99, pillHueColor.R, pillHueColor.G, pillHueColor.B);
         Brush pillTextBrush = GetContrastingTextBrush(pillBg);
         CmbSearchEngine.Background = new SolidColorBrush(pillBg);
         CmbSearchEngine.BorderBrush = CreateFadingBorderBrush(((SolidColorBrush)pillTextBrush).Color);
@@ -1874,7 +1874,41 @@ public partial class HomePageView : UserControl
             BorderThickness = new Thickness(1),
             Child           = sp,
         };
-        dlg.Content = shell;
+
+        const double backdropBlurRadius = 32;
+        var backdropBrush = new ImageBrush();
+        var backdropBase = new Border { Background = Brushes.Black, CornerRadius = new CornerRadius(16) };
+        var backdropBlur = new Border
+        {
+            Margin = new Thickness(-backdropBlurRadius),
+            Background = backdropBrush,
+            Effect = new BlurEffect
+            {
+                Radius = backdropBlurRadius,
+                KernelType = KernelType.Gaussian,
+                RenderingBias = RenderingBias.Performance
+            }
+        };
+        var backdropLayer = new Grid { ClipToBounds = true, IsHitTestVisible = false };
+        backdropLayer.Children.Add(backdropBase);
+        backdropLayer.Children.Add(backdropBlur);
+        backdropLayer.OpacityMask = new VisualBrush(new Border
+        {
+            Width = dlg.Width,
+            Height = dlg.Height,
+            CornerRadius = new CornerRadius(16),
+            Background = Brushes.Black
+        })
+        { Stretch = Stretch.None };
+
+        var root = new Grid();
+        root.Children.Add(backdropLayer);
+        root.Children.Add(shell);
+        dlg.Content = root;
+
+        var unbindBackdrop = WidgetBackdropService.Bind(dlg, backdropBrush);
+        dlg.Closed += (_, _) => unbindBackdrop();
+
         content = sp;
         return dlg;
     }
