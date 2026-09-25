@@ -47,7 +47,7 @@ public partial class HomePageView : UserControl
         InitializeComponent();
         _homeGlass = new HomeGlassInlineLayer(RootHomeGrid, BgImageBrush, BgVideoElement);
         _homeGlass.Register(SearchBoxBorder);
-        _homeGlass.Register(TestClockPill2);
+        _homeGlass.Register(SearchBlurPill);
         _homeGlass.Register(FavBookmarksIslandBorder);
         _homeGlass.Register(PnlBatteryPill);
         Loaded += (_, __) => WeatherBridge.SetWallpaperSurface(RootHomeGrid);
@@ -164,7 +164,6 @@ public partial class HomePageView : UserControl
         AnimateElementOpacity(PnlClockWeather, 0.0, transformDuration);
         PnlClockWeather.IsHitTestVisible = false;
         AnimateElementOpacity(ClockWeatherIslandBorder, 0.0, transformDuration);
-        AnimateElementOpacity(TestClockPill2, 0.0, transformDuration);
         AnimateElementOpacity(BtnHomeSettings, 0.0, transformDuration);
         BtnHomeSettings.IsHitTestVisible = false;
         AnimateElementOpacity(BtnChangeWallpaper, 0.0, transformDuration);
@@ -288,7 +287,6 @@ public partial class HomePageView : UserControl
         AnimateElementOpacity(PnlClockWeather, 1.0, transformDuration);
         PnlClockWeather.IsHitTestVisible = true;
         AnimateElementOpacity(ClockWeatherIslandBorder, _isContentVisible ? 0.85 : 0.0, transformDuration);
-        AnimateElementOpacity(TestClockPill2, _isContentVisible ? 0.85 : 0.0, transformDuration);
         AnimateElementOpacity(BtnHomeSettings, 1.0, transformDuration);
         BtnHomeSettings.IsHitTestVisible = true;
         AnimateElementOpacity(BtnChangeWallpaper, 1.0, transformDuration);
@@ -492,7 +490,7 @@ public partial class HomePageView : UserControl
         ApplyFont();
         TxtHomeSearchPlaceholder.Visibility = Visibility.Visible;
 
-        foreach (var elem in new UIElement[] { BtnHomeSettings, PnlSearchArea })
+        foreach (var elem in new UIElement[] { BtnHomeSettings, PnlSearchArea, SearchBlurPill })
         {
             elem.Opacity = 0.0;
             elem.IsHitTestVisible = false;
@@ -582,7 +580,7 @@ public partial class HomePageView : UserControl
             EasingFunction = opacityEase
         };
 
-        foreach (var elem in new UIElement[] { BtnHomeSettings, PnlSearchArea })
+        foreach (var elem in new UIElement[] { BtnHomeSettings, PnlSearchArea, SearchBlurPill })
         {
             elem.IsHitTestVisible = show;
             elem.BeginAnimation(UIElement.OpacityProperty, opacityAnim);
@@ -2170,12 +2168,6 @@ public partial class HomePageView : UserControl
 
         ClockWeatherIslandBorder.Width = PnlClockWeather.ActualWidth + ClockWeatherIslandPadding * 2;
         ClockWeatherIslandBorder.Height = PnlClockWeather.ActualHeight + ClockWeatherIslandPadding * 2;
-
-        if (TestClockPill2 != null)
-        {
-            TestClockPill2.Width = ClockWeatherIslandBorder.Width;
-            TestClockPill2.Height = ClockWeatherIslandBorder.Height;
-        }
     }
 
     private void SetClockWeatherIslandVisible(bool visible)
@@ -2199,19 +2191,6 @@ public partial class HomePageView : UserControl
             anim.CurrentTimeInvalidated += (_, _) => _homeGlass.Invalidate();
             anim.Completed += (_, _) => _homeGlass.Invalidate();
             ClockWeatherIslandBorder.BeginAnimation(UIElement.OpacityProperty, anim);
-        }
-
-        if (TestClockPill2 != null && Math.Abs(TestClockPill2.Opacity - target) >= 0.01)
-        {
-            var pillAnim = new DoubleAnimation
-            {
-                To = target,
-                Duration = new Duration(duration),
-                EasingFunction = ease
-            };
-            pillAnim.CurrentTimeInvalidated += (_, _) => _homeGlass.Invalidate();
-            pillAnim.Completed += (_, _) => _homeGlass.Invalidate();
-            TestClockPill2.BeginAnimation(UIElement.OpacityProperty, pillAnim);
         }
     }
 

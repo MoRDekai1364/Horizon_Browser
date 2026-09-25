@@ -484,17 +484,32 @@
                     IsHitTestVisible="False"
                     Opacity="0">
             </Border>
-            <Border x:Name="TestClockPill2" Grid.Row="0" Grid.Column="0"
+            <Border x:Name="SearchBlurPill" Grid.Row="0" Grid.Column="0"
                     Panel.ZIndex="999"
                     HorizontalAlignment="Left" VerticalAlignment="Top"
                     Margin="30,40,40,0"
-                    Width="323" Height="231"
+                    Width="{Binding ActualWidth, ElementName=ClockWeatherIslandBorder}"
+                    Height="{Binding ActualHeight, ElementName=ClockWeatherIslandBorder}"
                     CornerRadius="{Binding CornerRadius, ElementName=SearchBoxBorder}"
                     Background="{Binding Background, ElementName=SearchBoxBorder}"
-                    BorderBrush="Transparent"
-                    BorderThickness="0"
+                    BorderBrush="{Binding BorderBrush, ElementName=SearchBoxBorder}"
+                    BorderThickness="{Binding BorderThickness, ElementName=SearchBoxBorder}"
                     IsHitTestVisible="False"
-                    Opacity="1">
+                    Opacity="0">
+                <Border.OpacityMask>
+                    <VisualBrush Stretch="None">
+                        <VisualBrush.Visual>
+                            <Border Width="{Binding ActualWidth, ElementName=SearchBlurPill}"
+                                    Height="{Binding ActualHeight, ElementName=SearchBlurPill}"
+                                    CornerRadius="{Binding CornerRadius, ElementName=SearchBoxBorder}"
+                                    Background="Black">
+                                <Border.Effect>
+                                    <BlurEffect Radius="16" KernelType="Gaussian"/>
+                                </Border.Effect>
+                            </Border>
+                        </VisualBrush.Visual>
+                    </VisualBrush>
+                </Border.OpacityMask>
             </Border>
             <StackPanel x:Name="PnlClockWeather" Grid.Row="0" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="40,50,40,0">
                 <StackPanel x:Name="PnlClockWeatherSub" Tag="ClockWeather" RenderTransformOrigin="0,0" Background="Transparent" Cursor="Hand" MouseLeftButtonUp="WidgetClockWeather_Click" PreviewMouseLeftButtonDown="Widget_PreviewMouseLeftButtonDown" MouseMove="Widget_MouseMove">
