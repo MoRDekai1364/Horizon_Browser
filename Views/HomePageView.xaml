@@ -478,21 +478,38 @@
                     HorizontalAlignment="Left" VerticalAlignment="Top"
                     Margin="30,40,40,0"
                     CornerRadius="{Binding CornerRadius, ElementName=SearchBoxBorder}"
-                    Background="{Binding Background, ElementName=SearchBoxBorder}"
-                    BorderBrush="{Binding BorderBrush, ElementName=SearchBoxBorder}"
+                    Background="Transparent"
+                    BorderBrush="Transparent"
                     BorderThickness="{Binding BorderThickness, ElementName=SearchBoxBorder}"
                     IsHitTestVisible="False"
                     Opacity="0">
             </Border>
             <Border x:Name="TestClockPill" Grid.Row="0" Grid.Column="0"
+                    Panel.ZIndex="999"
                     HorizontalAlignment="Left" VerticalAlignment="Top"
                     Margin="30,40,40,0"
                     Width="323" Height="231"
                     CornerRadius="{Binding CornerRadius, ElementName=SearchBoxBorder}"
                     Background="{Binding Background, ElementName=SearchBoxBorder}"
-                    BorderBrush="{Binding BorderBrush, ElementName=SearchBoxBorder}"
-                    BorderThickness="{Binding BorderThickness, ElementName=SearchBoxBorder}"
+                    BorderBrush="Red"
+                    BorderThickness="3"
                     IsHitTestVisible="False"
+                    Opacity="1">
+            </Border>
+            <Border x:Name="TestClockPill2" Grid.Row="0" Grid.Column="0"
+                    HorizontalAlignment="Left" VerticalAlignment="Top"
+                    Margin="500,300,0,0"
+                    Width="323" Height="231"
+                    Panel.ZIndex="999"
+                    CornerRadius="24"
+                    Background="{Binding Background, ElementName=SearchBoxBorder}"
+                    BorderBrush="Red"
+                    BorderThickness="3"
+                    IsHitTestVisible="True"
+                    Cursor="Hand"
+                    PreviewMouseLeftButtonDown="TestClockPill2_MouseDown"
+                    MouseMove="TestClockPill2_MouseMove"
+                    PreviewMouseLeftButtonUp="TestClockPill2_MouseUp"
                     Opacity="1">
             </Border>
             <StackPanel x:Name="PnlClockWeather" Grid.Row="0" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="40,50,40,0">

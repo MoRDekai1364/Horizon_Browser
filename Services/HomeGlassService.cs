@@ -381,8 +381,6 @@ public sealed class HomeGlassInlineLayer
 
     public void Register(FrameworkElement el)
     {
-        if (el.Name == "ClockWeatherIslandBorder")
-            LogService.Write("HomeGlassDiag", $"Register called for {el.Name}, alreadyRegistered={_shapes.ContainsKey(el)}");
         if (_shapes.ContainsKey(el)) return;
         var shape = new Border { Background = Brushes.Black, IsHitTestVisible = false, Visibility = Visibility.Collapsed };
         _shapes[el] = shape;
@@ -463,53 +461,32 @@ public sealed class HomeGlassInlineLayer
         return _imageSource.ImageSource != null ? Mode.Image : Mode.None;
     }
 
+    private const double RescanIntervalMs = 500.0;
+    private DateTime _lastRescanUtc = DateTime.MinValue;
+
     private void Refresh()
     {
         _refreshQueued = false;
         _lastRefreshUtc = DateTime.UtcNow;
         try
         {
-            RegisterSubtree(_root);
+            if ((DateTime.UtcNow - _lastRescanUtc).TotalMilliseconds >= RescanIntervalMs)
+            {
+                _lastRescanUtc = DateTime.UtcNow;
+                RegisterSubtree(_root);
+            }
+
             double w = _root.ActualWidth;
             double h = _root.ActualHeight;
             var mode = ResolveMode();
-            if (_diagLogCount < 40)
-                LogService.Write("HomeGlassDiag", $"Refresh: rootVisible={_root.IsVisible} w={w:0.#} h={h:0.#} mode={mode} shapeCount={_shapes.Count} hasClockShape={_shapes.Keys.Any(k => k.Name == "ClockWeatherIslandBorder")}");
             if (!_root.IsVisible || w <= 0 || h <= 0 || mode == Mode.None || _shapes.Count == 0)
             {
                 _layer.Visibility = Visibility.Collapsed;
-                if (_diagLogCount < 40) LogService.Write("HomeGlassDiag", "Refresh: bailed out before UpdateMask, whole layer collapsed");
                 return;
             }
             ApplySource(mode, w, h);
             UpdateMask(w, h);
             _layer.Visibility = Visibility.Visible;
-
-            if (_layerDumpCount < 3 && _shapes.Keys.Any(el => el.Name == "ClockWeatherIslandBorder" && el.IsVisible && el.ActualWidth > 0 && el.Opacity > 0.5))
-            {
-                _layerDumpCount++;
-                try
-                {
-                    _layer.UpdateLayout();
-                    double k = GetMaskDeviceScale();
-                    int pw = Math.Max(1, (int)Math.Round(w * k));
-                    int ph = Math.Max(1, (int)Math.Round(h * k));
-                    var layerRtb = new RenderTargetBitmap(pw, ph, 96 * k, 96 * k, PixelFormats.Pbgra32);
-                    layerRtb.Render(_layer);
-                    string dir = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs");
-                    System.IO.Directory.CreateDirectory(dir);
-                    string path = System.IO.Path.Combine(dir, $"homeglass_layer_{_layerDumpCount}_{DateTime.Now:HHmmss_fff}.png");
-                    var encoder = new PngBitmapEncoder();
-                    encoder.Frames.Add(BitmapFrame.Create(layerRtb));
-                    using var fs = System.IO.File.Create(path);
-                    encoder.Save(fs);
-                    LogService.Write("HomeGlassDiag", $"Layer dump #{_layerDumpCount} saved: {path}");
-                }
-                catch (Exception ex)
-                {
-                    LogService.Write("HomeGlassDiag", "Layer dump failed: " + ex);
-                }
-            }
         }
         catch (Exception ex)
         {
@@ -567,8 +544,6 @@ public sealed class HomeGlassInlineLayer
         return op;
     }
 
-    private int _diagLogCount = 0;
-
     private void UpdateMask(double w, double h)
     {
         _maskCanvas.Width = w;
@@ -577,29 +552,25 @@ public sealed class HomeGlassInlineLayer
         {
             var el = pair.Key;
             var shape = pair.Value;
+            bool diag = el.Name == "TestClockPill";
             double op = EffectiveOpacity(el);
-            bool diag = el.Name == "ClockWeatherIslandBorder" && _diagLogCount < 40;
-            if (diag)
-            {
-                _diagLogCount++;
-                LogService.Write("HomeGlassDiag", $"el={el.Name} op={op:0.###} isVisible={el.IsVisible} w={el.ActualWidth:0.#} h={el.ActualHeight:0.#} bgType={el.GetType().Name}:{(el as Border)?.Background?.GetType().Name}");
-            }
+            if (diag) LogService.Write("PillDiag", $"op={op:0.###} isVisible={el.IsVisible} w={el.ActualWidth:0.#} h={el.ActualHeight:0.#} isLoaded={el.IsLoaded} inShapes={_shapes.ContainsKey(el)}");
             if (op <= 0.001 || !el.IsVisible || el.ActualWidth <= 0 || el.ActualHeight <= 0)
             {
                 shape.Visibility = Visibility.Collapsed;
-                if (diag) LogService.Write("HomeGlassDiag", "  -> collapsed (opacity/visible/size gate)");
+                if (diag) LogService.Write("PillDiag", "  -> collapsed (opacity/visible/size gate)");
                 continue;
             }
             Rect b;
             try
             {
                 b = el.TransformToVisual(_root).TransformBounds(new Rect(0, 0, el.ActualWidth, el.ActualHeight));
-                if (diag) LogService.Write("HomeGlassDiag", $"  -> bounds x={b.X:0.#} y={b.Y:0.#} w={b.Width:0.#} h={b.Height:0.#}");
+                if (diag) LogService.Write("PillDiag", $"  -> bounds x={b.X:0.#} y={b.Y:0.#} w={b.Width:0.#} h={b.Height:0.#}");
             }
             catch (InvalidOperationException ex)
             {
                 shape.Visibility = Visibility.Collapsed;
-                if (diag) LogService.Write("HomeGlassDiag", "  -> TransformToVisual threw: " + ex.Message);
+                if (diag) LogService.Write("PillDiag", "  -> TransformToVisual threw: " + ex.Message);
                 continue;
             }
             Canvas.SetLeft(shape, b.X);
@@ -609,6 +580,7 @@ public sealed class HomeGlassInlineLayer
             shape.CornerRadius = el is Border border ? border.CornerRadius : new CornerRadius(0);
             shape.Opacity = op;
             shape.Visibility = Visibility.Visible;
+            if (diag) LogService.Write("PillDiag", $"  -> shape set: opacity={shape.Opacity:0.###} visibility={shape.Visibility} cornerRadius={shape.CornerRadius}");
         }
         RasterizeMask(w, h);
     }
@@ -619,8 +591,11 @@ public sealed class HomeGlassInlineLayer
         return src?.CompositionTarget != null ? src.CompositionTarget.TransformToDevice.M11 : 1.0;
     }
 
-    private int _maskDumpCount = 0;
-    private int _layerDumpCount = 0;
+    private RenderTargetBitmap? _maskBitmap;
+    private ImageBrush? _maskBrush;
+    private int _maskPw;
+    private int _maskPh;
+    private double _maskScale;
 
     private void RasterizeMask(double w, double h)
     {
@@ -632,34 +607,28 @@ public sealed class HomeGlassInlineLayer
         _maskCanvas.Arrange(new Rect(0, 0, w, h));
         _maskCanvas.UpdateLayout();
 
-        var rtb = new RenderTargetBitmap(pw, ph, 96 * k, 96 * k, PixelFormats.Pbgra32);
-        rtb.Render(_maskCanvas);
-
-        if (_maskDumpCount < 3 && _shapes.Keys.Any(el => el.Name == "ClockWeatherIslandBorder" && el.IsVisible && el.ActualWidth > 0 && el.Opacity > 0.5))
+        if (_maskBitmap == null || pw != _maskPw || ph != _maskPh || Math.Abs(k - _maskScale) > 0.0001)
         {
-            _maskDumpCount++;
-            try
+            _maskPw = pw;
+            _maskPh = ph;
+            _maskScale = k;
+            _maskBitmap = new RenderTargetBitmap(pw, ph, 96 * k, 96 * k, PixelFormats.Pbgra32);
+            _maskBrush = new ImageBrush(_maskBitmap)
             {
-                string dir = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs");
-                System.IO.Directory.CreateDirectory(dir);
-                string path = System.IO.Path.Combine(dir, $"homeglass_mask_{_maskDumpCount}_{DateTime.Now:HHmmss_fff}.png");
-                var encoder = new PngBitmapEncoder();
-                encoder.Frames.Add(BitmapFrame.Create(rtb));
-                using var fs = System.IO.File.Create(path);
-                encoder.Save(fs);
-                LogService.Write("HomeGlassDiag", $"Mask dump #{_maskDumpCount} saved: {path}");
-            }
-            catch (Exception ex)
-            {
-                LogService.Write("HomeGlassDiag", "Mask dump failed: " + ex);
-            }
+                Stretch = Stretch.Fill,
+                ViewportUnits = BrushMappingMode.Absolute,
+                Viewport = new Rect(0, 0, w, h)
+            };
+        }
+        else
+        {
+            _maskBitmap.Clear();
+            _maskBrush!.Viewport = new Rect(0, 0, w, h);
         }
 
-        _layer.OpacityMask = new ImageBrush(rtb)
-        {
-            Stretch = Stretch.Fill,
-            ViewportUnits = BrushMappingMode.Absolute,
-            Viewport = new Rect(0, 0, w, h)
-        };
+        _maskBitmap.Render(_maskCanvas);
+
+        if (!ReferenceEquals(_layer.OpacityMask, _maskBrush))
+            _layer.OpacityMask = _maskBrush;
     }
 }
