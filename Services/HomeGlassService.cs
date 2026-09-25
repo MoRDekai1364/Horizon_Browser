@@ -285,6 +285,34 @@ public static class HomeGlassService
         };
     }
 
+    public const double DefaultEdgeGlassPad = 48.0;
+    public const double DefaultEdgeGlassBlurRadius = 32.0;
+
+    public static Action AttachWallpaperEdgeGlass(
+        FrameworkElement host,
+        UIElement glassHost,
+        Border blurTarget,
+        double padDip = DefaultEdgeGlassPad,
+        double blurRadius = DefaultEdgeGlassBlurRadius,
+        Action<Rect?>? onOverlapChanged = null)
+    {
+        blurTarget.Effect = new System.Windows.Media.Effects.BlurEffect
+        {
+            Radius = blurRadius,
+            KernelType = System.Windows.Media.Effects.KernelType.Gaussian,
+            RenderingBias = System.Windows.Media.Effects.RenderingBias.Performance
+        };
+
+        var brush = new ImageBrush { Stretch = Stretch.Fill, ViewboxUnits = BrushMappingMode.RelativeToBoundingBox };
+        blurTarget.Background = brush;
+
+        return Bind(host, brush, padDip, overlap =>
+        {
+            ApplyOverlap(glassHost, overlap);
+            onOverlapChanged?.Invoke(overlap);
+        });
+    }
+
     public const double MinGlassSize = 8.0;
 
     public static bool IsGlassEligible(FrameworkElement el)

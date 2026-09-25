@@ -253,6 +253,21 @@
                         blocks header buttons/omnibox/tabs; it only ever paints, never
                         receives input.
                     -->
+                    <!--
+                        Homepage exception: while the homepage's wallpaper is on
+                        screen, the header instead shows a blurred extension of
+                        that wallpaper's own edges (not the full image — just the
+                        strip behind/around the header), matching the glass look
+                        already used for homepage widgets. Wired in code-behind via
+                        HomeGlassService.AttachWallpaperEdgeGlass, which hides
+                        itself automatically off the homepage. Same helper is meant
+                        to be reused for the sidebar later.
+                    -->
+                    <Grid x:Name="HeaderWallpaperGlass" Grid.ColumnSpan="4"
+                          IsHitTestVisible="False" Visibility="Collapsed">
+                        <Border x:Name="HeaderWallpaperGlassBlur" Margin="-48"/>
+                    </Grid>
+
                     <Rectangle x:Name="HeaderAmbientGlow" Grid.ColumnSpan="4"
                                Height="90" VerticalAlignment="Top"
                                IsHitTestVisible="False">

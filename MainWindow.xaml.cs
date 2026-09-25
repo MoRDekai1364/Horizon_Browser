@@ -1229,6 +1229,7 @@ public partial class MainWindow : Window
         InitializeComponent();
 
         InitHeaderAmbientGlow();
+        InitHeaderWallpaperGlass();
 
         this.Closing += MainWindow_Closing;
         BackgroundKeepAliveService.Initialize(this);
@@ -2882,6 +2883,18 @@ return colors.length > 0 ? colors : null;
     private LinearGradientBrush? _headerGlowBrush;
     private TabViewModel? _headerGlowSubscribedTab;
 
+    private Action? _headerWallpaperGlassUnbind;
+
+    private void InitHeaderWallpaperGlass()
+    {
+        _headerWallpaperGlassUnbind = HomeGlassService.AttachWallpaperEdgeGlass(
+            HeaderContainer,
+            HeaderWallpaperGlass,
+            HeaderWallpaperGlassBlur,
+            onOverlapChanged: overlap =>
+                HeaderAmbientGlow.Visibility = overlap == null ? Visibility.Visible : Visibility.Collapsed);
+    }
+
     private void InitHeaderAmbientGlow()
     {
         _headerGlowBrush = new LinearGradientBrush
@@ -2942,21 +2955,27 @@ return colors.length > 0 ? colors : null;
         }
 
         Color main = palette[0];
-        Color neutralBW = ChooseContrastingBW(main);
+        Color neutralBW = ChooseContrastingBW(palette);
 
         _headerGlowBrush.GradientStops[0].Color = Color.FromArgb(235, main.R, main.G, main.B);
         _headerGlowBrush.GradientStops[1].Color = Color.FromArgb(220, neutralBW.R, neutralBW.G, neutralBW.B);
         _headerGlowBrush.GradientStops[2].Color = Color.FromArgb(235, main.R, main.G, main.B);
 
-        SetHeaderButtonForeground(ChooseContrastingBW(main));
+        SetHeaderButtonForeground(neutralBW);
     }
 
-    private static Color ChooseContrastingBW(Color c)
+    private static Color ChooseContrastingBW(List<Color> palette)
     {
-        double luminance = (0.299 * c.R + 0.587 * c.G + 0.114 * c.B) / 255.0;
-        double contrastWithBlack = luminance + 0.05;
-        double contrastWithWhite = 1.05 - luminance;
-        return contrastWithWhite >= contrastWithBlack ? Colors.White : Colors.Black;
+        double avgLuminance = palette.Average(GetLuminance);
+        if (avgLuminance <= 0.4) return Colors.White;
+        if (avgLuminance >= 0.6) return Colors.Black;
+
+        int lightCount = palette.Count(c => GetLuminance(c) > 0.5);
+        int darkCount = palette.Count - lightCount;
+        if (lightCount != darkCount)
+            return lightCount > darkCount ? Colors.Black : Colors.White;
+
+        return GetLuminance(GetHeaderGlowOuterNeutral()) > 0.5 ? Colors.Black : Colors.White;
     }
 
     private static void SetHeaderButtonForeground(Color? contrastColor)
