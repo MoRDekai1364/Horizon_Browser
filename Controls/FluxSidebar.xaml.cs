@@ -141,6 +141,8 @@ public class FluxAccentColorConverter : IValueConverter
 
     public static event Action? ColorResolved;
 
+    public static void RaiseColorResolved() => ColorResolved?.Invoke();
+
     public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
         if (value is PinItem pin && !string.IsNullOrEmpty(pin.Url))
@@ -620,7 +622,7 @@ public class FluxAccentGradientConverter : IValueConverter
             if (colors.Count > 0)
             {
                 _colorCache[key] = GradientUtility.ProcessColor(colors[0]);
-                FluxAccentColorConverter.ColorResolved?.Invoke();
+                FluxAccentColorConverter.RaiseColorResolved();
             }
         }
         catch { }
