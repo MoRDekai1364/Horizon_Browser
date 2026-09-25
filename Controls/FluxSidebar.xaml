@@ -177,6 +177,8 @@
                 </Setter>
             </Style>
 
+            <local:FluxAccentGradientConverter x:Key="FluxAccentGradientConverter"/>
+
             <Style x:Key="Style.PinListItem" TargetType="ListBoxItem">
                 <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
                 <Setter Property="Cursor" Value="Hand"/>
@@ -205,8 +207,6 @@
                     </Setter.Value>
                 </Setter>
             </Style>
-
-            <local:FluxAccentGradientConverter x:Key="FluxAccentGradientConverter"/>
 
             <DataTemplate x:Key="Template.PinItem">
                 <Grid Margin="5,2">
