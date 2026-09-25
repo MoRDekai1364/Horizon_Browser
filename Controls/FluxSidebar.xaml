@@ -184,7 +184,7 @@
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="ListBoxItem">
-                            <Border x:Name="Bd" Background="{DynamicResource Brush_DeepBackground}"
+                            <Border x:Name="Bd" Background="{Binding Converter={StaticResource FluxAccentGradientConverter}}"
                                     BorderBrush="#2a2a2a" BorderThickness="1" CornerRadius="6" Padding="4" ClipToBounds="True">
                                 <Grid>
                                     <Border Width="4" HorizontalAlignment="Right" Margin="0,-1,-1,-1"
@@ -205,6 +205,8 @@
                     </Setter.Value>
                 </Setter>
             </Style>
+
+            <local:FluxAccentGradientConverter x:Key="FluxAccentGradientConverter"/>
 
             <DataTemplate x:Key="Template.PinItem">
                 <Grid Margin="5,2">
@@ -341,22 +343,28 @@
 
             <TabControl.Resources>
                 <Style TargetType="TabItem">
-                    <Setter Property="FontSize" Value="28"/>
+                    <Setter Property="FontSize" Value="20"/>
+                    <Setter Property="FontFamily" Value="Segoe UI Emoji"/>
                     <Setter Property="Cursor"   Value="Hand"/>
-                    <Setter Property="Margin"   Value="0"/>
-                    <Setter Property="Padding"  Value="10,0"/>
+                    <Setter Property="Margin"   Value="3"/>
+                    <Setter Property="Padding"  Value="0"/>
                     <Setter Property="Template">
                         <Setter.Value>
                             <ControlTemplate TargetType="TabItem">
                                 <Border x:Name="Bd" Background="{StaticResource Brush_TabStripBg}" BorderBrush="{StaticResource Brush_TabStripBorder}"
-                                        BorderThickness="0,0,1,1" Height="58" Padding="{TemplateBinding Padding}">
-                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" ContentSource="Header"/>
+                                        BorderThickness="1" CornerRadius="10" Height="42" Padding="{TemplateBinding Padding}">
+                                    <Grid>
+                                        <Border CornerRadius="10" Background="{DynamicResource Brush_HeaderButtonScrim}" IsHitTestVisible="False"/>
+                                        <Viewbox Width="20" Height="20" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            <ContentPresenter ContentSource="Header"/>
+                                        </Viewbox>
+                                    </Grid>
                                 </Border>
                                 <ControlTemplate.Triggers>
                                     <Trigger Property="IsSelected" Value="True">
                                         <Setter TargetName="Bd" Property="Background"      Value="{StaticResource Brush_TabStripBgSelected}"/>
                                         <Setter TargetName="Bd" Property="BorderBrush"     Value="{StaticResource Brush.Neon}"/>
-                                        <Setter TargetName="Bd" Property="BorderThickness" Value="0,0,0,2"/>
+                                        <Setter TargetName="Bd" Property="BorderThickness" Value="2"/>
                                         <Setter Property="Foreground" Value="{StaticResource Brush.Neon}"/>
                                     </Trigger>
                                     <Trigger Property="IsSelected" Value="False">

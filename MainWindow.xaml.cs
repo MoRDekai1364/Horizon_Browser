@@ -2910,6 +2910,10 @@ return colors.length > 0 ? colors : null;
         _headerHomeCenterBrush.GradientStops.Add(new GradientStop(Colors.Transparent, 0.0));
         _headerHomeCenterBrush.GradientStops.Add(new GradientStop(Colors.Transparent, 0.5));
         _headerHomeCenterBrush.GradientStops.Add(new GradientStop(Colors.Transparent, 1.0));
+        // Reversed: solid B/W now sits at the edges, blur shows through the middle.
+        _headerHomeCenterBrush.GradientStops[0].Offset = 0.0;
+        _headerHomeCenterBrush.GradientStops[1].Offset = 0.5;
+        _headerHomeCenterBrush.GradientStops[2].Offset = 1.0;
         HeaderHomeCenterFill.Fill = _headerHomeCenterBrush;
 
         var (unbind, refresh) = HomeGlassService.AttachWallpaperEdgeGlass(
@@ -2935,7 +2939,7 @@ return colors.length > 0 ? colors : null;
         _headerHomeBlurBleedRefresh = bleedRefresh;
     }
 
-    private const double SidebarBlurSourceCropStart = 0.70;
+    private const double SidebarBlurSourceCropStart = 0.91;
     private const double SidebarBlurDistortionRadius = 110;
 
     private ImageBrush? _sidebarOwnBlurBrush;
@@ -2999,7 +3003,10 @@ return colors.length > 0 ? colors : null;
         }
 
         Color centerColor = CurrentBrowser?.NativeHomePage.SearchBarTextColor ?? Colors.White;
-        _headerHomeCenterBrush.GradientStops[1].Color = Color.FromArgb(140, centerColor.R, centerColor.G, centerColor.B);
+        Color edgeColor = Color.FromArgb(140, centerColor.R, centerColor.G, centerColor.B);
+        _headerHomeCenterBrush.GradientStops[0].Color = edgeColor;
+        _headerHomeCenterBrush.GradientStops[1].Color = Colors.Transparent;
+        _headerHomeCenterBrush.GradientStops[2].Color = edgeColor;
         HeaderHomeCenterFill.Visibility = Visibility.Visible;
         UpdateHeaderButtonContrastTint(centerColor);
     }
@@ -3030,9 +3037,17 @@ return colors.length > 0 ? colors : null;
         if (ratio < HeaderButtonMinContrast)
         {
             double backdropLuma = RelativeLuminance(backdropColor);
+            // Adaptive strength: the closer the backdrop sits to pure white/black,
+            // the weaker a fixed-alpha scrim reads against it, so scale alpha up
+            // toward the extremes instead of using one constant value.
+            double extremity = backdropLuma > 0.5
+                ? (backdropLuma - 0.5) / 0.5
+                : (0.5 - backdropLuma) / 0.5;
+            byte alpha = (byte)Math.Clamp(90 + extremity * 90, 90, 180);
+
             Color scrim = backdropLuma > 0.5
-                ? Color.FromArgb(90, 0x00, 0x00, 0x00)
-                : Color.FromArgb(90, 0xFF, 0xFF, 0xFF);
+                ? Color.FromArgb(alpha, 0x00, 0x00, 0x00)
+                : Color.FromArgb(alpha, 0xFF, 0xFF, 0xFF);
             Resources["Brush_HeaderButtonScrim"] = new SolidColorBrush(scrim);
         }
         else

@@ -1003,7 +1003,7 @@
                         <!-- ── Header Widget ──────────────────────────────── -->
                         <Border x:Name="HeaderWidgetBorder"
                                 Width="146" Height="42"
-                                Background="#141414" BorderBrush="#2a2a2a" BorderThickness="1"
+                                Background="#66141414" BorderBrush="#2a2a2a" BorderThickness="1"
                                 CornerRadius="6" Margin="0,0,6,0" Cursor="Hand"
                                 VerticalAlignment="Center"
                                 MouseRightButtonUp="HeaderWidget_RightClick"
@@ -1015,6 +1015,7 @@
                                 MouseLeftButtonUp="HeaderWidget_MouseUp"
                                 ToolTip="Click or swipe ↑: open controls · Swipe ←/→: cycle modes · Scroll: cycle modes · Right-click or swipe ↓: options">
                             <Grid ClipToBounds="True">
+                                <Border CornerRadius="6" Background="{DynamicResource Brush_HeaderButtonScrim}" IsHitTestVisible="False"/>
                                 <!-- Battery fill indicator (Battery mode only) -->
                                 <Border x:Name="BatteryFillRect"
                                         Visibility="Collapsed"

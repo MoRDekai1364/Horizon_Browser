@@ -8,12 +8,14 @@
         <ResourceDictionary Source="/Themes/Horizon.xaml"/>
     </UserControl.Resources>
 
-    <Border Background="{DynamicResource Brush_DeepBackground}" CornerRadius="5" BorderBrush="{DynamicResource Brush_ButtonBorder}" BorderThickness="1">
+    <Border Background="#66141414" CornerRadius="5" BorderBrush="{DynamicResource Brush_ButtonBorder}" BorderThickness="1">
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
+
+            <Border Grid.ColumnSpan="2" CornerRadius="5" Background="{DynamicResource Brush_HeaderButtonScrim}" IsHitTestVisible="False"/>
 
             <TextBlock Grid.Column="0" Text="🔒" Foreground="{DynamicResource Brush_Accent}" 
                        VerticalAlignment="Center" Margin="10,0,5,0" FontSize="14"/>

@@ -18,6 +18,7 @@ using System.Windows.Documents;
 using Microsoft.Win32;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Windows.Media.Imaging;
 
 namespace Horizon.Stealth.Controls;
 
@@ -28,6 +29,64 @@ public static class GradientUtility
         ColorToHsv(c, out double h, out double s, out double v);
         s = Math.Max(0, s - 0.10);
         v = Math.Min(v, 0.35); 
+        return HsvToRgb(h, s, v);
+    }
+
+    public static Color ToGrayscale(Color c)
+    {
+        byte gray = (byte)Math.Round(0.2126 * c.R + 0.7152 * c.G + 0.0722 * c.B);
+        return Color.FromRgb(gray, gray, gray);
+    }
+
+    private static Color? _wallpaperSampleCache;
+
+    static GradientUtility()
+    {
+        Horizon.Stealth.Services.WeatherBridge.ThemeUpdated += () => _wallpaperSampleCache = null;
+    }
+
+    // Low-res average color of the current theme wallpaper, used as the seed
+    // for the "row right-side" analogous accents on the Downloads/History
+    // tabs (and, via AnalogousColor, the Favourites fade).
+    public static Color SampleWallpaperColor()
+    {
+        if (_wallpaperSampleCache.HasValue) return _wallpaperSampleCache.Value;
+
+        var src = Horizon.Stealth.Services.WeatherBridge.ThemeWallpaper;
+        if (src == null) return Color.FromRgb(0x40, 0x40, 0x40);
+
+        try
+        {
+            var scaled = new TransformedBitmap(src, new System.Windows.Media.ScaleTransform(
+                16.0 / src.PixelWidth, 16.0 / src.PixelHeight));
+            var converted = new FormatConvertedBitmap(scaled, PixelFormats.Bgra32, null, 0);
+
+            int w = converted.PixelWidth, h = converted.PixelHeight;
+            int stride = w * 4;
+            byte[] px = new byte[stride * h];
+            converted.CopyPixels(px, stride, 0);
+
+            long r = 0, g = 0, b = 0; int n = 0;
+            for (int i = 0; i < px.Length; i += 4) { b += px[i]; g += px[i + 1]; r += px[i + 2]; n++; }
+
+            var avg = n == 0
+                ? Color.FromRgb(0x40, 0x40, 0x40)
+                : Color.FromRgb((byte)(r / n), (byte)(g / n), (byte)(b / n));
+            _wallpaperSampleCache = avg;
+            return avg;
+        }
+        catch { return Color.FromRgb(0x40, 0x40, 0x40); }
+    }
+
+    // Rotates the given color's hue by `degrees` (positive or negative, e.g.
+    // ±15/±30) to produce an analogous variant, with saturation/value pinned
+    // to a range that reads well against the dark sidebar rows.
+    public static Color AnalogousColor(Color c, double degrees)
+    {
+        ColorToHsv(c, out double h, out double s, out double v);
+        h = (h + degrees + 360) % 360;
+        s = Math.Max(s, 0.45);
+        v = Math.Clamp(v, 0.20, 0.40);
         return HsvToRgb(h, s, v);
     }
 
@@ -191,12 +250,14 @@ public class HistoryItemViewModel : System.ComponentModel.INotifyPropertyChanged
         }
         catch { }
 
-        leftColor = GradientUtility.ProcessColor(leftColor);
-        Color rightColor = GradientUtility.CalculateAgeColor(VisitTime, leftColor);
-        
+        Color grayLeft = GradientUtility.ToGrayscale(GradientUtility.ProcessColor(leftColor));
+        double ageDays = (DateTime.Now - VisitTime).TotalDays;
+        double angle = Math.Clamp((ageDays / 30.0) * 60.0 - 30.0, -30.0, 30.0);
+        Color rightColor = GradientUtility.AnalogousColor(GradientUtility.SampleWallpaperColor(), angle);
+
         var gs = new GradientStopCollection
         {
-            new GradientStop(leftColor, 0.0),
+            new GradientStop(grayLeft, 0.0),
             new GradientStop(rightColor, 1.0)
         };
         ItemGradient = new LinearGradientBrush(gs, new Point(0, 0.5), new Point(1, 0.5));
@@ -419,10 +480,13 @@ public class FluxItemViewModel
 
     private static Brush BuildFolderGradient()
     {
+        Color leftColor = GradientUtility.ToGrayscale(Color.FromRgb(0x1A, 0x14, 0x05));
+        Color rightColor = GradientUtility.AnalogousColor(GradientUtility.SampleWallpaperColor(), 20);
+
         var gs = new GradientStopCollection
         {
-            new GradientStop(Color.FromRgb(0x1A, 0x14, 0x05), 0.0),
-            new GradientStop(Color.FromRgb(0x0A, 0x18, 0x2A), 1.0),
+            new GradientStop(leftColor, 0.0),
+            new GradientStop(rightColor, 1.0),
         };
         return new LinearGradientBrush(gs, new Point(0, 0.5), new Point(1, 0.5));
     }
@@ -489,16 +553,82 @@ public class FluxItemViewModel
             _                            => Color.FromRgb(0x32, 0x07, 0x02),
         };
 
-        typeColor = GradientUtility.ProcessColor(typeColor);
-        sizeColor = GradientUtility.ProcessColor(sizeColor);
+        Color leftColor = GradientUtility.ToGrayscale(GradientUtility.ProcessColor(typeColor));
+        double angle = bytes switch
+        {
+            < 50 * 1024                  => 15,
+            < 1024 * 1024                => -15,
+            < 10L * 1024 * 1024          => 30,
+            < 100L * 1024 * 1024         => -30,
+            _                            => 45,
+        };
+        Color rightColor = GradientUtility.AnalogousColor(GradientUtility.SampleWallpaperColor(), angle);
 
         var gs = new GradientStopCollection
         {
-            new GradientStop(typeColor, 0.0),
-            new GradientStop(sizeColor, 1.0),
+            new GradientStop(leftColor, 0.0),
+            new GradientStop(rightColor, 1.0),
         };
         return new LinearGradientBrush(gs, new Point(0, 0.5), new Point(1, 0.5));
     }
+}
+
+public class FluxAccentGradientConverter : IValueConverter
+{
+    private static readonly Color _fallbackAccent = Color.FromRgb(0x2a, 0x2a, 0x2a);
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, Color> _colorCache = new();
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, object?> _pending = new();
+
+    public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        Color leftColor = GradientUtility.ToGrayscale(Color.FromRgb(0x14, 0x14, 0x14));
+        Color rightColor = _fallbackAccent;
+
+        if (value is PinItem pin && !string.IsNullOrEmpty(pin.Url))
+        {
+            try
+            {
+                var uri = new Uri(pin.Url);
+                string key = uri.Host.ToLowerInvariant();
+
+                if (_colorCache.TryGetValue(key, out Color cached))
+                {
+                    rightColor = cached;
+                }
+                else if (_pending.TryAdd(key, null))
+                {
+                    string faviconUrl = $"https://www.google.com/s2/favicons?domain={uri.Host}&sz=64";
+                    _ = ResolveAsync(key, faviconUrl);
+                }
+            }
+            catch { }
+        }
+
+        var gs = new GradientStopCollection
+        {
+            new GradientStop(leftColor, 0.0),
+            new GradientStop(rightColor, 1.0),
+        };
+        return new LinearGradientBrush(gs, new Point(0, 0.5), new Point(1, 0.5));
+    }
+
+    private static async Task ResolveAsync(string key, string faviconUrl)
+    {
+        try
+        {
+            var colors = await TabColorPaletteExtractor.ExtractFromImageUrlAsync(faviconUrl);
+            if (colors.Count > 0)
+            {
+                _colorCache[key] = GradientUtility.ProcessColor(colors[0]);
+                FluxAccentColorConverter.ColorResolved?.Invoke();
+            }
+        }
+        catch { }
+        finally { _pending.TryRemove(key, out _); }
+    }
+
+    public object? ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        => throw new NotImplementedException();
 }
 
 // ── LocalImageConverter ───────────────────────────────────────────────────────
