@@ -2955,27 +2955,26 @@ return colors.length > 0 ? colors : null;
         }
 
         Color main = palette[0];
-        Color neutralBW = ChooseContrastingBW(palette);
+        Color neutralBW = IsPaletteDarkMode(palette) ? Colors.Black : ChooseContrastingBW(main);
 
         _headerGlowBrush.GradientStops[0].Color = Color.FromArgb(235, main.R, main.G, main.B);
         _headerGlowBrush.GradientStops[1].Color = Color.FromArgb(220, neutralBW.R, neutralBW.G, neutralBW.B);
         _headerGlowBrush.GradientStops[2].Color = Color.FromArgb(235, main.R, main.G, main.B);
 
-        SetHeaderButtonForeground(neutralBW);
+        SetHeaderButtonForeground(ChooseContrastingBW(main));
     }
 
-    private static Color ChooseContrastingBW(List<Color> palette)
+    private static bool IsPaletteDarkMode(List<Color> palette)
     {
-        double avgLuminance = palette.Average(GetLuminance);
-        if (avgLuminance <= 0.4) return Colors.White;
-        if (avgLuminance >= 0.6) return Colors.Black;
+        return palette.Average(GetLuminance) < 0.4;
+    }
 
-        int lightCount = palette.Count(c => GetLuminance(c) > 0.5);
-        int darkCount = palette.Count - lightCount;
-        if (lightCount != darkCount)
-            return lightCount > darkCount ? Colors.Black : Colors.White;
-
-        return GetLuminance(GetHeaderGlowOuterNeutral()) > 0.5 ? Colors.Black : Colors.White;
+    private static Color ChooseContrastingBW(Color c)
+    {
+        double luminance = (0.299 * c.R + 0.587 * c.G + 0.114 * c.B) / 255.0;
+        double contrastWithBlack = luminance + 0.05;
+        double contrastWithWhite = 1.05 - luminance;
+        return contrastWithWhite >= contrastWithBlack ? Colors.White : Colors.Black;
     }
 
     private static void SetHeaderButtonForeground(Color? contrastColor)

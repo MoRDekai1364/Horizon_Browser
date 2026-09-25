@@ -308,8 +308,10 @@ public static class HomeGlassService
 
         return Bind(host, brush, padDip, overlap =>
         {
-            ApplyOverlap(glassHost, overlap);
-            onOverlapChanged?.Invoke(overlap);
+            bool homepageOnScreen = WeatherBridge.WallpaperSurface is { IsVisible: true };
+            Rect? effectiveOverlap = homepageOnScreen ? overlap : null;
+            ApplyOverlap(glassHost, effectiveOverlap);
+            onOverlapChanged?.Invoke(effectiveOverlap);
         });
     }
 
