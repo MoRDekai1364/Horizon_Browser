@@ -1619,6 +1619,24 @@
                     <Border x:Name="SidebarWallpaperGlassBlur" Margin="-48"/>
                 </Grid>
 
+                <!--
+                    Off-homepage counterpart to SidebarWallpaperGlass above: when
+                    there's no wallpaper to sample (a normal webpage), the sidebar
+                    instead shows a soft blurred blend between a neutral B/W tone
+                    and the current site's accent color — the same two colors
+                    UpdateHeaderAmbientGlow already derives for the header glow.
+                    Wired in code-behind via InitSidebarAmbientGlow /
+                    UpdateHeaderAmbientGlow. Visibility is toggled opposite
+                    SidebarWallpaperGlass in InitSidebarWallpaperGlass.
+                -->
+                <Grid x:Name="SidebarSiteGlow" IsHitTestVisible="False" Visibility="Collapsed">
+                    <Rectangle x:Name="SidebarSiteGlowFill">
+                        <Rectangle.Effect>
+                            <BlurEffect Radius="60" KernelType="Gaussian" RenderingBias="Performance"/>
+                        </Rectangle.Effect>
+                    </Rectangle>
+                </Grid>
+
                 <controls:FluxSidebar x:Name="RightSidebar"/>
 
                 <!--

@@ -1229,6 +1229,7 @@ public partial class MainWindow : Window
         InitializeComponent();
 
         InitHeaderAmbientGlow();
+        InitSidebarAmbientGlow();
         InitHeaderWallpaperGlass();
         InitSidebarWallpaperGlass();
 
@@ -2942,6 +2943,21 @@ return colors.length > 0 ? colors : null;
         _headerHomeBlurBleedRefresh = bleedRefresh;
     }
 
+    private LinearGradientBrush? _sidebarGlowBrush;
+
+    private void InitSidebarAmbientGlow()
+    {
+        _sidebarGlowBrush = new LinearGradientBrush
+        {
+            StartPoint = new Point(0, 0),
+            EndPoint = new Point(1, 1)
+        };
+        _sidebarGlowBrush.GradientStops.Add(new GradientStop(Colors.Transparent, 0.0));
+        _sidebarGlowBrush.GradientStops.Add(new GradientStop(Colors.Transparent, 0.5));
+        _sidebarGlowBrush.GradientStops.Add(new GradientStop(Colors.Transparent, 1.0));
+        SidebarSiteGlowFill.Fill = _sidebarGlowBrush;
+    }
+
     private const double SidebarBlurSourceCropStart = 0.93;
     private const double SidebarBlurDistortionRadius = 150;
 
@@ -2978,7 +2994,11 @@ return colors.length > 0 ? colors : null;
             SidebarContainer,
             new ImageBrush(),
             HomeGlassService.DefaultEdgeGlassPad,
-            overlap => HomeGlassService.ApplyOverlap(SidebarWallpaperGlass, overlap),
+            overlap =>
+            {
+                HomeGlassService.ApplyOverlap(SidebarWallpaperGlass, overlap);
+                SidebarSiteGlow.Visibility = overlap != null ? Visibility.Collapsed : Visibility.Visible;
+            },
             requireOverlap: false);
         _sidebarWallpaperGlassUnbind = unbind;
         _sidebarWallpaperGlassRefresh = refresh;
@@ -3151,6 +3171,12 @@ return colors.length > 0 ? colors : null;
             _headerGlowBrush.GradientStops[0].Color = Color.FromArgb(60, fallbackNeutral.R, fallbackNeutral.G, fallbackNeutral.B);
             _headerGlowBrush.GradientStops[1].Color = Color.FromArgb(0, fallbackNeutral.R, fallbackNeutral.G, fallbackNeutral.B);
             _headerGlowBrush.GradientStops[2].Color = Color.FromArgb(60, fallbackNeutral.R, fallbackNeutral.G, fallbackNeutral.B);
+            if (_sidebarGlowBrush != null)
+            {
+                _sidebarGlowBrush.GradientStops[0].Color = Color.FromArgb(140, fallbackNeutral.R, fallbackNeutral.G, fallbackNeutral.B);
+                _sidebarGlowBrush.GradientStops[1].Color = Color.FromArgb(60, fallbackNeutral.R, fallbackNeutral.G, fallbackNeutral.B);
+                _sidebarGlowBrush.GradientStops[2].Color = Color.FromArgb(140, fallbackNeutral.R, fallbackNeutral.G, fallbackNeutral.B);
+            }
             SetHeaderButtonForeground(null);
             SetSidebarSecondaryAccent(null);
             return;
@@ -3162,6 +3188,13 @@ return colors.length > 0 ? colors : null;
         _headerGlowBrush.GradientStops[0].Color = Color.FromArgb(235, main.R, main.G, main.B);
         _headerGlowBrush.GradientStops[1].Color = Color.FromArgb(220, neutralBW.R, neutralBW.G, neutralBW.B);
         _headerGlowBrush.GradientStops[2].Color = Color.FromArgb(235, main.R, main.G, main.B);
+
+        if (_sidebarGlowBrush != null)
+        {
+            _sidebarGlowBrush.GradientStops[0].Color = Color.FromArgb(200, main.R, main.G, main.B);
+            _sidebarGlowBrush.GradientStops[1].Color = Color.FromArgb(200, neutralBW.R, neutralBW.G, neutralBW.B);
+            _sidebarGlowBrush.GradientStops[2].Color = Color.FromArgb(200, main.R, main.G, main.B);
+        }
 
         SetHeaderButtonForeground(ChooseContrastingBW(main));
         SetSidebarSecondaryAccent(main);
