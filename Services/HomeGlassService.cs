@@ -142,7 +142,7 @@ public static class HomeGlassService
         glassHost.Visibility = Visibility.Visible;
     }
 
-    public static Action Bind(FrameworkElement host, ImageBrush brush, double padDip, Action<Rect?>? onOverlapChanged = null)
+    public static (Action Unbind, Action Refresh) Bind(FrameworkElement host, ImageBrush brush, double padDip, Action<Rect?>? onOverlapChanged = null, bool requireOverlap = true)
     {
         FrameworkElement? boundSurface = null;
         Window? mainWindow = null;
@@ -154,7 +154,9 @@ public static class HomeGlassService
         {
             try
             {
-                var overlap = GetOverlapLocal(host);
+                Rect? overlap = requireOverlap
+                    ? GetOverlapLocal(host)
+                    : (WeatherBridge.WallpaperSurface is { IsVisible: true } ? new Rect(0, 0, host.ActualWidth, host.ActualHeight) : (Rect?)null);
                 onOverlapChanged?.Invoke(overlap);
                 var wallpaper = WeatherBridge.ThemeWallpaper;
                 var viewbox = (wallpaper != null && overlap != null) ? GetViewbox(host, padDip) : null;
@@ -277,18 +279,21 @@ public static class HomeGlassService
         host.Unloaded += onUnloaded;
         if (host.IsLoaded) Attach();
 
-        return () =>
-        {
-            host.Loaded -= onLoaded;
-            host.Unloaded -= onUnloaded;
-            Detach();
-        };
+        return (
+            Unbind: () =>
+            {
+                host.Loaded -= onLoaded;
+                host.Unloaded -= onUnloaded;
+                Detach();
+            },
+            Refresh: Schedule
+        );
     }
 
     public const double DefaultEdgeGlassPad = 48.0;
     public const double DefaultEdgeGlassBlurRadius = 32.0;
 
-    public static Action AttachWallpaperEdgeGlass(
+    public static (Action Unbind, Action Refresh) AttachWallpaperEdgeGlass(
         FrameworkElement host,
         UIElement glassHost,
         Border blurTarget,
@@ -308,11 +313,9 @@ public static class HomeGlassService
 
         return Bind(host, brush, padDip, overlap =>
         {
-            bool homepageOnScreen = WeatherBridge.WallpaperSurface is { IsVisible: true };
-            Rect? effectiveOverlap = homepageOnScreen ? overlap : null;
-            ApplyOverlap(glassHost, effectiveOverlap);
-            onOverlapChanged?.Invoke(effectiveOverlap);
-        });
+            ApplyOverlap(glassHost, overlap);
+            onOverlapChanged?.Invoke(overlap);
+        }, requireOverlap: false);
     }
 
     public const double MinGlassSize = 8.0;

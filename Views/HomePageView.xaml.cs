@@ -35,6 +35,9 @@ public partial class HomePageView : UserControl
     private DispatcherTimer? _inactivityTimer;
     private Color _lastPillBg = Color.FromArgb(0x80, 0x00, 0x00, 0x00);
     private Color? _lastAdaptiveAvgColor = null;
+    private Color _lastSearchTextColor = Colors.White;
+
+    public Color SearchBarTextColor => _lastSearchTextColor;
     private double _homeVizFade = 0.0;
     private LinearGradientBrush? _vizBrushTop, _vizBrushBottom, _vizBrushLeft, _vizBrushRight;
 
@@ -1272,6 +1275,7 @@ public partial class HomePageView : UserControl
         bool darkWallpaperForContrast = lum < 0.5;
         Color searchTextColor = darkWallpaperForContrast ? Colors.White : Color.FromRgb(0x1A, 0x1A, 0x1A);
         Color searchPlaceholderColor = darkWallpaperForContrast ? Color.FromRgb(0xBB, 0xBB, 0xBB) : Color.FromRgb(0x55, 0x55, 0x55);
+        _lastSearchTextColor = searchTextColor;
 
         SetHomeTextColor(searchTextColor);
         TxtHomeSearch.CaretBrush = new SolidColorBrush(searchTextColor);

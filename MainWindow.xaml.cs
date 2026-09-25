@@ -2185,6 +2185,7 @@ return colors.length > 0 ? colors : null;
         if (selectedTab != null && _tabViews.ContainsKey(selectedTab))
         {
             if (_activeTabView != null) _activeTabView.Visibility = Visibility.Collapsed;
+            _headerWallpaperGlassRefresh?.Invoke();
             var activeView = _tabViews[selectedTab];
             activeView.Visibility = Visibility.Visible;
             _activeTabView = activeView;
@@ -2884,15 +2885,48 @@ return colors.length > 0 ? colors : null;
     private TabViewModel? _headerGlowSubscribedTab;
 
     private Action? _headerWallpaperGlassUnbind;
+    private Action? _headerWallpaperGlassRefresh;
+    private LinearGradientBrush? _headerHomeCenterBrush;
 
     private void InitHeaderWallpaperGlass()
     {
-        _headerWallpaperGlassUnbind = HomeGlassService.AttachWallpaperEdgeGlass(
+        _headerHomeCenterBrush = new LinearGradientBrush
+        {
+            StartPoint = new Point(0, 0.5),
+            EndPoint = new Point(1, 0.5)
+        };
+        _headerHomeCenterBrush.GradientStops.Add(new GradientStop(Colors.Transparent, 0.0));
+        _headerHomeCenterBrush.GradientStops.Add(new GradientStop(Colors.Transparent, 0.5));
+        _headerHomeCenterBrush.GradientStops.Add(new GradientStop(Colors.Transparent, 1.0));
+        HeaderHomeCenterFill.Fill = _headerHomeCenterBrush;
+
+        var (unbind, refresh) = HomeGlassService.AttachWallpaperEdgeGlass(
             HeaderContainer,
             HeaderWallpaperGlass,
             HeaderWallpaperGlassBlur,
             onOverlapChanged: overlap =>
-                HeaderAmbientGlow.Visibility = overlap == null ? Visibility.Visible : Visibility.Collapsed);
+            {
+                bool homeActive = overlap != null;
+                HeaderAmbientGlow.Visibility = homeActive ? Visibility.Collapsed : Visibility.Visible;
+                UpdateHeaderHomeCenterFill(homeActive);
+            });
+        _headerWallpaperGlassUnbind = unbind;
+        _headerWallpaperGlassRefresh = refresh;
+    }
+
+    private void UpdateHeaderHomeCenterFill(bool homeActive)
+    {
+        if (_headerHomeCenterBrush == null) return;
+
+        if (!homeActive)
+        {
+            HeaderHomeCenterFill.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        Color centerColor = CurrentBrowser?.NativeHomePage.SearchBarTextColor ?? Colors.White;
+        _headerHomeCenterBrush.GradientStops[1].Color = Color.FromArgb(220, centerColor.R, centerColor.G, centerColor.B);
+        HeaderHomeCenterFill.Visibility = Visibility.Visible;
     }
 
     private void InitHeaderAmbientGlow()
