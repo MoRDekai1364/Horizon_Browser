@@ -47,7 +47,6 @@ public partial class HomePageView : UserControl
         InitializeComponent();
         _homeGlass = new HomeGlassInlineLayer(RootHomeGrid, BgImageBrush, BgVideoElement);
         _homeGlass.Register(SearchBoxBorder);
-        _homeGlass.Register(TestClockPill);
         _homeGlass.Register(TestClockPill2);
         _homeGlass.Register(FavBookmarksIslandBorder);
         _homeGlass.Register(PnlBatteryPill);
@@ -165,7 +164,7 @@ public partial class HomePageView : UserControl
         AnimateElementOpacity(PnlClockWeather, 0.0, transformDuration);
         PnlClockWeather.IsHitTestVisible = false;
         AnimateElementOpacity(ClockWeatherIslandBorder, 0.0, transformDuration);
-        AnimateElementOpacity(TestClockPill, 0.0, transformDuration);
+        AnimateElementOpacity(TestClockPill2, 0.0, transformDuration);
         AnimateElementOpacity(BtnHomeSettings, 0.0, transformDuration);
         BtnHomeSettings.IsHitTestVisible = false;
         AnimateElementOpacity(BtnChangeWallpaper, 0.0, transformDuration);
@@ -289,7 +288,7 @@ public partial class HomePageView : UserControl
         AnimateElementOpacity(PnlClockWeather, 1.0, transformDuration);
         PnlClockWeather.IsHitTestVisible = true;
         AnimateElementOpacity(ClockWeatherIslandBorder, _isContentVisible ? 0.85 : 0.0, transformDuration);
-        AnimateElementOpacity(TestClockPill, _isContentVisible ? 0.85 : 0.0, transformDuration);
+        AnimateElementOpacity(TestClockPill2, _isContentVisible ? 0.85 : 0.0, transformDuration);
         AnimateElementOpacity(BtnHomeSettings, 1.0, transformDuration);
         BtnHomeSettings.IsHitTestVisible = true;
         AnimateElementOpacity(BtnChangeWallpaper, 1.0, transformDuration);
@@ -554,7 +553,7 @@ public partial class HomePageView : UserControl
         target.BeginAnimation(UIElement.OpacityProperty, fadeOut);
     }
 
-    private static void AnimateDouble(Animatable target, DependencyProperty prop, double to, TimeSpan duration, IEasingFunction easing)
+    private void AnimateDouble(Animatable target, DependencyProperty prop, double to, TimeSpan duration, IEasingFunction easing)
     {
         var anim = new DoubleAnimation
         {
@@ -562,6 +561,8 @@ public partial class HomePageView : UserControl
             Duration = new Duration(duration),
             EasingFunction = easing
         };
+        anim.CurrentTimeInvalidated += (_, _) => _homeGlass.Invalidate();
+        anim.Completed += (_, _) => _homeGlass.Invalidate();
         target.BeginAnimation(prop, anim);
     }
 
@@ -2170,10 +2171,10 @@ public partial class HomePageView : UserControl
         ClockWeatherIslandBorder.Width = PnlClockWeather.ActualWidth + ClockWeatherIslandPadding * 2;
         ClockWeatherIslandBorder.Height = PnlClockWeather.ActualHeight + ClockWeatherIslandPadding * 2;
 
-        if (TestClockPill != null)
+        if (TestClockPill2 != null)
         {
-            TestClockPill.Width = ClockWeatherIslandBorder.Width;
-            TestClockPill.Height = ClockWeatherIslandBorder.Height;
+            TestClockPill2.Width = ClockWeatherIslandBorder.Width;
+            TestClockPill2.Height = ClockWeatherIslandBorder.Height;
         }
     }
 
@@ -2200,7 +2201,7 @@ public partial class HomePageView : UserControl
             ClockWeatherIslandBorder.BeginAnimation(UIElement.OpacityProperty, anim);
         }
 
-        if (TestClockPill != null && Math.Abs(TestClockPill.Opacity - target) >= 0.01)
+        if (TestClockPill2 != null && Math.Abs(TestClockPill2.Opacity - target) >= 0.01)
         {
             var pillAnim = new DoubleAnimation
             {
@@ -2210,7 +2211,7 @@ public partial class HomePageView : UserControl
             };
             pillAnim.CurrentTimeInvalidated += (_, _) => _homeGlass.Invalidate();
             pillAnim.Completed += (_, _) => _homeGlass.Invalidate();
-            TestClockPill.BeginAnimation(UIElement.OpacityProperty, pillAnim);
+            TestClockPill2.BeginAnimation(UIElement.OpacityProperty, pillAnim);
         }
     }
 
@@ -2288,40 +2289,11 @@ public partial class HomePageView : UserControl
                 }
             }
         }
+
+        _homeGlass.Invalidate();
     }
 
-    private bool _testPill2Dragging;
-    private Point _testPill2DragStart;
-    private Thickness _testPill2DragStartMargin;
 
-    private void TestClockPill2_MouseDown(object sender, MouseButtonEventArgs e)
-    {
-        _testPill2Dragging = true;
-        _testPill2DragStart = e.GetPosition(RootHomeGrid);
-        _testPill2DragStartMargin = TestClockPill2.Margin;
-        TestClockPill2.CaptureMouse();
-        e.Handled = true;
-    }
-
-    private void TestClockPill2_MouseMove(object sender, MouseEventArgs e)
-    {
-        if (!_testPill2Dragging) return;
-        var pos = e.GetPosition(RootHomeGrid);
-        double dx = pos.X - _testPill2DragStart.X;
-        double dy = pos.Y - _testPill2DragStart.Y;
-        TestClockPill2.Margin = new Thickness(
-            _testPill2DragStartMargin.Left + dx,
-            _testPill2DragStartMargin.Top + dy,
-            0, 0);
-    }
-
-    private void TestClockPill2_MouseUp(object sender, MouseButtonEventArgs e)
-    {
-        if (!_testPill2Dragging) return;
-        _testPill2Dragging = false;
-        TestClockPill2.ReleaseMouseCapture();
-        e.Handled = true;
-    }
 
     private void Widget_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {

@@ -552,7 +552,7 @@ public sealed class HomeGlassInlineLayer
         {
             var el = pair.Key;
             var shape = pair.Value;
-            bool diag = el.Name == "TestClockPill";
+            bool diag = el.Name == "TestClockPill2";
             double op = EffectiveOpacity(el);
             if (diag) LogService.Write("PillDiag", $"op={op:0.###} isVisible={el.IsVisible} w={el.ActualWidth:0.#} h={el.ActualHeight:0.#} isLoaded={el.IsLoaded} inShapes={_shapes.ContainsKey(el)}");
             if (op <= 0.001 || !el.IsVisible || el.ActualWidth <= 0 || el.ActualHeight <= 0)
