@@ -23,8 +23,6 @@
             <local:LocalImageConverter     x:Key="LocalImageConverter"/>
             <local:CategoryColorConverter  x:Key="CategoryColorConverter"/>
 
-            <SolidColorBrush x:Key="Brush.Neon"    Color="#00FF00"/>
-            <SolidColorBrush x:Key="Brush.NeonDim" Color="#005500"/>
             <SolidColorBrush x:Key="Brush.Alert"   Color="#FF3333"/>
 
             <Style x:Key="Style.SortBtn" TargetType="Button">
@@ -362,10 +360,10 @@
                                 </Border>
                                 <ControlTemplate.Triggers>
                                     <Trigger Property="IsSelected" Value="True">
-                                        <Setter TargetName="Bd" Property="Background"      Value="{StaticResource Brush_TabStripBgSelected}"/>
-                                        <Setter TargetName="Bd" Property="BorderBrush"     Value="{StaticResource Brush.Neon}"/>
-                                        <Setter TargetName="Bd" Property="BorderThickness" Value="2"/>
-                                        <Setter Property="Foreground" Value="{StaticResource Brush.Neon}"/>
+                                    <Setter TargetName="Bd" Property="Background" Value="{StaticResource Brush_TabStripBgSelected}"/>
+                                    <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Brush.Neon}"/>
+                                    <Setter TargetName="Bd" Property="BorderThickness" Value="0,0,0,2"/>
+                                    <Setter Property="Foreground" Value="{DynamicResource Brush.Neon}"/>
                                     </Trigger>
                                     <Trigger Property="IsSelected" Value="False">
                                         <Setter Property="Foreground" Value="{StaticResource Brush_TabStripTextInactive}"/>

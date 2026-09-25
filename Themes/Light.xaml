@@ -33,6 +33,9 @@
 
     <SolidColorBrush x:Key="Brush_HeaderButtonForeground" Color="#1A1A1A" po:Freeze="False"/>
 
+    <SolidColorBrush x:Key="Brush.Neon" Color="{StaticResource Color_Accent}" po:Freeze="False"/>
+    <SolidColorBrush x:Key="Brush.NeonDim" Color="#AAAAAA" po:Freeze="False"/>
+
     <Style TargetType="Button" x:Key="Style_StealthButton">
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="Foreground" Value="{DynamicResource Brush_HeaderButtonForeground}"/>

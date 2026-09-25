@@ -7,6 +7,9 @@
     <SolidColorBrush x:Key="Brush_Accent" Color="{StaticResource Color_Accent}"/>
     <SolidColorBrush x:Key="Brush_Text" Color="Black"/>
     <SolidColorBrush x:Key="Brush_HeaderButtonForeground" Color="Black"/>
+
+    <SolidColorBrush x:Key="Brush.Neon" Color="{StaticResource Color_Accent}" po:Freeze="False"/>
+    <SolidColorBrush x:Key="Brush.NeonDim" Color="#AAAAAA" po:Freeze="False"/>
     <SolidColorBrush x:Key="Brush_Alert" Color="#E81123"/>
 
     <Style TargetType="Button" x:Key="Style_StealthButton">

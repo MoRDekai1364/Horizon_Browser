@@ -2907,13 +2907,16 @@ return colors.length > 0 ? colors : null;
             StartPoint = new Point(0, 0.5),
             EndPoint = new Point(1, 0.5)
         };
-        _headerHomeCenterBrush.GradientStops.Add(new GradientStop(Colors.Transparent, 0.0));
-        _headerHomeCenterBrush.GradientStops.Add(new GradientStop(Colors.Transparent, 0.5));
-        _headerHomeCenterBrush.GradientStops.Add(new GradientStop(Colors.Transparent, 1.0));
-        // Reversed: solid B/W now sits at the edges, blur shows through the middle.
-        _headerHomeCenterBrush.GradientStops[0].Offset = 0.0;
-        _headerHomeCenterBrush.GradientStops[1].Offset = 0.5;
-        _headerHomeCenterBrush.GradientStops[2].Offset = 1.0;
+        // 6 stops: solid B/W right at the two edges, a flat fully-transparent
+        // plateau across the whole middle (where the Omnibox/widget live) so
+        // the header's wallpaper blur actually reads there instead of only
+        // at the exact geometric midpoint.
+        _headerHomeCenterBrush.GradientStops.Add(new GradientStop(Colors.Transparent, 0.00));
+        _headerHomeCenterBrush.GradientStops.Add(new GradientStop(Colors.Transparent, 0.10));
+        _headerHomeCenterBrush.GradientStops.Add(new GradientStop(Colors.Transparent, 0.18));
+        _headerHomeCenterBrush.GradientStops.Add(new GradientStop(Colors.Transparent, 0.82));
+        _headerHomeCenterBrush.GradientStops.Add(new GradientStop(Colors.Transparent, 0.90));
+        _headerHomeCenterBrush.GradientStops.Add(new GradientStop(Colors.Transparent, 1.00));
         HeaderHomeCenterFill.Fill = _headerHomeCenterBrush;
 
         var (unbind, refresh) = HomeGlassService.AttachWallpaperEdgeGlass(
@@ -2939,7 +2942,7 @@ return colors.length > 0 ? colors : null;
         _headerHomeBlurBleedRefresh = bleedRefresh;
     }
 
-    private const double SidebarBlurSourceCropStart = 0.91;
+    private const double SidebarBlurSourceCropStart = 0.97;
     private const double SidebarBlurDistortionRadius = 110;
 
     private ImageBrush? _sidebarOwnBlurBrush;
@@ -2949,9 +2952,9 @@ return colors.length > 0 ? colors : null;
         // Sidebar glass does NOT sample the exact wallpaper region behind it like the
         // header does — it's a side element, not one that already sits over the
         // wallpaper. Instead it takes a fixed slice of the homepage background: the
-        // right 30% of the image (cutting away the left 70%), stretched to fill and
-        // blurred far more heavily than the header's edge glass so it reads as an
-        // abstract, distorted backdrop rather than a recognizable crop.
+        // right 3% of the image, stretched to fill and blurred far more heavily than
+        // the header's edge glass so it reads as an abstract, distorted backdrop
+        // rather than a recognizable crop.
         SidebarWallpaperGlassBlur.Effect = new System.Windows.Media.Effects.BlurEffect
         {
             Radius = SidebarBlurDistortionRadius,
@@ -3005,8 +3008,11 @@ return colors.length > 0 ? colors : null;
         Color centerColor = CurrentBrowser?.NativeHomePage.SearchBarTextColor ?? Colors.White;
         Color edgeColor = Color.FromArgb(140, centerColor.R, centerColor.G, centerColor.B);
         _headerHomeCenterBrush.GradientStops[0].Color = edgeColor;
-        _headerHomeCenterBrush.GradientStops[1].Color = Colors.Transparent;
-        _headerHomeCenterBrush.GradientStops[2].Color = edgeColor;
+        _headerHomeCenterBrush.GradientStops[1].Color = edgeColor;
+        _headerHomeCenterBrush.GradientStops[2].Color = Colors.Transparent;
+        _headerHomeCenterBrush.GradientStops[3].Color = Colors.Transparent;
+        _headerHomeCenterBrush.GradientStops[4].Color = edgeColor;
+        _headerHomeCenterBrush.GradientStops[5].Color = edgeColor;
         HeaderHomeCenterFill.Visibility = Visibility.Visible;
         UpdateHeaderButtonContrastTint(centerColor);
     }
@@ -3112,6 +3118,7 @@ return colors.length > 0 ? colors : null;
             _headerGlowBrush.GradientStops[1].Color = Color.FromArgb(0, fallbackNeutral.R, fallbackNeutral.G, fallbackNeutral.B);
             _headerGlowBrush.GradientStops[2].Color = Color.FromArgb(60, fallbackNeutral.R, fallbackNeutral.G, fallbackNeutral.B);
             SetHeaderButtonForeground(null);
+            SetSidebarSecondaryAccent(null);
             return;
         }
 
@@ -3123,6 +3130,28 @@ return colors.length > 0 ? colors : null;
         _headerGlowBrush.GradientStops[2].Color = Color.FromArgb(235, main.R, main.G, main.B);
 
         SetHeaderButtonForeground(ChooseContrastingBW(main));
+        SetSidebarSecondaryAccent(main);
+    }
+
+    // Off-homepage, the sidebar's accent ("Brush.Neon") tracks the same
+    // per-site palette color the header glow uses. On the homepage (no
+    // palette) it falls back to the theme's neutral accent instead of a
+    // hardcoded color.
+    private static void SetSidebarSecondaryAccent(Color? siteColor)
+    {
+        Color accent = siteColor ?? ((Application.Current.Resources["Brush_Accent"] as SolidColorBrush)?.Color
+            ?? Color.FromRgb(0x60, 0x60, 0x60));
+        Color dim = Color.FromRgb((byte)(accent.R * 0.35), (byte)(accent.G * 0.35), (byte)(accent.B * 0.35));
+
+        if (Application.Current.Resources["Brush.Neon"] is SolidColorBrush neon && !neon.IsFrozen)
+            neon.Color = accent;
+        else
+            Application.Current.Resources["Brush.Neon"] = new SolidColorBrush(accent);
+
+        if (Application.Current.Resources["Brush.NeonDim"] is SolidColorBrush neonDim && !neonDim.IsFrozen)
+            neonDim.Color = dim;
+        else
+            Application.Current.Resources["Brush.NeonDim"] = new SolidColorBrush(dim);
     }
 
     private static bool IsPaletteDarkMode(List<Color> palette)
