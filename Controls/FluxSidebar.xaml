@@ -18,7 +18,7 @@
 
             <SolidColorBrush x:Key="Brush_SoftText" Color="#EAEAEA" po:Freeze="False"/>
             <local:FaviconConverter x:Key="FaviconConverter"/>
-            <local:FluxGradientConverter x:Key="FluxGradientConverter"/>
+            <local:FluxAccentColorConverter x:Key="FluxAccentColorConverter"/>
             <local:NullOrEmptyConverter    x:Key="NullOrEmptyConverter"/>
             <local:LocalImageConverter     x:Key="LocalImageConverter"/>
             <local:CategoryColorConverter  x:Key="CategoryColorConverter"/>
@@ -156,9 +156,14 @@
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="ListBoxItem">
-                            <Border x:Name="Bd" Background="{Binding Converter={StaticResource FluxGradientConverter}}"
-                                    BorderBrush="#2a2a2a" BorderThickness="1" CornerRadius="6" Padding="4">
-                                <ContentPresenter/>
+                            <Border x:Name="Bd" Background="{DynamicResource Brush_DeepBackground}"
+                                    BorderBrush="#2a2a2a" BorderThickness="1" CornerRadius="6" Padding="4" ClipToBounds="True">
+                                <Grid>
+                                    <Border Width="4" HorizontalAlignment="Right" Margin="0,-1,-1,-1"
+                                            Background="{Binding Converter={StaticResource FluxAccentColorConverter}}"
+                                            CornerRadius="0,5,5,0" IsHitTestVisible="False"/>
+                                    <ContentPresenter/>
+                                </Grid>
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">

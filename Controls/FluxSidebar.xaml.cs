@@ -17,6 +17,7 @@ using System.Windows.Media;
 using System.Windows.Documents;
 using Microsoft.Win32;
 using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace Horizon.Stealth.Controls;
 
@@ -73,26 +74,50 @@ public static class GradientUtility
     }
 }
 
-public class FluxGradientConverter : IValueConverter
+public class FluxAccentColorConverter : IValueConverter
 {
+    private static readonly Color _fallback = Color.FromRgb(0x2a, 0x2a, 0x2a);
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, Color> _colorCache = new();
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, object?> _pending = new();
+
+    public static event Action? ColorResolved;
+
     public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        if (value is PinItem pin)
+        if (value is PinItem pin && !string.IsNullOrEmpty(pin.Url))
         {
-            int hash = pin.Url?.GetHashCode() ?? 0;
-            double hue = Math.Abs(hash % 360);
-            Color leftColor = GradientUtility.ProcessColor(GradientUtility.HsvToRgb(hue, 0.8, 0.5));
-            double rightHue = (hue + 120) % 360;
-            Color rightColor = GradientUtility.HsvToRgb(rightHue, 0.72, 0.35);
-
-            var gs = new GradientStopCollection
+            try
             {
-                new GradientStop(leftColor, 0.0),
-                new GradientStop(rightColor, 1.0)
-            };
-            return new LinearGradientBrush(gs, new Point(0, 0.5), new Point(1, 0.5));
+                var uri = new Uri(pin.Url);
+                string key = uri.Host.ToLowerInvariant();
+
+                if (_colorCache.TryGetValue(key, out Color cached))
+                    return new SolidColorBrush(cached);
+
+                if (_pending.TryAdd(key, null))
+                {
+                    string faviconUrl = $"https://www.google.com/s2/favicons?domain={uri.Host}&sz=64";
+                    _ = ResolveAsync(key, faviconUrl);
+                }
+            }
+            catch { }
         }
-        return new SolidColorBrush(Color.FromRgb(0x11, 0x11, 0x11));
+        return new SolidColorBrush(_fallback);
+    }
+
+    private static async Task ResolveAsync(string key, string faviconUrl)
+    {
+        try
+        {
+            var colors = await TabColorPaletteExtractor.ExtractFromImageUrlAsync(faviconUrl);
+            if (colors.Count > 0)
+            {
+                _colorCache[key] = colors[0];
+                ColorResolved?.Invoke();
+            }
+        }
+        catch { }
+        finally { _pending.TryRemove(key, out _); }
     }
 
     public object? ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
@@ -601,6 +626,17 @@ public partial class FluxSidebar : UserControl
         InitializeComponent();
         ListFlux.ItemsSource = FluxItems;
         Loaded += FluxSidebar_Loaded;
+        FluxAccentColorConverter.ColorResolved += OnPinAccentColorResolved;
+        Unloaded += (_, _) => FluxAccentColorConverter.ColorResolved -= OnPinAccentColorResolved;
+    }
+
+    private void OnPinAccentColorResolved()
+    {
+        Dispatcher.BeginInvoke(() =>
+        {
+            if (ListPins.ItemsSource != null)
+                CollectionViewSource.GetDefaultView(ListPins.ItemsSource)?.Refresh();
+        });
     }
 
     

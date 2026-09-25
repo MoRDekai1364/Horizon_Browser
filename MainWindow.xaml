@@ -1069,7 +1069,7 @@
             -->
             <Grid x:Name="HeaderHomeBlurBleed" Grid.Row="0" Grid.RowSpan="4" Grid.ColumnSpan="2"
                   Panel.ZIndex="50" IsHitTestVisible="False" Visibility="Collapsed">
-                <Border x:Name="HeaderHomeBlurBleedBorder" Height="4" VerticalAlignment="Top" Margin="0,60,0,0">
+                <Border x:Name="HeaderHomeBlurBleedBorder" Height="8" VerticalAlignment="Top" Margin="0,60,0,0">
                     <Border.OpacityMask>
                         <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
                             <GradientStop Color="#FFFFFFFF" Offset="0.0"/>
@@ -1628,7 +1628,7 @@
                     left on its own — no separate spanning host needed like the
                     header required.
                 -->
-                <Border x:Name="SidebarHomeBlurBleedBorder" Width="4" HorizontalAlignment="Left" Margin="-4,0,0,0">
+                <Border x:Name="SidebarHomeBlurBleedBorder" Width="8" HorizontalAlignment="Left" Margin="-8,0,0,0">
                     <Border.OpacityMask>
                         <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
                             <GradientStop Color="#00FFFFFF" Offset="0.0"/>
