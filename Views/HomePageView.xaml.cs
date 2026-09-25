@@ -50,6 +50,7 @@ public partial class HomePageView : UserControl
         _homeGlass.Register(SearchBlurPill);
         _homeGlass.Register(FavBookmarksIslandBorder);
         _homeGlass.Register(PnlBatteryPill);
+        _homeGlass.Register(BtnChangeWallpaperBg);
         Loaded += (_, __) => WeatherBridge.SetWallpaperSurface(RootHomeGrid);
         Unloaded += (_, __) =>
         {

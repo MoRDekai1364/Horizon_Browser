@@ -452,13 +452,35 @@
                 </Border>
             </Button>
 
-            <Button x:Name="BtnChangeWallpaper" Grid.Row="1" Width="58" Height="58"
+            <Button x:Name="BtnChangeWallpaper" Grid.Row="1" Height="44"
                     HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,16,16"
                     Click="BtnChangeWallpaper_Click" BorderThickness="0" Cursor="Hand"
                     Background="Transparent" Padding="0">
-                <Border x:Name="BtnChangeWallpaperBg" Background="#00000000" CornerRadius="16">
-                    <TextBlock x:Name="BtnChangeWallpaperIcon" Text="🖼" FontSize="24"
-                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <Border x:Name="BtnChangeWallpaperBg" Background="#8C1A1A1A" CornerRadius="22"
+                        BorderBrush="#80FFFFFF" BorderThickness="1.5" ClipToBounds="True">
+                    <Border.OpacityMask>
+                        <VisualBrush Stretch="None">
+                            <VisualBrush.Visual>
+                                <Border Width="{Binding ActualWidth, ElementName=BtnChangeWallpaperBg}"
+                                        Height="{Binding ActualHeight, ElementName=BtnChangeWallpaperBg}"
+                                        CornerRadius="{Binding CornerRadius, ElementName=BtnChangeWallpaperBg}"
+                                        Background="Black">
+                                    <Border.Effect>
+                                        <BlurEffect Radius="16" KernelType="Gaussian"/>
+                                    </Border.Effect>
+                                </Border>
+                            </VisualBrush.Visual>
+                        </VisualBrush>
+                    </Border.OpacityMask>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="18,0,20,0">
+                        <TextBlock x:Name="BtnChangeWallpaperIcon" Text="🖼" FontSize="18" VerticalAlignment="Center"/>
+                        <TextBlock Text="Change Wallpaper" FontSize="14" FontWeight="SemiBold" Foreground="White"
+                                   VerticalAlignment="Center" Margin="8,0,0,0">
+                            <TextBlock.Effect>
+                                <DropShadowEffect Color="Black" Direction="270" ShadowDepth="1" BlurRadius="4" Opacity="0.9"/>
+                            </TextBlock.Effect>
+                        </TextBlock>
+                    </StackPanel>
                 </Border>
             </Button>
 
