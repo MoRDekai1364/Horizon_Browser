@@ -4,6 +4,8 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Media;
+using System.Windows.Media.Effects;
 using Microsoft.Win32;
 using Horizon.Stealth.Services;
 
@@ -18,10 +20,64 @@ public partial class HomePageSettingsWindow : Window
 
     private static readonly string[] WallpaperExts = { ".png", ".jpg", ".jpeg", ".bmp", ".mp4" };
 
+    private Action? _detachGlassBackdrop;
+
     public HomePageSettingsWindow()
     {
         InitializeComponent();
         Loaded += HomePageSettingsWindow_Loaded;
+        Loaded += (_, __) => BuildGlassBackdrop();
+        Closed += (_, __) => _detachGlassBackdrop?.Invoke();
+    }
+
+    private void BuildGlassBackdrop()
+    {
+        var wallBrush = new ImageBrush();
+        var wallLayer = new Border
+        {
+            RenderTransformOrigin = new Point(0.5, 0.5),
+            RenderTransform = new ScaleTransform(1.08, 1.08),
+            Background = wallBrush,
+            Effect = new BlurEffect
+            {
+                Radius = 32,
+                KernelType = KernelType.Gaussian,
+                RenderingBias = RenderingBias.Performance
+            }
+        };
+        var tintLayer = new Border();
+        var glassHost = new Grid { Visibility = Visibility.Collapsed };
+        glassHost.Children.Add(wallLayer);
+        glassHost.Children.Add(tintLayer);
+        GlassBackdropHost.Children.Add(glassHost);
+
+        var unbind = WidgetBackdropService.Bind(this, wallBrush, overlap =>
+        {
+            if (overlap == null)
+            {
+                glassHost.Visibility = Visibility.Collapsed;
+                return;
+            }
+            glassHost.Clip = new RectangleGeometry(overlap.Value);
+            glassHost.Visibility = Visibility.Visible;
+        });
+
+        void Apply()
+        {
+            byte bgAlpha = TintService.Apply(0xD9);
+            Color searchBg = WeatherBridge.ThemeDarkWallpaper
+                ? Color.FromArgb(bgAlpha, 0x1A, 0x1A, 0x1A)
+                : Color.FromArgb(bgAlpha, 0xFF, 0xFF, 0xFF);
+            tintLayer.Background = HomePageView.CreateSearchBarBackgroundBrush(searchBg);
+            wallLayer.Opacity = WeatherBridge.ThemeWallpaper != null
+                ? Math.Clamp(0.55 * SettingsService.Current.BackgroundOpacity, 0.0, 1.0)
+                : 0.0;
+        }
+
+        Apply();
+        Action handler = () => Dispatcher.BeginInvoke(new Action(Apply));
+        WeatherBridge.ThemeUpdated += handler;
+        _detachGlassBackdrop = () => { WeatherBridge.ThemeUpdated -= handler; unbind(); };
     }
 
     private bool _loadingToggles = false;

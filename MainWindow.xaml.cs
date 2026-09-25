@@ -7641,8 +7641,11 @@ private sealed class WeatherRetryHandler : DelegatingHandler
             wallLayer.Opacity = WeatherBridge.ThemeWallpaper != null
                 ? Math.Clamp(0.55 * SettingsService.Current.BackgroundOpacity, 0.0, 1.0)
                 : 0.0;
-            var pill = WeatherBridge.ThemePill;
-            tintLayer.Background = new SolidColorBrush(pill);
+            byte bgAlpha = TintService.Apply(0xD9);
+            Color searchBg = WeatherBridge.ThemeDarkWallpaper
+                ? Color.FromArgb(bgAlpha, 0x1A, 0x1A, 0x1A)
+                : Color.FromArgb(bgAlpha, 0xFF, 0xFF, 0xFF);
+            tintLayer.Background = HomePageView.CreateSearchBarBackgroundBrush(searchBg);
         }
 
         Apply();

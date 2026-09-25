@@ -36,7 +36,10 @@
         </Style>
     </Window.Resources>
 
-    <Grid Margin="20">
+    <Grid>
+        <Grid x:Name="GlassBackdropHost" IsHitTestVisible="False"/>
+
+        <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -202,5 +205,6 @@
 
         <Button x:Name="BtnCloseHomeSettings" Grid.Row="2" Content="Close" Width="90" HorizontalAlignment="Right"
                 Click="BtnCloseHomeSettings_Click"/>
+        </Grid>
     </Grid>
 </Window>

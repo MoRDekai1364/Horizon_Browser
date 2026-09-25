@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
@@ -380,6 +381,8 @@ public sealed class HomeGlassInlineLayer
 
     public void Register(FrameworkElement el)
     {
+        if (el.Name == "ClockWeatherIslandBorder")
+            LogService.Write("HomeGlassDiag", $"Register called for {el.Name}, alreadyRegistered={_shapes.ContainsKey(el)}");
         if (_shapes.ContainsKey(el)) return;
         var shape = new Border { Background = Brushes.Black, IsHitTestVisible = false, Visibility = Visibility.Collapsed };
         _shapes[el] = shape;
@@ -450,9 +453,12 @@ public sealed class HomeGlassInlineLayer
             double w = _root.ActualWidth;
             double h = _root.ActualHeight;
             var mode = ResolveMode();
+            if (_diagLogCount < 40)
+                LogService.Write("HomeGlassDiag", $"Refresh: rootVisible={_root.IsVisible} w={w:0.#} h={h:0.#} mode={mode} shapeCount={_shapes.Count} hasClockShape={_shapes.Keys.Any(k => k.Name == "ClockWeatherIslandBorder")}");
             if (!_root.IsVisible || w <= 0 || h <= 0 || mode == Mode.None || _shapes.Count == 0)
             {
                 _layer.Visibility = Visibility.Collapsed;
+                if (_diagLogCount < 40) LogService.Write("HomeGlassDiag", "Refresh: bailed out before UpdateMask, whole layer collapsed");
                 return;
             }
             ApplySource(mode, w, h);
@@ -515,6 +521,8 @@ public sealed class HomeGlassInlineLayer
         return op;
     }
 
+    private int _diagLogCount = 0;
+
     private void UpdateMask(double w, double h)
     {
         _maskCanvas.Width = w;
@@ -524,19 +532,28 @@ public sealed class HomeGlassInlineLayer
             var el = pair.Key;
             var shape = pair.Value;
             double op = EffectiveOpacity(el);
+            bool diag = el.Name == "ClockWeatherIslandBorder" && _diagLogCount < 40;
+            if (diag)
+            {
+                _diagLogCount++;
+                LogService.Write("HomeGlassDiag", $"el={el.Name} op={op:0.###} isVisible={el.IsVisible} w={el.ActualWidth:0.#} h={el.ActualHeight:0.#} bgType={el.GetType().Name}:{(el as Border)?.Background?.GetType().Name}");
+            }
             if (op <= 0.001 || !el.IsVisible || el.ActualWidth <= 0 || el.ActualHeight <= 0)
             {
                 shape.Visibility = Visibility.Collapsed;
+                if (diag) LogService.Write("HomeGlassDiag", "  -> collapsed (opacity/visible/size gate)");
                 continue;
             }
             Rect b;
             try
             {
                 b = el.TransformToVisual(_root).TransformBounds(new Rect(0, 0, el.ActualWidth, el.ActualHeight));
+                if (diag) LogService.Write("HomeGlassDiag", $"  -> bounds x={b.X:0.#} y={b.Y:0.#} w={b.Width:0.#} h={b.Height:0.#}");
             }
-            catch (InvalidOperationException)
+            catch (InvalidOperationException ex)
             {
                 shape.Visibility = Visibility.Collapsed;
+                if (diag) LogService.Write("HomeGlassDiag", "  -> TransformToVisual threw: " + ex.Message);
                 continue;
             }
             Canvas.SetLeft(shape, b.X);

@@ -48,8 +48,8 @@ public partial class HomePageView : UserControl
         _homeGlass = new HomeGlassInlineLayer(RootHomeGrid, BgImageBrush, BgVideoElement);
         _homeGlass.Register(SearchBoxBorder);
         _homeGlass.Register(ClockWeatherIslandBorder);
-        _homeGlass.Register(ClockWeatherIslandBorder);
         _homeGlass.Register(FavBookmarksIslandBorder);
+        _homeGlass.Register(PnlBatteryPill);
         Loaded += (_, __) => WeatherBridge.SetWallpaperSurface(RootHomeGrid);
         Unloaded += (_, __) =>
         {
@@ -1143,6 +1143,7 @@ public partial class HomePageView : UserControl
         TxtHomeSearch.Effect = MakeOutline(Colors.White);
         SearchBoxBorder.Background = CreateSearchBarBackgroundBrush(Color.FromArgb(0xD9, 0x1A, 0x1A, 0x1A));
         SearchBoxBorder.BorderBrush = new SolidColorBrush(Color.FromArgb(0x33, 0xFF, 0xFF, 0xFF));
+        PnlBatteryPill.Background = CreateSearchBarBackgroundBrush(Color.FromArgb(0xD9, 0x1A, 0x1A, 0x1A));
         Color defaultPillBg = Color.FromArgb(0x40, 0x00, 0x00, 0x00);
         Brush defaultPillTextBrush = GetContrastingTextBrush(defaultPillBg);
         CmbSearchEngine.Background = new SolidColorBrush(defaultPillBg);
@@ -1187,7 +1188,7 @@ public partial class HomePageView : UserControl
         return lum > 0.55 ? Brushes.Black : Brushes.White;
     }
 
-    private static Brush CreateSearchBarBackgroundBrush(Color mainColor)
+    public static Brush CreateSearchBarBackgroundBrush(Color mainColor)
     {
         double luminance = (0.299 * mainColor.R + 0.587 * mainColor.G + 0.114 * mainColor.B) / 255.0;
         int shift = luminance > 0.5 ? -34 : 34;
@@ -1324,6 +1325,7 @@ public partial class HomePageView : UserControl
         Color searchBg = darkWallpaper ? Color.FromArgb(bgAlpha, 0x1A, 0x1A, 0x1A) : Color.FromArgb(bgAlpha, 0xFF, 0xFF, 0xFF);
         SearchBoxBorder.Background = CreateSearchBarBackgroundBrush(searchBg);
         SearchBoxBorder.BorderBrush = new SolidColorBrush(Color.FromArgb(0x55, accentPrimary.R, accentPrimary.G, accentPrimary.B));
+        PnlBatteryPill.Background = CreateSearchBarBackgroundBrush(searchBg);
 
         ApplySettingsButtonColor(pillBg);
     }
@@ -2182,6 +2184,8 @@ public partial class HomePageView : UserControl
             Duration = new Duration(duration),
             EasingFunction = ease
         };
+        anim.CurrentTimeInvalidated += (_, _) => _homeGlass.Invalidate();
+        anim.Completed += (_, _) => _homeGlass.Invalidate();
         ClockWeatherIslandBorder.BeginAnimation(UIElement.OpacityProperty, anim);
     }
 
