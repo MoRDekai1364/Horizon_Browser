@@ -214,7 +214,7 @@
                     </Grid.ColumnDefinitions>
 
                     <!-- Icon cell: emoji > local file > favicon URL -->
-                    <Border Width="28" Height="28" CornerRadius="4" Background="#F0F0F0"
+                    <Border Width="28" Height="28" CornerRadius="4" Background="{DynamicResource Brush_HeaderButtonScrim}"
                             Margin="0,0,10,0" ClipToBounds="True">
                         <Grid>
                             <!-- Favicon (default; hidden if overridden) -->
@@ -264,7 +264,7 @@
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <Border Width="23" Height="23" CornerRadius="3" Background="#F0F0F0" Margin="0,0,10,0" VerticalAlignment="Center">
+                    <Border Width="23" Height="23" CornerRadius="3" Background="{DynamicResource Brush_HeaderButtonScrim}" Margin="0,0,10,0" VerticalAlignment="Center">
                         <Image Source="{Binding Url, Converter={StaticResource FaviconConverter}}" Stretch="UniformToFill"/>
                     </Border>
                     <StackPanel Grid.Column="1" VerticalAlignment="Center">

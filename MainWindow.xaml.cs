@@ -2942,8 +2942,8 @@ return colors.length > 0 ? colors : null;
         _headerHomeBlurBleedRefresh = bleedRefresh;
     }
 
-    private const double SidebarBlurSourceCropStart = 0.97;
-    private const double SidebarBlurDistortionRadius = 110;
+    private const double SidebarBlurSourceCropStart = 0.93;
+    private const double SidebarBlurDistortionRadius = 150;
 
     private ImageBrush? _sidebarOwnBlurBrush;
 
@@ -2995,26 +2995,60 @@ return colors.length > 0 ? colors : null;
 
 
 
-    private void UpdateHeaderHomeCenterFill(bool homeActive)
+        private void UpdateHeaderHomeCenterFill(bool homeActive)
     {
         if (_headerHomeCenterBrush == null) return;
 
-        if (!homeActive)
-        {
-            HeaderHomeCenterFill.Visibility = Visibility.Collapsed;
-            return;
-        }
+        HeaderHomeCenterFill.Visibility = Visibility.Collapsed;
+        if (!homeActive) return;
 
         Color centerColor = CurrentBrowser?.NativeHomePage.SearchBarTextColor ?? Colors.White;
-        Color edgeColor = Color.FromArgb(140, centerColor.R, centerColor.G, centerColor.B);
-        _headerHomeCenterBrush.GradientStops[0].Color = edgeColor;
-        _headerHomeCenterBrush.GradientStops[1].Color = edgeColor;
-        _headerHomeCenterBrush.GradientStops[2].Color = Colors.Transparent;
-        _headerHomeCenterBrush.GradientStops[3].Color = Colors.Transparent;
-        _headerHomeCenterBrush.GradientStops[4].Color = edgeColor;
-        _headerHomeCenterBrush.GradientStops[5].Color = edgeColor;
-        HeaderHomeCenterFill.Visibility = Visibility.Visible;
-        UpdateHeaderButtonContrastTint(centerColor);
+        Color zoneColor = SampleWallpaperRegionColor(PnlHeaderRightIcons, centerColor);
+        UpdateHeaderButtonContrastTint(zoneColor);
+    }
+
+    private static Color SampleWallpaperRegionColor(FrameworkElement? el, Color fallback, double padDip = 8)
+    {
+        try
+        {
+            if (el == null) return fallback;
+            var wp = WeatherBridge.ThemeWallpaper;
+            if (wp == null) return fallback;
+
+            var viewbox = HomeGlassService.GetViewbox(el, padDip);
+            if (viewbox == null) return fallback;
+
+            var v = viewbox.Value;
+            int px = (int)Math.Clamp(v.X * wp.PixelWidth, 0, wp.PixelWidth - 1);
+            int py = (int)Math.Clamp(v.Y * wp.PixelHeight, 0, wp.PixelHeight - 1);
+            int pw = (int)Math.Clamp(v.Width * wp.PixelWidth, 1, wp.PixelWidth - px);
+            int ph = (int)Math.Clamp(v.Height * wp.PixelHeight, 1, wp.PixelHeight - py);
+
+            var cropped = new System.Windows.Media.Imaging.CroppedBitmap(wp, new Int32Rect(px, py, pw, ph));
+            var converted = new System.Windows.Media.Imaging.FormatConvertedBitmap(cropped, PixelFormats.Bgra32, null, 0);
+
+            int w = converted.PixelWidth, h = converted.PixelHeight;
+            if (w <= 0 || h <= 0) return fallback;
+
+            int stride = w * 4;
+            var pixels = new byte[stride * h];
+            converted.CopyPixels(pixels, stride, 0);
+
+            long r = 0, g = 0, b = 0;
+            int count = w * h;
+            for (int i = 0; i < pixels.Length; i += 4)
+            {
+                b += pixels[i];
+                g += pixels[i + 1];
+                r += pixels[i + 2];
+            }
+
+            return Color.FromRgb((byte)(r / count), (byte)(g / count), (byte)(b / count));
+        }
+        catch
+        {
+            return fallback;
+        }
     }
 
     private static readonly Color HeaderButtonForegroundApprox = Color.FromRgb(0xEE, 0xEE, 0xEE);

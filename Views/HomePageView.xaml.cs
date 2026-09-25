@@ -1755,6 +1755,12 @@ public partial class HomePageView : UserControl
         e.Handled = true;
     }
 
+    private void WidgetMedia_Click(object sender, MouseButtonEventArgs e)
+    {
+        MediaBridge.SendCommand("RETURNTAB");
+        e.Handled = true;
+    }
+
     private void UpdateClock()
     {
         TblClock.Text = DateTime.Now.ToString("HH:mm");
@@ -2231,6 +2237,34 @@ public partial class HomePageView : UserControl
                 Canvas.SetTop(ZoneCalendar, t.Transform(new Point(0, 0)).Y + ClockWeatherIslandPadding);
             }
             catch { }
+        }
+
+        if (ZoneMedia != null && PnlMedia.Visibility == Visibility.Visible)
+        {
+            ZoneMedia.Width = Math.Max(TblMediaTitle.ActualWidth, TblMediaArtist.ActualWidth);
+            ZoneMedia.Height = TblMediaTitle.ActualHeight + (TblMediaArtist.Visibility == Visibility.Visible ? TblMediaArtist.ActualHeight : 0);
+            Canvas.SetLeft(ZoneMedia, ClockWeatherIslandPadding);
+            try
+            {
+                var t = PnlMedia.TransformToVisual(PnlClockWeather);
+                Canvas.SetTop(ZoneMedia, t.Transform(new Point(0, 0)).Y + ClockWeatherIslandPadding);
+            }
+            catch { }
+        }
+
+        if (ClockWeatherHitOverlay != null)
+        {
+            double overlayHeight = PnlClockWeather.ActualHeight;
+            if (PnlMedia.Visibility == Visibility.Visible && PnlMediaButtons != null)
+            {
+                try
+                {
+                    var t = PnlMediaButtons.TransformToVisual(PnlClockWeather);
+                    overlayHeight = t.Transform(new Point(0, 0)).Y;
+                }
+                catch { }
+            }
+            ClockWeatherHitOverlay.Height = overlayHeight + ClockWeatherIslandPadding * 2;
         }
     }
 

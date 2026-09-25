@@ -973,7 +973,7 @@
                         </ListBox.ItemContainerStyle>
                     </ListBox>
 
-                    <StackPanel Grid.Column="3" Orientation="Horizontal" Margin="5,0,10,0">
+                    <StackPanel x:Name="PnlHeaderRightIcons" Grid.Column="3" Orientation="Horizontal" Margin="5,0,10,0">
                         <!-- ── Update install banner (persistent until dismissed/clicked) ──── -->
                         <StackPanel x:Name="PanelUpdateBanner" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,8,0" Visibility="Collapsed">
                             <Button x:Name="BtnInstallUpdate" Click="BtnInstallUpdate_Click"
