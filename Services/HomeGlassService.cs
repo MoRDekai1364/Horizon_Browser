@@ -431,11 +431,30 @@ public sealed class HomeGlassInlineLayer
         QueueRefresh();
     }
 
+    private DateTime _lastRefreshUtc = DateTime.MinValue;
+
     private void QueueRefresh()
     {
         if (_refreshQueued) return;
         _refreshQueued = true;
-        _root.Dispatcher.BeginInvoke(new Action(Refresh), DispatcherPriority.Render);
+        double elapsedMs = (DateTime.UtcNow - _lastRefreshUtc).TotalMilliseconds;
+        if (elapsedMs >= 16)
+        {
+            _root.Dispatcher.BeginInvoke(new Action(Refresh), DispatcherPriority.Render);
+        }
+        else
+        {
+            var timer = new DispatcherTimer(DispatcherPriority.Render)
+            {
+                Interval = TimeSpan.FromMilliseconds(16 - elapsedMs)
+            };
+            timer.Tick += (s, e) =>
+            {
+                timer.Stop();
+                Refresh();
+            };
+            timer.Start();
+        }
     }
 
     private Mode ResolveMode()
@@ -447,6 +466,7 @@ public sealed class HomeGlassInlineLayer
     private void Refresh()
     {
         _refreshQueued = false;
+        _lastRefreshUtc = DateTime.UtcNow;
         try
         {
             RegisterSubtree(_root);
@@ -464,6 +484,32 @@ public sealed class HomeGlassInlineLayer
             ApplySource(mode, w, h);
             UpdateMask(w, h);
             _layer.Visibility = Visibility.Visible;
+
+            if (_layerDumpCount < 3 && _shapes.Keys.Any(el => el.Name == "ClockWeatherIslandBorder" && el.IsVisible && el.ActualWidth > 0 && el.Opacity > 0.5))
+            {
+                _layerDumpCount++;
+                try
+                {
+                    _layer.UpdateLayout();
+                    double k = GetMaskDeviceScale();
+                    int pw = Math.Max(1, (int)Math.Round(w * k));
+                    int ph = Math.Max(1, (int)Math.Round(h * k));
+                    var layerRtb = new RenderTargetBitmap(pw, ph, 96 * k, 96 * k, PixelFormats.Pbgra32);
+                    layerRtb.Render(_layer);
+                    string dir = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs");
+                    System.IO.Directory.CreateDirectory(dir);
+                    string path = System.IO.Path.Combine(dir, $"homeglass_layer_{_layerDumpCount}_{DateTime.Now:HHmmss_fff}.png");
+                    var encoder = new PngBitmapEncoder();
+                    encoder.Frames.Add(BitmapFrame.Create(layerRtb));
+                    using var fs = System.IO.File.Create(path);
+                    encoder.Save(fs);
+                    LogService.Write("HomeGlassDiag", $"Layer dump #{_layerDumpCount} saved: {path}");
+                }
+                catch (Exception ex)
+                {
+                    LogService.Write("HomeGlassDiag", "Layer dump failed: " + ex);
+                }
+            }
         }
         catch (Exception ex)
         {
@@ -573,6 +619,9 @@ public sealed class HomeGlassInlineLayer
         return src?.CompositionTarget != null ? src.CompositionTarget.TransformToDevice.M11 : 1.0;
     }
 
+    private int _maskDumpCount = 0;
+    private int _layerDumpCount = 0;
+
     private void RasterizeMask(double w, double h)
     {
         double k = GetMaskDeviceScale();
@@ -585,6 +634,26 @@ public sealed class HomeGlassInlineLayer
 
         var rtb = new RenderTargetBitmap(pw, ph, 96 * k, 96 * k, PixelFormats.Pbgra32);
         rtb.Render(_maskCanvas);
+
+        if (_maskDumpCount < 3 && _shapes.Keys.Any(el => el.Name == "ClockWeatherIslandBorder" && el.IsVisible && el.ActualWidth > 0 && el.Opacity > 0.5))
+        {
+            _maskDumpCount++;
+            try
+            {
+                string dir = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs");
+                System.IO.Directory.CreateDirectory(dir);
+                string path = System.IO.Path.Combine(dir, $"homeglass_mask_{_maskDumpCount}_{DateTime.Now:HHmmss_fff}.png");
+                var encoder = new PngBitmapEncoder();
+                encoder.Frames.Add(BitmapFrame.Create(rtb));
+                using var fs = System.IO.File.Create(path);
+                encoder.Save(fs);
+                LogService.Write("HomeGlassDiag", $"Mask dump #{_maskDumpCount} saved: {path}");
+            }
+            catch (Exception ex)
+            {
+                LogService.Write("HomeGlassDiag", "Mask dump failed: " + ex);
+            }
+        }
 
         _layer.OpacityMask = new ImageBrush(rtb)
         {

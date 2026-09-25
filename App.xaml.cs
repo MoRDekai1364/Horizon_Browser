@@ -47,6 +47,8 @@ public partial class App : Application
     }
     protected override void OnStartup(StartupEventArgs e)
     {
+        if (Environment.GetEnvironmentVariable("HORIZON_FORCE_SOFTWARE_RENDER") == "1")
+            System.Windows.Media.RenderOptions.ProcessRenderMode = System.Windows.Interop.RenderMode.SoftwareOnly;
         LogService.Initialize();
         LogService.Write("BOOT", "Horizon Stealth Browser is starting...");
 
