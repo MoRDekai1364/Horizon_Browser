@@ -1069,11 +1069,11 @@
             -->
             <Grid x:Name="HeaderHomeBlurBleed" Grid.Row="0" Grid.RowSpan="4" Grid.ColumnSpan="2"
                   Panel.ZIndex="50" IsHitTestVisible="False" Visibility="Collapsed">
-                <Border x:Name="HeaderHomeBlurBleedBorder" Height="48" VerticalAlignment="Top" Margin="0,60,0,0">
+                <Border x:Name="HeaderHomeBlurBleedBorder" Height="110" VerticalAlignment="Top" Margin="0,60,0,0">
                     <Border.OpacityMask>
                         <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
                             <GradientStop Color="#FFFFFFFF" Offset="0.0"/>
-                            <GradientStop Color="#FFFFFFFF" Offset="0.35"/>
+                            <GradientStop Color="#FFFFFFFF" Offset="0.12"/>
                             <GradientStop Color="#00FFFFFF" Offset="1.0"/>
                         </LinearGradientBrush>
                     </Border.OpacityMask>
@@ -1602,6 +1602,41 @@
 
             <Grid x:Name="SidebarContainer" Grid.Row="3" Grid.Column="1" Width="0">
                 <controls:FluxSidebar x:Name="RightSidebar"/>
+
+                <!--
+                    Homepage exception, same idea as the header: while the
+                    homepage's wallpaper is on screen, the sidebar shows a
+                    blurred extension of that wallpaper's own edges instead of
+                    its normal flat background, with a solid B/W center fill
+                    (matching the homepage search bar) faded in from top/bottom.
+                    Wired in code-behind via InitSidebarWallpaperGlass, same
+                    HomeGlassService.AttachWallpaperEdgeGlass helper as the
+                    header.
+                -->
+                <Grid x:Name="SidebarWallpaperGlass" IsHitTestVisible="False" Visibility="Collapsed">
+                    <Border x:Name="SidebarWallpaperGlassBlur" Margin="-48"/>
+                </Grid>
+
+                <Rectangle x:Name="SidebarHomeCenterFill" IsHitTestVisible="False" Visibility="Collapsed"/>
+
+                <!--
+                    Sidebar-only seam softener, mirrors HeaderHomeBlurBleed:
+                    bleeds a fading, blurred sliver of wallpaper out past the
+                    sidebar's own left edge so the sidebar-to-content boundary
+                    isn't a hard line. SidebarContainer doesn't clip its
+                    children, so the negative margin is enough for it to spill
+                    left on its own — no separate spanning host needed like the
+                    header required.
+                -->
+                <Border x:Name="SidebarHomeBlurBleedBorder" Width="110" HorizontalAlignment="Left" Margin="-110,0,0,0">
+                    <Border.OpacityMask>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                            <GradientStop Color="#00FFFFFF" Offset="0.0"/>
+                            <GradientStop Color="#FFFFFFFF" Offset="0.88"/>
+                            <GradientStop Color="#FFFFFFFF" Offset="1.0"/>
+                        </LinearGradientBrush>
+                    </Border.OpacityMask>
+                </Border>
             </Grid>
 
             <!-- Notification row: lives in Row 2 (pure WPF layout, above WebView2 HWND) -->

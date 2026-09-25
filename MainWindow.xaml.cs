@@ -1230,6 +1230,7 @@ public partial class MainWindow : Window
 
         InitHeaderAmbientGlow();
         InitHeaderWallpaperGlass();
+        InitSidebarWallpaperGlass();
 
         this.Closing += MainWindow_Closing;
         BackgroundKeepAliveService.Initialize(this);
@@ -2187,6 +2188,8 @@ return colors.length > 0 ? colors : null;
             if (_activeTabView != null) _activeTabView.Visibility = Visibility.Collapsed;
             _headerWallpaperGlassRefresh?.Invoke();
             _headerHomeBlurBleedRefresh?.Invoke();
+            _sidebarWallpaperGlassRefresh?.Invoke();
+            _sidebarHomeBlurBleedRefresh?.Invoke();
             var activeView = _tabViews[selectedTab];
             activeView.Visibility = Visibility.Visible;
             _activeTabView = activeView;
@@ -2891,6 +2894,12 @@ return colors.length > 0 ? colors : null;
     private Action? _headerHomeBlurBleedRefresh;
     private LinearGradientBrush? _headerHomeCenterBrush;
 
+    private Action? _sidebarWallpaperGlassUnbind;
+    private Action? _sidebarWallpaperGlassRefresh;
+    private Action? _sidebarHomeBlurBleedUnbind;
+    private Action? _sidebarHomeBlurBleedRefresh;
+    private LinearGradientBrush? _sidebarHomeCenterBrush;
+
     private void InitHeaderWallpaperGlass()
     {
         _headerHomeCenterBrush = new LinearGradientBrush
@@ -2920,10 +2929,55 @@ return colors.length > 0 ? colors : null;
             HeaderHomeBlurBleedBorder,
             HeaderHomeBlurBleed,
             HeaderHomeBlurBleedBorder,
-            padDip: 16,
-            blurRadius: 24);
+            padDip: 24,
+            blurRadius: 32);
         _headerHomeBlurBleedUnbind = bleedUnbind;
         _headerHomeBlurBleedRefresh = bleedRefresh;
+    }
+
+    private void InitSidebarWallpaperGlass()
+    {
+        _sidebarHomeCenterBrush = new LinearGradientBrush
+        {
+            StartPoint = new Point(0, 0),
+            EndPoint = new Point(0, 1)
+        };
+        _sidebarHomeCenterBrush.GradientStops.Add(new GradientStop(Colors.Transparent, 0.0));
+        _sidebarHomeCenterBrush.GradientStops.Add(new GradientStop(Colors.Transparent, 0.5));
+        _sidebarHomeCenterBrush.GradientStops.Add(new GradientStop(Colors.Transparent, 1.0));
+        SidebarHomeCenterFill.Fill = _sidebarHomeCenterBrush;
+
+        var (unbind, refresh) = HomeGlassService.AttachWallpaperEdgeGlass(
+            SidebarContainer,
+            SidebarWallpaperGlass,
+            SidebarWallpaperGlassBlur,
+            onOverlapChanged: overlap => UpdateSidebarHomeCenterFill(overlap != null));
+        _sidebarWallpaperGlassUnbind = unbind;
+        _sidebarWallpaperGlassRefresh = refresh;
+
+        var (bleedUnbind, bleedRefresh) = HomeGlassService.AttachWallpaperEdgeGlass(
+            SidebarHomeBlurBleedBorder,
+            SidebarHomeBlurBleedBorder,
+            SidebarHomeBlurBleedBorder,
+            padDip: 24,
+            blurRadius: 32);
+        _sidebarHomeBlurBleedUnbind = bleedUnbind;
+        _sidebarHomeBlurBleedRefresh = bleedRefresh;
+    }
+
+    private void UpdateSidebarHomeCenterFill(bool homeActive)
+    {
+        if (_sidebarHomeCenterBrush == null) return;
+
+        if (!homeActive)
+        {
+            SidebarHomeCenterFill.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        Color centerColor = CurrentBrowser?.NativeHomePage.SearchBarTextColor ?? Colors.White;
+        _sidebarHomeCenterBrush.GradientStops[1].Color = Color.FromArgb(187, centerColor.R, centerColor.G, centerColor.B);
+        SidebarHomeCenterFill.Visibility = Visibility.Visible;
     }
 
     private void UpdateHeaderHomeCenterFill(bool homeActive)
@@ -2937,7 +2991,7 @@ return colors.length > 0 ? colors : null;
         }
 
         Color centerColor = CurrentBrowser?.NativeHomePage.SearchBarTextColor ?? Colors.White;
-        _headerHomeCenterBrush.GradientStops[1].Color = Color.FromArgb(220, centerColor.R, centerColor.G, centerColor.B);
+        _headerHomeCenterBrush.GradientStops[1].Color = Color.FromArgb(187, centerColor.R, centerColor.G, centerColor.B);
         HeaderHomeCenterFill.Visibility = Visibility.Visible;
     }
 
