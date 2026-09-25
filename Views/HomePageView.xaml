@@ -22,31 +22,50 @@
             <GradientStop Color="#00555555" Offset="1.0"/>
         </RadialGradientBrush>
 
+        <LinearGradientBrush x:Key="SharedSearchBgBrush" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#D91A1A1A" Offset="0.0"/>
+            <GradientStop Color="#D91A1A1A" Offset="0.68"/>
+            <GradientStop Color="#B71A1A1A" Offset="1.0"/>
+        </LinearGradientBrush>
+        <SolidColorBrush x:Key="SharedSearchBorderBrush" Color="#33FFFFFF"/>
+
         <Style TargetType="ContextMenu">
-            <Setter Property="Background" Value="#FF1A1A1A"/>
-            <Setter Property="BorderBrush" Value="#33FFFFFF"/>
+            <EventSetter Event="Opened" Handler="ContextMenu_Opened"/>
+            <Setter Property="Background" Value="{DynamicResource SharedSearchBgBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource SharedSearchBorderBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ContextMenu">
-                        <Border x:Name="CtxMenuBg" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="24" Padding="4">
-                            <Border.OpacityMask>
-                                <VisualBrush Stretch="None">
-                                    <VisualBrush.Visual>
-                                        <Border Width="{Binding ActualWidth, ElementName=CtxMenuBg}"
-                                                Height="{Binding ActualHeight, ElementName=CtxMenuBg}"
-                                                CornerRadius="24"
-                                                Background="Black">
-                                            <Border.Effect>
-                                                <BlurEffect Radius="16" KernelType="Gaussian"/>
-                                            </Border.Effect>
-                                        </Border>
-                                    </VisualBrush.Visual>
-                                </VisualBrush>
-                            </Border.OpacityMask>
-                            <ItemsPresenter/>
-                        </Border>
+                        <Grid>
+                            <Border CornerRadius="24" ClipToBounds="True">
+                                <Grid x:Name="GlassHost" Visibility="Collapsed">
+                                    <Border x:Name="WallLayer" RenderTransformOrigin="0.5,0.5">
+                                        <Border.RenderTransform><ScaleTransform ScaleX="1.08" ScaleY="1.08"/></Border.RenderTransform>
+                                        <Border.Effect><BlurEffect Radius="32" KernelType="Gaussian" RenderingBias="Performance"/></Border.Effect>
+                                    </Border>
+                                    <Border x:Name="TintLayer" Background="{TemplateBinding Background}"/>
+                                </Grid>
+                            </Border>
+                            <Border x:Name="CtxMenuBg" BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="24" Padding="4">
+                                <Border.OpacityMask>
+                                    <VisualBrush Stretch="None">
+                                        <VisualBrush.Visual>
+                                            <Border Width="{Binding ActualWidth, ElementName=CtxMenuBg}"
+                                                    Height="{Binding ActualHeight, ElementName=CtxMenuBg}"
+                                                    CornerRadius="24"
+                                                    Background="Black">
+                                                <Border.Effect>
+                                                    <BlurEffect Radius="4" KernelType="Gaussian" RenderingBias="Performance"/>
+                                                </Border.Effect>
+                                            </Border>
+                                        </VisualBrush.Visual>
+                                    </VisualBrush>
+                                </Border.OpacityMask>
+                                <ItemsPresenter/>
+                            </Border>
+                        </Grid>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
@@ -67,24 +86,35 @@
                                 </Grid.ColumnDefinitions>
                                 <ContentPresenter ContentSource="Header" VerticalAlignment="Center" Grid.Column="0"/>
                                 <TextBlock x:Name="Arrow" Text="▶" FontSize="10" Foreground="White" VerticalAlignment="Center" Margin="12,0,0,0" Grid.Column="1" Visibility="Collapsed"/>
-                                <Popup x:Name="PART_Popup" AllowsTransparency="True" IsOpen="{Binding IsSubmenuOpen, RelativeSource={RelativeSource TemplatedParent}}" Placement="Right" PopupAnimation="Fade" HorizontalOffset="4">
-                                    <Border x:Name="SubMenuBg" Background="#D91A1A1A" BorderBrush="#33FFFFFF" BorderThickness="1" CornerRadius="24" Padding="4">
-                                        <Border.OpacityMask>
-                                            <VisualBrush Stretch="None">
-                                                <VisualBrush.Visual>
-                                                    <Border Width="{Binding ActualWidth, ElementName=SubMenuBg}"
-                                                            Height="{Binding ActualHeight, ElementName=SubMenuBg}"
-                                                            CornerRadius="24"
-                                                            Background="Black">
-                                                        <Border.Effect>
-                                                            <BlurEffect Radius="16" KernelType="Gaussian"/>
-                                                        </Border.Effect>
-                                                    </Border>
-                                                </VisualBrush.Visual>
-                                            </VisualBrush>
-                                        </Border.OpacityMask>
-                                        <ItemsPresenter/>
-                                    </Border>
+                                <Popup x:Name="PART_Popup" AllowsTransparency="True" IsOpen="{Binding IsSubmenuOpen, RelativeSource={RelativeSource TemplatedParent}}" Placement="Right" PopupAnimation="Fade" HorizontalOffset="4" Opened="Submenu_Opened">
+                                    <Grid>
+                                        <Border CornerRadius="24" ClipToBounds="True">
+                                            <Grid x:Name="GlassHost" Visibility="Collapsed">
+                                                <Border x:Name="WallLayer" RenderTransformOrigin="0.5,0.5">
+                                                    <Border.RenderTransform><ScaleTransform ScaleX="1.08" ScaleY="1.08"/></Border.RenderTransform>
+                                                    <Border.Effect><BlurEffect Radius="32" KernelType="Gaussian" RenderingBias="Performance"/></Border.Effect>
+                                                </Border>
+                                                <Border x:Name="TintLayer" Background="{DynamicResource SharedSearchBgBrush}"/>
+                                            </Grid>
+                                        </Border>
+                                        <Border x:Name="SubMenuBg" BorderBrush="{DynamicResource SharedSearchBorderBrush}" BorderThickness="1" CornerRadius="24" Padding="4">
+                                            <Border.OpacityMask>
+                                                <VisualBrush Stretch="None">
+                                                    <VisualBrush.Visual>
+                                                        <Border Width="{Binding ActualWidth, ElementName=SubMenuBg}"
+                                                                Height="{Binding ActualHeight, ElementName=SubMenuBg}"
+                                                                CornerRadius="24"
+                                                                Background="Black">
+                                                            <Border.Effect>
+                                                                <BlurEffect Radius="4" KernelType="Gaussian" RenderingBias="Performance"/>
+                                                            </Border.Effect>
+                                                        </Border>
+                                                    </VisualBrush.Visual>
+                                                </VisualBrush>
+                                            </Border.OpacityMask>
+                                            <ItemsPresenter/>
+                                        </Border>
+                                    </Grid>
                                 </Popup>
                             </Grid>
                         </Border>
@@ -411,7 +441,7 @@
             <Border x:Name="PnlBatteryPill" Grid.Row="0" Width="76" Height="26"
                     HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,31,84,0"
                     ClipToBounds="True" Cursor="Hand"
-                    Background="#0D0D0D" CornerRadius="13" BorderBrush="#80FFFFFF" BorderThickness="1.5"
+                    Background="{DynamicResource SharedSearchBgBrush}" CornerRadius="13" BorderBrush="{DynamicResource SharedSearchBorderBrush}" BorderThickness="1.5"
                     MouseLeftButtonUp="PnlBatteryPill_Click"
                     MouseRightButtonUp="PnlBatteryPill_Click">
                 <Border.OpacityMask>
@@ -419,10 +449,10 @@
                         <VisualBrush.Visual>
                             <Border Width="{Binding ActualWidth, ElementName=PnlBatteryPill}"
                                     Height="{Binding ActualHeight, ElementName=PnlBatteryPill}"
-                                    CornerRadius="{Binding CornerRadius, ElementName=PnlBatteryPill}"
+                                    CornerRadius="13"
                                     Background="Black">
                                 <Border.Effect>
-                                    <BlurEffect Radius="16" KernelType="Gaussian"/>
+                                    <BlurEffect Radius="4" KernelType="Gaussian" RenderingBias="Performance"/>
                                 </Border.Effect>
                             </Border>
                         </VisualBrush.Visual>
@@ -431,12 +461,12 @@
                 <Grid>
                     <Border x:Name="BatteryPillFill"
                             HorizontalAlignment="Left" VerticalAlignment="Stretch"
-                            CornerRadius="13" Width="0" Margin="1"/>
+                            CornerRadius="13" Width="0" Margin="1" Opacity="0.55"/>
                     <TextBlock x:Name="TxtBatteryPill" Text="🔋 --%"
-                               Foreground="White" FontSize="11" FontWeight="Bold"
+                               Foreground="White" FontSize="11" FontWeight="SemiBold"
                                HorizontalAlignment="Center" VerticalAlignment="Center">
                         <TextBlock.Effect>
-                            <DropShadowEffect Color="Black" Direction="270" ShadowDepth="1" BlurRadius="4" Opacity="0.9"/>
+                            <DropShadowEffect Color="Black" Direction="270" ShadowDepth="1" BlurRadius="3" Opacity="0.85" RenderingBias="Performance"/>
                         </TextBlock.Effect>
                     </TextBlock>
                 </Grid>
@@ -452,32 +482,31 @@
                 </Border>
             </Button>
 
-            <Button x:Name="BtnChangeWallpaper" Grid.Row="1" Height="44"
+            <Button x:Name="BtnChangeWallpaper" Grid.Row="1" Height="26"
                     HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,16,16"
                     Click="BtnChangeWallpaper_Click" BorderThickness="0" Cursor="Hand"
                     Background="Transparent" Padding="0">
-                <Border x:Name="BtnChangeWallpaperBg" Background="#8C1A1A1A" CornerRadius="22"
+                <Border x:Name="BtnChangeWallpaperBg" Background="#991A1A1A" CornerRadius="13"
                         BorderBrush="#80FFFFFF" BorderThickness="1.5" ClipToBounds="True">
                     <Border.OpacityMask>
                         <VisualBrush Stretch="None">
                             <VisualBrush.Visual>
                                 <Border Width="{Binding ActualWidth, ElementName=BtnChangeWallpaperBg}"
                                         Height="{Binding ActualHeight, ElementName=BtnChangeWallpaperBg}"
-                                        CornerRadius="{Binding CornerRadius, ElementName=BtnChangeWallpaperBg}"
+                                        CornerRadius="13"
                                         Background="Black">
                                     <Border.Effect>
-                                        <BlurEffect Radius="16" KernelType="Gaussian"/>
+                                        <BlurEffect Radius="4" KernelType="Gaussian" RenderingBias="Performance"/>
                                     </Border.Effect>
                                 </Border>
                             </VisualBrush.Visual>
                         </VisualBrush>
                     </Border.OpacityMask>
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="18,0,20,0">
-                        <TextBlock x:Name="BtnChangeWallpaperIcon" Text="🖼" FontSize="18" VerticalAlignment="Center"/>
-                        <TextBlock Text="Change Wallpaper" FontSize="14" FontWeight="SemiBold" Foreground="White"
-                                   VerticalAlignment="Center" Margin="8,0,0,0">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="16,0,16,0">
+                        <TextBlock Text="Change Wallpaper" FontSize="11" FontWeight="SemiBold" Foreground="White"
+                                   VerticalAlignment="Center">
                             <TextBlock.Effect>
-                                <DropShadowEffect Color="Black" Direction="270" ShadowDepth="1" BlurRadius="4" Opacity="0.9"/>
+                                <DropShadowEffect Color="Black" Direction="270" ShadowDepth="1" BlurRadius="3" Opacity="0.85" RenderingBias="Performance"/>
                             </TextBlock.Effect>
                         </TextBlock>
                     </StackPanel>
@@ -507,7 +536,6 @@
                     Opacity="0">
             </Border>
             <Border x:Name="SearchBlurPill" Grid.Row="0" Grid.Column="0"
-                    Panel.ZIndex="999"
                     HorizontalAlignment="Left" VerticalAlignment="Top"
                     Margin="30,40,40,0"
                     Width="{Binding ActualWidth, ElementName=ClockWeatherIslandBorder}"
@@ -518,6 +546,9 @@
                     BorderThickness="{Binding BorderThickness, ElementName=SearchBoxBorder}"
                     IsHitTestVisible="False"
                     Opacity="0">
+                <Border.CacheMode>
+                    <BitmapCache EnableClearType="False" RenderAtScale="1" SnapsToDevicePixels="True"/>
+                </Border.CacheMode>
                 <Border.OpacityMask>
                     <VisualBrush Stretch="None">
                         <VisualBrush.Visual>
@@ -526,13 +557,35 @@
                                     CornerRadius="{Binding CornerRadius, ElementName=SearchBoxBorder}"
                                     Background="Black">
                                 <Border.Effect>
-                                    <BlurEffect Radius="16" KernelType="Gaussian"/>
+                                    <BlurEffect Radius="16" KernelType="Gaussian" RenderingBias="Performance"/>
                                 </Border.Effect>
                             </Border>
                         </VisualBrush.Visual>
                     </VisualBrush>
                 </Border.OpacityMask>
             </Border>
+            
+            <Border x:Name="ClockWeatherHitOverlay" Grid.Row="0" Grid.Column="0"
+                    Panel.ZIndex="1000"
+                    HorizontalAlignment="Left" VerticalAlignment="Top"
+                    Margin="30,40,40,0"
+                    Width="{Binding ActualWidth, ElementName=ClockWeatherIslandBorder}"
+                    Height="{Binding ActualHeight, ElementName=ClockWeatherIslandBorder}"
+                    Background="Transparent"
+                    BorderBrush="Transparent">
+                <Canvas x:Name="PillClickZones" Background="{x:Null}">
+                    <Border x:Name="ZoneClockMode" Cursor="Hand" Background="Transparent" 
+                            MouseLeftButtonUp="WidgetClockWeather_Click" 
+                            PreviewMouseLeftButtonDown="Widget_PreviewMouseLeftButtonDown" MouseMove="Widget_MouseMove" Tag="ClockWeather" />
+                    <Border x:Name="ZoneWeatherPopup" Cursor="Hand" Background="Transparent" 
+                            MouseLeftButtonUp="WidgetClockWeather_Click" 
+                            PreviewMouseLeftButtonDown="Widget_PreviewMouseLeftButtonDown" MouseMove="Widget_MouseMove" Tag="WeatherOverlay" />
+                    <Border x:Name="ZoneCalendar" Cursor="Hand" Background="Transparent" 
+                            MouseLeftButtonUp="WidgetCalendar_Click" 
+                            PreviewMouseLeftButtonDown="Widget_PreviewMouseLeftButtonDown" MouseMove="Widget_MouseMove" Tag="Calendar" />
+                </Canvas>
+            </Border>
+
             <StackPanel x:Name="PnlClockWeather" Grid.Row="0" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="40,50,40,0">
                 <StackPanel x:Name="PnlClockWeatherSub" Tag="ClockWeather" RenderTransformOrigin="0,0" Background="Transparent" Cursor="Hand" MouseLeftButtonUp="WidgetClockWeather_Click" PreviewMouseLeftButtonDown="Widget_PreviewMouseLeftButtonDown" MouseMove="Widget_MouseMove">
                     <StackPanel.RenderTransform>
@@ -624,21 +677,7 @@
                 </Grid.RowDefinitions>
 
                 <Border x:Name="SearchBoxBorder" Grid.Row="0" HorizontalAlignment="Center" ClipToBounds="True"
-                        Background="#991A1A1A" CornerRadius="24" MaxWidth="900" MinHeight="48" BorderBrush="#33FFFFFF" BorderThickness="1">
-                    <Border.OpacityMask>
-                        <VisualBrush Stretch="None">
-                            <VisualBrush.Visual>
-                                <Border Width="{Binding ActualWidth, ElementName=SearchBoxBorder}"
-                                        Height="{Binding ActualHeight, ElementName=SearchBoxBorder}"
-                                        CornerRadius="{Binding CornerRadius, ElementName=SearchBoxBorder}"
-                                        Background="Black">
-                                    <Border.Effect>
-                                        <BlurEffect Radius="16" KernelType="Gaussian"/>
-                                    </Border.Effect>
-                                </Border>
-                            </VisualBrush.Visual>
-                        </VisualBrush>
-                    </Border.OpacityMask>
+                        Background="{DynamicResource SharedSearchBgBrush}" CornerRadius="24" MaxWidth="900" MinHeight="48" BorderBrush="{DynamicResource SharedSearchBorderBrush}" BorderThickness="1">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
@@ -682,20 +721,6 @@
                             BorderBrush="{Binding BorderBrush, ElementName=SearchBoxBorder}"
                             BorderThickness="{Binding BorderThickness, ElementName=SearchBoxBorder}"
                             IsHitTestVisible="False">
-                        <Border.OpacityMask>
-                            <VisualBrush Stretch="None">
-                                <VisualBrush.Visual>
-                                    <Border Width="{Binding ActualWidth, ElementName=FavBookmarksIslandBorder}"
-                                            Height="{Binding ActualHeight, ElementName=FavBookmarksIslandBorder}"
-                                            CornerRadius="{Binding CornerRadius, ElementName=SearchBoxBorder}"
-                                            Background="Black">
-                                        <Border.Effect>
-                                            <BlurEffect Radius="16" KernelType="Gaussian"/>
-                                        </Border.Effect>
-                                    </Border>
-                                </VisualBrush.Visual>
-                            </VisualBrush>
-                        </Border.OpacityMask>
                     </Border>
 
                     <!-- Divider marking the two parts of the merged widget -->
@@ -738,7 +763,7 @@
                                     <Grid HorizontalAlignment="Center" Width="77" Height="77">
                                         <Border Width="77" Height="77" CornerRadius="19" Background="{DynamicResource HomeAccentBrush}" BorderBrush="#26FFFFFF" BorderThickness="1" ClipToBounds="True">
                                             <Border.Effect>
-                                                <DropShadowEffect Color="Black" Direction="270" ShadowDepth="4" BlurRadius="10" Opacity="0.4"/>
+                                                <DropShadowEffect Color="Black" Direction="270" ShadowDepth="4" BlurRadius="10" Opacity="0.4" RenderingBias="Performance"/>
                                             </Border.Effect>
                                             <Grid>
                                                 <Image Source="{Binding Converter={StaticResource PinIconConverter}}" Width="48" Height="48" Stretch="Uniform"
@@ -795,7 +820,7 @@
                                     <Grid HorizontalAlignment="Center" Width="77" Height="77">
                                         <Border Width="77" Height="77" CornerRadius="19" Background="{DynamicResource HomeAccentBrush}" BorderBrush="#26FFFFFF" BorderThickness="1" ClipToBounds="True">
                                             <Border.Effect>
-                                                <DropShadowEffect Color="Black" Direction="270" ShadowDepth="4" BlurRadius="10" Opacity="0.4"/>
+                                                <DropShadowEffect Color="Black" Direction="270" ShadowDepth="4" BlurRadius="10" Opacity="0.4" RenderingBias="Performance"/>
                                             </Border.Effect>
                                             <Grid>
                                                 <Image Source="{Binding AsPin, Converter={StaticResource PinIconConverter}, IsAsync=True}" Width="48" Height="48" Stretch="Uniform"
@@ -832,16 +857,16 @@
         <!-- Audio visualizer: glow bleeding in from all four edges, colors cross-fading -->
         <Grid x:Name="HomeVizCanvas" IsHitTestVisible="False" Visibility="Collapsed">
             <Rectangle x:Name="VizEdgeTop" Height="220" VerticalAlignment="Top">
-                <Rectangle.Effect><BlurEffect Radius="60"/></Rectangle.Effect>
+                <Rectangle.Effect><BlurEffect Radius="60" RenderingBias="Performance"/></Rectangle.Effect>
             </Rectangle>
             <Rectangle x:Name="VizEdgeBottom" Height="220" VerticalAlignment="Bottom">
-                <Rectangle.Effect><BlurEffect Radius="60"/></Rectangle.Effect>
+                <Rectangle.Effect><BlurEffect Radius="60" RenderingBias="Performance"/></Rectangle.Effect>
             </Rectangle>
             <Rectangle x:Name="VizEdgeLeft" Width="220" HorizontalAlignment="Left">
-                <Rectangle.Effect><BlurEffect Radius="60"/></Rectangle.Effect>
+                <Rectangle.Effect><BlurEffect Radius="60" RenderingBias="Performance"/></Rectangle.Effect>
             </Rectangle>
             <Rectangle x:Name="VizEdgeRight" Width="220" HorizontalAlignment="Right">
-                <Rectangle.Effect><BlurEffect Radius="60"/></Rectangle.Effect>
+                <Rectangle.Effect><BlurEffect Radius="60" RenderingBias="Performance"/></Rectangle.Effect>
             </Rectangle>
         </Grid>
 

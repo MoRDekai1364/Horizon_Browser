@@ -7561,7 +7561,9 @@ private sealed class WeatherRetryHandler : DelegatingHandler
     private static Color WxPillOpaque =>
         Color.FromRgb(WeatherBridge.ThemePill.R, WeatherBridge.ThemePill.G, WeatherBridge.ThemePill.B);
 
-    private static Color WxPanel        => WxBlend(WeatherBridge.ThemeAverage, Colors.Black, 0.82);
+    private static Color WxPanel        => WeatherBridge.ThemeDarkWallpaper
+        ? WxBlend(WeatherBridge.ThemeAverage, Colors.Black, 0.82)
+        : WxBlend(WeatherBridge.ThemeAverage, Colors.White, 0.82);
     private static Color WxMuted        => WxBlend(WeatherBridge.ThemeAccentSubtle, WxPanel, 0.35);
     private static Color WxTabInactive  => WxBlend(WeatherBridge.ThemeAccentSubtle, Colors.White, 0.55);
     private static Color WxButtonBg     => WxBlend(WxPillOpaque, WxPanel, 0.55);

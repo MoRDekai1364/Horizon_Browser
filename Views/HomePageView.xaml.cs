@@ -164,6 +164,7 @@ public partial class HomePageView : UserControl
 
         AnimateElementOpacity(PnlClockWeather, 0.0, transformDuration);
         PnlClockWeather.IsHitTestVisible = false;
+        if (ClockWeatherHitOverlay != null) ClockWeatherHitOverlay.IsHitTestVisible = false;
         AnimateElementOpacity(ClockWeatherIslandBorder, 0.0, transformDuration);
         AnimateElementOpacity(BtnHomeSettings, 0.0, transformDuration);
         BtnHomeSettings.IsHitTestVisible = false;
@@ -287,6 +288,7 @@ public partial class HomePageView : UserControl
 
         AnimateElementOpacity(PnlClockWeather, 1.0, transformDuration);
         PnlClockWeather.IsHitTestVisible = true;
+        if (ClockWeatherHitOverlay != null) ClockWeatherHitOverlay.IsHitTestVisible = true;
         AnimateElementOpacity(ClockWeatherIslandBorder, _isContentVisible ? 0.85 : 0.0, transformDuration);
         AnimateElementOpacity(BtnHomeSettings, 1.0, transformDuration);
         BtnHomeSettings.IsHitTestVisible = true;
@@ -445,7 +447,6 @@ public partial class HomePageView : UserControl
                 _winStateHooked = true;
             }
             SizeChanged += (_, _) => UpdateSearchAreaLayout();
-            PnlClockWeather.SizeChanged += (_, _) => UpdateSearchAreaLayout();
         }
 
         UpdateClock();
@@ -622,7 +623,8 @@ public partial class HomePageView : UserControl
             Direction = 0,
             ShadowDepth = 0,
             BlurRadius = 6,
-            Opacity = 0.95
+            Opacity = 0.95,
+            RenderingBias = RenderingBias.Performance
         };
     }
 
@@ -1144,9 +1146,18 @@ public partial class HomePageView : UserControl
         SetHomeTextColor(Colors.White);
         TxtHomeSearch.CaretBrush = Brushes.White;
         TxtHomeSearch.Effect = MakeOutline(Colors.White);
-        SearchBoxBorder.Background = CreateSearchBarBackgroundBrush(Color.FromArgb(0xD9, 0x1A, 0x1A, 0x1A));
-        SearchBoxBorder.BorderBrush = new SolidColorBrush(Color.FromArgb(0x33, 0xFF, 0xFF, 0xFF));
-        PnlBatteryPill.Background = CreateSearchBarBackgroundBrush(Color.FromArgb(0xD9, 0x1A, 0x1A, 0x1A));
+
+        var searchBgBrush = CreateSearchBarBackgroundBrush(Color.FromArgb(0xD9, 0x1A, 0x1A, 0x1A));
+        var searchBorderBrush = new SolidColorBrush(Color.FromArgb(0x33, 0xFF, 0xFF, 0xFF));
+        
+        SearchBoxBorder.Background = searchBgBrush;
+        SearchBoxBorder.BorderBrush = searchBorderBrush;
+        PnlBatteryPill.Background = searchBgBrush;
+        PnlBatteryPill.BorderBrush = searchBorderBrush;
+        
+        Resources["SharedSearchBgBrush"] = searchBgBrush;
+        Resources["SharedSearchBorderBrush"] = searchBorderBrush;
+
         Color defaultPillBg = Color.FromArgb(0x40, 0x00, 0x00, 0x00);
         Brush defaultPillTextBrush = GetContrastingTextBrush(defaultPillBg);
         CmbSearchEngine.Background = new SolidColorBrush(defaultPillBg);
@@ -1326,9 +1337,17 @@ public partial class HomePageView : UserControl
 
         byte bgAlpha = TintService.Apply(0xD9);
         Color searchBg = darkWallpaper ? Color.FromArgb(bgAlpha, 0x1A, 0x1A, 0x1A) : Color.FromArgb(bgAlpha, 0xFF, 0xFF, 0xFF);
-        SearchBoxBorder.Background = CreateSearchBarBackgroundBrush(searchBg);
-        SearchBoxBorder.BorderBrush = new SolidColorBrush(Color.FromArgb(0x55, accentPrimary.R, accentPrimary.G, accentPrimary.B));
-        PnlBatteryPill.Background = CreateSearchBarBackgroundBrush(searchBg);
+        
+        var searchBgBrush = CreateSearchBarBackgroundBrush(searchBg);
+        var searchBorderBrush = new SolidColorBrush(Color.FromArgb(0x55, accentPrimary.R, accentPrimary.G, accentPrimary.B));
+        
+        SearchBoxBorder.Background = searchBgBrush;
+        SearchBoxBorder.BorderBrush = searchBorderBrush;
+        PnlBatteryPill.Background = searchBgBrush;
+        PnlBatteryPill.BorderBrush = searchBorderBrush;
+        
+        Resources["SharedSearchBgBrush"] = searchBgBrush;
+        Resources["SharedSearchBorderBrush"] = searchBorderBrush;
 
         ApplySettingsButtonColor(pillBg);
     }
@@ -1393,9 +1412,9 @@ public partial class HomePageView : UserControl
                 (byte)(a.G + (b.G - a.G) * t),
                 (byte)(a.B + (b.B - a.B) * t));
         }
-        var green  = Color.FromRgb(0x2e, 0xcc, 0x71);
-        var yellow = Color.FromRgb(0xf1, 0xc4, 0x0f);
-        var red    = Color.FromRgb(0xe7, 0x4c, 0x3c);
+        var green  = Color.FromRgb(0x34, 0xd3, 0x99);
+        var yellow = Color.FromRgb(0xf5, 0xc9, 0x4c);
+        var red    = Color.FromRgb(0xf0, 0x5a, 0x5a);
         if (percent >= 50) return Lerp(yellow, green, (percent - 50) / 50.0);
         return Lerp(red, yellow, percent / 50.0);
     }
@@ -1682,7 +1701,8 @@ public partial class HomePageView : UserControl
         if (mainWin == null) return;
 
         // If the user clicked directly on the weather text or city text, open the weather detail popup
-        if (e.OriginalSource is TextBlock tb && (tb == TblWeather || tb == TblWeatherCity))
+        if ((e.OriginalSource is TextBlock tb && (tb == TblWeather || tb == TblWeatherCity)) || 
+            (e.OriginalSource is FrameworkElement fe && fe.Tag?.ToString() == "WeatherOverlay"))
         {
             try
             {
@@ -2169,6 +2189,33 @@ public partial class HomePageView : UserControl
 
         ClockWeatherIslandBorder.Width = PnlClockWeather.ActualWidth + ClockWeatherIslandPadding * 2;
         ClockWeatherIslandBorder.Height = PnlClockWeather.ActualHeight + ClockWeatherIslandPadding * 2;
+
+        if (ZoneClockMode != null)
+        {
+            ZoneClockMode.Width = TblClock.ActualWidth;
+            ZoneClockMode.Height = TblClock.ActualHeight;
+            Canvas.SetLeft(ZoneClockMode, ClockWeatherIslandPadding);
+            Canvas.SetTop(ZoneClockMode, ClockWeatherIslandPadding);
+        }
+        if (ZoneWeatherPopup != null)
+        {
+            ZoneWeatherPopup.Width = Math.Max(TblWeather.ActualWidth, TblWeatherCity.ActualWidth) + 20;
+            ZoneWeatherPopup.Height = TblWeather.ActualHeight + TblWeatherCity.ActualHeight + 10;
+            Canvas.SetLeft(ZoneWeatherPopup, ClockWeatherIslandPadding);
+            Canvas.SetTop(ZoneWeatherPopup, ClockWeatherIslandPadding + TblClock.ActualHeight);
+        }
+        if (ZoneCalendar != null && PnlCalendar.Visibility == Visibility.Visible)
+        {
+            ZoneCalendar.Width = PnlCalendar.ActualWidth;
+            ZoneCalendar.Height = PnlCalendar.ActualHeight;
+            Canvas.SetLeft(ZoneCalendar, ClockWeatherIslandPadding);
+            try
+            {
+                var t = PnlCalendar.TransformToVisual(PnlClockWeather);
+                Canvas.SetTop(ZoneCalendar, t.Transform(new Point(0, 0)).Y + ClockWeatherIslandPadding);
+            }
+            catch { }
+        }
     }
 
     private void SetClockWeatherIslandVisible(bool visible)
@@ -2290,6 +2337,8 @@ public partial class HomePageView : UserControl
             Math.Abs(current.Y - _dragStartPoint.Y) > SystemParameters.MinimumVerticalDragDistance)
         {
             string? tag = (_draggedWidget as FrameworkElement)?.Tag as string;
+            if (tag == "WeatherOverlay") tag = "ClockWeather";
+            
             if (!string.IsNullOrEmpty(tag))
             {
                 DragDrop.DoDragDrop(_draggedWidget, new DataObject("WidgetId", tag), DragDropEffects.Move);
@@ -2349,6 +2398,94 @@ public partial class HomePageView : UserControl
             }
             SettingsService.Save();
             ApplyActiveLayoutMatrix(_editingInactivityLayout);
+        }
+    }
+
+    private static T? FindVisualChild<T>(DependencyObject parent, string name) where T : FrameworkElement
+    {
+        for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+        {
+            var child = VisualTreeHelper.GetChild(parent, i);
+            if (child is T t && t.Name == name) return t;
+            var result = FindVisualChild<T>(child, name);
+            if (result != null) return result;
+        }
+        return null;
+    }
+
+    private void ContextMenu_Opened(object sender, RoutedEventArgs e)
+    {
+        if (sender is ContextMenu menu)
+        {
+            var wallLayer = menu.Template.FindName("WallLayer", menu) as Border;
+            var glassHost = menu.Template.FindName("GlassHost", menu) as Grid;
+            SetupGlassMenu(menu, wallLayer, glassHost);
+        }
+    }
+
+    private void Submenu_Opened(object sender, EventArgs e)
+    {
+        if (sender is System.Windows.Controls.Primitives.Popup popup && popup.Child is FrameworkElement child)
+        {
+            var wallLayer = FindVisualChild<Border>(child, "WallLayer");
+            var glassHost = FindVisualChild<Grid>(child, "GlassHost");
+            SetupGlassMenu(popup, wallLayer, glassHost);
+        }
+    }
+
+    private void SetupGlassMenu(FrameworkElement root, Border? wallLayer, Grid? glassHost)
+    {
+        if (wallLayer == null || glassHost == null) return;
+        
+        // Popups operate inside a separate invisible overlay window managed by WPF.
+        var win = Window.GetWindow(root) ?? PresentationSource.FromVisual(root)?.RootVisual as Window;
+        if (win == null) return;
+
+        var wallBrush = new ImageBrush();
+        wallLayer.Background = wallBrush;
+
+        var unbind = WidgetBackdropService.Bind(win, wallBrush, overlap =>
+        {
+            if (overlap == null)
+            {
+                glassHost.Visibility = Visibility.Collapsed;
+                return;
+            }
+            glassHost.Clip = new RectangleGeometry(overlap.Value);
+            glassHost.Visibility = Visibility.Visible;
+        });
+
+        Action apply = () => {
+            wallLayer.Opacity = WeatherBridge.ThemeWallpaper != null
+                ? Math.Clamp(0.55 * SettingsService.Current.BackgroundOpacity, 0.0, 1.0)
+                : 0.0;
+        };
+        
+        apply();
+        Action handler = () => root.Dispatcher.BeginInvoke(apply);
+        WeatherBridge.ThemeUpdated += handler;
+
+        if (root is ContextMenu cm)
+        {
+            RoutedEventHandler? closedHandler = null;
+            closedHandler = (s, args) =>
+            {
+                cm.Closed -= closedHandler;
+                WeatherBridge.ThemeUpdated -= handler;
+                unbind();
+            };
+            cm.Closed += closedHandler;
+        }
+        else if (root is System.Windows.Controls.Primitives.Popup pp)
+        {
+            EventHandler? closedHandler = null;
+            closedHandler = (s, args) =>
+            {
+                pp.Closed -= closedHandler;
+                WeatherBridge.ThemeUpdated -= handler;
+                unbind();
+            };
+            pp.Closed += closedHandler;
         }
     }
 }
