@@ -494,6 +494,7 @@ public partial class MainWindow : Window
     }
     private const int DWMWA_WINDOW_CORNER_PREFERENCE = 33;
     private const int DWMWCP_ROUND = 2; // DWM rounded corners (Windows 11+)
+    private const int DWMWCP_ROUNDSMALL = 3; // DWM small-radius rounded corners (Windows 11+)
     private const uint MONITOR_DEFAULTTONEAREST = 2u;
 
     // AppBar messages + states
@@ -553,7 +554,7 @@ public partial class MainWindow : Window
             try
             {
                 var hwndW = new WindowInteropHelper(w).Handle;
-                int pref = DWMWCP_ROUND;
+                int pref = DWMWCP_ROUNDSMALL;
                 DwmSetWindowAttribute(hwndW, DWMWA_WINDOW_CORNER_PREFERENCE, ref pref, sizeof(int));
             }
             catch { }
@@ -7641,7 +7642,7 @@ private sealed class WeatherRetryHandler : DelegatingHandler
                 ? Math.Clamp(0.55 * SettingsService.Current.BackgroundOpacity, 0.0, 1.0)
                 : 0.0;
             var pill = WeatherBridge.ThemePill;
-            tintLayer.Background = new SolidColorBrush(Color.FromArgb(TintService.Apply((byte)0x1C), pill.R, pill.G, pill.B));
+            tintLayer.Background = new SolidColorBrush(pill);
         }
 
         Apply();

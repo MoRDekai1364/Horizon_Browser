@@ -48,6 +48,7 @@ public partial class HomePageView : UserControl
         _homeGlass = new HomeGlassInlineLayer(RootHomeGrid, BgImageBrush, BgVideoElement);
         _homeGlass.Register(SearchBoxBorder);
         _homeGlass.Register(ClockWeatherIslandBorder);
+        _homeGlass.Register(ClockWeatherIslandBorder);
         _homeGlass.Register(FavBookmarksIslandBorder);
         Loaded += (_, __) => WeatherBridge.SetWallpaperSurface(RootHomeGrid);
         Unloaded += (_, __) =>
@@ -82,6 +83,8 @@ public partial class HomePageView : UserControl
             Duration = new Duration(duration),
             EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
         };
+        anim.CurrentTimeInvalidated += (_, _) => _homeGlass.Invalidate();
+        anim.Completed += (_, _) => _homeGlass.Invalidate();
         target.BeginAnimation(UIElement.OpacityProperty, anim);
     }
 
@@ -1061,7 +1064,7 @@ public partial class HomePageView : UserControl
         double pillSat = Math.Min(Math.Max(sat, 0.4225), 0.6175);
         double pillLum = dark ? 0.46 : 0.68;
         Color pillHue = HslToRgb(hue, pillSat, pillLum);
-        Color pill = Color.FromArgb(dark ? (byte)0xCC : (byte)0xD9, pillHue.R, pillHue.G, pillHue.B);
+        Color pill = Color.FromArgb(TintService.Apply(dark ? (byte)0x8C : (byte)0x99), pillHue.R, pillHue.G, pillHue.B);
 
         Color accent = adaptive
             ? HslToRgb(hue, Math.Min(Math.Max(sat, 0.35), 0.7), 0.78)
@@ -1262,7 +1265,7 @@ public partial class HomePageView : UserControl
 
         // Colorful pill: hue/saturation taken from the wallpaper's dominant color, lightness
         // tuned for a dark or light wallpaper so the pill still sits legibly on the search bar.
-        double pillSat = Math.Min(Math.Max(sat, 0.65), 0.95);
+        double pillSat = Math.Min(Math.Max(sat, 0.4225), 0.6175);
         double pillLum = darkWallpaperForContrast ? 0.46 : 0.68;
         Color pillHueColor = HslToRgb(hue, pillSat, pillLum);
         byte pillAlpha = TintService.Apply(darkWallpaperForContrast ? (byte)0x8C : (byte)0x99);

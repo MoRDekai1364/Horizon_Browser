@@ -7,7 +7,7 @@
              xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"
              mc:Ignorable="po"
              Background="{DynamicResource Brush_Background}"
-             BorderBrush="#1aff00" BorderThickness="1,0,0,0"
+             BorderBrush="{DynamicResource Brush_TabStripBorder}" BorderThickness="1,0,0,0"
              Width="320">
 
     <UserControl.Resources>
