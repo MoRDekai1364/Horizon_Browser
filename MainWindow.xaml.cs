@@ -2186,6 +2186,7 @@ return colors.length > 0 ? colors : null;
         {
             if (_activeTabView != null) _activeTabView.Visibility = Visibility.Collapsed;
             _headerWallpaperGlassRefresh?.Invoke();
+            _headerHomeBlurBleedRefresh?.Invoke();
             var activeView = _tabViews[selectedTab];
             activeView.Visibility = Visibility.Visible;
             _activeTabView = activeView;
@@ -2886,6 +2887,8 @@ return colors.length > 0 ? colors : null;
 
     private Action? _headerWallpaperGlassUnbind;
     private Action? _headerWallpaperGlassRefresh;
+    private Action? _headerHomeBlurBleedUnbind;
+    private Action? _headerHomeBlurBleedRefresh;
     private LinearGradientBrush? _headerHomeCenterBrush;
 
     private void InitHeaderWallpaperGlass()
@@ -2912,6 +2915,15 @@ return colors.length > 0 ? colors : null;
             });
         _headerWallpaperGlassUnbind = unbind;
         _headerWallpaperGlassRefresh = refresh;
+
+        var (bleedUnbind, bleedRefresh) = HomeGlassService.AttachWallpaperEdgeGlass(
+            HeaderHomeBlurBleedBorder,
+            HeaderHomeBlurBleed,
+            HeaderHomeBlurBleedBorder,
+            padDip: 16,
+            blurRadius: 24);
+        _headerHomeBlurBleedUnbind = bleedUnbind;
+        _headerHomeBlurBleedRefresh = bleedRefresh;
     }
 
     private void UpdateHeaderHomeCenterFill(bool homeActive)

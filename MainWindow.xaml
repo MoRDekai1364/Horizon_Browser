@@ -1057,6 +1057,29 @@
                 </Grid>
             </Grid>
 
+            <!--
+                Homepage-only seam softener: bleeds a fading, blurred sliver of
+                the wallpaper a little way below the header's bottom edge, so the
+                header-to-content boundary isn't a hard line. Lives outside
+                HeaderContainer (which clips its own 60px bounds) so it can
+                actually spill past that edge; RowSpan reaches into the content
+                row and Panel.ZIndex keeps it drawn above that content. Wired in
+                code-behind alongside the rest of InitHeaderWallpaperGlass —
+                same idea applies to the sidebar later.
+            -->
+            <Grid x:Name="HeaderHomeBlurBleed" Grid.Row="0" Grid.RowSpan="4" Grid.ColumnSpan="2"
+                  Panel.ZIndex="50" IsHitTestVisible="False" Visibility="Collapsed">
+                <Border x:Name="HeaderHomeBlurBleedBorder" Height="48" VerticalAlignment="Top" Margin="0,60,0,0">
+                    <Border.OpacityMask>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop Color="#FFFFFFFF" Offset="0.0"/>
+                            <GradientStop Color="#FFFFFFFF" Offset="0.35"/>
+                            <GradientStop Color="#00FFFFFF" Offset="1.0"/>
+                        </LinearGradientBrush>
+                    </Border.OpacityMask>
+                </Border>
+            </Grid>
+
             <!-- ── Mobile / Compact Header (2-row stacked layout) ──────────── -->
             <Grid x:Name="MobileHeaderContainer"
                   Grid.Row="0" Grid.ColumnSpan="2"

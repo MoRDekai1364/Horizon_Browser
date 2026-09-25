@@ -61,7 +61,14 @@ public partial class HomePageView : UserControl
                 WeatherBridge.SetWallpaperSurface(null);
         };
         PnlClockWeather.SizeChanged += (_, __) => UpdateClockWeatherIslandBounds();
-        IsVisibleChanged += (_, e) => { if (IsVisible) { RefreshSearchEngineList(); } };
+        IsVisibleChanged += (_, e) =>
+        {
+            if (!IsVisible) return;
+            RefreshSearchEngineList();
+            WeatherBridge.SetWallpaperSurface(RootHomeGrid);
+            if (BgImageBrush.ImageSource is BitmapSource ownBitmap) WeatherBridge.SetWallpaper(ownBitmap);
+            if (_lastAdaptiveAvgColor.HasValue) PublishWeatherTheme(_lastAdaptiveAvgColor.Value);
+        };
         MouseMove += (_, _) => RegisterUserActivity();
         MouseEnter += (_, _) => RegisterUserActivity();
         PreviewKeyDown += (_, e) =>
@@ -819,7 +826,11 @@ public partial class HomePageView : UserControl
             if (myToken != _wallpaperLoadToken) return;
 
             BgImageBrush.ImageSource = bmp;
-            WeatherBridge.SetWallpaper(bmp);
+            if (IsVisible)
+            {
+                WeatherBridge.SetWallpaperSurface(RootHomeGrid);
+                WeatherBridge.SetWallpaper(bmp);
+            }
             ApplyAdaptiveColors(avgColor);
         }
 
@@ -1272,6 +1283,7 @@ public partial class HomePageView : UserControl
         _lastAdaptiveAvgColor = avg;
         PublishWeatherTheme(avg);
         RgbToHsl(avg, out double hue, out double sat, out double lum);
+        if (IsVisible) PublishWeatherTheme(avg);
         bool darkWallpaperForContrast = lum < 0.5;
         Color searchTextColor = darkWallpaperForContrast ? Colors.White : Color.FromRgb(0x1A, 0x1A, 0x1A);
         Color searchPlaceholderColor = darkWallpaperForContrast ? Color.FromRgb(0xBB, 0xBB, 0xBB) : Color.FromRgb(0x55, 0x55, 0x55);
