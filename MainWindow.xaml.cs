@@ -2942,19 +2942,6 @@ return colors.length > 0 ? colors : null;
 
     private void InitSidebarWallpaperGlass()
     {
-        _sidebarHomeCenterBrush = new LinearGradientBrush
-        {
-            StartPoint = new Point(0, 0),
-            EndPoint = new Point(0, 1)
-        };
-        _sidebarHomeCenterBrush.GradientStops.Add(new GradientStop(Colors.Transparent, 0.0));
-        _sidebarHomeCenterBrush.GradientStops.Add(new GradientStop(Colors.Transparent, 0.18));
-        _sidebarHomeCenterBrush.GradientStops.Add(new GradientStop(Colors.Transparent, 0.36));
-        _sidebarHomeCenterBrush.GradientStops.Add(new GradientStop(Colors.Transparent, 0.64));
-        _sidebarHomeCenterBrush.GradientStops.Add(new GradientStop(Colors.Transparent, 0.82));
-        _sidebarHomeCenterBrush.GradientStops.Add(new GradientStop(Colors.Transparent, 1.0));
-        SidebarHomeCenterFill.Fill = _sidebarHomeCenterBrush;
-
         // Sidebar glass does NOT sample the exact wallpaper region behind it like the
         // header does — it's a side element, not one that already sits over the
         // wallpaper. Instead it takes a fixed slice of the homepage background: the
@@ -2984,11 +2971,7 @@ return colors.length > 0 ? colors : null;
             SidebarContainer,
             new ImageBrush(),
             HomeGlassService.DefaultEdgeGlassPad,
-            overlap =>
-            {
-                HomeGlassService.ApplyOverlap(SidebarWallpaperGlass, overlap);
-                UpdateSidebarHomeCenterFill(overlap != null);
-            },
+            overlap => HomeGlassService.ApplyOverlap(SidebarWallpaperGlass, overlap),
             requireOverlap: false);
         _sidebarWallpaperGlassUnbind = unbind;
         _sidebarWallpaperGlassRefresh = refresh;
@@ -3003,22 +2986,7 @@ return colors.length > 0 ? colors : null;
         _sidebarHomeBlurBleedRefresh = bleedRefresh;
     }
 
-    private void UpdateSidebarHomeCenterFill(bool homeActive)
-    {
-        if (_sidebarHomeCenterBrush == null) return;
 
-        if (!homeActive)
-        {
-            SidebarHomeCenterFill.Visibility = Visibility.Collapsed;
-            return;
-        }
-
-        Color centerColor = CurrentBrowser?.NativeHomePage.SearchBarTextColor ?? Colors.White;
-        var bandColor = Color.FromArgb(187, centerColor.R, centerColor.G, centerColor.B);
-        _sidebarHomeCenterBrush.GradientStops[2].Color = bandColor;
-        _sidebarHomeCenterBrush.GradientStops[3].Color = bandColor;
-        SidebarHomeCenterFill.Visibility = Visibility.Visible;
-    }
 
     private void UpdateHeaderHomeCenterFill(bool homeActive)
     {
@@ -3031,8 +2999,46 @@ return colors.length > 0 ? colors : null;
         }
 
         Color centerColor = CurrentBrowser?.NativeHomePage.SearchBarTextColor ?? Colors.White;
-        _headerHomeCenterBrush.GradientStops[1].Color = Color.FromArgb(187, centerColor.R, centerColor.G, centerColor.B);
+        _headerHomeCenterBrush.GradientStops[1].Color = Color.FromArgb(140, centerColor.R, centerColor.G, centerColor.B);
         HeaderHomeCenterFill.Visibility = Visibility.Visible;
+        UpdateHeaderButtonContrastTint(centerColor);
+    }
+
+    private static readonly Color HeaderButtonForegroundApprox = Color.FromRgb(0xEE, 0xEE, 0xEE);
+    private const double HeaderButtonMinContrast = 2.2; // low bar on purpose: only kicks in when genuinely unreadable
+
+    private static double RelativeLuminance(Color c)
+    {
+        double Lin(byte v)
+        {
+            double s = v / 255.0;
+            return s <= 0.03928 ? s / 12.92 : Math.Pow((s + 0.055) / 1.055, 2.4);
+        }
+        return 0.2126 * Lin(c.R) + 0.7152 * Lin(c.G) + 0.0722 * Lin(c.B);
+    }
+
+    private static double ContrastRatio(Color a, Color b)
+    {
+        double la = RelativeLuminance(a) + 0.05;
+        double lb = RelativeLuminance(b) + 0.05;
+        return la > lb ? la / lb : lb / la;
+    }
+
+    private void UpdateHeaderButtonContrastTint(Color backdropColor)
+    {
+        double ratio = ContrastRatio(backdropColor, HeaderButtonForegroundApprox);
+        if (ratio < HeaderButtonMinContrast)
+        {
+            double backdropLuma = RelativeLuminance(backdropColor);
+            Color scrim = backdropLuma > 0.5
+                ? Color.FromArgb(90, 0x00, 0x00, 0x00)
+                : Color.FromArgb(90, 0xFF, 0xFF, 0xFF);
+            Resources["Brush_HeaderButtonScrim"] = new SolidColorBrush(scrim);
+        }
+        else
+        {
+            Resources["Brush_HeaderButtonScrim"] = new SolidColorBrush(Colors.Transparent);
+        }
     }
 
     private void InitHeaderAmbientGlow()

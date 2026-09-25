@@ -1618,8 +1618,6 @@
                     <Border x:Name="SidebarWallpaperGlassBlur" Margin="-48"/>
                 </Grid>
 
-                <Rectangle x:Name="SidebarHomeCenterFill" IsHitTestVisible="False" Visibility="Collapsed"/>
-
                 <controls:FluxSidebar x:Name="RightSidebar"/>
 
                 <!--

@@ -44,7 +44,10 @@
                     <Border x:Name="Bd" Background="{TemplateBinding Background}"
                             CornerRadius="8"
                             BorderBrush="#767676" BorderThickness="1">
-                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                        <Grid>
+                            <Border CornerRadius="8" Background="{DynamicResource Brush_HeaderButtonScrim}" IsHitTestVisible="False"/>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                        </Grid>
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">

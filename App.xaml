@@ -6,6 +6,7 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Themes/Horizon.xaml"/>
             </ResourceDictionary.MergedDictionaries>
+            <SolidColorBrush x:Key="Brush_HeaderButtonScrim" Color="Transparent"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

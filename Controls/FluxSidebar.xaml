@@ -31,23 +31,25 @@
                 <Setter Property="Height"          Value="32"/>
                 <Setter Property="FontSize"        Value="10"/>
                 <Setter Property="FontWeight"      Value="Bold"/>
-                <Setter Property="BorderThickness" Value="0,0,1,1"/>
+                <Setter Property="Margin"          Value="2"/>
                 <Setter Property="Cursor"          Value="Hand"/>
-                <Setter Property="Background"      Value="{DynamicResource Brush_TabStripBg}"/>
+                <Setter Property="Background"      Value="Transparent"/>
                 <Setter Property="Foreground"      Value="{DynamicResource Brush_TabStripTextInactive}"/>
-                <Setter Property="BorderBrush"     Value="{DynamicResource Brush_TabStripBorder}"/>
+                <Setter Property="BorderBrush"     Value="{DynamicResource Brush_ButtonBorder}"/>
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="Button">
                             <Border x:Name="Bd"
                                     Background="{TemplateBinding Background}"
                                     BorderBrush="{TemplateBinding BorderBrush}"
-                                    BorderThickness="{TemplateBinding BorderThickness}">
+                                    BorderThickness="1"
+                                    CornerRadius="8">
                                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter TargetName="Bd" Property="Background" Value="#1A2A1A"/>
+                                    <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Brush_ButtonHoverBg}"/>
+                                    <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Brush_ButtonHoverBorder}"/>
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
@@ -68,12 +70,38 @@
                     <Setter.Value>
                         <ControlTemplate TargetType="Button">
                             <Border x:Name="Bx" Background="{TemplateBinding Background}"
-                                    CornerRadius="4" Padding="{TemplateBinding Padding}">
+                                    CornerRadius="8" Padding="{TemplateBinding Padding}">
                                 <ContentPresenter VerticalAlignment="Center"/>
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
                                     <Setter TargetName="Bx" Property="Background" Value="#2a2a2a"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style x:Key="Style.SidebarIconBtn" TargetType="Button">
+                <Setter Property="Background"      Value="Transparent"/>
+                <Setter Property="Foreground"      Value="{StaticResource Brush_SoftText}"/>
+                <Setter Property="BorderBrush"     Value="{DynamicResource Brush_ButtonBorder}"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="Cursor"          Value="Hand"/>
+                <Setter Property="Margin"          Value="2,0"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
+                                    CornerRadius="8">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Brush_ButtonHoverBg}"/>
+                                    <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Brush_ButtonHoverBorder}"/>
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
@@ -295,17 +323,6 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <Border x:Name="SidebarBwEdge" Grid.RowSpan="2" Width="45" HorizontalAlignment="Right"
-                Background="{DynamicResource Brush_Background}" IsHitTestVisible="False">
-            <Border.OpacityMask>
-                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                    <GradientStop Color="#00FFFFFF" Offset="0.0"/>
-                    <GradientStop Color="#00FFFFFF" Offset="0.3"/>
-                    <GradientStop Color="#FFFFFFFF" Offset="1.0"/>
-                </LinearGradientBrush>
-            </Border.OpacityMask>
-        </Border>
-
         <TabControl Grid.Row="1" Background="Transparent" BorderThickness="0" Margin="0" Padding="0">
             <TabControl.Template>
                 <ControlTemplate TargetType="TabControl">
@@ -406,10 +423,10 @@
                              MouseRightButtonUp="ListPins_RightClick"/>
 
                     <UniformGrid Grid.Row="3" Rows="1" Columns="4" Margin="0,10,0,5">
-                        <Button Content="▲"  Click="BtnPinUp_Click"     Background="{DynamicResource Brush_TabStripBg}" Foreground="{StaticResource Brush_SoftText}" BorderThickness="0" Height="34" Margin="0,0,2,0"/>
+                        <Button Content="▲"  Click="BtnPinUp_Click"     Style="{StaticResource Style.SidebarIconBtn}" Height="34" Margin="0,0,2,0"/>
                         <Button Content="▼"  Click="BtnPinDown_Click"   Background="{DynamicResource Brush_TabStripBg}" Foreground="{StaticResource Brush_SoftText}" BorderThickness="0" Height="34" Margin="2,0,2,0"/>
                         <Button Content="✎"  Click="BtnRenamePin_Click" Background="{DynamicResource Brush_TabStripBg}" Foreground="{StaticResource Brush_SoftText}" BorderThickness="0" Height="34" Margin="2,0,2,0"/>
-                        <Button Content="🗑" Click="BtnRemovePin_Click" Background="{DynamicResource Brush_DangerBg}" Foreground="{StaticResource Brush.Alert}" BorderThickness="0" Height="34" Margin="2,0,0,0"/>
+                        <Button Content="🗑" Click="BtnRemovePin_Click" Style="{StaticResource Style.SidebarIconBtn}" Foreground="{StaticResource Brush.Alert}" Height="34" Margin="2,0,0,0"/>
                     </UniformGrid>
 
                     <Button Grid.Row="4" Content=" PIN CURRENT " Click="BtnAddPin_Click"
