@@ -6,7 +6,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"
              mc:Ignorable="po"
-             Background="{DynamicResource Brush_Background}"
+             Background="Transparent"
              BorderBrush="{DynamicResource Brush_TabStripBorder}" BorderThickness="1,0,0,0"
              Width="320">
 
@@ -289,6 +289,16 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
+
+        <Border x:Name="SidebarBwEdge" Grid.RowSpan="2" Background="{DynamicResource Brush_Background}" IsHitTestVisible="False">
+            <Border.OpacityMask>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                    <GradientStop Color="#00FFFFFF" Offset="0.0"/>
+                    <GradientStop Color="#00FFFFFF" Offset="0.9875"/>
+                    <GradientStop Color="#FFFFFFFF" Offset="1.0"/>
+                </LinearGradientBrush>
+            </Border.OpacityMask>
+        </Border>
 
         <TabControl Grid.Row="1" Background="Transparent" BorderThickness="0" Margin="0" Padding="0">
             <TabControl.Template>
