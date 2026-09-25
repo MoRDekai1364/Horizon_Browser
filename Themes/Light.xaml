@@ -31,9 +31,11 @@
     <SolidColorBrush x:Key="Brush_BannerSuccessBorder" Color="#8FCB8F" po:Freeze="False"/>
     <SolidColorBrush x:Key="Brush_DangerBg" Color="#FADCDC" po:Freeze="False"/>
 
+    <SolidColorBrush x:Key="Brush_HeaderButtonForeground" Color="#1A1A1A" po:Freeze="False"/>
+
     <Style TargetType="Button" x:Key="Style_StealthButton">
         <Setter Property="Background" Value="Transparent"/>
-        <Setter Property="Foreground" Value="{StaticResource Brush_Text}"/>
+        <Setter Property="Foreground" Value="{DynamicResource Brush_HeaderButtonForeground}"/>
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="Padding" Value="8,4"/>
         <Setter Property="Template">

@@ -2886,10 +2886,11 @@ return colors.length > 0 ? colors : null;
     {
         _headerGlowBrush = new LinearGradientBrush
         {
-            StartPoint = new Point(0, 0),
-            EndPoint = new Point(0, 1)
+            StartPoint = new Point(0, 0.5),
+            EndPoint = new Point(1, 0.5)
         };
         _headerGlowBrush.GradientStops.Add(new GradientStop(Colors.Transparent, 0.0));
+        _headerGlowBrush.GradientStops.Add(new GradientStop(Colors.Transparent, 0.5));
         _headerGlowBrush.GradientStops.Add(new GradientStop(Colors.Transparent, 1.0));
         HeaderAmbientGlow.Fill = _headerGlowBrush;
         UpdateHeaderAmbientGlow(GetCurrentTabViewModel());
@@ -2929,48 +2930,42 @@ return colors.length > 0 ? colors : null;
                 _headerGlowSubscribedTab.PropertyChanged += HeaderGlowTab_PropertyChanged;
         }
 
-        Color outerNeutral = GetHeaderGlowOuterNeutral();
-
         var palette = tab?.PaletteColors;
         if (palette == null || palette.Count == 0)
         {
-            // No site color known yet (fresh tab, still loading) — sit at a
-            // faint, purely neutral wash rather than snapping to a color once
-            // extraction finishes.
-            _headerGlowBrush.GradientStops[0].Color = Color.FromArgb(60, outerNeutral.R, outerNeutral.G, outerNeutral.B);
-            _headerGlowBrush.GradientStops[1].Color = Color.FromArgb(0, outerNeutral.R, outerNeutral.G, outerNeutral.B);
+            Color fallbackNeutral = GetHeaderGlowOuterNeutral();
+            _headerGlowBrush.GradientStops[0].Color = Color.FromArgb(60, fallbackNeutral.R, fallbackNeutral.G, fallbackNeutral.B);
+            _headerGlowBrush.GradientStops[1].Color = Color.FromArgb(0, fallbackNeutral.R, fallbackNeutral.G, fallbackNeutral.B);
+            _headerGlowBrush.GradientStops[2].Color = Color.FromArgb(60, fallbackNeutral.R, fallbackNeutral.G, fallbackNeutral.B);
+            SetHeaderButtonForeground(null);
             return;
         }
 
-        Color inner = palette[0];
-        // Outer edge = mostly neutral, with a slight tint borrowed from the
-        // inner color so the transition doesn't look like a hard seam.
-        Color outer = BlendColor(outerNeutral, inner, 0.15);
+        Color main = palette[0];
+        Color neutralBW = ChooseContrastingBW(main);
 
-        _headerGlowBrush.GradientStops[0].Color = Color.FromArgb(220, outer.R, outer.G, outer.B);
+        _headerGlowBrush.GradientStops[0].Color = Color.FromArgb(235, main.R, main.G, main.B);
+        _headerGlowBrush.GradientStops[1].Color = Color.FromArgb(220, neutralBW.R, neutralBW.G, neutralBW.B);
+        _headerGlowBrush.GradientStops[2].Color = Color.FromArgb(235, main.R, main.G, main.B);
 
-        if (palette.Count >= 2)
-        {
-            // Multi-color site (e.g. Instagram-style brand gradient) — spread
-            // the extra palette colors across the remaining stops instead of
-            // collapsing to a single inner color.
-            while (_headerGlowBrush.GradientStops.Count < Math.Min(palette.Count, 4))
-                _headerGlowBrush.GradientStops.Insert(_headerGlowBrush.GradientStops.Count - 1, new GradientStop());
+        SetHeaderButtonForeground(ChooseContrastingBW(main));
+    }
 
-            int usable = Math.Min(palette.Count, _headerGlowBrush.GradientStops.Count - 1);
-            for (int i = 0; i < usable; i++)
-            {
-                double offset = 0.15 + (0.85 * i / Math.Max(1, usable - 1));
-                var c = palette[i];
-                _headerGlowBrush.GradientStops[i + 1].Color = Color.FromArgb(235, c.R, c.G, c.B);
-                _headerGlowBrush.GradientStops[i + 1].Offset = offset;
-            }
-            _headerGlowBrush.GradientStops[_headerGlowBrush.GradientStops.Count - 1].Offset = 1.0;
-        }
+    private static Color ChooseContrastingBW(Color c)
+    {
+        double luminance = (0.299 * c.R + 0.587 * c.G + 0.114 * c.B) / 255.0;
+        double contrastWithBlack = luminance + 0.05;
+        double contrastWithWhite = 1.05 - luminance;
+        return contrastWithWhite >= contrastWithBlack ? Colors.White : Colors.Black;
+    }
+
+    private static void SetHeaderButtonForeground(Color? contrastColor)
+    {
+        Color fg = contrastColor ?? ((Application.Current.Resources["Brush_Text"] as SolidColorBrush)?.Color ?? Colors.White);
+        if (Application.Current.Resources["Brush_HeaderButtonForeground"] is SolidColorBrush existing && !existing.IsFrozen)
+            existing.Color = fg;
         else
-        {
-            _headerGlowBrush.GradientStops[_headerGlowBrush.GradientStops.Count - 1].Color = Color.FromArgb(235, inner.R, inner.G, inner.B);
-        }
+            Application.Current.Resources["Brush_HeaderButtonForeground"] = new SolidColorBrush(fg);
     }
 
     private void HeaderGlowTab_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -3538,18 +3533,8 @@ return colors.length > 0 ? colors : null;
 
             StartColorAnimation(tab);
 
-            // Palette may not be populated yet — fetch it now so the animation can start
             if (tab.PaletteColors.Count < 2)
                 _ = RefreshMediaTabPaletteAsync(tab, browser);
-
-            if (SettingsService.Current.VisualizerColorScheme == "Thumbnail" && tab.HasVideo && !tab.IsAudioOnlyMode)
-            {
-                _ = Task.Run(async () =>
-                {
-                    await Task.Delay(1000);
-                    await Dispatcher.InvokeAsync(async () => await RefreshThumbnailPaletteAsync(tab, browser));
-                });
-            }
         }
         else
         {
@@ -3841,10 +3826,7 @@ return colors.length > 0 ? colors : null;
             prt.Tick += async (_, _) =>
             {
                 if (!tab.HasEverPlayedAudio || !_tabViews.TryGetValue(tab, out var bv)) return;
-                if (SettingsService.Current.VisualizerColorScheme == "Thumbnail" && tab.HasVideo && !tab.IsAudioOnlyMode)
-                    await RefreshThumbnailPaletteAsync(tab, bv);
-                else
-                    await RefreshMediaTabPaletteAsync(tab, bv);
+                await RefreshMediaTabPaletteAsync(tab, bv);
             };
             prt.Start();
             _paletteRefreshTimers[tab] = prt;
