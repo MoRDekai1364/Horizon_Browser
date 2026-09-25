@@ -239,6 +239,28 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
+                    <!--
+                        Ambient glow: a per-site color wash that "extends" the current
+                        page's brand color up into the header, blending from a
+                        theme-neutral outer edge (top) into the site color (bottom,
+                        closest to the actual page). See MainWindow.xaml.cs:
+                        InitHeaderAmbientGlow / UpdateHeaderAmbientGlow.
+                        Colors come from TabViewModel.PaletteColors, which is already
+                        populated generically for every page load via
+                        TabColorPaletteExtractor (BrowserView.xaml.cs) and, for
+                        actively playing media, via RefreshMediaTabPaletteAsync.
+                        Grid.ColumnSpan="4" + IsHitTestVisible="False" so it never
+                        blocks header buttons/omnibox/tabs; it only ever paints, never
+                        receives input.
+                    -->
+                    <Rectangle x:Name="HeaderAmbientGlow" Grid.ColumnSpan="4"
+                               Height="90" VerticalAlignment="Top"
+                               IsHitTestVisible="False">
+                        <Rectangle.Effect>
+                            <BlurEffect Radius="28"/>
+                        </Rectangle.Effect>
+                    </Rectangle>
+
                     <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="10,0">
                         <Button x:Name="BtnBack" Content="🠔" Click="BtnBack_Click" MouseRightButtonUp="BtnBack_RightClick"
                                 Style="{StaticResource Style_StealthButton}" Width="42" Height="42" FontSize="20"

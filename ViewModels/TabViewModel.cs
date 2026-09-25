@@ -384,7 +384,12 @@ public class TabViewModel : INotifyPropertyChanged
         set { _language = value; OnPropertyChanged(); }
     }
 
-    public List<Color> PaletteColors { get; set; } = new();
+    private List<Color> _paletteColors = new();
+    public List<Color> PaletteColors
+    {
+        get => _paletteColors;
+        set { _paletteColors = value; OnPropertyChanged(); }
+    }
 
     public LinearGradientBrush AnimatedBrush { get; } = new LinearGradientBrush
     {

@@ -1228,7 +1228,7 @@ public partial class MainWindow : Window
 
         InitializeComponent();
 
-        
+        InitHeaderAmbientGlow();
 
         this.Closing += MainWindow_Closing;
         BackgroundKeepAliveService.Initialize(this);
@@ -2209,6 +2209,8 @@ return colors.length > 0 ? colors : null;
         if (sender == ListOverflowTabs && ListOverflowTabs.SelectedItem != null) ListTabs.SelectedItem = null;
         _isReflowing = false;
 
+        UpdateHeaderAmbientGlow(selectedTab);
+
         if (selectedTab != null)
         {
             if (_tabImageUrls.TryGetValue(selectedTab, out string? imgUrl))
@@ -2865,6 +2867,117 @@ return colors.length > 0 ? colors : null;
         if (ListTabs.SelectedItem is TabViewModel t1) return t1;
         if (ListOverflowTabs.SelectedItem is TabViewModel t2) return t2;
         return null;
+    }
+
+    // ── Header ambient glow ──────────────────────────────────────────────────
+    // A per-site color wash behind the header, blending a theme-neutral top
+    // edge into the active tab's brand/palette color at the bottom edge.
+    // Colors are driven entirely by TabViewModel.PaletteColors, which is
+    // already populated generically for every page (BrowserView.xaml.cs's
+    // meta/og:image extraction) and refined further for playing media
+    // (RefreshMediaTabPaletteAsync / RefreshThumbnailPaletteAsync). This code
+    // does not do any extraction itself — it only ever reads PaletteColors
+    // and repaints. If colors ever look wrong, check the extraction paths
+    // above, not this section.
+    private LinearGradientBrush? _headerGlowBrush;
+    private TabViewModel? _headerGlowSubscribedTab;
+
+    private void InitHeaderAmbientGlow()
+    {
+        _headerGlowBrush = new LinearGradientBrush
+        {
+            StartPoint = new Point(0, 0),
+            EndPoint = new Point(0, 1)
+        };
+        _headerGlowBrush.GradientStops.Add(new GradientStop(Colors.Transparent, 0.0));
+        _headerGlowBrush.GradientStops.Add(new GradientStop(Colors.Transparent, 1.0));
+        HeaderAmbientGlow.Fill = _headerGlowBrush;
+        UpdateHeaderAmbientGlow(GetCurrentTabViewModel());
+    }
+
+    // Theme-neutral outer color: derived from the live Brush_DeepBackground
+    // resource's luminance rather than hardcoded theme names, so a future
+    // theme (beyond Horizon/Light/Redmond) is handled automatically.
+    private static Color GetHeaderGlowOuterNeutral()
+    {
+        Color bg = Colors.Black;
+        if (Application.Current.Resources["Brush_DeepBackground"] is SolidColorBrush b)
+            bg = b.Color;
+        double luminance = (0.299 * bg.R + 0.587 * bg.G + 0.114 * bg.B) / 255.0;
+        return luminance > 0.5 ? Color.FromRgb(0xF5, 0xF5, 0xF5) : Color.FromRgb(0x0A, 0x0A, 0x0A);
+    }
+
+    private static Color BlendColor(Color a, Color b, double t)
+    {
+        t = Math.Max(0, Math.Min(1, t));
+        return Color.FromRgb(
+            (byte)(a.R + (b.R - a.R) * t),
+            (byte)(a.G + (b.G - a.G) * t),
+            (byte)(a.B + (b.B - a.B) * t));
+    }
+
+    private void UpdateHeaderAmbientGlow(TabViewModel? tab)
+    {
+        if (_headerGlowBrush == null) return;
+
+        if (!ReferenceEquals(_headerGlowSubscribedTab, tab))
+        {
+            if (_headerGlowSubscribedTab != null)
+                _headerGlowSubscribedTab.PropertyChanged -= HeaderGlowTab_PropertyChanged;
+            _headerGlowSubscribedTab = tab;
+            if (_headerGlowSubscribedTab != null)
+                _headerGlowSubscribedTab.PropertyChanged += HeaderGlowTab_PropertyChanged;
+        }
+
+        Color outerNeutral = GetHeaderGlowOuterNeutral();
+
+        var palette = tab?.PaletteColors;
+        if (palette == null || palette.Count == 0)
+        {
+            // No site color known yet (fresh tab, still loading) — sit at a
+            // faint, purely neutral wash rather than snapping to a color once
+            // extraction finishes.
+            _headerGlowBrush.GradientStops[0].Color = Color.FromArgb(60, outerNeutral.R, outerNeutral.G, outerNeutral.B);
+            _headerGlowBrush.GradientStops[1].Color = Color.FromArgb(0, outerNeutral.R, outerNeutral.G, outerNeutral.B);
+            return;
+        }
+
+        Color inner = palette[0];
+        // Outer edge = mostly neutral, with a slight tint borrowed from the
+        // inner color so the transition doesn't look like a hard seam.
+        Color outer = BlendColor(outerNeutral, inner, 0.15);
+
+        _headerGlowBrush.GradientStops[0].Color = Color.FromArgb(220, outer.R, outer.G, outer.B);
+
+        if (palette.Count >= 2)
+        {
+            // Multi-color site (e.g. Instagram-style brand gradient) — spread
+            // the extra palette colors across the remaining stops instead of
+            // collapsing to a single inner color.
+            while (_headerGlowBrush.GradientStops.Count < Math.Min(palette.Count, 4))
+                _headerGlowBrush.GradientStops.Insert(_headerGlowBrush.GradientStops.Count - 1, new GradientStop());
+
+            int usable = Math.Min(palette.Count, _headerGlowBrush.GradientStops.Count - 1);
+            for (int i = 0; i < usable; i++)
+            {
+                double offset = 0.15 + (0.85 * i / Math.Max(1, usable - 1));
+                var c = palette[i];
+                _headerGlowBrush.GradientStops[i + 1].Color = Color.FromArgb(235, c.R, c.G, c.B);
+                _headerGlowBrush.GradientStops[i + 1].Offset = offset;
+            }
+            _headerGlowBrush.GradientStops[_headerGlowBrush.GradientStops.Count - 1].Offset = 1.0;
+        }
+        else
+        {
+            _headerGlowBrush.GradientStops[_headerGlowBrush.GradientStops.Count - 1].Color = Color.FromArgb(235, inner.R, inner.G, inner.B);
+        }
+    }
+
+    private void HeaderGlowTab_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != nameof(TabViewModel.PaletteColors)) return;
+        if (sender is TabViewModel tab && tab == GetCurrentTabViewModel())
+            Dispatcher.Invoke(() => UpdateHeaderAmbientGlow(tab));
     }
 
     private void CycleTabs(int direction)
