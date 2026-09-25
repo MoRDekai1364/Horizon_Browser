@@ -1601,23 +1601,26 @@
             <Grid x:Name="ViewContainer" Grid.Row="3" Grid.Column="0" Margin="0,0,1,0"/>
 
             <Grid x:Name="SidebarContainer" Grid.Row="3" Grid.Column="1" Width="0">
-                <controls:FluxSidebar x:Name="RightSidebar"/>
 
                 <!--
                     Homepage exception, same idea as the header: while the
                     homepage's wallpaper is on screen, the sidebar shows a
-                    blurred extension of that wallpaper's own edges instead of
-                    its normal flat background, with a solid B/W center fill
+                    heavily blurred, distorted slice of that wallpaper instead
+                    of its normal flat background, with a solid B/W center fill
                     (matching the homepage search bar) faded in from top/bottom.
-                    Wired in code-behind via InitSidebarWallpaperGlass, same
-                    HomeGlassService.AttachWallpaperEdgeGlass helper as the
-                    header.
+                    Wired in code-behind via InitSidebarWallpaperGlass. This
+                    layer (and the center fill after it) sit BEHIND RightSidebar
+                    on purpose — RightSidebar's own background is transparent
+                    except for a thin b/w strip at the far right, so the glass
+                    shows through it instead of being hidden under it.
                 -->
                 <Grid x:Name="SidebarWallpaperGlass" IsHitTestVisible="False" Visibility="Collapsed">
                     <Border x:Name="SidebarWallpaperGlassBlur" Margin="-48"/>
                 </Grid>
 
                 <Rectangle x:Name="SidebarHomeCenterFill" IsHitTestVisible="False" Visibility="Collapsed"/>
+
+                <controls:FluxSidebar x:Name="RightSidebar"/>
 
                 <!--
                     Sidebar-only seam softener, mirrors HeaderHomeBlurBleed:

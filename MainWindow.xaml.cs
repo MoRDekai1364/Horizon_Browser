@@ -2935,6 +2935,11 @@ return colors.length > 0 ? colors : null;
         _headerHomeBlurBleedRefresh = bleedRefresh;
     }
 
+    private const double SidebarBlurSourceCropStart = 0.70;
+    private const double SidebarBlurDistortionRadius = 110;
+
+    private ImageBrush? _sidebarOwnBlurBrush;
+
     private void InitSidebarWallpaperGlass()
     {
         _sidebarHomeCenterBrush = new LinearGradientBrush
@@ -2943,15 +2948,48 @@ return colors.length > 0 ? colors : null;
             EndPoint = new Point(0, 1)
         };
         _sidebarHomeCenterBrush.GradientStops.Add(new GradientStop(Colors.Transparent, 0.0));
-        _sidebarHomeCenterBrush.GradientStops.Add(new GradientStop(Colors.Transparent, 0.5));
+        _sidebarHomeCenterBrush.GradientStops.Add(new GradientStop(Colors.Transparent, 0.18));
+        _sidebarHomeCenterBrush.GradientStops.Add(new GradientStop(Colors.Transparent, 0.36));
+        _sidebarHomeCenterBrush.GradientStops.Add(new GradientStop(Colors.Transparent, 0.64));
+        _sidebarHomeCenterBrush.GradientStops.Add(new GradientStop(Colors.Transparent, 0.82));
         _sidebarHomeCenterBrush.GradientStops.Add(new GradientStop(Colors.Transparent, 1.0));
         SidebarHomeCenterFill.Fill = _sidebarHomeCenterBrush;
 
-        var (unbind, refresh) = HomeGlassService.AttachWallpaperEdgeGlass(
+        // Sidebar glass does NOT sample the exact wallpaper region behind it like the
+        // header does — it's a side element, not one that already sits over the
+        // wallpaper. Instead it takes a fixed slice of the homepage background: the
+        // right 30% of the image (cutting away the left 70%), stretched to fill and
+        // blurred far more heavily than the header's edge glass so it reads as an
+        // abstract, distorted backdrop rather than a recognizable crop.
+        SidebarWallpaperGlassBlur.Effect = new System.Windows.Media.Effects.BlurEffect
+        {
+            Radius = SidebarBlurDistortionRadius,
+            KernelType = System.Windows.Media.Effects.KernelType.Gaussian,
+            RenderingBias = System.Windows.Media.Effects.RenderingBias.Performance
+        };
+
+        _sidebarOwnBlurBrush = new ImageBrush
+        {
+            Stretch = Stretch.UniformToFill,
+            ViewboxUnits = BrushMappingMode.RelativeToBoundingBox,
+            Viewbox = new Rect(SidebarBlurSourceCropStart, 0.0, 1.0 - SidebarBlurSourceCropStart, 1.0)
+        };
+        SidebarWallpaperGlassBlur.Background = _sidebarOwnBlurBrush;
+
+        void RefreshSidebarBlurSource() => _sidebarOwnBlurBrush!.ImageSource = WeatherBridge.ThemeWallpaper;
+        RefreshSidebarBlurSource();
+        WeatherBridge.ThemeUpdated += () => Dispatcher.BeginInvoke(new Action(RefreshSidebarBlurSource));
+
+        var (unbind, refresh) = HomeGlassService.Bind(
             SidebarContainer,
-            SidebarWallpaperGlass,
-            SidebarWallpaperGlassBlur,
-            onOverlapChanged: overlap => UpdateSidebarHomeCenterFill(overlap != null));
+            new ImageBrush(),
+            HomeGlassService.DefaultEdgeGlassPad,
+            overlap =>
+            {
+                HomeGlassService.ApplyOverlap(SidebarWallpaperGlass, overlap);
+                UpdateSidebarHomeCenterFill(overlap != null);
+            },
+            requireOverlap: false);
         _sidebarWallpaperGlassUnbind = unbind;
         _sidebarWallpaperGlassRefresh = refresh;
 
@@ -2976,7 +3014,9 @@ return colors.length > 0 ? colors : null;
         }
 
         Color centerColor = CurrentBrowser?.NativeHomePage.SearchBarTextColor ?? Colors.White;
-        _sidebarHomeCenterBrush.GradientStops[1].Color = Color.FromArgb(187, centerColor.R, centerColor.G, centerColor.B);
+        var bandColor = Color.FromArgb(187, centerColor.R, centerColor.G, centerColor.B);
+        _sidebarHomeCenterBrush.GradientStops[2].Color = bandColor;
+        _sidebarHomeCenterBrush.GradientStops[3].Color = bandColor;
         SidebarHomeCenterFill.Visibility = Visibility.Visible;
     }
 
