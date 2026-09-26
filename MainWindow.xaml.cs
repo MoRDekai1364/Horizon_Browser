@@ -26,6 +26,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Web.WebView2.Core;
+using WpfAnimatedGif;
 
 namespace Horizon.Stealth;
 
@@ -7015,6 +7016,46 @@ private sealed class WeatherRetryHandler : DelegatingHandler
             Margin           = margin ?? new Thickness(0),
         };
 
+    private static string WmoCodeToAnimatedIcon(int code) => code switch
+    {
+        0                    => "sunny.gif",
+        1                    => "mostly_sunny_author_jason_dwayne.gif",
+        2 or 3               => "cloudy.gif",
+        45 or 48             => "foggy.gif",
+        51 or 53 or 55       => "drizzle.gif",
+        56 or 57             => "rain_snow_author_jason_dwayne.gif",
+        61 or 63             => "rainy_author_jason_dwayne.gif",
+        65 or 80 or 81 or 82 => "heavy_rain.gif",
+        66 or 67             => "rain_snow_author_jason_dwayne.gif",
+        71 or 73 or 75 or 77 or 85 or 86 => "snowy_author_jason_dwayne.gif",
+        95                   => "thunderstorm_author_jason_dwayne.gif",
+        96 or 99             => "hail.gif",
+        _                    => "cloudy.gif",
+    };
+
+    private static FrameworkElement BuildAnimatedWeatherIcon(int wmoCode, double size, Thickness? margin = null)
+    {
+        string file = WmoCodeToAnimatedIcon(wmoCode);
+        string path = System.IO.Path.Combine(AppContext.BaseDirectory, "src", "animated_icons", file);
+        var image = new Image
+        {
+            Width = size, Height = size,
+            Stretch = Stretch.Uniform,
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = margin ?? new Thickness(0),
+        };
+        if (System.IO.File.Exists(path))
+        {
+            ImageBehavior.SetAnimatedSource(image, new BitmapImage(new Uri(path, UriKind.Absolute)));
+            ImageBehavior.SetRepeatBehavior(image, System.Windows.Media.Animation.RepeatBehavior.Forever);
+        }
+        else
+        {
+            return WeatherIconBlock(wmoCode, size * 0.7, margin);
+        }
+        return image;
+    }
+
     // ── Current-conditions row helpers ────────────────────────────────────────
     private static string WxHumidityComfort(int h) =>
         h < 25 ? "Very dry — may irritate airways" :
@@ -9616,7 +9657,7 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
         var header = new Grid { Margin = new Thickness(2, 2, 2, 10) };
         header.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         header.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        var headerIcon = WeatherIconBlock(code, 34, new Thickness(0, 0, 12, 0));
+        var headerIcon = BuildAnimatedWeatherIcon(code, 46, new Thickness(0, 0, 12, 0));
         Grid.SetColumn(headerIcon, 0);
         header.Children.Add(headerIcon);
         var info = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
