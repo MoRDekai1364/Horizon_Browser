@@ -132,6 +132,21 @@ public partial class MainWindow
             }
         }
 
+        void ApplyCalcTabStretch()
+        {
+            var items = tabBar.Children.Cast<UIElement>().ToList();
+            if (items.Count < 2) return;
+            tabBar.UpdateLayout();
+            double sum = 0;
+            foreach (var it in items) sum += ((FrameworkElement)it).ActualWidth;
+            double extra = tabBar.ActualWidth - sum;
+            double gap = extra > 0 ? extra / (items.Count - 1) : 0;
+            for (int i = 0; i < items.Count; i++)
+                ((FrameworkElement)items[i]).Margin = new Thickness(0, 0, i == items.Count - 1 ? 0 : gap, 0);
+        }
+        tabBar.SizeChanged += (s, e) => ApplyCalcTabStretch();
+        ApplyCalcTabStretch();
+
         // ═════════════════════════════════════════════════════════════════════
         //  STANDARD TAB
         // ═════════════════════════════════════════════════════════════════════
