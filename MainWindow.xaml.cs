@@ -8207,7 +8207,7 @@ private sealed class WeatherRetryHandler : DelegatingHandler
         var tintLayer = new Border();
         var shadeLayer = new Border
         {
-            Background = new LinearGradientBrush(Color.FromArgb(0x60, 0, 0, 0), Color.FromArgb(0xA0, 0, 0, 0), 90)
+            Background = new LinearGradientBrush(Color.FromArgb(0x26, 0, 0, 0), Color.FromArgb(0x40, 0, 0, 0), 90)
         };
         var glassHost = new Grid { Visibility = Visibility.Collapsed };
         glassHost.Children.Add(wallLayer);
@@ -9436,7 +9436,7 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
         List<(DateTime Time, double Temp, double Precip, double WindKmh, int Wmo, int Humidity)> hourly,
         DateTime date)
     {
-        const double width = 360, height = 104, padTop = 18, padBot = 16, padX = 8;
+        const double width = 360, height = 130, padTop = 34, padBot = 16, padX = 8;
         var canvas = new Canvas { Width = width, Height = height };
         int n = hourly.Count;
         if (n < 2) return canvas;
@@ -9481,10 +9481,11 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
         {
             var hourLbl = new TextBlock
             {
-                Text = hourly[i].Time.ToString("HH"), FontSize = 8, Foreground = new SolidColorBrush(WxMuted)
+                Text = hourly[i].Time.ToString("HH"), FontSize = 11, FontWeight = FontWeights.SemiBold,
+                Foreground = new SolidColorBrush(WxMuted)
             };
-            Canvas.SetLeft(hourLbl, padX + i * segW - 6);
-            Canvas.SetTop(hourLbl, baseY + 2);
+            Canvas.SetLeft(hourLbl, padX + i * segW - 8);
+            Canvas.SetTop(hourLbl, baseY + 3);
             canvas.Children.Add(hourLbl);
         }
 
@@ -9493,31 +9494,75 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
             if (index < 0) return;
             var tempLbl = new TextBlock
             {
-                Text = $"{value:F1}°", FontSize = 9, FontWeight = FontWeights.SemiBold,
+                Text = $"{value:F1}°", FontSize = 13, FontWeight = FontWeights.Bold,
                 Foreground = new SolidColorBrush(orange)
             };
-            Canvas.SetLeft(tempLbl, Math.Clamp(pts[index].X - 12, 0, width - 30));
-            Canvas.SetTop(tempLbl, Math.Max(0, pts[index].Y - 15));
+            Canvas.SetLeft(tempLbl, Math.Clamp(pts[index].X - 16, 0, width - 40));
+            Canvas.SetTop(tempLbl, Math.Max(0, pts[index].Y - 20));
             canvas.Children.Add(tempLbl);
         }
         PlaceTempLabel(hourly.FindIndex(h => h.Temp == allMax), allMax);
         if (allMax - allMin >= 1) PlaceTempLabel(hourly.FindIndex(h => h.Temp == allMin), allMin);
 
-        if (date.Date == DateTime.Today)
+        // ── Draggable slider dot with live value readout ───────────────────
+        int startIdx = date.Date == DateTime.Today
+            ? Math.Max(0, hourly.FindIndex(h => h.Time.Hour == DateTime.Now.Hour))
+            : n / 2;
+
+        var readout = new TextBlock
         {
-            int nowIdx = hourly.FindIndex(h => h.Time.Hour == DateTime.Now.Hour);
-            if (nowIdx >= 0)
-            {
-                var dot = new System.Windows.Shapes.Ellipse
-                {
-                    Width = 8, Height = 8, Fill = Brushes.White,
-                    Stroke = new SolidColorBrush(orange), StrokeThickness = 2
-                };
-                Canvas.SetLeft(dot, pts[nowIdx].X - 4);
-                Canvas.SetTop(dot, pts[nowIdx].Y - 4);
-                canvas.Children.Add(dot);
-            }
+            FontSize = 15, FontWeight = FontWeights.Bold,
+            Foreground = Brushes.White,
+            Effect = new System.Windows.Media.Effects.DropShadowEffect { BlurRadius = 6, ShadowDepth = 0, Opacity = 0.9 }
+        };
+        canvas.Children.Add(readout);
+
+        var dot = new System.Windows.Shapes.Ellipse
+        {
+            Width = 18, Height = 18, Fill = Brushes.White,
+            Stroke = new SolidColorBrush(orange), StrokeThickness = 3,
+            Cursor = Cursors.Hand,
+            Effect = new System.Windows.Media.Effects.DropShadowEffect { Color = orange, BlurRadius = 10, ShadowDepth = 0, Opacity = 0.8 }
+        };
+        canvas.Children.Add(dot);
+
+        void MoveDotTo(int idx)
+        {
+            idx = Math.Clamp(idx, 0, n - 1);
+            var p = pts[idx];
+            Canvas.SetLeft(dot, p.X - 9);
+            Canvas.SetTop(dot, p.Y - 9);
+
+            readout.Text = $"{hourly[idx].Time:HH:mm}  ·  {hourly[idx].Temp:F1}°";
+            Canvas.SetLeft(readout, Math.Clamp(p.X - 30, 0, width - 90));
+            Canvas.SetTop(readout, Math.Max(0, p.Y - 30));
         }
+        MoveDotTo(startIdx);
+
+        bool dragging = false;
+        void UpdateFromPointer(Point pos)
+        {
+            int idx = (int)Math.Round((pos.X - padX) / segW);
+            MoveDotTo(idx);
+        }
+
+        dot.MouseLeftButtonDown += (s, e) =>
+        {
+            dragging = true;
+            dot.CaptureMouse();
+            e.Handled = true;
+        };
+        dot.MouseMove += (s, e) =>
+        {
+            if (!dragging) return;
+            UpdateFromPointer(e.GetPosition(canvas));
+        };
+        dot.MouseLeftButtonUp += (s, e) =>
+        {
+            dragging = false;
+            dot.ReleaseMouseCapture();
+        };
+
         return canvas;
     }
 
