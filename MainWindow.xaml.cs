@@ -6645,9 +6645,12 @@ return colors.length > 0 ? colors : null;
             Margin = new Thickness(10, 0, 0, 0), Cursor = Cursors.Hand, VerticalAlignment = VerticalAlignment.Center
         };
         var minGlyph = MakeGlyph("—"); var expGlyph = MakeGlyph("⤢"); var closeGlyph = MakeGlyph("✕");
-        minGlyph.MouseLeftButtonUp   += (s, e) => win.Hide();
-        expGlyph.MouseLeftButtonUp   += (s, e) => win.Topmost = !win.Topmost;
-        closeGlyph.MouseLeftButtonUp += (s, e) => win.Close();
+        minGlyph.PreviewMouseLeftButtonDown   += (s, e) => e.Handled = true;
+        expGlyph.PreviewMouseLeftButtonDown   += (s, e) => e.Handled = true;
+        closeGlyph.PreviewMouseLeftButtonDown += (s, e) => e.Handled = true;
+        minGlyph.MouseLeftButtonUp   += (s, e) => { e.Handled = true; win.Hide(); };
+        expGlyph.MouseLeftButtonUp   += (s, e) => { e.Handled = true; win.Topmost = !win.Topmost; };
+        closeGlyph.MouseLeftButtonUp += (s, e) => { e.Handled = true; win.Close(); };
         glyphs.Children.Add(minGlyph); glyphs.Children.Add(expGlyph); glyphs.Children.Add(closeGlyph);
         titleRow.Children.Add(glyphs);
         titleRow.Background = Brushes.Transparent;
@@ -7393,9 +7396,13 @@ private sealed class WeatherRetryHandler : DelegatingHandler
         var minimizeGlyph = MakeGlyph("—");
         var pinGlyph      = MakeGlyph("[ ]");
 
-        closeGlyph.MouseLeftButtonUp    += (s, e) => win.Close();
-        minimizeGlyph.MouseLeftButtonUp += (s, e) => win.Hide();
-        pinGlyph.MouseLeftButtonUp      += (s, e) => win.Topmost = !win.Topmost;
+        closeGlyph.PreviewMouseLeftButtonDown    += (s, e) => e.Handled = true;
+        minimizeGlyph.PreviewMouseLeftButtonDown += (s, e) => e.Handled = true;
+        pinGlyph.PreviewMouseLeftButtonDown      += (s, e) => e.Handled = true;
+
+        closeGlyph.MouseLeftButtonUp    += (s, e) => { e.Handled = true; win.Close(); };
+        minimizeGlyph.MouseLeftButtonUp += (s, e) => { e.Handled = true; win.Hide(); };
+        pinGlyph.MouseLeftButtonUp      += (s, e) => { e.Handled = true; win.Topmost = !win.Topmost; };
 
         glyphs.Children.Add(closeGlyph);
         glyphs.Children.Add(minimizeGlyph);
