@@ -81,19 +81,22 @@ public partial class MainWindow
         win.Closing += (_, _) => backdrop.Detach();
         win.Content = shell;
 
-        // ── Outer layout ──────────────────────────────────────────────────────
         var root = new Grid();
-        root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });   // tabs
-        root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }); // body
+        root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
         outerBorder.Child = root;
 
-        // ── Tab bar ───────────────────────────────────────────────────────────
+        var titleBar = BuildWidgetTitleBar(win, root, "Calculator");
+        Grid.SetRow(titleBar, 0);
+        root.Children.Add(titleBar);
+
         var tabBar = new StackPanel { Orientation = Orientation.Horizontal, Background = new SolidColorBrush(Color.FromArgb(0x50, 0x00, 0x00, 0x00)), Margin = new Thickness(4,4,4,0) };
-        Grid.SetRow(tabBar, 0);
+        Grid.SetRow(tabBar, 1);
         root.Children.Add(tabBar);
 
         var tabBody = new Grid();
-        Grid.SetRow(tabBody, 1);
+        Grid.SetRow(tabBody, 2);
         root.Children.Add(tabBody);
 
         Grid? stdPanel = null, sciPanel = null, aiPanel = null;

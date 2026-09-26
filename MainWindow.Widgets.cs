@@ -107,34 +107,13 @@ public partial class MainWindow
         var root = new StackPanel { Margin = new Thickness(16, 12, 16, 16) };
         outerBorder.Child = root;
 
-        // ── Title row ────────────────────────────────────────────────────────
-        var titleRow = new Grid { Margin = new Thickness(0, 0, 0, 12) };
-        titleRow.Children.Add(new TextBlock
-        {
-            Text = "CLOCK SETTINGS", FontSize = 15, FontWeight = FontWeights.Bold,
-            Foreground = Brushes.White
-        });
-        var titleBtns = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
         var gearGlyph = new TextBlock
         {
             Text = "⚙", FontSize = 14, Foreground = new SolidColorBrush(Color.FromArgb(0xAA, 0xFF, 0xFF, 0xFF)),
             Margin = new Thickness(0, 0, 12, 0), Cursor = Cursors.Hand, VerticalAlignment = VerticalAlignment.Center
         };
         gearGlyph.MouseLeftButtonUp += (s, e) => win.Topmost = !win.Topmost;
-        var closeGlyph = new Border
-        {
-            Width = 22, Height = 22, CornerRadius = new CornerRadius(5),
-            Background = new SolidColorBrush(Color.FromRgb(0xC0, 0x3A, 0x3A)),
-            Cursor = Cursors.Hand,
-            Child = new TextBlock { Text = "✕", FontSize = 11, Foreground = Brushes.White, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center }
-        };
-        closeGlyph.MouseLeftButtonUp += (s, e) => win.Close();
-        titleBtns.Children.Add(gearGlyph);
-        titleBtns.Children.Add(closeGlyph);
-        titleRow.Children.Add(titleBtns);
-        titleRow.Background = Brushes.Transparent;
-        titleRow.MouseLeftButtonDown += (s, e) => { if (e.ButtonState == MouseButtonState.Pressed) win.DragMove(); };
-        root.Children.Add(titleRow);
+        root.Children.Add(BuildWidgetTitleBar(win, root, "CLOCK SETTINGS", gearGlyph));
 
         // ── Primary live clock ──────────────────────────────────────────────
         root.Children.Add(new TextBlock
@@ -403,22 +382,9 @@ public partial class MainWindow
         var root = new DockPanel { Margin = new Thickness(16, 12, 16, 16) };
         outerBorder.Child = root;
 
-        // ── Title row ────────────────────────────────────────────────────────
-        var titleRow = new Grid { Margin = new Thickness(0, 0, 0, 14) };
-        titleRow.Children.Add(new TextBlock { Text = "Converter", FontSize = 20, FontWeight = FontWeights.Bold, Foreground = Brushes.White });
-        var closeGlyph = new Border
-        {
-            Width = 26, Height = 26, CornerRadius = new CornerRadius(13),
-            Background = new SolidColorBrush(Color.FromRgb(0xC0, 0x3A, 0x3A)),
-            Cursor = Cursors.Hand, HorizontalAlignment = HorizontalAlignment.Right,
-            Child = new TextBlock { Text = "✕", FontSize = 12, Foreground = Brushes.White, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center }
-        };
-        closeGlyph.MouseLeftButtonUp += (s, e) => win.Close();
-        titleRow.Children.Add(closeGlyph);
-        titleRow.Background = Brushes.Transparent;
-        titleRow.MouseLeftButtonDown += (s, e) => { if (e.ButtonState == MouseButtonState.Pressed) win.DragMove(); };
-        DockPanel.SetDock(titleRow, Dock.Top);
-        root.Children.Add(titleRow);
+        var titleBar = BuildWidgetTitleBar(win, root, "Converter");
+        DockPanel.SetDock(titleBar, Dock.Top);
+        root.Children.Add(titleBar);
 
         var _dci = DarkComboItemStyle();
         var catBoxOuter = new Border
@@ -578,6 +544,10 @@ public partial class MainWindow
 
         var outer = new DockPanel();
         outerBorder.Child = outer;
+
+        var titleBar = BuildWidgetTitleBar(win, outer, "Calendar");
+        DockPanel.SetDock(titleBar, Dock.Top);
+        outer.Children.Add(titleBar);
 
         var tabBar = new StackPanel { Orientation = Orientation.Horizontal, Background = new SolidColorBrush(Color.FromArgb(0x50, 0x00, 0x00, 0x00)), Margin = new Thickness(4, 4, 4, 0) };
         DockPanel.SetDock(tabBar, Dock.Top);
@@ -1265,9 +1235,6 @@ public partial class MainWindow
         var outer = new DockPanel { Margin = new Thickness(16, 12, 16, 14) };
         outerBorder.Child = outer;
 
-        // ── Title row ────────────────────────────────────────────────────────
-        var titleRow = new Grid { Margin = new Thickness(0, 0, 0, 10) };
-        titleRow.Children.Add(new TextBlock { Text = "Notes", FontSize = 16, FontWeight = FontWeights.Bold, Foreground = Brushes.White, HorizontalAlignment = HorizontalAlignment.Center });
         var backGlyph = new TextBlock
         {
             Text = "‹", FontSize = 20, FontWeight = FontWeights.Bold,
@@ -1275,20 +1242,9 @@ public partial class MainWindow
             HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Center
         };
         backGlyph.MouseLeftButtonUp += (s, e) => win.Hide();
-        titleRow.Children.Add(backGlyph);
-        var closeGlyph = new Border
-        {
-            Width = 26, Height = 26, CornerRadius = new CornerRadius(13),
-            Background = new SolidColorBrush(Color.FromRgb(0xC0, 0x3A, 0x3A)),
-            Cursor = Cursors.Hand, HorizontalAlignment = HorizontalAlignment.Right,
-            Child = new TextBlock { Text = "✕", FontSize = 12, Foreground = Brushes.White, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center }
-        };
-        closeGlyph.MouseLeftButtonUp += (s, e) => win.Close();
-        titleRow.Children.Add(closeGlyph);
-        titleRow.Background = Brushes.Transparent;
-        titleRow.MouseLeftButtonDown += (s, e) => { if (e.ButtonState == MouseButtonState.Pressed) win.DragMove(); };
-        DockPanel.SetDock(titleRow, Dock.Top);
-        outer.Children.Add(titleRow);
+        var titleBar = BuildWidgetTitleBar(win, outer, "Notes", backGlyph);
+        DockPanel.SetDock(titleBar, Dock.Top);
+        outer.Children.Add(titleBar);
 
         // ── Tab bar ──────────────────────────────────────────────────────────
         var tabScroll = new ScrollViewer
@@ -2508,6 +2464,47 @@ public partial class MainWindow
     // ═══════════════════════════════════════════════════════════════════════════
     //  SHARED UI HELPERS
     // ═══════════════════════════════════════════════════════════════════════════
+
+    private Grid BuildWidgetTitleBar(Window win, Panel hostPanel, string title, params UIElement[] extraButtons)
+    {
+        var titleRow = new Grid { Margin = new Thickness(0, 0, 0, 12) };
+        titleRow.Children.Add(new TextBlock
+        {
+            Text = title, FontSize = 15, FontWeight = FontWeights.Bold,
+            Foreground = Brushes.White
+        });
+        var titleBtns = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
+        foreach (var extra in extraButtons) titleBtns.Children.Add(extra);
+        var minimizeGlyph = new Border
+        {
+            Width = 22, Height = 22, CornerRadius = new CornerRadius(5),
+            Background = new SolidColorBrush(Color.FromArgb(0x40, 0xFF, 0xFF, 0xFF)),
+            Cursor = Cursors.Hand, Margin = new Thickness(0, 0, 6, 0),
+            Child = new TextBlock { Text = "—", FontSize = 11, Foreground = Brushes.White, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center }
+        };
+        bool widgetCollapsed = false;
+        minimizeGlyph.MouseLeftButtonUp += (s, e) =>
+        {
+            widgetCollapsed = !widgetCollapsed;
+            foreach (UIElement child in hostPanel.Children)
+                if (!ReferenceEquals(child, titleRow))
+                    child.Visibility = widgetCollapsed ? Visibility.Collapsed : Visibility.Visible;
+        };
+        var closeGlyph = new Border
+        {
+            Width = 22, Height = 22, CornerRadius = new CornerRadius(5),
+            Background = new SolidColorBrush(Color.FromRgb(0xC0, 0x3A, 0x3A)),
+            Cursor = Cursors.Hand,
+            Child = new TextBlock { Text = "✕", FontSize = 11, Foreground = Brushes.White, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center }
+        };
+        closeGlyph.MouseLeftButtonUp += (s, e) => win.Close();
+        titleBtns.Children.Add(minimizeGlyph);
+        titleBtns.Children.Add(closeGlyph);
+        titleRow.Children.Add(titleBtns);
+        titleRow.Background = Brushes.Transparent;
+        titleRow.MouseLeftButtonDown += (s, e) => { if (e.ButtonState == MouseButtonState.Pressed) win.DragMove(); };
+        return titleRow;
+    }
 
     private Window MakeToolWindow(string title, int width, bool resizable = false)
     {
