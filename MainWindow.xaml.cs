@@ -9014,8 +9014,11 @@ private sealed class WeatherRetryHandler : DelegatingHandler
         paneBox.ContextMenu = MakeDefaultOpenMenu(
             () => SettingsService.Current.WeatherRightPaneDefaultOpen,
             v => SettingsService.Current.WeatherRightPaneDefaultOpen = v);
+        bool wxFullscreen = false;
+        WindowState wxPrevState = WindowState.Normal;
         MakeCaptionButton("\uE921", false, () => win.WindowState = WindowState.Minimized);
         var (_, maxGlyph) = MakeCaptionButton("\uE922", false, () => win.WindowState = win.WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized);
+        var (_, fsGlyph) = MakeCaptionButton("\uE740", false, () => SetFullscreen(!wxFullscreen));
         MakeCaptionButton("\uE8BB", true, () => win.Close());
 
         hourlyToggleBtn.Click += (_, _) => paneGlyph.Text = hourlyExpanded ? "\uE76C" : "\uE76B";
@@ -9030,6 +9033,43 @@ private sealed class WeatherRetryHandler : DelegatingHandler
 
         DockPanel.SetDock(titleBar, Dock.Top);
         outerDock.Children.Insert(0, titleBar);
+
+        var exitFsBtn = new Border
+        {
+            Background = new SolidColorBrush(Color.FromArgb(0xA0, 0x00, 0x00, 0x00)),
+            CornerRadius = new CornerRadius(4),
+            Padding = new Thickness(10, 5, 10, 5),
+            Margin = new Thickness(0, 10, 10, 0),
+            HorizontalAlignment = HorizontalAlignment.Right,
+            VerticalAlignment = VerticalAlignment.Top,
+            Cursor = Cursors.Hand,
+            Visibility = Visibility.Collapsed,
+            Child = new TextBlock { Text = "✕  Exit Fullscreen", FontSize = 11, Foreground = Brushes.White }
+        };
+        bgGrid.Children.Add(exitFsBtn);
+
+        void SetFullscreen(bool on)
+        {
+            wxFullscreen = on;
+            titleBar.Visibility = on ? Visibility.Collapsed : Visibility.Visible;
+            exitFsBtn.Visibility = on ? Visibility.Visible : Visibility.Collapsed;
+            fsGlyph.Text = on ? "\uE73F" : "\uE740";
+            if (on)
+            {
+                wxPrevState = win.WindowState;
+                win.WindowState = WindowState.Maximized;
+            }
+            else if (wxPrevState != WindowState.Maximized)
+            {
+                win.WindowState = wxPrevState;
+            }
+            ApplyLayout(false);
+        }
+        exitFsBtn.MouseLeftButtonUp += (_, _) => SetFullscreen(false);
+        win.KeyDown += (s, e) =>
+        {
+            if (e.Key == Key.Escape && wxFullscreen) SetFullscreen(false);
+        };
 
         const double WxWideEnter = 900;
         const double WxWideExit = 840;
