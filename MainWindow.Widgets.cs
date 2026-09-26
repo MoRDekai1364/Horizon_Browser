@@ -78,55 +78,171 @@ public partial class MainWindow
         return FormatTimeSpan(remaining);
     }
 
+    private static readonly Color ClockAccent = Color.FromRgb(0x22, 0xE5, 0xFF);
+
     private void OpenClockModeMenu()
     {
-        var win = MakeToolWindow("Clock Mode", 272);
-        var root = new StackPanel { Margin = new Thickness(10, 8, 10, 10) };
-        root.Children.Add(SectionLabel("CLOCK DISPLAY"));
-
-        (string Label, int Mode)[] modes =
+        var win = new Window
         {
-            ("🕐  24 h  with seconds  —  14:32:05",  0),
-            ("🕑  24 h  no seconds    —  14:32",      1),
-            ("🕒  12 h  AM/PM         —  2:32 PM",    2),
-            ("🕓  24 h  + :ss corner  —  14:32 ˢˢ",  3),
+            Width = 340, SizeToContent = SizeToContent.Height,
+            WindowStyle = WindowStyle.None, AllowsTransparency = true,
+            Background = Brushes.Transparent, ResizeMode = ResizeMode.NoResize,
+            Owner = this, ShowInTaskbar = false, Topmost = true
+        };
+        ApplyWindowRoundedCorners(win);
+
+        var shell = new Grid();
+        var backdrop = BuildWidgetBackdrop(win);
+        shell.Children.Add(backdrop.Root);
+
+        var outerBorder = new Border
+        {
+            CornerRadius = new CornerRadius(14),
+            BorderBrush = new SolidColorBrush(Color.FromArgb(0x60, 0xFF, 0xFF, 0xFF)),
+            BorderThickness = new Thickness(1),
+            ClipToBounds = true
+        };
+        shell.Children.Add(outerBorder);
+
+        var root = new StackPanel { Margin = new Thickness(16, 12, 16, 16) };
+        outerBorder.Child = root;
+
+        // ── Title row ────────────────────────────────────────────────────────
+        var titleRow = new Grid { Margin = new Thickness(0, 0, 0, 12) };
+        titleRow.Children.Add(new TextBlock
+        {
+            Text = "CLOCK SETTINGS", FontSize = 15, FontWeight = FontWeights.Bold,
+            Foreground = Brushes.White
+        });
+        var titleBtns = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
+        var gearGlyph = new TextBlock
+        {
+            Text = "⚙", FontSize = 14, Foreground = new SolidColorBrush(Color.FromArgb(0xAA, 0xFF, 0xFF, 0xFF)),
+            Margin = new Thickness(0, 0, 12, 0), Cursor = Cursors.Hand, VerticalAlignment = VerticalAlignment.Center
+        };
+        gearGlyph.MouseLeftButtonUp += (s, e) => win.Topmost = !win.Topmost;
+        var closeGlyph = new Border
+        {
+            Width = 22, Height = 22, CornerRadius = new CornerRadius(5),
+            Background = new SolidColorBrush(Color.FromRgb(0xC0, 0x3A, 0x3A)),
+            Cursor = Cursors.Hand,
+            Child = new TextBlock { Text = "✕", FontSize = 11, Foreground = Brushes.White, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center }
+        };
+        closeGlyph.MouseLeftButtonUp += (s, e) => win.Close();
+        titleBtns.Children.Add(gearGlyph);
+        titleBtns.Children.Add(closeGlyph);
+        titleRow.Children.Add(titleBtns);
+        titleRow.Background = Brushes.Transparent;
+        titleRow.MouseLeftButtonDown += (s, e) => { if (e.ButtonState == MouseButtonState.Pressed) win.DragMove(); };
+        root.Children.Add(titleRow);
+
+        // ── Primary live clock ──────────────────────────────────────────────
+        root.Children.Add(new TextBlock
+        {
+            Text = "Primary Live Clock", FontSize = 12,
+            Foreground = new SolidColorBrush(Color.FromArgb(0xAA, 0xFF, 0xFF, 0xFF)),
+            Margin = new Thickness(0, 0, 0, 4)
+        });
+        var liveClock = new TextBlock
+        {
+            Text = DateTime.Now.ToString("HH:mm:ss"), FontSize = 44, FontWeight = FontWeights.Bold,
+            FontFamily = new FontFamily("Consolas"), Foreground = new SolidColorBrush(ClockAccent),
+            Margin = new Thickness(0, 0, 0, 14),
+            Effect = new System.Windows.Media.Effects.DropShadowEffect
+            {
+                Color = ClockAccent, BlurRadius = 18, ShadowDepth = 0, Opacity = 0.85
+            }
+        };
+        root.Children.Add(liveClock);
+        var liveTick = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
+        liveTick.Tick += (s, e) => liveClock.Text = DateTime.Now.ToString("HH:mm:ss");
+        liveTick.Start();
+
+        root.Children.Add(new Border { Height = 1, Background = new SolidColorBrush(Color.FromArgb(0x30, 0xFF, 0xFF, 0xFF)), Margin = new Thickness(0, 0, 0, 12) });
+
+        // ── Row helper ────────────────────────────────────────────────────────
+        Border MakeRow(string glyph, string label, string preview, bool selected, Action onClick)
+        {
+            var row = new Border
+            {
+                Background = new SolidColorBrush(selected ? Color.FromArgb(0x30, 0x22, 0xE5, 0xFF) : Color.FromArgb(0x30, 0x20, 0x20, 0x20)),
+                BorderBrush = new SolidColorBrush(selected ? ClockAccent : Color.FromArgb(0x30, 0xFF, 0xFF, 0xFF)),
+                BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(8),
+                Margin = new Thickness(0, 0, 0, 6), Padding = new Thickness(10, 8, 10, 8), Cursor = Cursors.Hand
+            };
+            var grid = new Grid();
+            var iconDot = new Border
+            {
+                Width = 26, Height = 26, CornerRadius = new CornerRadius(13),
+                BorderBrush = new SolidColorBrush(ClockAccent), BorderThickness = new Thickness(1.3),
+                Child = new TextBlock { Text = glyph, FontSize = 12, Foreground = new SolidColorBrush(ClockAccent), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center },
+                HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Center
+            };
+            var lbl = new TextBlock
+            {
+                Text = label, FontSize = 14, Foreground = Brushes.White,
+                VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(36, 0, 0, 0)
+            };
+            var prev = new TextBlock
+            {
+                Text = preview, FontSize = 14, FontFamily = new FontFamily("Consolas"),
+                Foreground = new SolidColorBrush(ClockAccent), HorizontalAlignment = HorizontalAlignment.Right,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            grid.Children.Add(iconDot); grid.Children.Add(lbl); grid.Children.Add(prev);
+            row.Child = grid;
+            row.MouseLeftButtonUp += (s, e) => onClick();
+            return row;
+        }
+
+        TextBlock MakeSectionHeader(string text) => new TextBlock
+        {
+            Text = text, FontSize = 11, FontWeight = FontWeights.Bold,
+            Foreground = new SolidColorBrush(Color.FromArgb(0xAA, 0xFF, 0xFF, 0xFF)),
+            Margin = new Thickness(0, 0, 0, 8)
         };
 
-        foreach (var (lbl, idx) in modes)
+        root.Children.Add(MakeSectionHeader("CLOCK DISPLAY  ⌄"));
+
+        var now = DateTime.Now;
+        (string Glyph, string Label, string Preview, int Mode)[] modes =
         {
-            var btn = MenuButton(lbl, _clockMode == idx);
+            ("🕐", "24-hour, with seconds",  now.ToString("HH:mm:ss"), 0),
+            ("🕑", "24-hour, no seconds",     now.ToString("HH:mm"),    1),
+            ("🕒", "12-hour, AM/PM",          now.ToString("hh:mm tt"), 2),
+            ("🕓", "24-hour, seconds corner", now.ToString("HH:mm") + " ˢˢ", 3),
+        };
+
+        foreach (var (glyph, label, preview, idx) in modes)
+        {
             var cap = idx;
-            btn.Click += (s, e) =>
+            root.Children.Add(MakeRow(glyph, label, preview, _clockMode == idx, () =>
             {
                 _clockMode = cap;
                 SettingsService.Current.ClockMode = cap;
                 SettingsService.Save();
                 RefreshWidgetDisplay();
                 win.Close();
-            };
-            root.Children.Add(btn);
+            }));
         }
 
-        root.Children.Add(new Separator { Background = new SolidColorBrush(C(0x2a2a2a)), Margin = new Thickness(0, 8, 0, 8) });
-        root.Children.Add(SectionLabel("STOPWATCH & TIMER"));
+        root.Children.Add(new Border { Height = 8, Background = Brushes.Transparent });
+        root.Children.Add(MakeSectionHeader("STOPWATCH & TIMER  ⌄"));
 
-        var swBtn = MenuButton("⏱  Stopwatch", _clockMode == 4);
-        swBtn.Click += (s, e) =>
+        root.Children.Add(MakeRow("⏱", "Stopwatch Function", "", _clockMode == 4, () =>
         {
             _clockMode = 4; SettingsService.Current.ClockMode = 4; SettingsService.Save();
             win.Close(); OpenStopwatchWindow();
-        };
-
-        var tmBtn = MenuButton("⏲  Timer", _clockMode == 5);
-        tmBtn.Click += (s, e) =>
+        }));
+        root.Children.Add(MakeRow("⏲", "Timer Function", "", _clockMode == 5, () =>
         {
             _clockMode = 5; SettingsService.Current.ClockMode = 5; SettingsService.Save();
             win.Close(); OpenTimerWindow();
-        };
+        }));
 
-        root.Children.Add(swBtn);
-        root.Children.Add(tmBtn);
-        win.Content = root;
+        win.Closing += (s, e) => { win.Owner = null; liveTick.Stop(); backdrop.Detach(); };
+        win.Closed  += (s, e) => Dispatcher.BeginInvoke(new Action(() => { try { if (WindowState != WindowState.Minimized) Activate(); } catch { } }));
+        win.Content = shell;
         win.Show();
     }
 

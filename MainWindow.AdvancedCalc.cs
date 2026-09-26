@@ -32,15 +32,16 @@ public partial class MainWindow
 
     // ── Palette ───────────────────────────────────────────────────────────────
     private static readonly Color C_Bg      = Color.FromRgb(0x12, 0x12, 0x12);
-    private static readonly Color C_Surface = Color.FromRgb(0x1C, 0x1C, 0x1C);
-    private static readonly Color C_Num     = Color.FromRgb(0x28, 0x28, 0x28);
-    private static readonly Color C_Op      = Color.FromRgb(0x1A, 0x34, 0x54);
-    private static readonly Color C_Fn      = Color.FromRgb(0x1A, 0x2A, 0x1A);
-    private static readonly Color C_Eq      = Color.FromRgb(0x0A, 0x44, 0x18);
-    private static readonly Color C_Cls     = Color.FromRgb(0x36, 0x16, 0x10);
-    private static readonly Color C_Ai      = Color.FromRgb(0x22, 0x14, 0x38);
-    private static readonly Color C_Text    = Color.FromRgb(0xDD, 0xDD, 0xDD);
+    private static readonly Color C_Surface = Color.FromArgb(0x50, 0x1c, 0x1c, 0x1c);
+    private static readonly Color C_Num     = Color.FromArgb(0x40, 0x2a, 0x2a, 0x2a);
+    private static readonly Color C_Op      = Color.FromArgb(0x30, 0x22, 0xE5, 0xFF);
+    private static readonly Color C_Fn      = Color.FromArgb(0x40, 0x2a, 0x2a, 0x2a);
+    private static readonly Color C_Eq      = Color.FromRgb(0x22, 0xE5, 0xFF);
+    private static readonly Color C_Cls     = Color.FromRgb(0x7A, 0x4A, 0x30);
+    private static readonly Color C_Ai      = Color.FromArgb(0x30, 0x22, 0xE5, 0xFF);
+    private static readonly Color C_Text    = Color.FromRgb(0xEE, 0xEE, 0xEE);
     private static readonly Color C_Dim     = Color.FromRgb(0x99, 0x99, 0x99);
+    private static readonly Color C_Accent  = Color.FromRgb(0x22, 0xE5, 0xFF);
     private static Brush B(Color c) => new SolidColorBrush(c);
 
     private void OpenAdvancedCalculatorWindow()
@@ -54,23 +55,40 @@ public partial class MainWindow
             Title           = "Calculator",
             Width           = 520, Height = 640,
             MinWidth        = 440, MinHeight = 560,
-            Background      = B(C_Bg),
-            WindowStyle     = WindowStyle.ToolWindow,
-            ResizeMode      = ResizeMode.CanResize,
+            WindowStyle     = WindowStyle.None, AllowsTransparency = true,
+            Background      = Brushes.Transparent,
+            ResizeMode      = ResizeMode.CanResizeWithGrip,
             Owner           = this,
             ShowInTaskbar   = false,
             Topmost         = true,
             WindowStartupLocation = WindowStartupLocation.CenterOwner,
         };
+        ApplyWindowRoundedCorners(win);
+
+        // ── Backdrop shell ─────────────────────────────────────────────────────
+        var shell = new Grid();
+        var backdrop = BuildWidgetBackdrop(win);
+        shell.Children.Add(backdrop.Root);
+
+        var outerBorder = new Border
+        {
+            CornerRadius = new CornerRadius(14),
+            BorderBrush = new SolidColorBrush(Color.FromArgb(0x60, 0xFF, 0xFF, 0xFF)),
+            BorderThickness = new Thickness(1),
+            ClipToBounds = true
+        };
+        shell.Children.Add(outerBorder);
+        win.Closing += (_, _) => backdrop.Detach();
+        win.Content = shell;
 
         // ── Outer layout ──────────────────────────────────────────────────────
         var root = new Grid();
         root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });   // tabs
         root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }); // body
-        win.Content = root;
+        outerBorder.Child = root;
 
         // ── Tab bar ───────────────────────────────────────────────────────────
-        var tabBar = new StackPanel { Orientation = Orientation.Horizontal, Background = B(Color.FromRgb(0x0C,0x0C,0x0C)) };
+        var tabBar = new StackPanel { Orientation = Orientation.Horizontal, Background = new SolidColorBrush(Color.FromArgb(0x50, 0x00, 0x00, 0x00)), Margin = new Thickness(4,4,4,0) };
         Grid.SetRow(tabBar, 0);
         root.Children.Add(tabBar);
 
@@ -86,8 +104,8 @@ public partial class MainWindow
             {
                 Content         = label,
                 Height          = 30, Padding = new Thickness(18, 0, 18, 0),
-                Background      = B(C_Surface), Foreground = B(C_Dim),
-                BorderThickness = new Thickness(0,0,1,0), BorderBrush = B(Color.FromRgb(0x2A,0x2A,0x2A)),
+                Background      = Brushes.Transparent, Foreground = B(C_Dim),
+                BorderThickness = new Thickness(0,0,0,2), BorderBrush = Brushes.Transparent,
                 FontSize        = 12, FontWeight = FontWeights.SemiBold,
                 Cursor          = Cursors.Hand,
             };
@@ -106,8 +124,8 @@ public partial class MainWindow
             aiPanel! .Visibility = idx == 2 ? Visibility.Visible : Visibility.Collapsed;
             foreach (var (b, i) in new[]{(btnStd,0),(btnSci,1),(btnAi,2)})
             {
-                b.Background = B(i == idx ? C_Fn : C_Surface);
-                b.Foreground = B(i == idx ? C_Text : C_Dim);
+                b.Foreground   = B(i == idx ? C_Accent : C_Dim);
+                b.BorderBrush  = B(i == idx ? C_Accent : Colors.Transparent);
             }
         }
 
@@ -763,28 +781,33 @@ public partial class MainWindow
         {
             Text = "0",
             HorizontalContentAlignment = HorizontalAlignment.Right,
-            Background      = new SolidColorBrush(Color.FromRgb(0x0C, 0x0C, 0x0C)),
-            Foreground      = new SolidColorBrush(Color.FromRgb(0xEE, 0xEE, 0xEE)),
+            Background      = Brushes.Transparent,
+            Foreground      = new SolidColorBrush(C_Accent),
             BorderThickness = new Thickness(0, 0, 0, 1),
-            BorderBrush     = new SolidColorBrush(Color.FromRgb(0x22, 0x22, 0x22)),
-            FontSize        = 26, FontWeight = FontWeights.Bold,
+            BorderBrush     = new SolidColorBrush(Color.FromArgb(0x50, 0x22, 0xE5, 0xFF)),
+            FontSize        = 30, FontWeight = FontWeights.Bold,
             FontFamily      = new FontFamily("Consolas"),
             IsReadOnly      = true, Margin = new Thickness(2, 2, 2, 6),
-            Padding         = new Thickness(6, 4, 6, 4)
+            Padding         = new Thickness(6, 4, 6, 4),
+            Effect = new System.Windows.Media.Effects.DropShadowEffect
+            {
+                Color = C_Accent, BlurRadius = 16, ShadowDepth = 0, Opacity = 0.8
+            }
         };
 
     private static Button CalcBtn(string label, Color bg, int fontSize = 14)
     {
+        bool isOperator = bg == C_Op || bg == C_Eq;
         var b = new Button
         {
             Content = label, FontSize = fontSize,
             Background = new SolidColorBrush(bg),
-            Foreground = new SolidColorBrush(Color.FromRgb(0xDD, 0xDD, 0xDD)),
-            BorderThickness = new Thickness(1),
-            BorderBrush = new SolidColorBrush(Color.FromRgb(0x2A, 0x2A, 0x2A)),
-            Margin = new Thickness(2), Cursor = Cursors.Hand
+            Foreground = new SolidColorBrush(bg == C_Eq ? Color.FromRgb(0x00,0x1a,0x1a) : Color.FromRgb(0xEE, 0xEE, 0xEE)),
+            BorderThickness = new Thickness(isOperator ? 1.5 : 1),
+            BorderBrush = new SolidColorBrush(isOperator ? C_Accent : Color.FromArgb(0x50, 0xFF, 0xFF, 0xFF)),
+            Margin = new Thickness(3), Cursor = Cursors.Hand
         };
-        b.Template = CalcRoundedTemplate(3);
+        b.Template = CalcRoundedTemplate(20);
         return b;
     }
 

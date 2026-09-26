@@ -7228,13 +7228,169 @@ private sealed class WeatherRetryHandler : DelegatingHandler
         }
     }
 
+    private Window? _systemInfoWindow = null;
+
     private void OpenSystemDetailPopup()
     {
-        var proc = Process.GetCurrentProcess(); proc.Refresh();
-        string info = $"CPU:     {GetCpuPercent():F1}%  ({Environment.ProcessorCount} cores)\n" +
-                      $"RAM:     {GetProcessTreeWorkingSetBytes() / 1048576:F0} MB  (incl. WebView2)\n" +
-                      $"Threads: {proc.Threads.Count}";
-        MessageBox.Show(info, "System Info", MessageBoxButton.OK, MessageBoxImage.None);
+        if (_systemInfoWindow != null) { _systemInfoWindow.Activate(); return; }
+
+        var win = new Window
+        {
+            Width = 300, SizeToContent = SizeToContent.Height,
+            WindowStyle = WindowStyle.None, AllowsTransparency = true,
+            Background = Brushes.Transparent, ResizeMode = ResizeMode.NoResize,
+            Owner = null, ShowInTaskbar = false, Topmost = true
+        };
+        ApplyWindowRoundedCorners(win);
+        _systemInfoWindow = win;
+
+        var shell = new Grid();
+        var backdrop = BuildWidgetBackdrop(win);
+        shell.Children.Add(backdrop.Root);
+
+        var outerBorder = new Border
+        {
+            CornerRadius = new CornerRadius(14),
+            BorderBrush = new SolidColorBrush(Color.FromArgb(0x60, 0xFF, 0xFF, 0xFF)),
+            BorderThickness = new Thickness(1),
+            ClipToBounds = true
+        };
+        shell.Children.Add(outerBorder);
+
+        var content = new StackPanel { Margin = new Thickness(20, 14, 20, 18) };
+        outerBorder.Child = content;
+
+        var titleRow = new Grid();
+        var glyphs = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
+
+        TextBlock MakeGlyph(string g) => new TextBlock
+        {
+            Text = g, FontSize = 13, Foreground = new SolidColorBrush(Color.FromArgb(0xAA, 0xFF, 0xFF, 0xFF)),
+            Margin = new Thickness(10, 0, 0, 0), Cursor = Cursors.Hand, VerticalAlignment = VerticalAlignment.Center
+        };
+
+        var closeGlyph    = MakeGlyph("✕");
+        var minimizeGlyph = MakeGlyph("—");
+        var pinGlyph      = MakeGlyph("[ ]");
+
+        closeGlyph.MouseLeftButtonUp    += (s, e) => win.Close();
+        minimizeGlyph.MouseLeftButtonUp += (s, e) => win.Hide();
+        pinGlyph.MouseLeftButtonUp      += (s, e) => win.Topmost = !win.Topmost;
+
+        glyphs.Children.Add(closeGlyph);
+        glyphs.Children.Add(minimizeGlyph);
+        glyphs.Children.Add(pinGlyph);
+        titleRow.Children.Add(new TextBlock
+        {
+            Text = "SYSTEM INFO", FontSize = 13, FontWeight = FontWeights.Bold,
+            Foreground = Brushes.White, VerticalAlignment = VerticalAlignment.Center
+        });
+        titleRow.Children.Add(glyphs);
+        titleRow.Background = Brushes.Transparent;
+        titleRow.MouseLeftButtonDown += (s, e) => { if (e.ButtonState == MouseButtonState.Pressed) win.DragMove(); };
+        content.Children.Add(titleRow);
+
+        content.Children.Add(new Border
+        {
+            Height = 1, Background = new SolidColorBrush(Color.FromArgb(0x30, 0xFF, 0xFF, 0xFF)),
+            Margin = new Thickness(0, 10, 0, 16)
+        });
+
+        var glowColor = Color.FromRgb(0x22, 0xE5, 0xFF);
+
+        TextBlock MakeLabel(string t) => new TextBlock
+        {
+            Text = t, FontSize = 13, HorizontalAlignment = HorizontalAlignment.Center,
+            Foreground = new SolidColorBrush(Color.FromArgb(0xCC, 0xFF, 0xFF, 0xFF)),
+            Margin = new Thickness(0, 0, 0, 4)
+        };
+        TextBlock MakeSub(string t) => new TextBlock
+        {
+            Text = t, FontSize = 12, HorizontalAlignment = HorizontalAlignment.Center,
+            Foreground = new SolidColorBrush(Color.FromArgb(0x99, 0xFF, 0xFF, 0xFF)),
+            Margin = new Thickness(0, 2, 0, 0)
+        };
+        TextBlock MakeStat() => new TextBlock
+        {
+            FontSize = 40, FontWeight = FontWeights.Bold, HorizontalAlignment = HorizontalAlignment.Center,
+            Foreground = new SolidColorBrush(glowColor),
+            Effect = new System.Windows.Media.Effects.DropShadowEffect
+            {
+                Color = glowColor, BlurRadius = 18, ShadowDepth = 0, Opacity = 0.85
+            }
+        };
+        Border MakeDivider() => new Border
+        {
+            Height = 1, Background = new SolidColorBrush(Color.FromArgb(0x25, 0xFF, 0xFF, 0xFF)),
+            Margin = new Thickness(0, 14, 0, 14)
+        };
+
+        content.Children.Add(MakeLabel("CPU Usage"));
+        var cpuTb = MakeStat();
+        content.Children.Add(cpuTb);
+        var cpuSub = MakeSub($"({Environment.ProcessorCount} Cores)");
+        content.Children.Add(cpuSub);
+
+        content.Children.Add(MakeDivider());
+
+        content.Children.Add(MakeLabel("RAM Memory"));
+        var ramTb = MakeStat();
+        content.Children.Add(ramTb);
+        content.Children.Add(MakeSub("(incl. WebView2)"));
+
+        content.Children.Add(MakeDivider());
+
+        content.Children.Add(MakeLabel("Total Threads"));
+        var threadsTb = MakeStat();
+        content.Children.Add(threadsTb);
+
+        void Refresh()
+        {
+            var proc = Process.GetCurrentProcess(); proc.Refresh();
+            cpuTb.Text     = $"{GetCpuPercent():F1}%";
+            ramTb.Text     = $"{GetProcessTreeWorkingSetBytes() / 1048576:F0} MB";
+            threadsTb.Text = proc.Threads.Count.ToString();
+        }
+        Refresh();
+
+        var refreshTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+        refreshTimer.Tick += (_, _) => Refresh();
+        refreshTimer.Start();
+
+        content.Children.Add(new Border { Height = 1, Background = Brushes.Transparent, Margin = new Thickness(0, 16, 0, 0) });
+
+        Border MakeGlassButton(string label, Action onClick)
+        {
+            var normalBg = new SolidColorBrush(Color.FromArgb(0x40, 0x22, 0xE5, 0xFF));
+            var hoverBg  = new SolidColorBrush(Color.FromArgb(0x60, 0x22, 0xE5, 0xFF));
+            var border = new Border
+            {
+                Height = 38, CornerRadius = new CornerRadius(19),
+                Background = normalBg,
+                BorderBrush = new SolidColorBrush(Color.FromArgb(0xA0, 0x22, 0xE5, 0xFF)),
+                BorderThickness = new Thickness(1.2)
+            };
+            border.Child = new TextBlock
+            {
+                Text = label, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center,
+                Foreground = Brushes.White, FontWeight = FontWeights.SemiBold, FontSize = 13
+            };
+            border.MouseEnter += (s, e) => border.Background = hoverBg;
+            border.MouseLeave += (s, e) => border.Background = normalBg;
+            border.Cursor = Cursors.Hand;
+            border.MouseLeftButtonUp += (s, e) => onClick();
+            return border;
+        }
+        content.Children.Add(MakeGlassButton("OK", () => win.Close()));
+
+        win.Closing += (s, e) => { win.Owner = null; refreshTimer.Stop(); backdrop.Detach(); };
+        win.Closed  += (s, e) =>
+        {
+            _systemInfoWindow = null;
+            Dispatcher.BeginInvoke(new Action(() => { try { if (WindowState != WindowState.Minimized) Activate(); } catch { } }));
+        };
+        win.Content = shell;
+        win.Show();
     }
 
     // ── XAML Popup stubs (Music/Video widget inline popup) ───────────────────
@@ -7432,11 +7588,10 @@ private sealed class WeatherRetryHandler : DelegatingHandler
 
         var win = new Window
         {
-            Title            = "Music Playing",
             Width            = 320,
             SizeToContent    = SizeToContent.Height,
-            Background       = new SolidColorBrush(Color.FromRgb(0x12, 0x12, 0x12)),
-            WindowStyle      = WindowStyle.ToolWindow,
+            WindowStyle      = WindowStyle.None, AllowsTransparency = true,
+            Background       = Brushes.Transparent,
             ResizeMode       = ResizeMode.NoResize,
             Owner            = null,
             ShowInTaskbar    = false,
@@ -7445,21 +7600,60 @@ private sealed class WeatherRetryHandler : DelegatingHandler
         _mediaWidgetWindow = win;
         ApplyWindowRoundedCorners(win);
 
-        var root = new StackPanel { Margin = new Thickness(12) };
+        var shell = new Grid();
+        var backdrop = BuildWidgetBackdrop(win);
+        shell.Children.Add(backdrop.Root);
+
+        var outerBorder = new Border
+        {
+            CornerRadius = new CornerRadius(14),
+            BorderBrush = new SolidColorBrush(Color.FromArgb(0x60, 0xFF, 0xFF, 0xFF)),
+            BorderThickness = new Thickness(1),
+            ClipToBounds = true
+        };
+        shell.Children.Add(outerBorder);
+
+        var root = new StackPanel { Margin = new Thickness(14, 10, 14, 14) };
+        outerBorder.Child = root;
+
+        var mediaAccent = Color.FromRgb(0x22, 0xE5, 0xFF);
+
+        // Custom title row
+        var titleRow = new Grid { Margin = new Thickness(0, 0, 0, 8) };
+        titleRow.Children.Add(new TextBlock
+        {
+            Text = "Music Playing", FontSize = 12, Foreground = new SolidColorBrush(Color.FromArgb(0xAA, 0xFF, 0xFF, 0xFF)),
+            VerticalAlignment = VerticalAlignment.Center
+        });
+        var closeGlyph = new TextBlock
+        {
+            Text = "✕", FontSize = 13, Foreground = new SolidColorBrush(mediaAccent),
+            HorizontalAlignment = HorizontalAlignment.Right, Cursor = Cursors.Hand
+        };
+        closeGlyph.MouseLeftButtonUp += (s, e) => win.Close();
+        titleRow.Children.Add(closeGlyph);
+        titleRow.Background = Brushes.Transparent;
+        titleRow.MouseLeftButtonDown += (s, e) => { if (e.ButtonState == MouseButtonState.Pressed) win.DragMove(); };
+        root.Children.Add(titleRow);
+        root.Children.Add(new Border { Height = 1, Background = new SolidColorBrush(Color.FromArgb(0x30, 0xFF, 0xFF, 0xFF)), Margin = new Thickness(0, 0, 0, 12) });
 
         // Track title
         var titleBlock = new TextBlock
         {
             Text         = tab != null ? (tab.CleanMediaTitle ?? tab.Title) : "Nothing playing",
-            Foreground   = new SolidColorBrush(Color.FromRgb(0xee, 0xee, 0xee)),
-            FontSize     = 14,
-            FontWeight   = FontWeights.SemiBold,
+            Foreground   = new SolidColorBrush(mediaAccent),
+            FontSize     = 20,
+            FontWeight   = FontWeights.Bold,
             TextWrapping = TextWrapping.Wrap,
             TextTrimming = TextTrimming.CharacterEllipsis,
             MaxWidth     = 280,
             Margin       = new Thickness(0, 0, 0, 4),
+            Effect = new System.Windows.Media.Effects.DropShadowEffect
+            {
+                Color = mediaAccent, BlurRadius = 14, ShadowDepth = 0, Opacity = 0.75
+            }
         };
-        root.Children.Add(titleBlock);
+        root.Children.Add(titleBlock);  
 
         // Tab name (artist/source)
         var sourceBlock = new TextBlock
@@ -7477,9 +7671,9 @@ private sealed class WeatherRetryHandler : DelegatingHandler
 
         Style MakePillStyle(double cornerRadius)
         {
-            var pillBg     = new SolidColorBrush(Color.FromArgb(0xB3, 0x20, 0x20, 0x20));
-            var pillBorder = new SolidColorBrush(Color.FromArgb(0x33, 0xFF, 0xFF, 0xFF));
-            var hoverBg    = new SolidColorBrush(Color.FromArgb(0xCC, 0x20, 0x20, 0x20));
+            var pillBg     = new SolidColorBrush(Color.FromArgb(0x50, 0x20, 0x20, 0x20));
+            var pillBorder = new SolidColorBrush(Color.FromArgb(0x80, 0x22, 0xE5, 0xFF));
+            var hoverBg    = new SolidColorBrush(Color.FromArgb(0x30, 0x22, 0xE5, 0xFF));
 
             var borderFactory = new FrameworkElementFactory(typeof(Border), "PillBorder");
             borderFactory.SetValue(Border.BackgroundProperty, pillBg);
@@ -7701,13 +7895,14 @@ private sealed class WeatherRetryHandler : DelegatingHandler
         root.Children.Add(minRow);
 
         win.SourceInitialized += (s2, e2) => SetupMediaWidgetTaskbarThumb(win, tab);
+        win.Closing += (s2, e2) => backdrop.Detach();
         win.Closed += (s2, e2) =>
         {
             _mediaWidgetWindow  = null;
             _mediaWidgetTaskbar = null;
             Dispatcher.BeginInvoke(new Action(() => { try { if (WindowState != WindowState.Minimized) Activate(); } catch { } }));
         };
-        win.Content = root;
+        win.Content = shell;
         win.Show();
     }
 
