@@ -60,4 +60,9 @@ public static class NotificationCenterService
     {
         History.Clear();
     }
+
+    public static void Remove(NotificationEntry entry)
+    {
+        History.Remove(entry);
+    }
 }

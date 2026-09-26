@@ -1,0 +1,83 @@
+2026-09-26 13:51:50,716 [INFO] Source folder: E:\Programming\Personal_projects\Horizon_Browser\development_version_beta
+2026-09-26 13:51:50,716 [INFO] Temp log: C:\Users\MORDEK~1\AppData\Local\Temp\push_to_github_20260926_135150.log
+2026-09-26 13:51:50,716 [INFO] 
+Options:
+2026-09-26 13:51:50,716 [INFO]   1. Push to GitHub (Default)
+2026-09-26 13:51:50,717 [INFO]   2. Reset instrument data (delete .git and logs)
+2026-09-26 13:51:51,258 [DEBUG] Running: git --version
+2026-09-26 13:51:51,395 [DEBUG] stdout: git version 2.55.0.windows.2
+2026-09-26 13:51:51,396 [DEBUG] stderr: 
+2026-09-26 13:51:51,396 [INFO] Existing git repository detected.
+2026-09-26 13:51:51,397 [DEBUG] Running: git config core.longpaths true
+2026-09-26 13:51:51,523 [DEBUG] stdout: 
+2026-09-26 13:51:51,523 [DEBUG] stderr: 
+2026-09-26 13:51:51,523 [DEBUG] Running: git remote -v
+2026-09-26 13:51:51,647 [DEBUG] stdout: origin	https://github.com/MoRDekai1364/Horizon_Browser.git (fetch)
+origin	https://github.com/MoRDekai1364/Horizon_Browser.git (push)
+2026-09-26 13:51:51,647 [DEBUG] stderr: 
+2026-09-26 13:51:51,647 [INFO] Detected remotes:
+2026-09-26 13:51:51,647 [INFO]   1. origin -> https://github.com/MoRDekai1364/Horizon_Browser.git (default — Enter selects this)
+2026-09-26 13:51:51,647 [INFO]   2. Enter a new repository URL
+2026-09-26 13:51:51,892 [INFO] Verifying repository access.
+2026-09-26 13:51:51,893 [DEBUG] Running: git ls-remote https://github.com/MoRDekai1364/Horizon_Browser.git
+2026-09-26 13:51:53,000 [DEBUG] stdout: 188ad8a4b5b4223ca1edfad34ba4621b7de85f3a	HEAD
+01c23e969d6aa97853fedb6cc82432f134fa8bec	refs/heads/new_changes
+188ad8a4b5b4223ca1edfad34ba4621b7de85f3a	refs/heads/official_release
+80c2e9b562c2a11b3ad8993e03429efa743ac1eb	refs/tags/Horizon
+5ffe45035b989122fa937a9a2afc6a67a4663fb2	refs/tags/Horizon_2.6.1
+5ffe45035b989122fa937a9a2afc6a67a4663fb2	refs/tags/Horizon_2.6.2
+80c2e9b562c2a11b3ad8993e03429efa743ac1eb	refs/tags/Horizon_Browser_2.0
+88531221ba30ce81d7a808e5d04115b71364a32f	refs/tags/Horizon_Browser_2.1
+e97fdaa873ede316dfccdc9d1f357ea89c9b30a8	refs/tags/Horizon_Browser_2.2
+65aabcd91d50749048d80e690951c1c6840c9cff	refs/tags/Horizon_Browser_2.3
+1704d5bb9db2807f1c7b248ab078a590f10a3722	refs/tags/Horizon_Browser_2.4
+5ffe45035b989122fa937a9a2afc6a67a4663fb2	refs/tags/Horizon_Browser_2.6.3
+f320c7c49374bb613c339116b1cf43998b74ed90	refs/tags/Horizon_Browser_2.6.4
+f320c7c49374bb613c339116b1cf43998b74ed90	refs/tags/Horizon_Browser_2.6.5
+f320c7c49374bb613c339116b1cf43998b74ed90	refs/tags/Horizon_Browser_2.6.6
+f320c7c49374bb613c339116b1cf43998b74ed90	refs/tags/Horizon_Browser_2.6.8
+d46a996ea50e9554d2821c113e6bab9af9dc1f3e	refs/tags/Horizon_Browser_2.6.9
+369bc34b0eb442f66bc59b53de084935ad0164a2	refs/tags/Horizon_Browser_2.7.3
+369bc34b0eb442f66bc59b53de084935ad0164a2	refs/tags/Horizon_Browser_2.7.4
+8d27432c7e58db0d1d7e54a9edc4d274e7317c93	refs/tags/Horizon_Browser_2.7.4_Beta
+369bc34b0eb442f66bc59b53de084935ad0164a2	refs/tags/Horizon_Browser_2.7.5_Release
+d46a996ea50e9554d2821c113e6bab9af9dc1f3e	refs/tags/Horizon_Browser_Beta
+d46a996ea50e9554d2821c113e6bab9af9dc1f3e	refs/tags/Horizon_Browser_Official_Release
+369bc34b0eb442f66bc59b53de084935ad0164a2	refs/tags/Horizon_Browser_version_2.7.3
+80c2e9b562c2a11b3ad8993e03429efa743ac1eb	refs/tags/Horizon_browser
+5ffe45035b989122fa937a9a2afc6a67a4663fb2	refs/tags/Horizon_browser_2.6
+2026-09-26 13:51:53,001 [DEBUG] stderr: 
+2026-09-26 13:51:53,001 [DEBUG] Running: git branch --list
+2026-09-26 13:51:53,154 [DEBUG] stdout: TEST
+* new_changes
+2026-09-26 13:51:53,154 [DEBUG] stderr: 
+2026-09-26 13:51:53,155 [DEBUG] Running: git ls-remote --heads origin
+2026-09-26 13:51:54,229 [DEBUG] stdout: 01c23e969d6aa97853fedb6cc82432f134fa8bec	refs/heads/new_changes
+188ad8a4b5b4223ca1edfad34ba4621b7de85f3a	refs/heads/official_release
+2026-09-26 13:51:54,230 [DEBUG] stderr: 
+2026-09-26 13:51:54,230 [INFO] Detected branches:
+2026-09-26 13:51:54,230 [INFO]   1. TEST (default — Enter selects this)
+2026-09-26 13:51:54,231 [INFO]   2. new_changes
+2026-09-26 13:51:54,231 [INFO]   3. official_release
+2026-09-26 13:51:54,231 [INFO]   4. Enter a new branch name
+2026-09-26 13:51:54,664 [DEBUG] Running: git status --porcelain
+2026-09-26 13:51:54,853 [DEBUG] stdout: M MainWindow.xaml.cs
+ M Services/NotificationCenterService.cs
+?? Horizon.Browser_rmg2yjk3_wpftmp.csproj
+?? logs/push_to_github_20260926_134804.log
+2026-09-26 13:51:54,854 [DEBUG] stderr: 
+2026-09-26 13:51:54,854 [DEBUG] Running: git branch --show-current
+2026-09-26 13:51:54,980 [DEBUG] stdout: new_changes
+2026-09-26 13:51:54,980 [DEBUG] stderr: 
+2026-09-26 13:51:54,980 [DEBUG] Running: git add -A
+2026-09-26 13:51:55,295 [DEBUG] stdout: 
+2026-09-26 13:51:55,295 [DEBUG] stderr: warning: in the working copy of 'MainWindow.xaml.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Services/NotificationCenterService.cs', LF will be replaced by CRLF the next time Git touches it
+error: open("Horizon.Browser_rmg2yjk3_wpftmp.csproj"): No such file or directory
+error: unable to index file 'Horizon.Browser_rmg2yjk3_wpftmp.csproj'
+fatal: adding files failed
+2026-09-26 13:51:55,296 [ERROR] Error: warning: in the working copy of 'MainWindow.xaml.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Services/NotificationCenterService.cs', LF will be replaced by CRLF the next time Git touches it
+error: open("Horizon.Browser_rmg2yjk3_wpftmp.csproj"): No such file or directory
+error: unable to index file 'Horizon.Browser_rmg2yjk3_wpftmp.csproj'
+fatal: adding files failed

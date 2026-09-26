@@ -6685,6 +6685,63 @@ return colors.length > 0 ? colors : null;
                     TextWrapping = TextWrapping.Wrap
                 });
                 var rightBit = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
+                rightBit.Children.Add(new TextBlock
+                {
+                    Text = RelativeAgo(n.Time), FontSize = 10,
+                    Foreground = new SolidColorBrush(Color.FromArgb(0x88, 0xFF, 0xFF, 0xFF)),
+                    VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 8, 0)
+                });
+                var dismissBtn = new Border
+                {
+                    Width = 18, Height = 18, CornerRadius = new CornerRadius(9),
+                    Background = new SolidColorBrush(Color.FromArgb(0x30, 0xFF, 0xFF, 0xFF)),
+                    Cursor = Cursors.Hand, VerticalAlignment = VerticalAlignment.Center,
+                    Child = new TextBlock { Text = "✕", FontSize = 8, Foreground = Brushes.White, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center }
+                };
+                var capturedEntry = n;
+                dismissBtn.MouseLeftButtonUp += (s, e) =>
+                {
+                    Services.NotificationCenterService.Remove(capturedEntry);
+                    win.Close();
+                    OpenNotificationsListPopup();
+                };
+                rightBit.Children.Add(dismissBtn);
+                headerRow.Children.Add(rightBit);
+                textCol.Children.Add(headerRow);
+
+                if (!string.IsNullOrEmpty(n.Body))
+                {
+                    textCol.Children.Add(new TextBlock
+                    {
+                        Text = n.Body, TextWrapping = TextWrapping.Wrap,
+                        Foreground = new SolidColorBrush(Color.FromArgb(0xCC, 0xFF, 0xFF, 0xFF)),
+                        Margin = new Thickness(0, 3, 0, 0)
+                    });
+                }
+
+                Grid.SetColumn(textCol, 1);
+                row.Children.Add(textCol);
+                root.Children.Add(row);
+            }
+
+            var clearBtn = new Border
+            {
+                CornerRadius = new CornerRadius(14),
+                Background = new SolidColorBrush(Color.FromArgb(0x30, 0x00, 0x00, 0x00)),
+                BorderBrush = new SolidColorBrush(Color.FromArgb(0x60, 0xC0, 0x3A, 0x3A)),
+                BorderThickness = new Thickness(1), Cursor = Cursors.Hand,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                Padding = new Thickness(14, 6, 14, 6), Margin = new Thickness(0, 4, 0, 12),
+                Child = new TextBlock { Text = "🗑  Clear all", FontSize = 11, Foreground = Brushes.White }
+            };
+            clearBtn.MouseLeftButtonUp += (s, e) =>
+            {
+                Services.NotificationCenterService.Clear();
+                RefreshWidgetDisplay();
+                win.Close();
+            };
+            root.Children.Add(clearBtn);
+        }
 
         if (Services.SiteNotificationPermissionService.Entries.Count == 0)
         {
