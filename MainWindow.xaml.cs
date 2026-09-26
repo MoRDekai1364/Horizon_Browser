@@ -6398,9 +6398,13 @@ return colors.length > 0 ? colors : null;
         var minimizeGlyph = MakeGlyph("—");
         var pinGlyph      = MakeGlyph("[ ]");
 
-        closeGlyph.MouseLeftButtonUp    += (s, e) => win.Close();
-        minimizeGlyph.MouseLeftButtonUp += (s, e) => win.Hide();
-        pinGlyph.MouseLeftButtonUp      += (s, e) => win.Topmost = !win.Topmost;
+        closeGlyph.PreviewMouseLeftButtonDown    += (s, e) => e.Handled = true;
+        minimizeGlyph.PreviewMouseLeftButtonDown += (s, e) => e.Handled = true;
+        pinGlyph.PreviewMouseLeftButtonDown      += (s, e) => e.Handled = true;
+
+        closeGlyph.MouseLeftButtonUp    += (s, e) => { e.Handled = true; win.Close(); };
+        minimizeGlyph.MouseLeftButtonUp += (s, e) => { e.Handled = true; win.ShowInTaskbar = true; win.WindowState = WindowState.Minimized; };
+        pinGlyph.MouseLeftButtonUp      += (s, e) => { e.Handled = true; win.Topmost = !win.Topmost; };
 
         glyphs.Children.Add(closeGlyph);
         glyphs.Children.Add(minimizeGlyph);
@@ -6423,11 +6427,12 @@ return colors.length > 0 ? colors : null;
         });
 
         var glowColor = Color.FromRgb(0x4D, 0xE8, 0xE0);
-        var statusRow = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, 16) };
+        var statusRow = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, 4) };
         var percentTb = new TextBlock
         {
             FontSize = 34, FontWeight = FontWeights.SemiBold,
             Foreground = new SolidColorBrush(glowColor),
+            TextWrapping = TextWrapping.NoWrap,
             Effect = new System.Windows.Media.Effects.DropShadowEffect
             {
                 Color = glowColor, BlurRadius = 18, ShadowDepth = 0, Opacity = 0.85
@@ -6441,6 +6446,14 @@ return colors.length > 0 ? colors : null;
         statusRow.Children.Add(percentTb);
         statusRow.Children.Add(boltTb);
         content.Children.Add(statusRow);
+
+        var statusLabelTb = new TextBlock
+        {
+            FontSize = 13, FontWeight = FontWeights.Normal,
+            Foreground = new SolidColorBrush(Color.FromArgb(0xCC, 0xFF, 0xFF, 0xFF)),
+            Margin = new Thickness(0, 0, 0, 16), TextWrapping = TextWrapping.Wrap
+        };
+        content.Children.Add(statusLabelTb);
 
         content.Children.Add(new Border
         {
@@ -6496,13 +6509,15 @@ return colors.length > 0 ? colors : null;
             if (!Services.BatteryBridge.HasBattery)
             {
                 percentTb.Text = "N/A";
+                statusLabelTb.Text = "";
                 boltTb.Visibility = Visibility.Collapsed;
                 moreInfoBody.Text = "No battery detected on this system.";
                 return;
             }
 
             string status = Services.BatteryBridge.IsCharging ? "Charging" : "On battery";
-            percentTb.Text = $"{Services.BatteryBridge.Percent}%  —  {status}";
+            percentTb.Text = $"{Services.BatteryBridge.Percent}%";
+            statusLabelTb.Text = status;
             boltTb.Visibility = Services.BatteryBridge.IsCharging ? Visibility.Visible : Visibility.Collapsed;
 
             string time = Services.BatteryBridge.TimeRemaining is TimeSpan t ? FormatTimeSpan(t) : "unknown";
@@ -7723,20 +7738,35 @@ private sealed class WeatherRetryHandler : DelegatingHandler
 
         var mediaAccent = Color.FromRgb(0x22, 0xE5, 0xFF);
 
-        // Custom title row
         var titleRow = new Grid { Margin = new Thickness(0, 0, 0, 8) };
         titleRow.Children.Add(new TextBlock
         {
             Text = "Music Playing", FontSize = 12, Foreground = new SolidColorBrush(Color.FromArgb(0xAA, 0xFF, 0xFF, 0xFF)),
             VerticalAlignment = VerticalAlignment.Center
         });
+        var titleBtnRow = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
+        var minimizeGlyph = new TextBlock
+        {
+            Text = "🗕", FontSize = 13, Foreground = new SolidColorBrush(mediaAccent),
+            Cursor = Cursors.Hand, Margin = new Thickness(0, 0, 10, 0)
+        };
+        minimizeGlyph.PreviewMouseLeftButtonDown += (s, e) => { e.Handled = true; };
+        minimizeGlyph.MouseLeftButtonUp += (s, e) =>
+        {
+            e.Handled = true;
+            win.ShowInTaskbar = true;
+            win.WindowState   = WindowState.Minimized;
+        };
         var closeGlyph = new TextBlock
         {
             Text = "✕", FontSize = 13, Foreground = new SolidColorBrush(mediaAccent),
-            HorizontalAlignment = HorizontalAlignment.Right, Cursor = Cursors.Hand
+            Cursor = Cursors.Hand
         };
-        closeGlyph.MouseLeftButtonUp += (s, e) => win.Close();
-        titleRow.Children.Add(closeGlyph);
+        closeGlyph.PreviewMouseLeftButtonDown += (s, e) => { e.Handled = true; };
+        closeGlyph.MouseLeftButtonUp += (s, e) => { e.Handled = true; win.Close(); };
+        titleBtnRow.Children.Add(minimizeGlyph);
+        titleBtnRow.Children.Add(closeGlyph);
+        titleRow.Children.Add(titleBtnRow);
         titleRow.Background = Brushes.Transparent;
         titleRow.MouseLeftButtonDown += (s, e) => { if (e.ButtonState == MouseButtonState.Pressed) win.DragMove(); };
         root.Children.Add(titleRow);
@@ -7902,24 +7932,66 @@ private sealed class WeatherRetryHandler : DelegatingHandler
             btnRow.Children.Add(b);
         root.Children.Add(btnRow);
 
-        // Volume row
-        var volRow = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 0, 0, 6) };
-        var volLabel = new TextBlock { Text = "🔉", FontSize = 13, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 6, 0), Foreground = System.Windows.Media.Brushes.White };
-        var volSlider = new Slider { Minimum = 0, Maximum = 100, Value = tab != null ? tab.Volume * 100 : 100, Width = 130, VerticalAlignment = VerticalAlignment.Center };
-        var volHigh = new TextBlock { Text = "🔊", FontSize = 13, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(6, 0, 0, 0), Foreground = System.Windows.Media.Brushes.White };
-        if (tab != null && _tabViews.TryGetValue(tab, out var volBrowser))
+        var progressRow = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 0, 0, 6) };
+        var timeElapsed = new TextBlock { Text = "0:00", FontSize = 11, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 6, 0), Foreground = System.Windows.Media.Brushes.White, Width = 32, TextAlignment = TextAlignment.Right };
+        var progressSlider = new Slider { Minimum = 0, Maximum = 1000, Value = 0, Width = 130, VerticalAlignment = VerticalAlignment.Center, IsMoveToPointEnabled = true };
+        var timeTotal = new TextBlock { Text = "0:00", FontSize = 11, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(6, 0, 0, 0), Foreground = System.Windows.Media.Brushes.White, Width = 32 };
+        progressRow.Children.Add(timeElapsed);
+        progressRow.Children.Add(progressSlider);
+        progressRow.Children.Add(timeTotal);
+        root.Children.Add(progressRow);
+
+        string FormatMediaTime(double seconds)
         {
-            volSlider.ValueChanged += (s, ev) =>
-            {
-                tab.Volume = volSlider.Value / 100.0;
-                _ = volBrowser.MainWebView?.CoreWebView2?.ExecuteScriptAsync(
-                    $"(() => {{ const v=document.querySelector('video,audio'); if(v) v.volume={tab.Volume.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)}; }})()");
-            };
+            if (double.IsNaN(seconds) || double.IsInfinity(seconds) || seconds < 0) seconds = 0;
+            var ts = TimeSpan.FromSeconds(seconds);
+            return ts.Hours > 0 ? ts.ToString(@"h\:mm\:ss") : ts.ToString(@"m\:ss");
         }
-        volRow.Children.Add(volLabel);
-        volRow.Children.Add(volSlider);
-        volRow.Children.Add(volHigh);
-        root.Children.Add(volRow);
+
+        bool userSeeking = false;
+        progressSlider.PreviewMouseLeftButtonDown += (s, e) => userSeeking = true;
+
+        if (tab != null && _tabViews.TryGetValue(tab, out var progressBrowser))
+        {
+            progressSlider.PreviewMouseLeftButtonUp += (s, e) =>
+            {
+                userSeeking = false;
+                if (progressSlider.Tag is double dur && dur > 0)
+                {
+                    double seekTime = (progressSlider.Value / 1000.0) * dur;
+                    _ = progressBrowser.MainWebView?.CoreWebView2?.ExecuteScriptAsync(
+                        $"(() => {{ const v=document.querySelector('video,audio'); if(v) v.currentTime={seekTime.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)}; }})()");
+                }
+            };
+
+            var progressTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
+            progressTimer.Tick += async (s, e) =>
+            {
+                var core = progressBrowser.MainWebView?.CoreWebView2;
+                if (core == null) return;
+                try
+                {
+                    string raw = await core.ExecuteScriptAsync(
+                        "(() => { const v=document.querySelector('video,audio'); return v ? JSON.stringify({t:v.currentTime||0,d:v.duration||0}) : '{}'; })()");
+                    string json = System.Text.Json.JsonSerializer.Deserialize<string>(raw) ?? "{}";
+                    using var doc = System.Text.Json.JsonDocument.Parse(json);
+                    double t = doc.RootElement.TryGetProperty("t", out var tp) ? tp.GetDouble() : 0;
+                    double d = doc.RootElement.TryGetProperty("d", out var dp) ? dp.GetDouble() : 0;
+                    timeElapsed.Text = FormatMediaTime(t);
+                    timeTotal.Text   = FormatMediaTime(d);
+                    progressSlider.Tag = d;
+                    if (!userSeeking && d > 0)
+                        progressSlider.Value = Math.Min(1000, (t / d) * 1000.0);
+                }
+                catch { }
+            };
+            progressTimer.Start();
+            win.Closed += (s, e) => progressTimer.Stop();
+        }
+        else
+        {
+            progressSlider.IsEnabled = false;
+        }
 
         // Audio Only toggle + Mini-player (PiP)
         if (tab != null && _tabViews.TryGetValue(tab, out var aoBrowser))
@@ -7969,20 +8041,24 @@ private sealed class WeatherRetryHandler : DelegatingHandler
 
         var minRow = new UniformGrid { Columns = 2, Margin = new Thickness(0, 8, 0, 0) };
 
-        var minBtn = new Button
+        var volRowLabel = new TextBlock { Text = "🔊", FontSize = 13, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 6, 0), Foreground = System.Windows.Media.Brushes.White };
+        var volSlider = new Slider { Minimum = 0, Maximum = 100, Value = tab != null ? tab.Volume * 100 : 100, Width = 90, VerticalAlignment = VerticalAlignment.Center, IsMoveToPointEnabled = true };
+        var volSliderRow = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Center };
+        volSliderRow.Children.Add(volRowLabel);
+        volSliderRow.Children.Add(volSlider);
+        if (tab != null && _tabViews.TryGetValue(tab, out var volBrowser))
         {
-            Content  = "🗕  Minimize",
-            Width    = 140,
-            Height   = 30,
-            FontSize = 12,
-            Margin   = new Thickness(0, 0, 3, 0),
-            Style    = widePillStyle,
-        };
-        minBtn.Click += (s2, e2) =>
+            volSlider.ValueChanged += (s, ev) =>
+            {
+                tab.Volume = volSlider.Value / 100.0;
+                _ = volBrowser.MainWebView?.CoreWebView2?.ExecuteScriptAsync(
+                    $"(() => {{ const v=document.querySelector('video,audio'); if(v) v.volume={tab.Volume.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)}; }})()");
+            };
+        }
+        else
         {
-            win.ShowInTaskbar = true;
-            win.WindowState   = WindowState.Minimized;
-        };
+            volSlider.IsEnabled = false;
+        }
 
         var gotoBtn = new Button
         {
@@ -7995,7 +8071,7 @@ private sealed class WeatherRetryHandler : DelegatingHandler
         };
         gotoBtn.Click += (s2, e2) => GoToMediaTabAndFocus(tab);
 
-        minRow.Children.Add(minBtn);
+        minRow.Children.Add(volSliderRow);
         minRow.Children.Add(gotoBtn);
         root.Children.Add(minRow);
 

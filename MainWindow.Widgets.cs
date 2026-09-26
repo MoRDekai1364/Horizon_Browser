@@ -589,6 +589,20 @@ public partial class MainWindow
             tabBar.Children.Add(btn);
         }
 
+        void ApplyCalTabStretch()
+        {
+            if (tabBtns.Length < 2) return;
+            tabBar.UpdateLayout();
+            double sum = 0;
+            foreach (var b in tabBtns) sum += b.ActualWidth;
+            double extra = tabBar.ActualWidth - sum;
+            double gap = extra > 0 ? extra / (tabBtns.Length - 1) : 0;
+            for (int i = 0; i < tabBtns.Length; i++)
+                tabBtns[i].Margin = new Thickness(0, 0, i == tabBtns.Length - 1 ? 0 : gap, 0);
+        }
+        tabBar.SizeChanged += (s, e) => ApplyCalTabStretch();
+        ApplyCalTabStretch();
+
         var holder = new Grid();
         foreach (var p in panels) holder.Children.Add(p);
         outer.Children.Add(holder);
