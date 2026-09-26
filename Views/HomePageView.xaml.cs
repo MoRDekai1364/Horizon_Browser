@@ -1533,33 +1533,15 @@ public partial class HomePageView : UserControl
     {
         BatteryBridge.Refresh();
 
-        string status = BatteryBridge.IsCharging ? "Charging" : "On battery";
-        string time   = BatteryBridge.TimeRemaining is TimeSpan t ? FormatBattTime(t) : "unknown";
+        var mainWin = Window.GetWindow(this) as MainWindow;
+        if (mainWin == null) return;
 
-        var menu = new ContextMenu();
-        menu.Items.Add(new MenuItem
+        try
         {
-            Header = $"{BatteryBridge.Percent}%  —  {status}",
-            IsEnabled = false
-        });
-        if (!BatteryBridge.IsCharging)
-            menu.Items.Add(new MenuItem { Header = $"Time remaining: {time}", IsEnabled = false });
-        menu.Items.Add(new Separator());
-
-        var refreshItem = new MenuItem { Header = "🔄  Refresh" };
-        refreshItem.Click += (s, e2) => { BatteryBridge.Refresh(); RefreshBattery(); };
-        menu.Items.Add(refreshItem);
-
-        var settingsItem = new MenuItem { Header = "⚙️  Windows Battery Settings" };
-        settingsItem.Click += (s, e2) =>
-        {
-            try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("ms-settings:batterysaver") { UseShellExecute = true }); }
-            catch { }
-        };
-        menu.Items.Add(settingsItem);
-
-        menu.PlacementTarget = PnlBatteryPill;
-        menu.IsOpen = true;
+            var method = typeof(MainWindow).GetMethod("OpenBatteryMenu", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            method?.Invoke(mainWin, null);
+        }
+        catch { }
     }
 
     private static string FormatBattTime(TimeSpan t) =>

@@ -6346,65 +6346,199 @@ return colors.length > 0 ? colors : null;
         if (BatteryFillRect != null) BatteryFillRect.Opacity = 1.0;
     }
 
+    private Window? _batteryWidgetWindow = null;
+
     private void OpenBatteryMenu()
     {
+        if (_batteryWidgetWindow != null)
+        {
+            _batteryWidgetWindow.Activate();
+            return;
+        }
+
         Services.BatteryBridge.Refresh();
 
-        var win  = MakeToolWindow("Battery", 260);
-        var root = new StackPanel { Margin = new Thickness(10, 8, 10, 10) };
-        root.Children.Add(SectionLabel("BATTERY STATUS"));
+        var win = new Window
+        {
+            Width = 300, SizeToContent = SizeToContent.Height,
+            WindowStyle = WindowStyle.None, AllowsTransparency = true,
+            Background = Brushes.Transparent, ResizeMode = ResizeMode.NoResize,
+            Owner = null, ShowInTaskbar = false, Topmost = true
+        };
+        ApplyWindowRoundedCorners(win);
+        _batteryWidgetWindow = win;
 
-        if (!Services.BatteryBridge.HasBattery)
+        var shell = new Grid();
+        var backdrop = BuildWidgetBackdrop(win);
+        shell.Children.Add(backdrop.Root);
+
+        var outerBorder = new Border
         {
-            root.Children.Add(new TextBlock
+            CornerRadius = new CornerRadius(14),
+            BorderBrush = new SolidColorBrush(Color.FromArgb(0x60, 0xFF, 0xFF, 0xFF)),
+            BorderThickness = new Thickness(1),
+            ClipToBounds = true
+        };
+        shell.Children.Add(outerBorder);
+
+        var content = new StackPanel { Margin = new Thickness(20, 14, 20, 18) };
+        outerBorder.Child = content;
+
+        var titleRow = new Grid();
+        var glyphs = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
+
+        TextBlock MakeGlyph(string g) => new TextBlock
+        {
+            Text = g, FontSize = 13, Foreground = new SolidColorBrush(Color.FromArgb(0xAA, 0xFF, 0xFF, 0xFF)),
+            Margin = new Thickness(10, 0, 0, 0), Cursor = Cursors.Hand, VerticalAlignment = VerticalAlignment.Center
+        };
+
+        var closeGlyph    = MakeGlyph("✕");
+        var minimizeGlyph = MakeGlyph("—");
+        var pinGlyph      = MakeGlyph("[ ]");
+
+        closeGlyph.MouseLeftButtonUp    += (s, e) => win.Close();
+        minimizeGlyph.MouseLeftButtonUp += (s, e) => win.Hide();
+        pinGlyph.MouseLeftButtonUp      += (s, e) => win.Topmost = !win.Topmost;
+
+        glyphs.Children.Add(closeGlyph);
+        glyphs.Children.Add(minimizeGlyph);
+        glyphs.Children.Add(pinGlyph);
+        titleRow.Children.Add(glyphs);
+        titleRow.Background = Brushes.Transparent;
+        titleRow.MouseLeftButtonDown += (s, e) => { if (e.ButtonState == MouseButtonState.Pressed) win.DragMove(); };
+        content.Children.Add(titleRow);
+
+        content.Children.Add(new TextBlock
+        {
+            Text = "BATTERY STATUS", FontSize = 12, FontWeight = FontWeights.Bold,
+            Foreground = new SolidColorBrush(Color.FromArgb(0x99, 0xFF, 0xFF, 0xFF)),
+            Margin = new Thickness(0, 6, 0, 12)
+        });
+        content.Children.Add(new Border
+        {
+            Height = 1, Background = new SolidColorBrush(Color.FromArgb(0x30, 0xFF, 0xFF, 0xFF)),
+            Margin = new Thickness(0, 0, 0, 16)
+        });
+
+        var glowColor = Color.FromRgb(0x4D, 0xE8, 0xE0);
+        var statusRow = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, 16) };
+        var percentTb = new TextBlock
+        {
+            FontSize = 34, FontWeight = FontWeights.SemiBold,
+            Foreground = new SolidColorBrush(glowColor),
+            Effect = new System.Windows.Media.Effects.DropShadowEffect
             {
-                Text = "No battery detected on this system",
-                Foreground = new SolidColorBrush(C(0x999999)),
-                Margin = new Thickness(4, 8, 4, 8),
-                TextWrapping = TextWrapping.Wrap
-            });
-        }
-        else
+                Color = glowColor, BlurRadius = 18, ShadowDepth = 0, Opacity = 0.85
+            }
+        };
+        var boltTb = new TextBlock
         {
+            Text = "⚡", FontSize = 20, Foreground = new SolidColorBrush(Color.FromRgb(0x34, 0xD3, 0x99)),
+            Margin = new Thickness(6, 0, 0, 0), VerticalAlignment = VerticalAlignment.Bottom
+        };
+        statusRow.Children.Add(percentTb);
+        statusRow.Children.Add(boltTb);
+        content.Children.Add(statusRow);
+
+        content.Children.Add(new Border
+        {
+            Height = 1, Background = new SolidColorBrush(Color.FromArgb(0x30, 0xFF, 0xFF, 0xFF)),
+            Margin = new Thickness(0, 0, 0, 16)
+        });
+
+        Border MakeGlassButton(string label, Action onClick)
+        {
+            var normalBg = new SolidColorBrush(Color.FromArgb(0x40, 0x30, 0xC0, 0xC8));
+            var hoverBg  = new SolidColorBrush(Color.FromArgb(0x60, 0x30, 0xC0, 0xC8));
+            var border = new Border
+            {
+                Height = 38, CornerRadius = new CornerRadius(13),
+                Background = normalBg,
+                BorderBrush = new SolidColorBrush(Color.FromArgb(0xA0, 0x4D, 0xE8, 0xE0)),
+                BorderThickness = new Thickness(1.2), Margin = new Thickness(0, 0, 0, 10),
+                Cursor = Cursors.Hand
+            };
+            border.Child = new TextBlock
+            {
+                Text = label, Foreground = Brushes.White, FontSize = 12, FontWeight = FontWeights.SemiBold,
+                HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center
+            };
+            border.MouseEnter += (s, e) => border.Background = hoverBg;
+            border.MouseLeave += (s, e) => border.Background = normalBg;
+            border.MouseLeftButtonUp += (s, e) => onClick();
+            return border;
+        }
+
+        var moreInfoHeader = new TextBlock
+        {
+            Text = "›  More info", FontSize = 11,
+            Foreground = new SolidColorBrush(Color.FromArgb(0x99, 0xFF, 0xFF, 0xFF)),
+            Margin = new Thickness(0, 10, 0, 0), Cursor = Cursors.Hand
+        };
+        var moreInfoBody = new TextBlock
+        {
+            FontSize = 11, Foreground = new SolidColorBrush(Color.FromArgb(0x88, 0xFF, 0xFF, 0xFF)),
+            Margin = new Thickness(0, 8, 0, 0), TextWrapping = TextWrapping.Wrap,
+            Visibility = Visibility.Collapsed
+        };
+        bool moreInfoExpanded = false;
+        moreInfoHeader.MouseLeftButtonUp += (s, e) =>
+        {
+            moreInfoExpanded = !moreInfoExpanded;
+            moreInfoHeader.Text = (moreInfoExpanded ? "⌄  " : "›  ") + "More info";
+            moreInfoBody.Visibility = moreInfoExpanded ? Visibility.Visible : Visibility.Collapsed;
+        };
+
+        void UpdateBatteryDisplay()
+        {
+            if (!Services.BatteryBridge.HasBattery)
+            {
+                percentTb.Text = "N/A";
+                boltTb.Visibility = Visibility.Collapsed;
+                moreInfoBody.Text = "No battery detected on this system.";
+                return;
+            }
+
             string status = Services.BatteryBridge.IsCharging ? "Charging" : "On battery";
-            string time   = Services.BatteryBridge.TimeRemaining is TimeSpan t
-                ? FormatTimeSpan(t) : "unknown";
+            percentTb.Text = $"{Services.BatteryBridge.Percent}%  —  {status}";
+            boltTb.Visibility = Services.BatteryBridge.IsCharging ? Visibility.Visible : Visibility.Collapsed;
 
-            root.Children.Add(new TextBlock
-            {
-                Text = $"{Services.BatteryBridge.Percent}%  —  {status}",
-                Foreground = Brushes.White, FontSize = 16, FontWeight = FontWeights.Bold,
-                Margin = new Thickness(4, 0, 4, 4)
-            });
-            root.Children.Add(new TextBlock
-            {
-                Text = Services.BatteryBridge.IsCharging ? "" : $"Time remaining: {time}",
-                Foreground = new SolidColorBrush(C(0x999999)),
-                Margin = new Thickness(4, 0, 4, 8)
-            });
+            string time = Services.BatteryBridge.TimeRemaining is TimeSpan t ? FormatTimeSpan(t) : "unknown";
+            moreInfoBody.Text = Services.BatteryBridge.IsCharging
+                ? "Plugged in and charging."
+                : $"Time remaining: {time}";
         }
+        UpdateBatteryDisplay();
 
-        var refreshBtn = MenuButton("🔄  Refresh", false);
-        refreshBtn.Click += (s, e) =>
+        var refreshBtn = MakeGlassButton("🔄  Refresh", () =>
         {
             Services.BatteryBridge.Refresh();
             RefreshWidgetDisplay();
-            win.Close();
-        };
-        root.Children.Add(refreshBtn);
+            UpdateBatteryDisplay();
+        });
+        content.Children.Add(refreshBtn);
 
-        var settingsBtn = MenuButton("⚙️  Windows Battery Settings", false);
-        settingsBtn.Click += (s, e) =>
+        var settingsBtn = MakeGlassButton("⚙  Windows Battery Settings", () =>
         {
             try { Process.Start(new ProcessStartInfo("ms-settings:batterysaver") { UseShellExecute = true }); }
             catch (Exception ex) { LogService.RecordCrash(ex, "OpenBatterySettings"); }
-            win.Close();
-        };
-        root.Children.Add(settingsBtn);
+        });
+        content.Children.Add(settingsBtn);
 
-        win.Content = root;
+        content.Children.Add(moreInfoHeader);
+        content.Children.Add(moreInfoBody);
+
+        win.Content = shell;
         win.Left = Left + (Width - win.Width) / 2;
         win.Top  = Top + 90;
+        win.Closing += (s, e) => { win.Owner = null; };
+        win.Closed  += (s, e) =>
+        {
+            _batteryWidgetWindow = null;
+            backdrop.Detach();
+            Dispatcher.BeginInvoke(new Action(() => { try { if (WindowState != WindowState.Minimized) Activate(); } catch { } }));
+        };
         win.Show();
     }
 
