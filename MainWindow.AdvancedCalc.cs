@@ -198,6 +198,19 @@ public partial class MainWindow
         Grid.SetColumnSpan(sciDisplay, 8);
         sciPanel.Children.Add(sciDisplay);
 
+        void RefreshCalcAccent()
+        {
+            foreach (var disp in new[] { stdDisplay, sciDisplay })
+            {
+                disp.Foreground = new SolidColorBrush(C_Accent);
+                disp.BorderBrush = new SolidColorBrush(Color.FromArgb(0x50, C_Accent.R, C_Accent.G, C_Accent.B));
+                ((System.Windows.Media.Effects.DropShadowEffect)disp.Effect).Color = C_Accent;
+            }
+        }
+        Action calcThemeHandler = () => win.Dispatcher.BeginInvoke(new Action(RefreshCalcAccent));
+        WeatherBridge.ThemeUpdated += calcThemeHandler;
+        win.Closed += (_, _) => WeatherBridge.ThemeUpdated -= calcThemeHandler;
+
         // Sci engine: expression accumulation with Math evaluator
         var sciExpr = new StringBuilder();
         bool sciJustEvaled = false;

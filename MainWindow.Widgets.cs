@@ -158,6 +158,15 @@ public partial class MainWindow
         liveTick.Tick += (s, e) => liveClock.Text = DateTime.Now.ToString("HH:mm:ss");
         liveTick.Start();
 
+        void RefreshClockAccent()
+        {
+            liveClock.Foreground = new SolidColorBrush(ClockAccent);
+            ((System.Windows.Media.Effects.DropShadowEffect)liveClock.Effect).Color = ClockAccent;
+        }
+        Action clockThemeHandler = () => win.Dispatcher.BeginInvoke(new Action(RefreshClockAccent));
+        WeatherBridge.ThemeUpdated += clockThemeHandler;
+        win.Closed += (s, e) => WeatherBridge.ThemeUpdated -= clockThemeHandler;
+
         root.Children.Add(new Border { Height = 1, Background = new SolidColorBrush(Color.FromArgb(0x30, 0xFF, 0xFF, 0xFF)), Margin = new Thickness(0, 0, 0, 12) });
 
         // ── Row helper ────────────────────────────────────────────────────────
@@ -574,7 +583,7 @@ public partial class MainWindow
         DockPanel.SetDock(tabBar, Dock.Top);
         outer.Children.Add(tabBar);
 
-        var calPanel      = BuildMonthCalendarPanel();
+        var calPanel      = BuildMonthCalendarPanel(win);
         var datePanel     = BuildDateCalcPanel();
         var agePanel      = BuildAgeCalcPanel();
         var accountsPanel = BuildCalendarAccountsPanel();
@@ -617,7 +626,7 @@ public partial class MainWindow
         win.Show();
     }
 
-    private Grid BuildMonthCalendarPanel()
+    private Grid BuildMonthCalendarPanel(Window win)
     {
         var g = new Grid { Margin = new Thickness(8) };
         g.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
@@ -658,6 +667,15 @@ public partial class MainWindow
         });
         heroRow.Children.Add(heroNum);
         heroRow.Children.Add(heroTextCol);
+
+        void RefreshCalAccent()
+        {
+            heroNum.Foreground = new SolidColorBrush(CalAccent);
+            ((System.Windows.Media.Effects.DropShadowEffect)heroNum.Effect).Color = CalAccent;
+        }
+        Action calThemeHandler = () => win.Dispatcher.BeginInvoke(new Action(RefreshCalAccent));
+        WeatherBridge.ThemeUpdated += calThemeHandler;
+        win.Closed += (s, e) => WeatherBridge.ThemeUpdated -= calThemeHandler;
         hero.Child = heroRow;
 
         // Nav row with + Event button
