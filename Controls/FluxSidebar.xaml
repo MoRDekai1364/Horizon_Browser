@@ -32,7 +32,7 @@
                 <Setter Property="Margin"          Value="2"/>
                 <Setter Property="Cursor"          Value="Hand"/>
                 <Setter Property="Background"      Value="Transparent"/>
-                <Setter Property="Foreground"      Value="{DynamicResource Brush_TabStripTextInactive}"/>
+                <Setter Property="Foreground"      Value="White"/>
                 <Setter Property="BorderBrush"     Value="{DynamicResource Brush_ButtonBorder}"/>
                 <Setter Property="Template">
                     <Setter.Value>
@@ -366,7 +366,7 @@
                                     <Setter Property="Foreground" Value="{DynamicResource Brush.Neon}"/>
                                     </Trigger>
                                     <Trigger Property="IsSelected" Value="False">
-                                        <Setter Property="Foreground" Value="{StaticResource Brush_TabStripTextInactive}"/>
+                                        <Setter Property="Foreground" Value="White"/>
                                     </Trigger>
                                     <Trigger Property="IsMouseOver" Value="True">
                                         <Setter Property="Foreground"                 Value="{StaticResource Brush_TabStripTextHover}"/>
@@ -392,7 +392,7 @@
                     <UniformGrid Grid.Row="0" Rows="1" Columns="4" Margin="0,0,0,8">
                         <Button x:Name="BtnPinSortName"   Content="🔤 NAME"   Click="BtnPinSortName_Click"
                                 Style="{StaticResource Style.SortBtn}"
-                                Background="#1a2a1a" Foreground="#00CC00" BorderBrush="#2a4a2a"
+                                Background="{DynamicResource Brush_TabStripBg}" Foreground="White" BorderBrush="{DynamicResource Brush_TabStripBorder}"
                                 ToolTip="Sort by name" MouseRightButtonUp="SortBtn_RightClick"/>
                         <Button x:Name="BtnPinSortCat"    Content="📁 CATG"   Click="BtnPinSortCat_Click"
                                 Style="{StaticResource Style.SortBtn}"
@@ -436,7 +436,9 @@
                     </UniformGrid>
 
                     <Button Grid.Row="4" Content=" PIN CURRENT " Click="BtnAddPin_Click"
-                            Style="{StaticResource Style_StealthButton}" Foreground="#888" FontSize="14" Margin="0,5,0,0"/>
+                            Style="{StaticResource Style_StealthButton}"
+                            Background="{DynamicResource Brush_TabStripBg}" Foreground="White"
+                            FontSize="14" Margin="0,5,0,0"/>
                 </Grid>
             </TabItem>
 

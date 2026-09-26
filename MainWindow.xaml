@@ -268,15 +268,6 @@
                         <Border x:Name="HeaderWallpaperGlassBlur" Margin="-48"/>
                     </Grid>
 
-                    <!--
-                        Homepage center fill: sits on top of HeaderWallpaperGlass so
-                        the header reads as "wallpaper extends in from the sides,
-                        solid B/W (matching the homepage search bar) in the middle".
-                        Colored/shown from code-behind alongside the glass above.
-                    -->
-                    <Rectangle x:Name="HeaderHomeCenterFill" Grid.ColumnSpan="4"
-                               IsHitTestVisible="False" Visibility="Collapsed"/>
-
                     <Rectangle x:Name="HeaderAmbientGlow" Grid.ColumnSpan="4"
                                Height="90" VerticalAlignment="Top"
                                IsHitTestVisible="False">

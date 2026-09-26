@@ -3265,9 +3265,14 @@ public partial class FluxSidebar : UserControl
     /// <summary>Applies the active/inactive visual to a sort bar button.</summary>
     private static void SetSortBtnActive(Button btn, bool active)
     {
-        btn.Background       = new SolidColorBrush(active ? Color.FromRgb(0x14, 0x14, 0x14) : Color.FromRgb(0x0b, 0x0b, 0x0b));
-        btn.Foreground       = new SolidColorBrush(active ? Color.FromRgb(0x00, 0xFF, 0x00) : Color.FromRgb(0x44, 0x44, 0x44));
-        btn.BorderBrush      = new SolidColorBrush(active ? Color.FromRgb(0x00, 0xFF, 0x00) : Color.FromRgb(0x1a, 0x1a, 0x1a));
+        Brush accent = (btn.TryFindResource("Brush.Neon") as Brush) ?? Brushes.White;
+        Brush selectedBg = (btn.TryFindResource("Brush_TabStripBgSelected") as Brush) ?? new SolidColorBrush(Color.FromRgb(0x1a, 0x1a, 0x1a));
+        Brush idleBg = (btn.TryFindResource("Brush_TabStripBg") as Brush) ?? new SolidColorBrush(Color.FromRgb(0x11, 0x11, 0x11));
+        Brush idleBorder = (btn.TryFindResource("Brush_TabStripBorder") as Brush) ?? new SolidColorBrush(Color.FromRgb(0x22, 0x22, 0x22));
+
+        btn.Background       = active ? selectedBg : idleBg;
+        btn.Foreground       = active ? accent : Brushes.White;
+        btn.BorderBrush      = active ? accent : idleBorder;
         btn.BorderThickness  = active ? new Thickness(0, 0, 0, 2) : new Thickness(0, 0, 1, 1);
     }
 

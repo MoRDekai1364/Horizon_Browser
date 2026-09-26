@@ -2900,7 +2900,6 @@ return colors.length > 0 ? colors : null;
     private Action? _headerWallpaperGlassRefresh;
     private Action? _headerHomeBlurBleedUnbind;
     private Action? _headerHomeBlurBleedRefresh;
-    private LinearGradientBrush? _headerHomeCenterBrush;
 
     private Action? _sidebarWallpaperGlassUnbind;
     private Action? _sidebarWallpaperGlassRefresh;
@@ -2950,23 +2949,6 @@ return colors.length > 0 ? colors : null;
 
     private void InitHeaderWallpaperGlass()
     {
-        _headerHomeCenterBrush = new LinearGradientBrush
-        {
-            StartPoint = new Point(0, 0.5),
-            EndPoint = new Point(1, 0.5)
-        };
-        // 6 stops: solid B/W right at the two edges, a flat fully-transparent
-        // plateau across the whole middle (where the Omnibox/widget live) so
-        // the header's wallpaper blur actually reads there instead of only
-        // at the exact geometric midpoint.
-        _headerHomeCenterBrush.GradientStops.Add(new GradientStop(Colors.Transparent, 0.00));
-        _headerHomeCenterBrush.GradientStops.Add(new GradientStop(Colors.Transparent, 0.10));
-        _headerHomeCenterBrush.GradientStops.Add(new GradientStop(Colors.Transparent, 0.18));
-        _headerHomeCenterBrush.GradientStops.Add(new GradientStop(Colors.Transparent, 0.82));
-        _headerHomeCenterBrush.GradientStops.Add(new GradientStop(Colors.Transparent, 0.90));
-        _headerHomeCenterBrush.GradientStops.Add(new GradientStop(Colors.Transparent, 1.00));
-        HeaderHomeCenterFill.Fill = _headerHomeCenterBrush;
-
         var (unbind, refresh) = HomeGlassService.AttachWallpaperEdgeGlass(
             HeaderContainer,
             HeaderWallpaperGlass,
@@ -2975,7 +2957,7 @@ return colors.length > 0 ? colors : null;
             {
                 bool homeActive = overlap != null;
                 HeaderAmbientGlow.Visibility = homeActive ? Visibility.Collapsed : Visibility.Visible;
-                UpdateHeaderHomeCenterFill(homeActive);
+                UpdateHeaderButtonContrastForHome(homeActive);
             });
         _headerWallpaperGlassUnbind = unbind;
         _headerWallpaperGlassRefresh = refresh;
@@ -3062,17 +3044,14 @@ return colors.length > 0 ? colors : null;
 
 
 
-        private void UpdateHeaderHomeCenterFill(bool homeActive)
+        private void UpdateHeaderButtonContrastForHome(bool homeActive)
     {
-        if (_headerHomeCenterBrush == null) return;
-
-        HeaderHomeCenterFill.Visibility = Visibility.Collapsed;
         if (!homeActive) return;
 
         Color centerColor = CurrentBrowser?.NativeHomePage.SearchBarTextColor ?? Colors.White;
         Color zoneColor = SampleWallpaperRegionColor(PnlHeaderRightIcons, centerColor);
         UpdateHeaderButtonContrastTint(zoneColor);
-    }
+    }   
 
     private static Color SampleWallpaperRegionColor(FrameworkElement? el, Color fallback, double padDip = 8)
     {
@@ -6895,7 +6874,10 @@ return colors.length > 0 ? colors : null;
         if (mode == "Battery")
             UpdateBatteryWidgetVisual();
         else
+        {
             StopBatteryFlash();
+            if (BatteryFillRect != null) BatteryFillRect.Visibility = Visibility.Collapsed;
+        }
 
         if (mode == "Weather")
         {
