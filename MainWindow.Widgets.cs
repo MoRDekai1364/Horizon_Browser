@@ -78,7 +78,7 @@ public partial class MainWindow
         return FormatTimeSpan(remaining);
     }
 
-    private static readonly Color ClockAccent = Color.FromRgb(0x22, 0xE5, 0xFF);
+    private static Color ClockAccent => WeatherBridge.ThemeAccent;
 
     private void OpenClockModeMenu()
     {
@@ -150,7 +150,7 @@ public partial class MainWindow
             Margin = new Thickness(0, 0, 0, 14),
             Effect = new System.Windows.Media.Effects.DropShadowEffect
             {
-                Color = ClockAccent, BlurRadius = 18, ShadowDepth = 0, Opacity = 0.85
+                Color = ClockAccent, BlurRadius = 8, ShadowDepth = 0, Opacity = 0.35
             }
         };
         root.Children.Add(liveClock);
@@ -388,7 +388,7 @@ public partial class MainWindow
         };
         shell.Children.Add(outerBorder);
 
-        var convCyan = Color.FromRgb(0x22, 0xE5, 0xFF);
+        var convCyan = WeatherBridge.ThemeAccent;
         var convOrange = Color.FromRgb(0xFF, 0x9A, 0x2E);
 
         var root = new DockPanel { Margin = new Thickness(16, 12, 16, 16) };
@@ -541,7 +541,7 @@ public partial class MainWindow
     //  CALENDAR WIDGET
     // ═══════════════════════════════════════════════════════════════════════════
 
-    private static readonly Color CalAccent = Color.FromRgb(0x22, 0xE5, 0xFF);
+    private static Color CalAccent => WeatherBridge.ThemeAccent;
 
     private void OpenCalendarWindow()
     {
@@ -642,7 +642,7 @@ public partial class MainWindow
             Margin = new Thickness(0, 0, 12, 0),
             Effect = new System.Windows.Media.Effects.DropShadowEffect
             {
-                Color = CalAccent, BlurRadius = 18, ShadowDepth = 0, Opacity = 0.85
+                Color = CalAccent, BlurRadius = 8, ShadowDepth = 0, Opacity = 0.35
             }
         };
         var heroTextCol = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
@@ -1242,7 +1242,7 @@ public partial class MainWindow
         };
         shell.Children.Add(outerBorder);
 
-        var notesCyan = Color.FromRgb(0x22, 0xE5, 0xFF);
+        var notesCyan = WeatherBridge.ThemeAccent;
 
         var outer = new DockPanel { Margin = new Thickness(16, 12, 16, 14) };
         outerBorder.Child = outer;
@@ -1515,9 +1515,9 @@ public partial class MainWindow
                     Content = capName, FontSize = 11, Height = 28,
                     Padding = new Thickness(10, 0, 5, 0),
                     Background  = Brushes.Transparent,
-                    Foreground  = new SolidColorBrush(isCur ? Color.FromRgb(0x22, 0xE5, 0xFF) : Color.FromArgb(0x99, 0xFF, 0xFF, 0xFF)),
+                    Foreground  = new SolidColorBrush(isCur ? notesCyan : Color.FromArgb(0x99, 0xFF, 0xFF, 0xFF)),
                     FontWeight  = isCur ? FontWeights.Bold : FontWeights.Normal,
-                    BorderBrush = new SolidColorBrush(isCur ? Color.FromRgb(0x22, 0xE5, 0xFF) : Colors.Transparent),
+                    BorderBrush = new SolidColorBrush(isCur ? notesCyan : Colors.Transparent),
                     BorderThickness = isCur ? new Thickness(0, 0, 0, 2) : new Thickness(0),
                     Cursor = Cursors.Hand
                 };
@@ -1572,7 +1572,7 @@ public partial class MainWindow
             Content = lbl, Width = w, Height = 26, FontSize = 11, ToolTip = tip,
             Margin = new Thickness(2, 2, 0, 2),
             Background  = new SolidColorBrush(Color.FromArgb(0x30, 0x00, 0x00, 0x00)), Foreground = Brushes.White,
-            BorderBrush = new SolidColorBrush(Color.FromArgb(0x50, 0x22, 0xE5, 0xFF)), BorderThickness = new Thickness(1),
+            BorderBrush = new SolidColorBrush(Color.FromArgb(0x50, notesCyan.R, notesCyan.G, notesCyan.B)), BorderThickness = new Thickness(1),
             Cursor = Cursors.Hand
         };
 
@@ -1590,7 +1590,7 @@ public partial class MainWindow
 
         var fmtSep   = new Border { Width = 1, Margin = new Thickness(4, 3, 4, 3), Background = new SolidColorBrush(Color.FromArgb(0x40, 0xFF, 0xFF, 0xFF)) };
         var btnSave  = BarButton("💾 Save", Color.FromArgb(0x30, 0x00, 0x00, 0x00), Color.FromArgb(0x60, 0x39, 0xD3, 0x53));
-        var btnSync  = BarButton("☁ Sync", Color.FromArgb(0x30, 0x00, 0x00, 0x00), Color.FromArgb(0x60, 0x22, 0xE5, 0xFF));
+        var btnSync  = BarButton("☁ Sync", Color.FromArgb(0x30, 0x00, 0x00, 0x00), Color.FromArgb(0x60, notesCyan.R, notesCyan.G, notesCyan.B));
 
         btnBold.Click   += (s, e) => { EditingCommands.ToggleBold.Execute(null, rtb);      rtb.Focus(); };
         btnItalic.Click += (s, e) => { EditingCommands.ToggleItalic.Execute(null, rtb);    rtb.Focus(); };

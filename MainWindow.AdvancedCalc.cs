@@ -41,7 +41,7 @@ public partial class MainWindow
     private static readonly Color C_Ai      = Color.FromArgb(0x30, 0x22, 0xE5, 0xFF);
     private static readonly Color C_Text    = Color.FromRgb(0xEE, 0xEE, 0xEE);
     private static readonly Color C_Dim     = Color.FromRgb(0x99, 0x99, 0x99);
-    private static readonly Color C_Accent  = Color.FromRgb(0x22, 0xE5, 0xFF);
+    private static Color C_Accent  => WeatherBridge.ThemeAccent;
     private static Brush B(Color c) => new SolidColorBrush(c);
 
     private void OpenAdvancedCalculatorWindow()
@@ -784,14 +784,14 @@ public partial class MainWindow
             Background      = Brushes.Transparent,
             Foreground      = new SolidColorBrush(C_Accent),
             BorderThickness = new Thickness(0, 0, 0, 1),
-            BorderBrush     = new SolidColorBrush(Color.FromArgb(0x50, 0x22, 0xE5, 0xFF)),
+            BorderBrush     = new SolidColorBrush(Color.FromArgb(0x50, C_Accent.R, C_Accent.G, C_Accent.B)),
             FontSize        = 30, FontWeight = FontWeights.Bold,
             FontFamily      = new FontFamily("Consolas"),
             IsReadOnly      = true, Margin = new Thickness(2, 2, 2, 6),
             Padding         = new Thickness(6, 4, 6, 4),
             Effect = new System.Windows.Media.Effects.DropShadowEffect
             {
-                Color = C_Accent, BlurRadius = 16, ShadowDepth = 0, Opacity = 0.8
+                Color = C_Accent, BlurRadius = 8, ShadowDepth = 0, Opacity = 0.35
             }
         };
 
