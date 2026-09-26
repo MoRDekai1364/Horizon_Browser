@@ -2959,7 +2959,7 @@ return colors.length > 0 ? colors : null;
     }
 
     private const double SidebarBlurSourceCropStart = 0.93;
-    private const double SidebarBlurDistortionRadius = 150;
+    private const double SidebarBlurDistortionRadius = 93;
 
     private ImageBrush? _sidebarOwnBlurBrush;
 
