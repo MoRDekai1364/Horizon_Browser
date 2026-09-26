@@ -6578,69 +6578,113 @@ return colors.length > 0 ? colors : null;
         }
     }
 
+    private static string RelativeAgo(DateTime t)
+    {
+        var span = DateTime.Now - t;
+        if (span.TotalMinutes < 1) return "just now";
+        if (span.TotalMinutes < 60) return $"{(int)span.TotalMinutes} mins ago";
+        if (span.TotalHours < 24) return $"{(int)span.TotalHours} hrs ago";
+        return $"{(int)span.TotalDays} days ago";
+    }
+
+    private static string NotifGlyph(string title) =>
+        title.Contains("Calendar", StringComparison.OrdinalIgnoreCase) ? "📅" :
+        title.Contains("System", StringComparison.OrdinalIgnoreCase)   ? "🛈" : "📰";
+
     private void OpenNotificationsListPopup()
     {
-        var win = MakeToolWindow("Notifications", 320);
+        var win = new Window
+        {
+            Width = 340, MinHeight = 200, MaxHeight = 620, SizeToContent = SizeToContent.Height,
+            WindowStyle = WindowStyle.None, AllowsTransparency = true,
+            Background = Brushes.Transparent, ResizeMode = ResizeMode.NoResize,
+            Owner = null, ShowInTaskbar = false, Topmost = true
+        };
+        ApplyWindowRoundedCorners(win);
+
+        var shell = new Grid();
+        var backdrop = BuildWidgetBackdrop(win);
+        shell.Children.Add(backdrop.Root);
+
+        var outerBorder = new Border
+        {
+            CornerRadius = new CornerRadius(14),
+            BorderBrush = new SolidColorBrush(Color.FromArgb(0x60, 0xFF, 0xFF, 0xFF)),
+            BorderThickness = new Thickness(1),
+            ClipToBounds = true
+        };
+        shell.Children.Add(outerBorder);
+
+        var notifAccent = Color.FromRgb(0x22, 0xE5, 0xFF);
+        var outerStack = new DockPanel();
+        outerBorder.Child = outerStack;
+
+        // ── Title row ────────────────────────────────────────────────────────
+        var titleRow = new Grid { Margin = new Thickness(16, 12, 16, 10) };
+        titleRow.Children.Add(new TextBlock { Text = "Notifications", FontSize = 18, FontWeight = FontWeights.Bold, Foreground = Brushes.White });
+        var glyphs = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
+        TextBlock MakeGlyph(string g) => new TextBlock
+        {
+            Text = g, FontSize = 13, Foreground = new SolidColorBrush(notifAccent),
+            Margin = new Thickness(10, 0, 0, 0), Cursor = Cursors.Hand, VerticalAlignment = VerticalAlignment.Center
+        };
+        var minGlyph = MakeGlyph("—"); var expGlyph = MakeGlyph("⤢"); var closeGlyph = MakeGlyph("✕");
+        minGlyph.MouseLeftButtonUp   += (s, e) => win.Hide();
+        expGlyph.MouseLeftButtonUp   += (s, e) => win.Topmost = !win.Topmost;
+        closeGlyph.MouseLeftButtonUp += (s, e) => win.Close();
+        glyphs.Children.Add(minGlyph); glyphs.Children.Add(expGlyph); glyphs.Children.Add(closeGlyph);
+        titleRow.Children.Add(glyphs);
+        titleRow.Background = Brushes.Transparent;
+        titleRow.MouseLeftButtonDown += (s, e) => { if (e.ButtonState == MouseButtonState.Pressed) win.DragMove(); };
+        DockPanel.SetDock(titleRow, Dock.Top);
+        outerStack.Children.Add(titleRow);
+        DockPanel.SetDock(new Border { Height = 1, Background = new SolidColorBrush(Color.FromArgb(0x30, 0xFF, 0xFF, 0xFF)) }, Dock.Top);
+        outerStack.Children.Add(new Border { Height = 1, Background = new SolidColorBrush(Color.FromArgb(0x30, 0xFF, 0xFF, 0xFF)) });
+
         var scroll = new ScrollViewer
         {
             VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
             MaxHeight = 480
         };
-        var root = new StackPanel { Margin = new Thickness(12) };
+        var root = new StackPanel { Margin = new Thickness(16, 10, 16, 16) };
         scroll.Content = root;
-        win.Content = scroll;
-
-        root.Children.Add(SectionLabel("NOTIFICATIONS"));
+        outerStack.Children.Add(scroll);
 
         if (Services.NotificationCenterService.History.Count == 0)
         {
             root.Children.Add(new TextBlock
             {
                 Text = "No notifications yet",
-                Foreground = new SolidColorBrush(Color.FromRgb(0x99, 0x99, 0x99)),
+                Foreground = new SolidColorBrush(Color.FromArgb(0xAA, 0xFF, 0xFF, 0xFF)),
                 Margin = new Thickness(4, 8, 4, 8)
             });
         }
         else
         {
-            foreach (var n in Services.NotificationCenterService.History)
+            foreach (var n in Services.NotificationCenterService.History.ToList())
             {
-                var item = new StackPanel { Margin = new Thickness(4, 4, 4, 8) };
-                item.Children.Add(new TextBlock
+                var row = new Grid { Margin = new Thickness(0, 0, 0, 14) };
+                row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+
+                var iconDot = new Border
                 {
-                    Text = $"{n.Origin}  ·  {n.Time:HH:mm}",
-                    FontSize = 10,
-                    Foreground = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88))
-                });
-                item.Children.Add(new TextBlock
+                    Width = 40, Height = 40, CornerRadius = new CornerRadius(20),
+                    BorderBrush = new SolidColorBrush(notifAccent), BorderThickness = new Thickness(1.4),
+                    Margin = new Thickness(0, 2, 12, 0), VerticalAlignment = VerticalAlignment.Top,
+                    Child = new TextBlock { Text = NotifGlyph(n.Title), FontSize = 16, Foreground = new SolidColorBrush(notifAccent), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center }
+                };
+                Grid.SetColumn(iconDot, 0);
+                row.Children.Add(iconDot);
+
+                var textCol = new StackPanel();
+                var headerRow = new Grid();
+                headerRow.Children.Add(new TextBlock
                 {
-                    Text = n.Title,
-                    FontWeight = FontWeights.Bold,
+                    Text = n.Title + ":", FontSize = 15, Foreground = new SolidColorBrush(notifAccent),
                     TextWrapping = TextWrapping.Wrap
                 });
-                if (!string.IsNullOrEmpty(n.Body))
-                {
-                    item.Children.Add(new TextBlock
-                    {
-                        Text = n.Body,
-                        TextWrapping = TextWrapping.Wrap,
-                        Margin = new Thickness(0, 2, 0, 0)
-                    });
-                }
-                root.Children.Add(item);
-            }
-        }
-
-        var clearBtn = MenuButton("🗑  Clear all", false);
-        clearBtn.Click += (s, e) =>
-        {
-            Services.NotificationCenterService.Clear();
-            RefreshWidgetDisplay();
-            win.Close();
-        };
-        root.Children.Add(clearBtn);
-
-        root.Children.Add(SectionLabel("SITE PERMISSIONS"));
+                var rightBit = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
 
         if (Services.SiteNotificationPermissionService.Entries.Count == 0)
         {
@@ -6684,6 +6728,9 @@ return colors.length > 0 ? colors : null;
         Services.NotificationCenterService.MarkAllRead();
         RefreshWidgetDisplay();
 
+        win.Closing += (s, e) => { win.Owner = null; backdrop.Detach(); };
+        win.Closed  += (s, e) => Dispatcher.BeginInvoke(new Action(() => { try { if (WindowState != WindowState.Minimized) Activate(); } catch { } }));
+        win.Content = shell;
         win.Show();
     }
 

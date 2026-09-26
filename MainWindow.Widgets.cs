@@ -368,62 +368,95 @@ public partial class MainWindow
     {
         var win = new Window
         {
-            Title = "Converter", Width = 330, Height = 320,
-            Background = new SolidColorBrush(C(0x161616)),
-            WindowStyle = WindowStyle.ToolWindow, ResizeMode = ResizeMode.CanResize,
+            Width = 380, SizeToContent = SizeToContent.Height,
+            WindowStyle = WindowStyle.None, AllowsTransparency = true,
+            Background = Brushes.Transparent, ResizeMode = ResizeMode.CanResizeWithGrip,
             Owner = this, ShowInTaskbar = false, Topmost = true
         };
-        win.Closing += (s, e) => { win.Owner = null; };
-        win.Closed  += (s, e) => Dispatcher.BeginInvoke(new Action(() => { try { if (WindowState != WindowState.Minimized) Activate(); } catch { } }));
+        ApplyWindowRoundedCorners(win);
 
-        var root = new DockPanel { Margin = new Thickness(8) };
+        var shell = new Grid();
+        var backdrop = BuildWidgetBackdrop(win);
+        shell.Children.Add(backdrop.Root);
+
+        var outerBorder = new Border
+        {
+            CornerRadius = new CornerRadius(14),
+            BorderBrush = new SolidColorBrush(Color.FromArgb(0x60, 0xFF, 0xFF, 0xFF)),
+            BorderThickness = new Thickness(1),
+            ClipToBounds = true
+        };
+        shell.Children.Add(outerBorder);
+
+        var convCyan = Color.FromRgb(0x22, 0xE5, 0xFF);
+        var convOrange = Color.FromRgb(0xFF, 0x9A, 0x2E);
+
+        var root = new DockPanel { Margin = new Thickness(16, 12, 16, 16) };
+        outerBorder.Child = root;
+
+        // ── Title row ────────────────────────────────────────────────────────
+        var titleRow = new Grid { Margin = new Thickness(0, 0, 0, 14) };
+        titleRow.Children.Add(new TextBlock { Text = "Converter", FontSize = 20, FontWeight = FontWeights.Bold, Foreground = Brushes.White });
+        var closeGlyph = new Border
+        {
+            Width = 26, Height = 26, CornerRadius = new CornerRadius(13),
+            Background = new SolidColorBrush(Color.FromRgb(0xC0, 0x3A, 0x3A)),
+            Cursor = Cursors.Hand, HorizontalAlignment = HorizontalAlignment.Right,
+            Child = new TextBlock { Text = "✕", FontSize = 12, Foreground = Brushes.White, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center }
+        };
+        closeGlyph.MouseLeftButtonUp += (s, e) => win.Close();
+        titleRow.Children.Add(closeGlyph);
+        titleRow.Background = Brushes.Transparent;
+        titleRow.MouseLeftButtonDown += (s, e) => { if (e.ButtonState == MouseButtonState.Pressed) win.DragMove(); };
+        DockPanel.SetDock(titleRow, Dock.Top);
+        root.Children.Add(titleRow);
 
         var _dci = DarkComboItemStyle();
+        var catBoxOuter = new Border
+        {
+            Background = new SolidColorBrush(Color.FromArgb(0x40, 0x00, 0x00, 0x00)),
+            BorderBrush = new SolidColorBrush(Color.FromArgb(0x40, 0xFF, 0xFF, 0xFF)),
+            BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(22),
+            Margin = new Thickness(0, 0, 0, 12), Padding = new Thickness(4)
+        };
         var catBox = new ComboBox
         {
             ItemsSource = new[] { "📏 Length", "⚖ Weight", "🌡 Temperature", "💨 Speed", "📦 Volume", "📐 Area", "💾 Data", "💱 Currency", "⏱ Time" },
             SelectedIndex = 0,
-            Background = new SolidColorBrush(C(0x222222)), Foreground = Brushes.White,
-            BorderBrush = new SolidColorBrush(C(0x333333)), Margin = new Thickness(0, 0, 0, 8), Padding = new Thickness(4),
+            Background = Brushes.Transparent, Foreground = Brushes.White, BorderThickness = new Thickness(0),
+            Padding = new Thickness(8, 6, 8, 6), FontSize = 14,
             ItemContainerStyle = _dci
         };
-        DockPanel.SetDock(catBox, Dock.Top);
-        root.Children.Add(catBox);
+        catBoxOuter.Child = catBox;
+        DockPanel.SetDock(catBoxOuter, Dock.Top);
+        root.Children.Add(catBoxOuter);
 
         var cg = new Grid();
         cg.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-        cg.RowDefinitions.Add(new RowDefinition { Height = new GridLength(52) });
+        cg.RowDefinitions.Add(new RowDefinition { Height = new GridLength(64) });
+        cg.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         cg.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         cg.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        cg.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(34) });
+        cg.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(44) });
         cg.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
-        ComboBox MakeCatCombo() => new ComboBox { Background = new SolidColorBrush(C(0x222222)), Foreground = Brushes.White, BorderBrush = new SolidColorBrush(C(0x333333)), Margin = new Thickness(0,0,0,4), Padding = new Thickness(4,2,4,2), ItemContainerStyle = _dci };
+        ComboBox MakeCatCombo() => new ComboBox { Background = Brushes.Transparent, Foreground = new SolidColorBrush(Color.FromArgb(0xAA, 0xFF, 0xFF, 0xFF)), BorderThickness = new Thickness(0), Margin = new Thickness(0,0,0,6), Padding = new Thickness(6,4,6,4), ItemContainerStyle = _dci };
         var fromUnitBox = MakeCatCombo(); var toUnitBox = MakeCatCombo();
 
-        var swapBtn = new Button { Content = "⇄", Width = 30, Height = 24, Background = new SolidColorBrush(C(0x2a2a2a)), Foreground = Brushes.White, BorderBrush = new SolidColorBrush(C(0x444444)), BorderThickness = new Thickness(1), Cursor = Cursors.Hand, FontSize = 14, Margin = new Thickness(2, 0, 2, 4) };
-
-        TextBox MakeNumBox(bool readOnly) => new TextBox
+        Border WrapPill(UIElement el, int col) => new Border
         {
-            Background = new SolidColorBrush(readOnly ? C(0x0a0a0a) : C(0x0e0e0e)),
-            Foreground = readOnly ? new SolidColorBrush(C(0x88ff88)) : Brushes.White,
-            BorderBrush = new SolidColorBrush(C(0x333333)), BorderThickness = new Thickness(1),
-            FontSize = 22, FontFamily = new FontFamily("Consolas"), FontWeight = FontWeights.Bold,
-            Padding = new Thickness(8, 4, 8, 4), TextAlignment = TextAlignment.Right,
-            IsReadOnly = readOnly, VerticalContentAlignment = VerticalAlignment.Center
+            Background = new SolidColorBrush(Color.FromArgb(0x40, 0x00, 0x00, 0x00)),
+            BorderBrush = new SolidColorBrush(Color.FromArgb(0x40, 0xFF, 0xFF, 0xFF)),
+            BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(18),
+            Margin = new Thickness(col == 0 ? 0 : 4, 0, col == 2 ? 0 : 4, 6),
+            Child = el
         };
-        var fromIn = MakeNumBox(false); var toOut = MakeNumBox(true);
-        var formula = new TextBlock { Foreground = new SolidColorBrush(C(0x888888)), FontSize = 10, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 4, 0, 0) };
+        var fromUnitPill = WrapPill(fromUnitBox, 0);
+        var toUnitPill   = WrapPill(toUnitBox, 2);
 
-        Grid.SetRow(fromUnitBox, 0); Grid.SetColumn(fromUnitBox, 0);
-        Grid.SetRow(swapBtn,     0); Grid.SetColumn(swapBtn, 1);
-        Grid.SetRow(toUnitBox,   0); Grid.SetColumn(toUnitBox, 2);
-        Grid.SetRow(fromIn,      1); Grid.SetColumn(fromIn, 0);
-        Grid.SetRow(toOut,       1); Grid.SetColumn(toOut, 2);
-        Grid.SetRow(formula,     2); Grid.SetColumn(formula, 0); Grid.SetColumnSpan(formula, 3);
-        foreach (var el in new UIElement[] { fromUnitBox, swapBtn, toUnitBox, fromIn, toOut, formula }) cg.Children.Add(el);
-        DockPanel.SetDock(cg, Dock.Top);
-        root.Children.Add(cg);
+        var swapBtn = new Border
+        {
+            Width = 36, Height = 36, CornerRadius = new CornerRadius(18),
 
         var data = new Dictionary<string, (string[] units, Func<double, int, int, double> conv)>
         {
@@ -464,9 +497,11 @@ public partial class MainWindow
         fromUnitBox.SelectionChanged += (s, e) => DoConvert();
         toUnitBox.SelectionChanged += (s, e) => DoConvert();
         fromIn.TextChanged += (s, e) => DoConvert();
-        swapBtn.Click += (s, e) => { (fromUnitBox.SelectedIndex, toUnitBox.SelectedIndex) = (toUnitBox.SelectedIndex, fromUnitBox.SelectedIndex); DoConvert(); };
+        swapBtn.MouseLeftButtonUp += (s, e) => { (fromUnitBox.SelectedIndex, toUnitBox.SelectedIndex) = (toUnitBox.SelectedIndex, fromUnitBox.SelectedIndex); DoConvert(); };
         UpdateUnits();
-        win.Content = root;
+        win.Closing += (s, e) => { win.Owner = null; backdrop.Detach(); };
+        win.Closed  += (s, e) => Dispatcher.BeginInvoke(new Action(() => { try { if (WindowState != WindowState.Minimized) Activate(); } catch { } }));
+        win.Content = shell;
         win.Show();
     }
 
