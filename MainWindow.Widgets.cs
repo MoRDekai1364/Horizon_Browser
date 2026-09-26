@@ -406,6 +406,7 @@ public partial class MainWindow
             Padding = new Thickness(8, 6, 8, 6), FontSize = 14,
             ItemContainerStyle = _dci
         };
+        ApplyDarkComboBoxStyle(catBox, convCyan);
         catBoxOuter.Child = catBox;
         DockPanel.SetDock(catBoxOuter, Dock.Top);
         root.Children.Add(catBoxOuter);
@@ -419,13 +420,18 @@ public partial class MainWindow
         cg.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(44) });
         cg.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
-        ComboBox MakeCatCombo() => new ComboBox { Background = Brushes.Transparent, Foreground = new SolidColorBrush(Color.FromArgb(0xAA, 0xFF, 0xFF, 0xFF)), BorderThickness = new Thickness(0), Margin = new Thickness(0,0,0,6), Padding = new Thickness(6,4,6,4), ItemContainerStyle = _dci };
+        ComboBox MakeCatCombo()
+        {
+            var cb = new ComboBox { Background = Brushes.Transparent, Foreground = Brushes.White, BorderThickness = new Thickness(0), Margin = new Thickness(0,0,0,6), Padding = new Thickness(6,4,6,4), ItemContainerStyle = _dci, FontSize = 13, FontWeight = FontWeights.SemiBold };
+            ApplyDarkComboBoxStyle(cb, convCyan);
+            return cb;
+        }
         var fromUnitBox = MakeCatCombo(); var toUnitBox = MakeCatCombo();
 
         Border WrapPill(UIElement el, int col) => new Border
         {
-            Background = new SolidColorBrush(Color.FromArgb(0x40, 0x00, 0x00, 0x00)),
-            BorderBrush = new SolidColorBrush(Color.FromArgb(0x40, 0xFF, 0xFF, 0xFF)),
+            Background = new SolidColorBrush(Color.FromArgb(0x55, 0x00, 0x00, 0x00)),
+            BorderBrush = new SolidColorBrush(Color.FromArgb(0x60, convCyan.R, convCyan.G, convCyan.B)),
             BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(18),
             Margin = new Thickness(col == 0 ? 0 : 4, 0, col == 2 ? 0 : 4, 6),
             Child = el
@@ -447,13 +453,15 @@ public partial class MainWindow
 
         TextBox MakeNumBox(Color glow, bool readOnly) => new TextBox
         {
-            Background = new SolidColorBrush(Color.FromArgb(0x40, 0x00, 0x00, 0x00)),
+            Background = new SolidColorBrush(Color.FromArgb(0xB0, 0x0A, 0x0A, 0x0A)),
             Foreground = new SolidColorBrush(glow),
-            BorderBrush = new SolidColorBrush(Color.FromArgb(0x80, glow.R, glow.G, glow.B)),
-            BorderThickness = new Thickness(1),
+            CaretBrush = new SolidColorBrush(glow),
+            BorderBrush = new SolidColorBrush(Color.FromArgb(0xA0, glow.R, glow.G, glow.B)),
+            BorderThickness = new Thickness(1.2),
             FontSize = 22, FontFamily = new FontFamily("Consolas"), FontWeight = FontWeights.Bold,
             Padding = new Thickness(10, 6, 10, 6), TextAlignment = TextAlignment.Right,
-            IsReadOnly = readOnly, VerticalContentAlignment = VerticalAlignment.Center
+            IsReadOnly = readOnly, VerticalContentAlignment = VerticalAlignment.Center,
+            Effect = new System.Windows.Media.Effects.DropShadowEffect { Color = glow, BlurRadius = 8, ShadowDepth = 0, Opacity = 0.25 }
         };
         var fromIn = MakeNumBox(convCyan, false);
         var toOut  = MakeNumBox(convOrange, true);
@@ -2769,12 +2777,22 @@ public partial class MainWindow
     private static Color C(int hex) =>
         Color.FromRgb((byte)(hex >> 16), (byte)(hex >> 8 & 0xff), (byte)(hex & 0xff));
 
-    /// <summary>
-    /// Forces the internal DatePickerTextBox to use dark theme colors.
-    /// WPF's DatePicker does not forward Foreground/Background to its inner
-    /// textbox — it uses system colors instead, which causes invisible text
-    /// in Windows dark mode (white text on white, or vice versa).
-    /// </summary>
+    private static void ApplyDarkComboBoxStyle(ComboBox cb, Color accent)
+    {
+        var darkBg  = Color.FromArgb(0xF0, 0x1A, 0x1A, 0x1A);
+        var lightFg = Color.FromArgb(0xFF, 0xFF, 0xFF, 0xFF);
+        cb.Resources[SystemColors.WindowBrushKey]        = new SolidColorBrush(darkBg);
+        cb.Resources[SystemColors.WindowTextBrushKey]    = new SolidColorBrush(lightFg);
+        cb.Resources[SystemColors.ControlBrushKey]       = new SolidColorBrush(darkBg);
+        cb.Resources[SystemColors.ControlTextBrushKey]   = new SolidColorBrush(lightFg);
+        cb.Resources[SystemColors.ControlLightBrushKey]  = new SolidColorBrush(darkBg);
+        cb.Resources[SystemColors.ControlDarkBrushKey]   = new SolidColorBrush(darkBg);
+        cb.Resources[SystemColors.ControlLightLightBrushKey] = new SolidColorBrush(darkBg);
+        cb.Resources[SystemColors.HighlightBrushKey]     = new SolidColorBrush(accent);
+        cb.Resources[SystemColors.HighlightTextBrushKey] = new SolidColorBrush(Colors.White);
+        cb.Foreground = new SolidColorBrush(lightFg);
+    }
+
     private static void ApplyDarkDatePickerStyle(DatePicker dp)
     {
         var tbStyle = new Style(typeof(System.Windows.Controls.Primitives.DatePickerTextBox));
