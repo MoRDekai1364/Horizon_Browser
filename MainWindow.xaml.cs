@@ -8557,13 +8557,8 @@ private sealed class WeatherRetryHandler : DelegatingHandler
 
         var unbind = WidgetBackdropService.Bind(owner, wallBrush, overlap =>
         {
-            if (overlap == null)
-            {
-                glassHost.Visibility = Visibility.Collapsed;
-                return;
-            }
-            glassHost.Clip = new RectangleGeometry(overlap.Value);
-            glassHost.Visibility = Visibility.Visible;
+            glassHost.Clip = null;
+            glassHost.Visibility = overlap == null ? Visibility.Collapsed : Visibility.Visible;
         });
 
         void Apply()
