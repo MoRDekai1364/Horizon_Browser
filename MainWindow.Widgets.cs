@@ -2053,6 +2053,45 @@ public partial class MainWindow
         return (0, 0, false);
     }
 
+    private string   _navDestinationLabel  = "";
+    private DateTime _navStartedAt;
+    private bool     _navActive            = false;
+    private TimeSpan _navEstimatedDuration = TimeSpan.Zero;
+    private double   _navBearingDeg        = 0;
+    private double   _navTotalDistanceKm   = 0;
+    private double   _navUserLat           = 0;
+    private double   _navUserLon           = 0;
+    private double   _navDestLat           = 0;
+    private double   _navDestLon           = 0;
+    private Window?  _navHudWindow;
+
+    private async Task<(double lat, double lon, bool ok)> GetLocationAsync()
+    {
+        try
+        {
+            using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
+            http.DefaultRequestHeaders.UserAgent.ParseAdd("HorizonBrowser/1.0");
+            string raw = await http.GetStringAsync("http://ip-api.com/json");
+            using var doc = JsonDocument.Parse(raw);
+            var root = doc.RootElement;
+            if (root.TryGetProperty("status", out var st) && st.GetString() == "success" &&
+                root.TryGetProperty("lat", out var latProp) && root.TryGetProperty("lon", out var lonProp))
+            {
+                return (latProp.GetDouble(), lonProp.GetDouble(), true);
+            }
+        }
+        catch { }
+        return (0, 0, false);
+    }
+
+    private static string BearingToArrow(double deg)
+    {
+        string[] arrows = { "↑", "↗", "→", "↘", "↓", "↙", "←", "↖" };
+        int idx = (int)Math.Round(deg / 45.0) % 8;
+        if (idx < 0) idx += 8;
+        return arrows[idx];
+    }
+
     private async Task<(TimeSpan duration, double distKm, bool ok)> GetRouteAsync(
         double srcLat, double srcLon, double dstLat, double dstLon)
     {

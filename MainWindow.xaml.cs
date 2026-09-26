@@ -27,6 +27,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Web.WebView2.Core;
 using WpfAnimatedGif;
+using System.Windows.Media.Imaging;
 
 namespace Horizon.Stealth;
 
@@ -9313,9 +9314,14 @@ private sealed class WeatherRetryHandler : DelegatingHandler
             v => SettingsService.Current.WeatherRightPaneDefaultOpen = v);
         bool wxFullscreen = false;
         WindowState wxPrevState = WindowState.Normal;
+        TextBlock fsGlyph = null;
+        Border exitFsBtn = null;
+        bool layoutApplying = false;
+        ScaleTransform wxScale = null;
+        TextBlock layoutGlyph = null;
         MakeCaptionButton("\uE921", false, () => win.WindowState = WindowState.Minimized);
         var (_, maxGlyph) = MakeCaptionButton("\uE922", false, () => win.WindowState = win.WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized);
-        var (_, fsGlyph) = MakeCaptionButton("\uE740", false, () => SetFullscreen(!wxFullscreen));
+        (_, fsGlyph) = MakeCaptionButton("\uE740", false, () => SetFullscreen(!wxFullscreen));
         MakeCaptionButton("\uE8BB", true, () => win.Close());
 
         hourlyToggleBtn.Click += (_, _) => paneGlyph.Text = hourlyExpanded ? "\uE76C" : "\uE76B";
@@ -9331,7 +9337,7 @@ private sealed class WeatherRetryHandler : DelegatingHandler
         DockPanel.SetDock(titleBar, Dock.Top);
         outerDock.Children.Insert(0, titleBar);
 
-        var exitFsBtn = new Border
+        exitFsBtn = new Border
         {
             Background = new SolidColorBrush(Color.FromArgb(0xA0, 0x00, 0x00, 0x00)),
             CornerRadius = new CornerRadius(4),
@@ -9370,11 +9376,11 @@ private sealed class WeatherRetryHandler : DelegatingHandler
 
         const double WxWideEnter = 900;
         const double WxWideExit = 840;
-        bool layoutApplying = false;
-        var wxScale = new ScaleTransform(1, 1);
+        layoutApplying = false;
+        wxScale = new ScaleTransform(1, 1);
         contentHolder.LayoutTransform = wxScale;
 
-        var (layoutBox, layoutGlyph) = MakeCaptionButton("", false, () => { });
+        (var layoutBox, layoutGlyph) = MakeCaptionButton("", false, () => { });
         captionButtons.Children.Remove(layoutBox);
         captionButtons.Children.Insert(0, layoutBox);
         layoutBox.Width = 76;
