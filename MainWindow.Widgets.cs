@@ -358,18 +358,36 @@ public partial class MainWindow
     //  CALENDAR WIDGET
     // ═══════════════════════════════════════════════════════════════════════════
 
+    private static readonly Color CalAccent = Color.FromRgb(0x22, 0xE5, 0xFF);
+
     private void OpenCalendarWindow()
     {
         var win = new Window
         {
-            Title = "Calendar", Width = 400, Height = 500,
-            Background = new SolidColorBrush(C(0x131313)),
-            WindowStyle = WindowStyle.ToolWindow, ResizeMode = ResizeMode.CanResize,
+            Title = "Calendar", Width = 400, SizeToContent = SizeToContent.Height, MinHeight = 500, MaxHeight = 860,
+            WindowStyle = WindowStyle.None, AllowsTransparency = true,
+            Background = Brushes.Transparent, ResizeMode = ResizeMode.CanResizeWithGrip,
             Owner = this, ShowInTaskbar = false, Topmost = true
         };
+        ApplyWindowRoundedCorners(win);
+
+        var shell = new Grid();
+        var backdrop = BuildWidgetBackdrop(win);
+        shell.Children.Add(backdrop.Root);
+
+        var outerBorder = new Border
+        {
+            CornerRadius = new CornerRadius(14),
+            BorderBrush = new SolidColorBrush(Color.FromArgb(0x60, 0xFF, 0xFF, 0xFF)),
+            BorderThickness = new Thickness(1),
+            ClipToBounds = true
+        };
+        shell.Children.Add(outerBorder);
 
         var outer = new DockPanel();
-        var tabBar = new StackPanel { Orientation = Orientation.Horizontal, Background = new SolidColorBrush(C(0x0e0e0e)) };
+        outerBorder.Child = outer;
+
+        var tabBar = new StackPanel { Orientation = Orientation.Horizontal, Background = new SolidColorBrush(Color.FromArgb(0x50, 0x00, 0x00, 0x00)), Margin = new Thickness(4, 4, 4, 0) };
         DockPanel.SetDock(tabBar, Dock.Top);
         outer.Children.Add(tabBar);
 
@@ -387,7 +405,7 @@ public partial class MainWindow
             var btn = new Button
             {
                 Content = tabs[i], FontSize = 11, Height = 30, Padding = new Thickness(10, 0, 10, 0),
-                Background = Brushes.Transparent, Foreground = new SolidColorBrush(C(0x666666)),
+                Background = Brushes.Transparent, Foreground = new SolidColorBrush(C(0x888888)),
                 BorderThickness = new Thickness(0), Cursor = Cursors.Hand
             };
             tabBtns[i] = btn;
@@ -397,9 +415,9 @@ public partial class MainWindow
                 for (int j = 0; j < 4; j++)
                 {
                     panels[j].Visibility = j == ci ? Visibility.Visible : Visibility.Collapsed;
-                    tabBtns[j].Foreground = new SolidColorBrush(j == ci ? C(0x88ccff) : C(0x666666));
+                    tabBtns[j].Foreground = new SolidColorBrush(j == ci ? CalAccent : C(0x888888));
                     tabBtns[j].BorderThickness = j == ci ? new Thickness(0, 0, 0, 2) : new Thickness(0);
-                    tabBtns[j].BorderBrush     = new SolidColorBrush(j == ci ? C(0x2e6aa0) : C(0x000000));
+                    tabBtns[j].BorderBrush     = new SolidColorBrush(j == ci ? CalAccent : C(0x000000));
                 }
             };
             tabBar.Children.Add(btn);
@@ -410,9 +428,9 @@ public partial class MainWindow
         outer.Children.Add(holder);
 
         tabBtns[0].RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
-        win.Closing += (s, e) => { win.Owner = null; };
+        win.Closing += (s, e) => { win.Owner = null; backdrop.Detach(); };
         win.Closed  += (s, e) => Dispatcher.BeginInvoke(new Action(() => { try { if (WindowState != WindowState.Minimized) Activate(); } catch { } }));
-        win.Content = outer;
+        win.Content = shell;
         win.Show();
     }
 
@@ -421,10 +439,43 @@ public partial class MainWindow
         var g = new Grid { Margin = new Thickness(8) };
         g.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         g.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        g.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         g.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
 
         var cur   = DateTime.Today;
         var today = DateTime.Today;
+
+        var hero = new Border
+        {
+            Background = new SolidColorBrush(Color.FromArgb(0x40, 0x00, 0x00, 0x00)),
+            CornerRadius = new CornerRadius(10),
+            Margin = new Thickness(0, 4, 0, 12), Padding = new Thickness(14, 10, 14, 10)
+        };
+        var heroRow = new StackPanel { Orientation = Orientation.Horizontal };
+        var heroNum = new TextBlock
+        {
+            Text = today.Day.ToString(), FontSize = 48, FontWeight = FontWeights.Bold,
+            Foreground = new SolidColorBrush(CalAccent), VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(0, 0, 12, 0),
+            Effect = new System.Windows.Media.Effects.DropShadowEffect
+            {
+                Color = CalAccent, BlurRadius = 18, ShadowDepth = 0, Opacity = 0.85
+            }
+        };
+        var heroTextCol = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
+        heroTextCol.Children.Add(new TextBlock
+        {
+            Text = today.ToString("dddd"), FontSize = 18, FontWeight = FontWeights.SemiBold,
+            Foreground = Brushes.White
+        });
+        heroTextCol.Children.Add(new TextBlock
+        {
+            Text = today.ToString("d MMMM"), FontSize = 13,
+            Foreground = new SolidColorBrush(C(0xaaaaaa))
+        });
+        heroRow.Children.Add(heroNum);
+        heroRow.Children.Add(heroTextCol);
+        hero.Child = heroRow;
 
         // Nav row with + Event button
         var nav = new Grid { Margin = new Thickness(0, 4, 0, 10) };
@@ -485,8 +536,8 @@ public partial class MainWindow
                     var dayEvents = _calendarEvents.Where(ev => ev.Start.Date == date.Date).ToList();
                     bool hasEvents = dayEvents.Count > 0;
 
-                    cell.Background      = new SolidColorBrush(isToday ? C(0x1a4472) : C(0x1e1e1e));
-                    cell.BorderBrush     = new SolidColorBrush(isToday ? C(0x2e6aa0) : hasEvents ? C(0x336633) : C(0x2a2a2a));
+                    cell.Background      = new SolidColorBrush(isToday ? Color.FromArgb(0x33, CalAccent.R, CalAccent.G, CalAccent.B) : Color.FromArgb(0x30, 0x1e, 0x1e, 0x1e));
+                    cell.BorderBrush     = new SolidColorBrush(isToday ? CalAccent : hasEvents ? C(0x336633) : Color.FromArgb(0x40, 0x2a, 0x2a, 0x2a));
                     cell.BorderThickness = new Thickness(isToday || hasEvents ? 1 : 0);
                     cell.Cursor          = Cursors.Hand;
 
@@ -497,7 +548,7 @@ public partial class MainWindow
                         HorizontalAlignment = HorizontalAlignment.Center,
                         VerticalAlignment   = VerticalAlignment.Center,
                         FontSize = 12, FontWeight = isToday ? FontWeights.Bold : FontWeights.Normal,
-                        Foreground = new SolidColorBrush(isToday ? C(0xaaddff) : isWknd ? C(0x5588ff) : C(0xcccccc))
+                        Foreground = new SolidColorBrush(isToday ? CalAccent : isWknd ? C(0x5588ff) : C(0xcccccc))
                     });
 
                     if (hasEvents)
@@ -529,8 +580,8 @@ public partial class MainWindow
         prev.Click += (s, e) => { cur = cur.AddMonths(-1); RenderCalendar(dayGrid, monthLbl, cur, today); };
         next.Click += (s, e) => { cur = cur.AddMonths(1);  RenderCalendar(dayGrid, monthLbl, cur, today); };
 
-        Grid.SetRow(nav, 0); Grid.SetRow(dowHeader, 1); Grid.SetRow(dayGrid, 2);
-        g.Children.Add(nav); g.Children.Add(dowHeader); g.Children.Add(dayGrid);
+        Grid.SetRow(hero, 0); Grid.SetRow(nav, 1); Grid.SetRow(dowHeader, 2); Grid.SetRow(dayGrid, 3);
+        g.Children.Add(hero); g.Children.Add(nav); g.Children.Add(dowHeader); g.Children.Add(dayGrid);
         RenderCalendar(dayGrid, monthLbl, cur, today);
         return g;
     }
