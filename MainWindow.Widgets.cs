@@ -2507,6 +2507,7 @@ public partial class MainWindow
             Cursor = Cursors.Hand, Margin = new Thickness(6, 0, 0, 0),
             Child = new TextBlock { Text = "✕", FontSize = 10, Foreground = Brushes.White, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center }
         };
+        closeDockGlyph.PreviewMouseLeftButtonDown += (s, e) => e.Handled = true;
         closeDockGlyph.MouseLeftButtonUp += (s, e) => RestoreAllDockedWidgets();
         dockRow.Children.Add(closeDockGlyph);
 
@@ -2572,6 +2573,7 @@ public partial class MainWindow
             Cursor = Cursors.Hand, Margin = new Thickness(0, 0, 6, 0),
             Child = new TextBlock { Text = "—", FontSize = 11, Foreground = Brushes.White, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center }
         };
+        minimizeGlyph.PreviewMouseLeftButtonDown += (s, e) => e.Handled = true;
         minimizeGlyph.MouseLeftButtonUp += (s, e) => MinimizeWidgetToDock(win, title);
         var closeGlyph = new Border
         {
@@ -2580,6 +2582,7 @@ public partial class MainWindow
             Cursor = Cursors.Hand,
             Child = new TextBlock { Text = "✕", FontSize = 11, Foreground = Brushes.White, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center }
         };
+        closeGlyph.PreviewMouseLeftButtonDown += (s, e) => e.Handled = true;
         closeGlyph.MouseLeftButtonUp += (s, e) => win.Close();
         titleBtns.Children.Add(minimizeGlyph);
         titleBtns.Children.Add(closeGlyph);
