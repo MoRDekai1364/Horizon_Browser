@@ -486,6 +486,11 @@
                     HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,16,16"
                     Click="BtnChangeWallpaper_Click" BorderThickness="0" Cursor="Hand"
                     Background="Transparent" Padding="0">
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <ContentPresenter/>
+                    </ControlTemplate>
+                </Button.Template>
                 <Border x:Name="BtnChangeWallpaperBg" Background="#991A1A1A" CornerRadius="13"
                         BorderBrush="#80FFFFFF" BorderThickness="1.5" ClipToBounds="True">
                     <Border.OpacityMask>

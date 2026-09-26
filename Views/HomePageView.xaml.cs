@@ -780,62 +780,111 @@ public partial class HomePageView : UserControl
         }
     }
 
+    private bool _wallpaperApplyBusy = false;
+
     private void BtnChangeWallpaper_Click(object sender, RoutedEventArgs e)
     {
+        if (_wallpaperApplyBusy) return;
         ApplyWallpaper();
+    }
+
+    private static bool TryGetCachedWallpaper(string path, out BitmapImage bmp, out Color avg)
+    {
+        bmp = null!;
+        avg = default;
+
+        if (!File.Exists(path)) return false;
+
+        string cacheKey = path + "|" + File.GetLastWriteTimeUtc(path).Ticks;
+
+        lock (_wallpaperBitmapCache)
+        {
+            if (!_wallpaperBitmapCache.TryGetValue(cacheKey, out var cachedBmp)) return false;
+            bmp = cachedBmp;
+        }
+
+        lock (_wallpaperColorCache)
+        {
+            _wallpaperColorCache.TryGetValue(path, out avg);
+        }
+
+        return true;
     }
 
     private async void ApplyWallpaper()
     {
-        string path = ResolveWallpaperPath();
-        int myToken = ++_wallpaperLoadToken;
+        if (_wallpaperApplyBusy) return;
+        _wallpaperApplyBusy = true;
 
-        if (string.IsNullOrEmpty(path) || !File.Exists(path))
+        try
         {
-            BgVideoElement.Stop();
-            BgVideoElement.Visibility = Visibility.Collapsed;
-            BgVideoElement.Source = null;
-            WeatherBridge.ClearTheme();
-            BgImageBrush.ImageSource = null;
-            ResetHomeColorsToDefault();
-            return;
-        }
+            string path = ResolveWallpaperPath();
+            int myToken = ++_wallpaperLoadToken;
 
-        BgImageBrush.BeginAnimation(Brush.OpacityProperty, null);
-        BgVideoElement.BeginAnimation(UIElement.OpacityProperty, null);
-
-        string ext = Path.GetExtension(path).ToLowerInvariant();
-        if (WallpaperVideoExts.Contains(ext))
-        {
-            BgImageBrush.ImageSource = null;
-            BgVideoElement.Opacity = 1.0;
-            BgVideoElement.Source = new Uri(path, UriKind.Absolute);
-            BgVideoElement.Visibility = Visibility.Visible;
-            BgVideoElement.Volume = 0;
-            BgVideoElement.MediaEnded += (s, e) => { BgVideoElement.Position = TimeSpan.Zero; BgVideoElement.Play(); };
-            BgVideoElement.MediaOpened += BgVideoElement_MediaOpened_SampleColor;
-            BgVideoElement.Play();
-        }
-        else
-        {
-            BgVideoElement.Stop();
-            BgVideoElement.Visibility = Visibility.Collapsed;
-
-            var (bmp, avgColor) = await Task.Run(() => LoadWallpaperAndSample(path));
-
-            if (myToken != _wallpaperLoadToken) return;
-
-            BgImageBrush.ImageSource = bmp;
-            if (IsVisible)
+            if (string.IsNullOrEmpty(path) || !File.Exists(path))
             {
-                WeatherBridge.SetWallpaperSurface(RootHomeGrid);
-                WeatherBridge.SetWallpaper(bmp);
+                BgVideoElement.Stop();
+                BgVideoElement.Visibility = Visibility.Collapsed;
+                BgVideoElement.Source = null;
+                WeatherBridge.ClearTheme();
+                BgImageBrush.ImageSource = null;
+                ResetHomeColorsToDefault();
+                return;
             }
-            ApplyAdaptiveColors(avgColor);
-        }
 
-        BgImageBrush.Opacity = SettingsService.Current.BackgroundOpacity;
-        PreloadUpcomingWallpapers();
+            BgImageBrush.BeginAnimation(Brush.OpacityProperty, null);
+            BgVideoElement.BeginAnimation(UIElement.OpacityProperty, null);
+
+            string ext = Path.GetExtension(path).ToLowerInvariant();
+            if (WallpaperVideoExts.Contains(ext))
+            {
+                BgImageBrush.ImageSource = null;
+                BgVideoElement.Opacity = 1.0;
+                BgVideoElement.Source = new Uri(path, UriKind.Absolute);
+                BgVideoElement.Visibility = Visibility.Visible;
+                BgVideoElement.Volume = 0;
+                BgVideoElement.MediaEnded += (s, e) => { BgVideoElement.Position = TimeSpan.Zero; BgVideoElement.Play(); };
+                BgVideoElement.MediaOpened += BgVideoElement_MediaOpened_SampleColor;
+                BgVideoElement.Play();
+            }
+            else
+            {
+                BgVideoElement.Stop();
+                BgVideoElement.Visibility = Visibility.Collapsed;
+
+                if (TryGetCachedWallpaper(path, out var cachedBmp, out var cachedAvg))
+                {
+                    BgImageBrush.ImageSource = cachedBmp;
+                    if (IsVisible)
+                    {
+                        WeatherBridge.SetWallpaperSurface(RootHomeGrid);
+                        WeatherBridge.SetWallpaper(cachedBmp);
+                    }
+                    ApplyAdaptiveColors(cachedAvg);
+                }
+                else
+                {
+                    var (bmp, avgColor) = await Task.Run(() => LoadWallpaperAndSample(path));
+
+                    if (myToken != _wallpaperLoadToken) return;
+
+                    BgImageBrush.ImageSource = bmp;
+                    if (IsVisible)
+                    {
+                        WeatherBridge.SetWallpaperSurface(RootHomeGrid);
+                        WeatherBridge.SetWallpaper(bmp);
+                    }
+                    ApplyAdaptiveColors(avgColor);
+                }
+            }
+
+            BgImageBrush.Opacity = SettingsService.Current.BackgroundOpacity;
+            PreloadUpcomingWallpapers();
+        }
+        finally
+        {
+            _wallpaperApplyBusy = false;
+        }
     }
 
     private static void PreloadUpcomingWallpapers()
