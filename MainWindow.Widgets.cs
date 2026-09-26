@@ -27,6 +27,10 @@ public partial class MainWindow
     private readonly List<CalendarEvent> _calendarEvents = new();
     private string _currentNoteTab = "";
 
+    private Window? _widgetDock;
+    private StackPanel? _dockPillRow;
+    private readonly Dictionary<Window, Border> _dockedWidgets = new();
+
     // ═══════════════════════════════════════════════════════════════════════════
     //  CLOCK  —  5 display modes + Stopwatch + Timer
     // ═══════════════════════════════════════════════════════════════════════════
@@ -2465,6 +2469,92 @@ public partial class MainWindow
     //  SHARED UI HELPERS
     // ═══════════════════════════════════════════════════════════════════════════
 
+    private void EnsureWidgetDock()
+    {
+        if (_widgetDock != null) return;
+
+        var dock = new Window
+        {
+            SizeToContent = SizeToContent.WidthAndHeight,
+            WindowStyle = WindowStyle.None, AllowsTransparency = true,
+            Background = Brushes.Transparent, ResizeMode = ResizeMode.NoResize,
+            Owner = this, ShowInTaskbar = false, Topmost = true,
+            Left = SystemParameters.WorkArea.Right - 220, Top = SystemParameters.WorkArea.Bottom - 70
+        };
+        ApplyWindowRoundedCorners(dock);
+
+        var dockBorder = new Border
+        {
+            CornerRadius = new CornerRadius(18),
+            Background = new SolidColorBrush(Color.FromArgb(0xC0, 0x18, 0x18, 0x18)),
+            BorderBrush = new SolidColorBrush(Color.FromArgb(0x60, 0xFF, 0xFF, 0xFF)),
+            BorderThickness = new Thickness(1),
+            Padding = new Thickness(8, 6, 8, 6)
+        };
+        dock.Content = dockBorder;
+
+        var dockRow = new StackPanel { Orientation = Orientation.Horizontal };
+        dockBorder.Child = dockRow;
+        dockRow.MouseLeftButtonDown += (s, e) => { if (e.ButtonState == MouseButtonState.Pressed) dock.DragMove(); };
+
+        var pillsPanel = new StackPanel { Orientation = Orientation.Horizontal };
+        dockRow.Children.Add(pillsPanel);
+
+        var closeDockGlyph = new Border
+        {
+            Width = 20, Height = 20, CornerRadius = new CornerRadius(5),
+            Background = new SolidColorBrush(Color.FromRgb(0xC0, 0x3A, 0x3A)),
+            Cursor = Cursors.Hand, Margin = new Thickness(6, 0, 0, 0),
+            Child = new TextBlock { Text = "✕", FontSize = 10, Foreground = Brushes.White, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center }
+        };
+        closeDockGlyph.MouseLeftButtonUp += (s, e) => RestoreAllDockedWidgets();
+        dockRow.Children.Add(closeDockGlyph);
+
+        _widgetDock = dock;
+        _dockPillRow = pillsPanel;
+    }
+
+    private void MinimizeWidgetToDock(Window widget, string title)
+    {
+        EnsureWidgetDock();
+        if (_dockedWidgets.ContainsKey(widget)) return;
+
+        var pill = new Border
+        {
+            CornerRadius = new CornerRadius(12),
+            Background = new SolidColorBrush(Color.FromArgb(0x50, 0xFF, 0xFF, 0xFF)),
+            Padding = new Thickness(10, 4, 10, 4),
+            Margin = new Thickness(0, 0, 6, 0),
+            Cursor = Cursors.Hand,
+            Child = new TextBlock { Text = title, FontSize = 11, Foreground = Brushes.White }
+        };
+        pill.MouseLeftButtonUp += (s, e) => RestoreWidgetFromDock(widget);
+        _dockedWidgets[widget] = pill;
+        _dockPillRow!.Children.Add(pill);
+
+        widget.Hide();
+        _widgetDock!.Show();
+    }
+
+    private void RestoreWidgetFromDock(Window widget)
+    {
+        if (_dockedWidgets.TryGetValue(widget, out var pill))
+        {
+            _dockPillRow!.Children.Remove(pill);
+            _dockedWidgets.Remove(widget);
+        }
+        widget.Show();
+        widget.Activate();
+        if (_dockedWidgets.Count == 0) _widgetDock?.Hide();
+    }
+
+    private void RestoreAllDockedWidgets()
+    {
+        foreach (var widget in _dockedWidgets.Keys.ToList())
+            RestoreWidgetFromDock(widget);
+        _widgetDock?.Hide();
+    }
+
     private Grid BuildWidgetTitleBar(Window win, Panel hostPanel, string title, params UIElement[] extraButtons)
     {
         var titleRow = new Grid { Margin = new Thickness(0, 0, 0, 12) };
@@ -2482,14 +2572,7 @@ public partial class MainWindow
             Cursor = Cursors.Hand, Margin = new Thickness(0, 0, 6, 0),
             Child = new TextBlock { Text = "—", FontSize = 11, Foreground = Brushes.White, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center }
         };
-        bool widgetCollapsed = false;
-        minimizeGlyph.MouseLeftButtonUp += (s, e) =>
-        {
-            widgetCollapsed = !widgetCollapsed;
-            foreach (UIElement child in hostPanel.Children)
-                if (!ReferenceEquals(child, titleRow))
-                    child.Visibility = widgetCollapsed ? Visibility.Collapsed : Visibility.Visible;
-        };
+        minimizeGlyph.MouseLeftButtonUp += (s, e) => MinimizeWidgetToDock(win, title);
         var closeGlyph = new Border
         {
             Width = 22, Height = 22, CornerRadius = new CornerRadius(5),
@@ -2503,6 +2586,14 @@ public partial class MainWindow
         titleRow.Children.Add(titleBtns);
         titleRow.Background = Brushes.Transparent;
         titleRow.MouseLeftButtonDown += (s, e) => { if (e.ButtonState == MouseButtonState.Pressed) win.DragMove(); };
+        win.Closed += (s, e) =>
+        {
+            if (_dockedWidgets.TryGetValue(win, out var pill))
+            {
+                _dockPillRow?.Children.Remove(pill);
+                _dockedWidgets.Remove(win);
+            }
+        };
         return titleRow;
     }
 
