@@ -457,6 +457,38 @@ public partial class MainWindow
         var swapBtn = new Border
         {
             Width = 36, Height = 36, CornerRadius = new CornerRadius(18),
+            Background = new SolidColorBrush(Color.FromArgb(0x40, 0x00, 0x00, 0x00)),
+            BorderBrush = new SolidColorBrush(convCyan),
+            BorderThickness = new Thickness(1),
+            Cursor = Cursors.Hand,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            Child = new TextBlock { Text = "⇄", FontSize = 16, Foreground = new SolidColorBrush(convCyan), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center }
+        };
+
+        TextBox MakeNumBox(Color glow, bool readOnly) => new TextBox
+        {
+            Background = new SolidColorBrush(Color.FromArgb(0x40, 0x00, 0x00, 0x00)),
+            Foreground = new SolidColorBrush(glow),
+            BorderBrush = new SolidColorBrush(Color.FromArgb(0x80, glow.R, glow.G, glow.B)),
+            BorderThickness = new Thickness(1),
+            FontSize = 22, FontFamily = new FontFamily("Consolas"), FontWeight = FontWeights.Bold,
+            Padding = new Thickness(10, 6, 10, 6), TextAlignment = TextAlignment.Right,
+            IsReadOnly = readOnly, VerticalContentAlignment = VerticalAlignment.Center
+        };
+        var fromIn = MakeNumBox(convCyan, false);
+        var toOut  = MakeNumBox(convOrange, true);
+        var formula = new TextBlock { Foreground = new SolidColorBrush(Color.FromArgb(0xAA, 0xFF, 0xFF, 0xFF)), FontSize = 10, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 8, 0, 0) };
+
+        Grid.SetRow(fromUnitPill, 0); Grid.SetColumn(fromUnitPill, 0);
+        Grid.SetRow(swapBtn,      0); Grid.SetColumn(swapBtn, 1);
+        Grid.SetRow(toUnitPill,   0); Grid.SetColumn(toUnitPill, 2);
+        Grid.SetRow(fromIn,       1); Grid.SetColumn(fromIn, 0);
+        Grid.SetRow(toOut,        1); Grid.SetColumn(toOut, 2);
+        Grid.SetRow(formula,      2); Grid.SetColumn(formula, 0); Grid.SetColumnSpan(formula, 3);
+        foreach (var el in new UIElement[] { fromUnitPill, swapBtn, toUnitPill, fromIn, toOut, formula }) cg.Children.Add(el);
+        DockPanel.SetDock(cg, Dock.Top);
+        root.Children.Add(cg);
 
         var data = new Dictionary<string, (string[] units, Func<double, int, int, double> conv)>
         {
@@ -1177,11 +1209,12 @@ public partial class MainWindow
 
         var win = new Window
         {
-            Title = "Notes", Width = 560, Height = 480,
-            Background = new SolidColorBrush(C(0x141414)),
-            WindowStyle = WindowStyle.ToolWindow, ResizeMode = ResizeMode.CanResizeWithGrip,
+            Width = 560, Height = 480,
+            WindowStyle = WindowStyle.None, AllowsTransparency = true,
+            Background = Brushes.Transparent, ResizeMode = ResizeMode.CanResizeWithGrip,
             Owner = this, ShowInTaskbar = false, Topmost = true
         };
+        ApplyWindowRoundedCorners(win);
         win.Closing  += (s, e) => { win.Owner = null; };
         win.Closed   += (s, e) => Dispatcher.BeginInvoke(new Action(() => { try { if (WindowState != WindowState.Minimized) Activate(); } catch { } }));
         win.AllowDrop = true;   // required for OLE drop from Explorer into a ToolWindow
@@ -1196,32 +1229,81 @@ public partial class MainWindow
             e.Handled = true;
         };
 
-        var outer = new DockPanel();
+        var shell = new Grid();
+        var backdrop = BuildWidgetBackdrop(win);
+        shell.Children.Add(backdrop.Root);
+
+        var outerBorder = new Border
+        {
+            CornerRadius = new CornerRadius(14),
+            BorderBrush = new SolidColorBrush(Color.FromArgb(0x60, 0xFF, 0xFF, 0xFF)),
+            BorderThickness = new Thickness(1),
+            ClipToBounds = true
+        };
+        shell.Children.Add(outerBorder);
+
+        var notesCyan = Color.FromRgb(0x22, 0xE5, 0xFF);
+
+        var outer = new DockPanel { Margin = new Thickness(16, 12, 16, 14) };
+        outerBorder.Child = outer;
+
+        // ── Title row ────────────────────────────────────────────────────────
+        var titleRow = new Grid { Margin = new Thickness(0, 0, 0, 10) };
+        titleRow.Children.Add(new TextBlock { Text = "Notes", FontSize = 16, FontWeight = FontWeights.Bold, Foreground = Brushes.White, HorizontalAlignment = HorizontalAlignment.Center });
+        var backGlyph = new TextBlock
+        {
+            Text = "‹", FontSize = 20, FontWeight = FontWeights.Bold,
+            Foreground = new SolidColorBrush(notesCyan), Cursor = Cursors.Hand,
+            HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Center
+        };
+        backGlyph.MouseLeftButtonUp += (s, e) => win.Hide();
+        titleRow.Children.Add(backGlyph);
+        var closeGlyph = new Border
+        {
+            Width = 26, Height = 26, CornerRadius = new CornerRadius(13),
+            Background = new SolidColorBrush(Color.FromRgb(0xC0, 0x3A, 0x3A)),
+            Cursor = Cursors.Hand, HorizontalAlignment = HorizontalAlignment.Right,
+            Child = new TextBlock { Text = "✕", FontSize = 12, Foreground = Brushes.White, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center }
+        };
+        closeGlyph.MouseLeftButtonUp += (s, e) => win.Close();
+        titleRow.Children.Add(closeGlyph);
+        titleRow.Background = Brushes.Transparent;
+        titleRow.MouseLeftButtonDown += (s, e) => { if (e.ButtonState == MouseButtonState.Pressed) win.DragMove(); };
+        DockPanel.SetDock(titleRow, Dock.Top);
+        outer.Children.Add(titleRow);
 
         // ── Tab bar ──────────────────────────────────────────────────────────
         var tabScroll = new ScrollViewer
         {
             HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
             VerticalScrollBarVisibility   = ScrollBarVisibility.Disabled,
-            Background = new SolidColorBrush(C(0x0d0d0d))
+            Background = Brushes.Transparent, Margin = new Thickness(0, 0, 0, 8)
         };
-        var tabBar = new StackPanel { Orientation = Orientation.Horizontal, Background = new SolidColorBrush(C(0x0d0d0d)) };
+        var tabBar = new StackPanel { Orientation = Orientation.Horizontal, Background = Brushes.Transparent };
         tabScroll.Content = tabBar;
         DockPanel.SetDock(tabScroll, Dock.Top);
         outer.Children.Add(tabScroll);
 
         // ── Formatting toolbar ───────────────────────────────────────────────
-        var fmtBar = new StackPanel { Orientation = Orientation.Horizontal, Background = new SolidColorBrush(C(0x111111)) };
-        DockPanel.SetDock(fmtBar, Dock.Top);
-        outer.Children.Add(fmtBar);
+        var fmtBarWrap = new Border
+        {
+            Background = new SolidColorBrush(Color.FromArgb(0x40, 0x00, 0x00, 0x00)),
+            BorderBrush = new SolidColorBrush(Color.FromArgb(0x40, 0xFF, 0xFF, 0xFF)),
+            BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(10),
+            Margin = new Thickness(0, 0, 0, 8), Padding = new Thickness(2)
+        };
+        var fmtBar = new StackPanel { Orientation = Orientation.Horizontal, Background = Brushes.Transparent };
+        fmtBarWrap.Child = fmtBar;
+        DockPanel.SetDock(fmtBarWrap, Dock.Top);
+        outer.Children.Add(fmtBarWrap);
 
         // ── Status bar ───────────────────────────────────────────────────────
         var statusTx = new TextBlock
         {
-            Foreground = new SolidColorBrush(C(0x444444)), VerticalAlignment = VerticalAlignment.Center,
-            FontSize = 10, Margin = new Thickness(8, 2, 8, 2)
+            Foreground = new SolidColorBrush(Color.FromArgb(0xAA, 0xFF, 0xFF, 0xFF)), VerticalAlignment = VerticalAlignment.Center,
+            FontSize = 10, Margin = new Thickness(2, 6, 2, 0)
         };
-        var statusBar = new StackPanel { Orientation = Orientation.Horizontal, Background = new SolidColorBrush(C(0x0d0d0d)) };
+        var statusBar = new StackPanel { Orientation = Orientation.Horizontal, Background = Brushes.Transparent };
         statusBar.Children.Add(statusTx);
         DockPanel.SetDock(statusBar, Dock.Bottom);
         outer.Children.Add(statusBar);
@@ -1229,13 +1311,13 @@ public partial class MainWindow
         // ── Rich text editor ─────────────────────────────────────────────────
         var rtb = new RichTextBox
         {
-            Background  = new SolidColorBrush(C(0x141414)),
+            Background  = Brushes.Transparent,
             Foreground  = new SolidColorBrush(C(0xdddddd)),
             CaretBrush  = Brushes.White,
             BorderThickness = new Thickness(0),
             AcceptsReturn = true, AcceptsTab = true,
             FontFamily  = new FontFamily("Segoe UI"), FontSize = 13,
-            Margin      = new Thickness(4),
+            Margin      = new Thickness(0),
             VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
             AllowDrop   = true,
         };
@@ -1283,7 +1365,7 @@ public partial class MainWindow
             }
         });
 
-        win.Content = outer;
+        win.Content = shell;
 
         // ── Save / load helpers ───────────────────────────────────────────────
         // Notes are stored as raw XamlPackage bytes on disk (Notes\<name>.bin)
@@ -1432,9 +1514,10 @@ public partial class MainWindow
                 {
                     Content = capName, FontSize = 11, Height = 28,
                     Padding = new Thickness(10, 0, 5, 0),
-                    Background  = new SolidColorBrush(isCur ? C(0x1a1a2e) : Brushes.Transparent.Color),
-                    Foreground  = new SolidColorBrush(isCur ? C(0x88ccff) : C(0x666666)),
-                    BorderBrush = new SolidColorBrush(isCur ? C(0x2e6aa0) : C(0x000000)),
+                    Background  = Brushes.Transparent,
+                    Foreground  = new SolidColorBrush(isCur ? Color.FromRgb(0x22, 0xE5, 0xFF) : Color.FromArgb(0x99, 0xFF, 0xFF, 0xFF)),
+                    FontWeight  = isCur ? FontWeights.Bold : FontWeights.Normal,
+                    BorderBrush = new SolidColorBrush(isCur ? Color.FromRgb(0x22, 0xE5, 0xFF) : Colors.Transparent),
                     BorderThickness = isCur ? new Thickness(0, 0, 0, 2) : new Thickness(0),
                     Cursor = Cursors.Hand
                 };
@@ -1486,10 +1569,10 @@ public partial class MainWindow
         // ── Formatting toolbar ────────────────────────────────────────────────
         Button FmtBtn(string lbl, string tip, int w = 28) => new Button
         {
-            Content = lbl, Width = w, Height = 24, FontSize = 11, ToolTip = tip,
+            Content = lbl, Width = w, Height = 26, FontSize = 11, ToolTip = tip,
             Margin = new Thickness(2, 2, 0, 2),
-            Background  = new SolidColorBrush(C(0x1e1e1e)), Foreground = Brushes.White,
-            BorderBrush = new SolidColorBrush(C(0x333333)), BorderThickness = new Thickness(1),
+            Background  = new SolidColorBrush(Color.FromArgb(0x30, 0x00, 0x00, 0x00)), Foreground = Brushes.White,
+            BorderBrush = new SolidColorBrush(Color.FromArgb(0x50, 0x22, 0xE5, 0xFF)), BorderThickness = new Thickness(1),
             Cursor = Cursors.Hand
         };
 
@@ -1503,11 +1586,11 @@ public partial class MainWindow
         var btnCheck  = FmtBtn("☑", "Insert checkbox", 26);
         var btnTable  = FmtBtn("⊞", "Insert table", 26);
         var btnColor  = FmtBtn("A", "Cycle text colour", 26);
-        btnColor.Foreground = new SolidColorBrush(C(0x88ccff));
+        btnColor.Foreground = new SolidColorBrush(notesCyan);
 
-        var fmtSep   = new Border { Width = 1, Margin = new Thickness(4, 3, 4, 3), Background = new SolidColorBrush(C(0x2a2a2a)) };
-        var btnSave  = BarButton("💾 Save", C(0x1a3a1a), C(0x2a5a2a));
-        var btnSync  = BarButton("☁ Sync", C(0x1a3454), C(0x2e6aa0));
+        var fmtSep   = new Border { Width = 1, Margin = new Thickness(4, 3, 4, 3), Background = new SolidColorBrush(Color.FromArgb(0x40, 0xFF, 0xFF, 0xFF)) };
+        var btnSave  = BarButton("💾 Save", Color.FromArgb(0x30, 0x00, 0x00, 0x00), Color.FromArgb(0x60, 0x39, 0xD3, 0x53));
+        var btnSync  = BarButton("☁ Sync", Color.FromArgb(0x30, 0x00, 0x00, 0x00), Color.FromArgb(0x60, 0x22, 0xE5, 0xFF));
 
         btnBold.Click   += (s, e) => { EditingCommands.ToggleBold.Execute(null, rtb);      rtb.Focus(); };
         btnItalic.Click += (s, e) => { EditingCommands.ToggleItalic.Execute(null, rtb);    rtb.Focus(); };
@@ -2360,6 +2443,11 @@ public partial class MainWindow
             X1 = 8, Y1 = h - 10, X2 = 52, Y2 = h - 10,
             Stroke = new SolidColorBrush(C(0x2e3c50)), StrokeThickness = 2
         });
+        string scaleT = _navTotalDistanceKm > 0 ? $"{(_navTotalDistanceKm / 4.0):F1}km" : "~1km";
+        var sclLbl = new TextBlock { Text = scaleT, Foreground = new SolidColorBrush(C(0x2e3c50)), FontSize = 7 };
+        Canvas.SetLeft(sclLbl, 8); Canvas.SetTop(sclLbl, h - 21); canvas.Children.Add(sclLbl);
+    }
+
     // ═══════════════════════════════════════════════════════════════════════════
     //  SHARED UI HELPERS
     // ═══════════════════════════════════════════════════════════════════════════
