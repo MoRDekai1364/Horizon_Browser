@@ -196,8 +196,31 @@ public static class WidgetBackdropService
             Schedule();
         }
 
-        widget.LocationChanged += (s, e) => Recompute();
-        widget.SizeChanged += (s, e) => Recompute();
+        DateTime lastRecompute = DateTime.MinValue;
+        bool recomputeQueued = false;
+
+        void ThrottledRecompute()
+        {
+            var now = DateTime.UtcNow;
+            if ((now - lastRecompute).TotalMilliseconds >= 16)
+            {
+                lastRecompute = now;
+                Recompute();
+            }
+            else if (!recomputeQueued)
+            {
+                recomputeQueued = true;
+                widget.Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    recomputeQueued = false;
+                    lastRecompute = DateTime.UtcNow;
+                    Recompute();
+                }), DispatcherPriority.Input);
+            }
+        }
+
+        widget.LocationChanged += (s, e) => ThrottledRecompute();
+        widget.SizeChanged += (s, e) => ThrottledRecompute();
         widget.StateChanged += (s, e) => Schedule();
         widget.Loaded += (s, e) => Recompute();
 
