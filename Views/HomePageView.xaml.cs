@@ -855,11 +855,8 @@ public partial class HomePageView : UserControl
                 if (TryGetCachedWallpaper(path, out var cachedBmp, out var cachedAvg))
                 {
                     BgImageBrush.ImageSource = cachedBmp;
-                    if (IsVisible)
-                    {
-                        WeatherBridge.SetWallpaperSurface(RootHomeGrid);
-                        WeatherBridge.SetWallpaper(cachedBmp);
-                    }
+                    WeatherBridge.SetWallpaperSurface(RootHomeGrid);
+                    WeatherBridge.SetWallpaper(cachedBmp);
                     ApplyAdaptiveColors(cachedAvg);
                 }
                 else
@@ -869,11 +866,8 @@ public partial class HomePageView : UserControl
                     if (myToken != _wallpaperLoadToken) return;
 
                     BgImageBrush.ImageSource = bmp;
-                    if (IsVisible)
-                    {
-                        WeatherBridge.SetWallpaperSurface(RootHomeGrid);
-                        WeatherBridge.SetWallpaper(bmp);
-                    }
+                    WeatherBridge.SetWallpaperSurface(RootHomeGrid);
+                    WeatherBridge.SetWallpaper(bmp);
                     ApplyAdaptiveColors(avgColor);
                 }
             }

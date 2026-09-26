@@ -110,8 +110,16 @@ public static class HomeGlassService
         var target = new Rect(r.Value.X - pad, r.Value.Y - pad, r.Value.Width + 2 * pad, r.Value.Height + 2 * pad);
         var frame = GetWallpaperFrame(surface, (double)wp.PixelWidth / wp.PixelHeight);
 
-        return new Rect((target.X - frame.X) / frame.Width, (target.Y - frame.Y) / frame.Height,
+        var raw = new Rect((target.X - frame.X) / frame.Width, (target.Y - frame.Y) / frame.Height,
             target.Width / frame.Width, target.Height / frame.Height);
+
+        double x0 = Math.Clamp(raw.X, 0.0, 1.0);
+        double y0 = Math.Clamp(raw.Y, 0.0, 1.0);
+        double x1 = Math.Clamp(raw.X + raw.Width, 0.0, 1.0);
+        double y1 = Math.Clamp(raw.Y + raw.Height, 0.0, 1.0);
+        if (x1 <= x0 || y1 <= y0) return null;
+
+        return new Rect(x0, y0, x1 - x0, y1 - y0);
     }
 
     public static Rect? GetOverlapLocal(FrameworkElement el)
