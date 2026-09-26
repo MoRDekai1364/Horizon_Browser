@@ -16,7 +16,6 @@ using System.Windows.Media;
 using System.Windows.Documents;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
-using System.Windows.Navigation;
 using System.Text.RegularExpressions;
 using Horizon.Stealth.Services;
 
@@ -27,19 +26,6 @@ public partial class MainWindow
     // ── Calendar event storage (local + synced) ───────────────────────────────
     private readonly List<CalendarEvent> _calendarEvents = new();
     private string _currentNoteTab = "";
-
-    // ── Navigation live state ─────────────────────────────────────────────────
-    private bool      _navActive            = false;
-    private DateTime  _navStartedAt         = DateTime.MinValue;
-    private string    _navDestinationLabel  = "";
-    private TimeSpan  _navEstimatedDuration = TimeSpan.Zero;
-    private double    _navBearingDeg        = 0.0;
-    private double    _navUserLat           = 0.0;
-    private double    _navUserLon           = 0.0;
-    private double    _navDestLat           = 0.0;
-    private double    _navDestLon           = 0.0;
-    private double    _navTotalDistanceKm   = 0.0;
-    private Window?   _navHudWindow         = null;
 
     // ═══════════════════════════════════════════════════════════════════════════
     //  CLOCK  —  5 display modes + Stopwatch + Timer
@@ -1740,236 +1726,6 @@ public partial class MainWindow
             : await AccountSyncService.ExchangeMsCodeAsync(code, verifier, redirectUri, clientId);
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    //  NAVIGATION WIDGET
-    // ═══════════════════════════════════════════════════════════════════════════
-
-    private void OpenNavigationWindow()
-    {
-        var customDomains = SettingsService.Current.NavigationCustomDomains;
-
-        bool IsNavUrl(string url)
-        {
-            if (string.IsNullOrEmpty(url)) return false;
-            string l = url.ToLowerInvariant();
-            string[] builtIn =
-            {
-                "google.com/maps", "maps.google", "bing.com/maps", "waze.com",
-                "openstreetmap.org", "maps.apple.com", "maps.me", "here.com/maps",
-                "yandex.com/maps", "2gis.com"
-            };
-            if (builtIn.Any(d => l.Contains(d))) return true;
-            return customDomains.Any(d => !string.IsNullOrWhiteSpace(d) && l.Contains(d.ToLowerInvariant()));
-        }
-
-        var win = MakeToolWindow("Navigation", 370);
-        var scroll = new ScrollViewer
-        {
-            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
-            MaxHeight = 540
-        };
-        var root = new StackPanel { Margin = new Thickness(12) };
-        scroll.Content = root;
-
-        var navTabs = _allTabs.Where(t => IsNavUrl(t.Url)).ToList();
-        if (navTabs.Count > 0)
-        {
-            root.Children.Add(SectionLabel("ACTIVE NAV TABS"));
-            foreach (var tab in navTabs)
-            {
-                string raw = tab.Title ?? tab.Url ?? "";
-                string lbl = raw.Length > 38 ? raw[..35] + "…" : raw;
-                var btn = MenuButton("🗺  " + lbl, false);
-                var capture = tab;
-                btn.Click += (s, e) =>
-                {
-                    if (Tabs.Contains(capture))              ListTabs.SelectedItem         = capture;
-                    else if (OverflowTabs.Contains(capture)) ListOverflowTabs.SelectedItem = capture;
-                    win.Close();
-                };
-                root.Children.Add(btn);
-            }
-            root.Children.Add(new Separator { Background = new SolidColorBrush(C(0x2a2a2a)), Margin = new Thickness(0, 10, 0, 10) });
-        }
-
-        root.Children.Add(SectionLabel("OPEN NAVIGATION"));
-        root.Children.Add(FieldLabel("Address / coordinates"));
-
-        var addrBox = new TextBox
-        {
-            Background = new SolidColorBrush(C(0x1e1e1e)), Foreground = Brushes.White,
-            CaretBrush = Brushes.White,
-            BorderBrush = new SolidColorBrush(C(0x444444)), BorderThickness = new Thickness(1),
-            Padding = new Thickness(6, 4, 6, 4), FontSize = 12, Margin = new Thickness(0, 0, 0, 8)
-        };
-        root.Children.Add(addrBox);
-        root.Children.Add(FieldLabel("Provider"));
-
-        string[] providers = { "Google Maps", "Bing Maps", "OpenStreetMap", "Waze", "Apple Maps" };
-        var providerBox = new ComboBox
-        {
-            ItemsSource = providers,
-            SelectedItem = providers.Contains(SettingsService.Current.NavigationProvider)
-                           ? SettingsService.Current.NavigationProvider : providers[0],
-            Background = new SolidColorBrush(C(0x222222)), Foreground = Brushes.White,
-            BorderBrush = new SolidColorBrush(C(0x333333)), Padding = new Thickness(4),
-            Margin = new Thickness(0, 0, 0, 10),
-            ItemContainerStyle = DarkComboItemStyle()
-        };
-        root.Children.Add(providerBox);
-
-        providerBox.SelectionChanged += (s, e) =>
-        {
-            if (providerBox.SelectedItem is string p)
-            {
-                SettingsService.Current.NavigationProvider = p;
-                SettingsService.Save();
-            }
-        };
-
-        var openBtn = AccentButton("🧭  Open", C(0x1a3454), C(0x2e6aa0), 110);
-        openBtn.HorizontalAlignment = HorizontalAlignment.Left;
-        openBtn.Click += (s, e) =>
-        {
-            string addr = addrBox.Text.Trim();
-            if (string.IsNullOrEmpty(addr)) return;
-            string enc = Uri.EscapeDataString(addr);
-            string url = (providerBox.SelectedItem as string ?? "Google Maps") switch
-            {
-                "Google Maps"   => $"https://www.google.com/maps/search/{enc}",
-                "Bing Maps"     => $"https://www.bing.com/maps?q={enc}",
-                "OpenStreetMap" => $"https://www.openstreetmap.org/search?query={enc}",
-                "Waze"          => $"https://www.waze.com/live-map/directions?to={enc}",
-                "Apple Maps"    => $"https://maps.apple.com/?q={enc}",
-                _               => $"https://www.google.com/maps/search/{enc}"
-            };
-            CreateNewTab(url);
-            _ = StartNavigation(addr);
-            win.Close();
-        };
-
-        addrBox.KeyDown += (s, e) =>
-        {
-            if (e.Key == System.Windows.Input.Key.Return)
-                openBtn.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
-        };
-
-        root.Children.Add(openBtn);
-
-        root.Children.Add(new Separator { Background = new SolidColorBrush(C(0x2a2a2a)), Margin = new Thickness(0, 14, 0, 10) });
-        root.Children.Add(SectionLabel("CUSTOM NAV DOMAINS"));
-        root.Children.Add(FieldLabel("Domains scanned when detecting active nav tabs"));
-
-        var domainsPanel = new StackPanel { Margin = new Thickness(0, 6, 0, 0) };
-
-        void RebuildDomainsList()
-        {
-            domainsPanel.Children.Clear();
-            foreach (var dom in customDomains.ToList())
-            {
-                var capDom = dom;
-                var row = new Grid { Margin = new Thickness(0, 2, 0, 2) };
-                row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-                row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-
-                var domLbl = new TextBlock
-                {
-                    Text = capDom, Foreground = new SolidColorBrush(C(0xcccccc)),
-                    FontSize = 12, VerticalAlignment = VerticalAlignment.Center,
-                    Margin = new Thickness(0, 0, 6, 0)
-                };
-                var removeBtn = new Button
-                {
-                    Content = "✕", Width = 22, Height = 22, FontSize = 9, Padding = new Thickness(0),
-                    Background = new SolidColorBrush(C(0x2a1a1a)), Foreground = new SolidColorBrush(C(0x996666)),
-                    BorderBrush = new SolidColorBrush(C(0x442222)), BorderThickness = new Thickness(1),
-                    Cursor = Cursors.Hand
-                };
-                removeBtn.Click += (s, e) =>
-                {
-                    customDomains.Remove(capDom);
-                    SettingsService.Save();
-                    RebuildDomainsList();
-                };
-
-                Grid.SetColumn(domLbl, 0);
-                Grid.SetColumn(removeBtn, 1);
-                row.Children.Add(domLbl);
-                row.Children.Add(removeBtn);
-                domainsPanel.Children.Add(row);
-            }
-        }
-
-        RebuildDomainsList();
-        root.Children.Add(domainsPanel);
-
-        var addRow = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 6, 0, 0) };
-        var newDomainBox = new TextBox
-        {
-            Background = new SolidColorBrush(C(0x1e1e1e)), Foreground = Brushes.White,
-            CaretBrush = Brushes.White,
-            BorderBrush = new SolidColorBrush(C(0x444444)), BorderThickness = new Thickness(1),
-            Padding = new Thickness(6, 4, 6, 4), FontSize = 12,
-            Width = 224, Margin = new Thickness(0, 0, 6, 0),
-            ToolTip = "Enter a domain fragment, e.g. maps.mysite.com"
-        };
-        var addDomainBtn = AccentButton("+ Add", C(0x1a2a1a), C(0x2a5a2a), 62);
-
-        void DoAdd()
-        {
-            string d = newDomainBox.Text.Trim().ToLowerInvariant();
-            if (string.IsNullOrEmpty(d) || customDomains.Contains(d)) return;
-            customDomains.Add(d);
-            SettingsService.Save();
-            newDomainBox.Text = "";
-            RebuildDomainsList();
-        }
-
-        addDomainBtn.Click  += (s, e) => DoAdd();
-        newDomainBox.KeyDown += (s, e) => { if (e.Key == System.Windows.Input.Key.Return) DoAdd(); };
-
-        addRow.Children.Add(newDomainBox);
-        addRow.Children.Add(addDomainBtn);
-        root.Children.Add(addRow);
-
-        win.Content = scroll;
-        win.Show();
-        addrBox.Focus();
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    //  NAVIGATION LIVE ENGINE
-    // ═══════════════════════════════════════════════════════════════════════════
-
-    internal string GetNavWidgetText()
-    {
-        if (!_navActive) return "🧭  Navigation";
-        string arrow = BearingToArrow(_navBearingDeg);
-        if (_navEstimatedDuration > TimeSpan.Zero)
-        {
-            var elapsed   = DateTime.Now - _navStartedAt;
-            var remaining = _navEstimatedDuration - elapsed;
-            if (remaining < TimeSpan.Zero) remaining = TimeSpan.Zero;
-            return $"{arrow}  {(int)remaining.TotalMinutes} min";
-        }
-        var el = DateTime.Now - _navStartedAt;
-        return $"{arrow}  {(int)el.TotalMinutes:D2}:{el.Seconds:D2}";
-    }
-
-    private static string BearingToArrow(double deg)
-    {
-        double d = ((deg % 360) + 360) % 360;
-        if (d < 22.5)  return "↑";
-        if (d < 67.5)  return "↗";
-        if (d < 112.5) return "→";
-        if (d < 157.5) return "↘";
-        if (d < 202.5) return "↓";
-        if (d < 247.5) return "↙";
-        if (d < 292.5) return "←";
-        if (d < 337.5) return "↖";
-        return "↑";
-    }
-
     private async Task<string> AutoDetectCityAsync()
     {
         try
@@ -1989,21 +1745,11 @@ public partial class MainWindow
         return "";
     }
 
-    private async Task<(double lat, double lon, bool ok)> GetLocationAsync()
-    {
-        try
-        {
-            using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
-            http.DefaultRequestHeaders.UserAgent.ParseAdd("HorizonBrowser/1.0");
-            string raw = await http.GetStringAsync("http://ip-api.com/json");
-            using var doc = JsonDocument.Parse(raw);
-            var root = doc.RootElement;
-            if (root.TryGetProperty("status", out var st) && st.GetString() == "success")
-                return (root.GetProperty("lat").GetDouble(), root.GetProperty("lon").GetDouble(), true);
-        }
-        catch { }
-        return (0, 0, false);
-    }
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  SHARED UI HELPERS
+    // ═══════════════════════════════════════════════════════════════════════════
+
+
 
     private async Task<(double lat, double lon, bool ok)> GeocodeAddressAsync(string address)
     {
