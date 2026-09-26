@@ -9432,26 +9432,55 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
         t < 30 ? Color.FromRgb(0xFF, 0x9A, 0x5C) :
                  Color.FromRgb(0xFF, 0x6B, 0x6B);
 
+    private static readonly (string Name, string Unit, Color Color)[] WxMetricDefs =
+    {
+        ("Temperature", "°", Color.FromRgb(0xFF, 0x99, 0x44)),
+        ("Precipitation", " mm", Color.FromRgb(0x4F, 0xA8, 0xFF)),
+        ("Wind", " km/h", Color.FromRgb(0x7C, 0xE3, 0xB0)),
+        ("Humidity", "%", Color.FromRgb(0xB1, 0x8C, 0xFF)),
+        ("UV Index", "", Color.FromRgb(0xFF, 0xD4, 0x4D)),
+    };
+    private const int WxMetricCount = 5;
+
+    private static double WxMetricValue(
+        int categoryIndex, int i,
+        List<(DateTime Time, double Temp, double Precip, double WindKmh, int Wmo, int Humidity)> hourly,
+        Dictionary<int, double> uvByHour)
+    {
+        return categoryIndex switch
+        {
+            0 => hourly[i].Temp,
+            1 => hourly[i].Precip,
+            2 => hourly[i].WindKmh,
+            3 => hourly[i].Humidity,
+            4 => uvByHour.TryGetValue(hourly[i].Time.Hour, out var v) ? v : 0,
+            _ => hourly[i].Temp,
+        };
+    }
+
     private static Canvas BuildDayCurve(
         List<(DateTime Time, double Temp, double Precip, double WindKmh, int Wmo, int Humidity)> hourly,
-        DateTime date)
+        DateTime date, int categoryIndex, Dictionary<int, double> uvByHour)
     {
         const double width = 360, height = 130, padTop = 34, padBot = 16, padX = 8;
         var canvas = new Canvas { Width = width, Height = height };
         int n = hourly.Count;
         if (n < 2) return canvas;
 
-        double allMax = hourly.Max(h => h.Temp);
-        double allMin = hourly.Min(h => h.Temp);
+        categoryIndex = Math.Clamp(categoryIndex, 0, WxMetricCount - 1);
+        var metric = WxMetricDefs[categoryIndex];
+        var accent = metric.Color;
+
+        double allMax = Enumerable.Range(0, n).Max(i => WxMetricValue(categoryIndex, i, hourly, uvByHour));
+        double allMin = Enumerable.Range(0, n).Min(i => WxMetricValue(categoryIndex, i, hourly, uvByHour));
         double range = Math.Max(allMax - allMin, 1.0);
         double graphH = height - padTop - padBot;
         double segW = (width - padX * 2) / (n - 1);
         double baseY = height - padBot;
-        var orange = Color.FromRgb(0xFF, 0x99, 0x44);
 
         var pts = new PointCollection();
         for (int i = 0; i < n; i++)
-            pts.Add(new Point(padX + i * segW, padTop + (1 - (hourly[i].Temp - allMin) / range) * graphH));
+            pts.Add(new Point(padX + i * segW, padTop + (1 - (WxMetricValue(categoryIndex, i, hourly, uvByHour) - allMin) / range) * graphH));
 
         var areaPts = new PointCollection(pts);
         areaPts.Add(new Point(padX + (n - 1) * segW, baseY));
@@ -9460,12 +9489,12 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
         {
             Points = areaPts,
             Fill = new LinearGradientBrush(
-                Color.FromArgb(0x60, orange.R, orange.G, orange.B),
-                Color.FromArgb(0x00, orange.R, orange.G, orange.B), 90)
+                Color.FromArgb(0x60, accent.R, accent.G, accent.B),
+                Color.FromArgb(0x00, accent.R, accent.G, accent.B), 90)
         });
         canvas.Children.Add(new System.Windows.Shapes.Polyline
         {
-            Points = pts, Stroke = new SolidColorBrush(orange),
+            Points = pts, Stroke = new SolidColorBrush(accent),
             StrokeThickness = 2, StrokeLineJoin = PenLineJoin.Round
         });
 
@@ -9476,6 +9505,15 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
         Canvas.SetLeft(baseLine, padX);
         Canvas.SetTop(baseLine, baseY);
         canvas.Children.Add(baseLine);
+
+        var categoryLbl = new TextBlock
+        {
+            Text = metric.Name, FontSize = 11, FontWeight = FontWeights.Bold,
+            Foreground = new SolidColorBrush(WxMuted)
+        };
+        Canvas.SetLeft(categoryLbl, padX);
+        Canvas.SetTop(categoryLbl, 2);
+        canvas.Children.Add(categoryLbl);
 
         for (int i = 0; i < n; i += 3)
         {
@@ -9489,22 +9527,23 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
             canvas.Children.Add(hourLbl);
         }
 
-        void PlaceTempLabel(int index, double value)
+        void PlaceValueLabel(int index, double value)
         {
             if (index < 0) return;
-            var tempLbl = new TextBlock
+            var valueLbl = new TextBlock
             {
-                Text = $"{value:F1}°", FontSize = 13, FontWeight = FontWeights.Bold,
-                Foreground = new SolidColorBrush(orange)
+                Text = $"{value:F1}{metric.Unit}", FontSize = 13, FontWeight = FontWeights.Bold,
+                Foreground = new SolidColorBrush(accent)
             };
-            Canvas.SetLeft(tempLbl, Math.Clamp(pts[index].X - 16, 0, width - 40));
-            Canvas.SetTop(tempLbl, Math.Max(0, pts[index].Y - 20));
-            canvas.Children.Add(tempLbl);
+            Canvas.SetLeft(valueLbl, Math.Clamp(pts[index].X - 16, 0, width - 40));
+            Canvas.SetTop(valueLbl, Math.Max(0, pts[index].Y - 20));
+            canvas.Children.Add(valueLbl);
         }
-        PlaceTempLabel(hourly.FindIndex(h => h.Temp == allMax), allMax);
-        if (allMax - allMin >= 1) PlaceTempLabel(hourly.FindIndex(h => h.Temp == allMin), allMin);
+        int maxIdx = Enumerable.Range(0, n).OrderByDescending(i => WxMetricValue(categoryIndex, i, hourly, uvByHour)).First();
+        int minIdx = Enumerable.Range(0, n).OrderBy(i => WxMetricValue(categoryIndex, i, hourly, uvByHour)).First();
+        PlaceValueLabel(maxIdx, allMax);
+        if (allMax - allMin >= 1) PlaceValueLabel(minIdx, allMin);
 
-        // ── Draggable slider dot with live value readout ───────────────────
         int startIdx = date.Date == DateTime.Today
             ? Math.Max(0, hourly.FindIndex(h => h.Time.Hour == DateTime.Now.Hour))
             : n / 2;
@@ -9520,9 +9559,9 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
         var dot = new System.Windows.Shapes.Ellipse
         {
             Width = 18, Height = 18, Fill = Brushes.White,
-            Stroke = new SolidColorBrush(orange), StrokeThickness = 3,
+            Stroke = new SolidColorBrush(accent), StrokeThickness = 3,
             Cursor = Cursors.Hand,
-            Effect = new System.Windows.Media.Effects.DropShadowEffect { Color = orange, BlurRadius = 10, ShadowDepth = 0, Opacity = 0.8 }
+            Effect = new System.Windows.Media.Effects.DropShadowEffect { Color = accent, BlurRadius = 10, ShadowDepth = 0, Opacity = 0.8 }
         };
         canvas.Children.Add(dot);
 
@@ -9533,7 +9572,8 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
             Canvas.SetLeft(dot, p.X - 9);
             Canvas.SetTop(dot, p.Y - 9);
 
-            readout.Text = $"{hourly[idx].Time:HH:mm}  ·  {hourly[idx].Temp:F1}°";
+            double v = WxMetricValue(categoryIndex, idx, hourly, uvByHour);
+            readout.Text = $"{hourly[idx].Time:HH:mm}  ·  {v:F1}{metric.Unit}";
             Canvas.SetLeft(readout, Math.Clamp(p.X - 30, 0, width - 90));
             Canvas.SetTop(readout, Math.Max(0, p.Y - 30));
         }
@@ -9608,10 +9648,47 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
             return;
         }
 
-        panel.Children.Add(new Viewbox
+        int dayCategoryIndex = 0;
+        var curveHost = new Viewbox { Stretch = Stretch.Uniform, Margin = new Thickness(0, 0, 0, 6) };
+        void RebuildCurve() { curveHost.Child = BuildDayCurve(hourly, date, dayCategoryIndex, uvByHour); }
+        RebuildCurve();
+
+        var prevCatBtn = new TextBlock
         {
-            Stretch = Stretch.Uniform, Child = BuildDayCurve(hourly, date), Margin = new Thickness(0, 0, 0, 6)
-        });
+            Text = "‹", FontSize = 22, FontWeight = FontWeights.Bold,
+            Foreground = new SolidColorBrush(WeatherBridge.ThemeAccent),
+            VerticalAlignment = VerticalAlignment.Center, Cursor = Cursors.Hand,
+            Margin = new Thickness(4, 0, 8, 0)
+        };
+        var nextCatBtn = new TextBlock
+        {
+            Text = "›", FontSize = 22, FontWeight = FontWeights.Bold,
+            Foreground = new SolidColorBrush(WeatherBridge.ThemeAccent),
+            VerticalAlignment = VerticalAlignment.Center, Cursor = Cursors.Hand,
+            Margin = new Thickness(8, 0, 4, 0)
+        };
+        prevCatBtn.MouseLeftButtonUp += (_, _) =>
+        {
+            dayCategoryIndex = (dayCategoryIndex - 1 + WxMetricCount) % WxMetricCount;
+            RebuildCurve();
+        };
+        nextCatBtn.MouseLeftButtonUp += (_, _) =>
+        {
+            dayCategoryIndex = (dayCategoryIndex + 1) % WxMetricCount;
+            RebuildCurve();
+        };
+
+        var curveRow = new Grid();
+        curveRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        curveRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        curveRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        Grid.SetColumn(prevCatBtn, 0);
+        Grid.SetColumn(curveHost, 1);
+        Grid.SetColumn(nextCatBtn, 2);
+        curveRow.Children.Add(prevCatBtn);
+        curveRow.Children.Add(curveHost);
+        curveRow.Children.Add(nextCatBtn);
+        panel.Children.Add(curveRow);
         panel.Children.Add(new Border
         {
             Height = 1, Background = new SolidColorBrush(WxBorder), Margin = new Thickness(0, 4, 0, 8)
