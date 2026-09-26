@@ -557,9 +557,21 @@ public partial class BrowserView : UserControl
                 // can end up behind this app's custom-chrome window (no owner set),
                 // freezing the whole UI thread invisibly until dismissed, which
                 // looks exactly like the page going blank/unresponsive.
-                e.State = e.PermissionKind == CoreWebView2PermissionKind.Notifications
-                    ? CoreWebView2PermissionState.Deny
-                    : CoreWebView2PermissionState.Allow;
+                if (e.PermissionKind == CoreWebView2PermissionKind.Notifications)
+                {
+                    string origin;
+                    try { origin = new Uri(MainWebView.CoreWebView2?.Source ?? "").Host; }
+                    catch { origin = string.Empty; }
+
+                    Services.SiteNotificationPermissionService.RecordRequest(origin);
+                    e.State = Services.SiteNotificationPermissionService.GetAllow(origin)
+                        ? CoreWebView2PermissionState.Allow
+                        : CoreWebView2PermissionState.Deny;
+                }
+                else
+                {
+                    e.State = CoreWebView2PermissionState.Allow;
+                }
             }
             finally
             {

@@ -1188,6 +1188,9 @@ public partial class MainWindow : Window
         try { SettingsService.Load(); }
         catch (Exception ex) { LogService.RecordCrash(ex, "Startup"); }
 
+        try { SiteNotificationPermissionService.Load(); }
+        catch (Exception ex) { LogService.RecordCrash(ex, "Startup"); }
+
         
 
         _ = Task.Run(() =>
@@ -1918,6 +1921,7 @@ public partial class MainWindow : Window
             OmniboxControl.SetText(url);
             MobileOmniboxControl.SetText(url);
             UpdateInstallButtonVisibility(url);
+            UpdateBackButtonVisibility();
         }
         if (e.IsSuccess) HistoryService.Add(title, url);
 
@@ -2209,6 +2213,7 @@ return colors.length > 0 ? colors : null;
                 MobileOmniboxControl.SetText(tabUrl);
                 UpdateInstallButtonVisibility(tabUrl);
             }
+            UpdateBackButtonVisibility();
         }
 
         _isReflowing = true;
@@ -2900,6 +2905,46 @@ return colors.length > 0 ? colors : null;
     private Action? _sidebarHomeBlurBleedUnbind;
     private Action? _sidebarHomeBlurBleedRefresh;
     private LinearGradientBrush? _sidebarHomeCenterBrush;
+
+    private void FadeReflowHeaderLeft(Action applyNewLayout)
+    {
+        var fadeOut = new DoubleAnimation
+        {
+            To = 0.0,
+            Duration = new Duration(TimeSpan.FromMilliseconds(120)),
+            EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseIn }
+        };
+
+        fadeOut.Completed += (_, _) =>
+        {
+            applyNewLayout();
+            PnlHeaderNavButtons.UpdateLayout();
+
+            var fadeIn = new DoubleAnimation
+            {
+                To = 1.0,
+                Duration = new Duration(TimeSpan.FromMilliseconds(220)),
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+            };
+            PnlHeaderNavButtons.BeginAnimation(UIElement.OpacityProperty, fadeIn);
+        };
+
+        PnlHeaderNavButtons.BeginAnimation(UIElement.OpacityProperty, fadeOut);
+    }
+
+    private void UpdateBackButtonVisibility()
+    {
+        if (BtnBack == null || PnlHeaderNavButtons == null) return;
+
+        bool canGoBack = CurrentBrowser?.MainWebView?.CanGoBack == true;
+        bool currentlyVisible = BtnBack.Visibility == Visibility.Visible;
+        if (canGoBack == currentlyVisible) return;
+
+        FadeReflowHeaderLeft(() =>
+        {
+            BtnBack.Visibility = canGoBack ? Visibility.Visible : Visibility.Collapsed;
+        });
+    }
 
     private void InitHeaderWallpaperGlass()
     {
@@ -6460,6 +6505,47 @@ return colors.length > 0 ? colors : null;
             win.Close();
         };
         root.Children.Add(clearBtn);
+
+        root.Children.Add(SectionLabel("SITE PERMISSIONS"));
+
+        if (Services.SiteNotificationPermissionService.Entries.Count == 0)
+        {
+            root.Children.Add(new TextBlock
+            {
+                Text = "No sites have requested notification access yet",
+                Foreground = new SolidColorBrush(Color.FromRgb(0x99, 0x99, 0x99)),
+                Margin = new Thickness(4, 8, 4, 8)
+            });
+        }
+        else
+        {
+            foreach (var entry in Services.SiteNotificationPermissionService.Entries.Values)
+            {
+                var row = new DockPanel { Margin = new Thickness(4, 4, 4, 4) };
+
+                var label = new TextBlock
+                {
+                    Text = entry.Origin,
+                    VerticalAlignment = VerticalAlignment.Center,
+                    TextTrimming = TextTrimming.CharacterEllipsis
+                };
+                DockPanel.SetDock(label, Dock.Left);
+
+                var toggleBtn = MenuButton(entry.Allow ? "🔔 Allowed" : "🔕 Blocked", entry.Allow);
+                toggleBtn.Padding = new Thickness(8, 3, 8, 3);
+                toggleBtn.HorizontalAlignment = HorizontalAlignment.Right;
+                toggleBtn.Click += (s, e) =>
+                {
+                    Services.SiteNotificationPermissionService.SetAllow(entry.Origin, !entry.Allow);
+                    win.Close();
+                    OpenNotificationsListPopup();
+                };
+
+                row.Children.Add(toggleBtn);
+                row.Children.Add(label);
+                root.Children.Add(row);
+            }
+        }
 
         Services.NotificationCenterService.MarkAllRead();
         RefreshWidgetDisplay();

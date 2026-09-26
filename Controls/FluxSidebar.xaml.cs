@@ -449,6 +449,7 @@ public class FluxItemViewModel
     public long     ReceivedBytes { get; }
     public string   State         { get; }
     public DateTime CreationTime  { get; }
+    public DateTime LastWriteTime { get; }
     public bool     IsFolder      { get; }
 
     public string DisplayName     => string.IsNullOrEmpty(_fileNameOverride) ? FileName : _fileNameOverride;
@@ -457,7 +458,7 @@ public class FluxItemViewModel
     public Brush  ItemGradient    => IsFolder ? BuildFolderGradient() : BuildGradient(Path.GetExtension(FileName), TotalBytes);
 
     // File constructor
-    public FluxItemViewModel(FluxItem src, DateTime creationTime)
+    public FluxItemViewModel(FluxItem src, DateTime creationTime, DateTime lastWriteTime)
     {
         FileName      = src.FileName;
         FilePath      = src.FilePath;
@@ -465,6 +466,7 @@ public class FluxItemViewModel
         ReceivedBytes = src.ReceivedBytes;
         State         = src.State;
         CreationTime  = creationTime;
+        LastWriteTime = lastWriteTime;
         IsFolder      = false;
     }
 
@@ -477,6 +479,7 @@ public class FluxItemViewModel
         ReceivedBytes = 0;
         State         = "FOLDER";
         CreationTime  = dir.CreationTime;
+        LastWriteTime = dir.LastWriteTime;
         IsFolder      = true;
     }
 
@@ -2184,7 +2187,8 @@ public partial class FluxSidebar : UserControl
                         ReceivedBytes = file.Length,
                         State         = "COMPLETE",
                     },
-                    file.CreationTime
+                    file.CreationTime,
+                    file.LastWriteTime
                 ));
         }
         catch (UnauthorizedAccessException) { /* skip protected folders silently */ }
@@ -2218,8 +2222,8 @@ public partial class FluxSidebar : UserControl
                 ? FluxItems.OrderBy(f => f.IsFolder ? 0 : 1).ThenBy(f => f.TotalBytes)
                 : FluxItems.OrderBy(f => f.IsFolder ? 0 : 1).ThenByDescending(f => f.TotalBytes),
             _ => _sortAscending
-                ? FluxItems.OrderBy(f => f.IsFolder ? 0 : 1).ThenBy(f => f.CreationTime)
-                : FluxItems.OrderBy(f => f.IsFolder ? 0 : 1).ThenByDescending(f => f.CreationTime),
+                ? FluxItems.OrderBy(f => f.IsFolder ? 0 : 1).ThenBy(f => f.LastWriteTime)
+                : FluxItems.OrderBy(f => f.IsFolder ? 0 : 1).ThenByDescending(f => f.LastWriteTime),
         };
 
         var list = sorted.ToList();
