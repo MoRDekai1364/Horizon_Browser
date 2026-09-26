@@ -954,9 +954,9 @@ public partial class MainWindow
             {
                 var row = new Border
                 {
-                    Background = new SolidColorBrush(C(0x1a1a1a)), BorderBrush = new SolidColorBrush(C(0x2a2a2a)),
-                    BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(4),
-                    Padding = new Thickness(8, 6, 8, 6), Margin = new Thickness(0, 0, 0, 4)
+                    Background = new SolidColorBrush(Color.FromArgb(0x30, 0x00, 0x00, 0x00)), BorderBrush = new SolidColorBrush(Color.FromArgb(0x50, 0xFF, 0xFF, 0xFF)),
+                    BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(8),
+                    Padding = new Thickness(10, 8, 10, 8), Margin = new Thickness(0, 0, 0, 6)
                 };
                 var rowInner = new Grid();
                 rowInner.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
@@ -1020,7 +1020,7 @@ public partial class MainWindow
 
         RefreshAccountsList();
 
-        root.Children.Add(new Separator { Background = new SolidColorBrush(C(0x2a2a2a)), Margin = new Thickness(0, 10, 0, 10) });
+        root.Children.Add(new Separator { Background = new SolidColorBrush(Color.FromArgb(0x30, 0xFF, 0xFF, 0xFF)), Margin = new Thickness(0, 10, 0, 10) });
         root.Children.Add(SectionLabel("ADD ACCOUNT"));
 
         var btnGoogle = SyncButton("🟢  Add Google Account", C(0x1e3a1e), C(0x2e6a2e));
@@ -1111,17 +1111,33 @@ public partial class MainWindow
         {
             var dp = new DatePicker
             {
-                SelectedDate = def, Background = new SolidColorBrush(C(0x1e1e1e)),
-                Foreground = Brushes.White, BorderBrush = new SolidColorBrush(C(0x333333)), Margin = new Thickness(0,0,0,6)
+                SelectedDate = def, Background = new SolidColorBrush(Color.FromArgb(0x50, 0x00, 0x00, 0x00)),
+                Foreground = Brushes.White, BorderBrush = new SolidColorBrush(Color.FromArgb(0x60, 0xFF, 0xFF, 0xFF)),
+                BorderThickness = new Thickness(1), Padding = new Thickness(6, 4, 6, 4),
+                Margin = new Thickness(0, 0, 0, 8)
             };
             ApplyDarkDatePickerStyle(dp);
             return dp;
         }
 
-        root.Children.Add(FieldLabel("Start date")); var p1 = MkPicker(DateTime.Today.AddMonths(-1)); root.Children.Add(p1);
-        root.Children.Add(FieldLabel("End date"));   var p2 = MkPicker(DateTime.Today);               root.Children.Add(p2);
+        var diffCard = new Border
+        {
+            Background = new SolidColorBrush(Color.FromArgb(0x40, 0x00, 0x00, 0x00)),
+            CornerRadius = new CornerRadius(10), Padding = new Thickness(12, 12, 12, 12),
+            Margin = new Thickness(0, 0, 0, 12)
+        };
+        var diffStack = new StackPanel();
+        diffCard.Child = diffStack;
 
-        var diffBlock = new TextBlock { Foreground = new SolidColorBrush(C(0x88ccff)), FontSize = 13, FontFamily = new FontFamily("Consolas"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0,6,0,0) };
+        diffStack.Children.Add(FieldLabel("Start date")); var p1 = MkPicker(DateTime.Today.AddMonths(-1)); diffStack.Children.Add(p1);
+        diffStack.Children.Add(FieldLabel("End date"));   var p2 = MkPicker(DateTime.Today);               diffStack.Children.Add(p2);
+
+        var diffBlock = new TextBlock
+        {
+            Foreground = new SolidColorBrush(CalAccent), FontSize = 15, FontWeight = FontWeights.SemiBold,
+            FontFamily = new FontFamily("Consolas"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 4, 0, 0),
+            Effect = new System.Windows.Media.Effects.DropShadowEffect { Color = CalAccent, BlurRadius = 10, ShadowDepth = 0, Opacity = 0.35 }
+        };
 
         void Calc()
         {
@@ -1138,20 +1154,36 @@ public partial class MainWindow
 
         p1.SelectedDateChanged += (s, e) => Calc();
         p2.SelectedDateChanged += (s, e) => Calc();
-        root.Children.Add(diffBlock);
+        diffStack.Children.Add(diffBlock);
+        root.Children.Add(diffCard);
 
-        root.Children.Add(new Separator { Background = new SolidColorBrush(C(0x2a2a2a)), Margin = new Thickness(0, 14, 0, 14) });
+        root.Children.Add(new Separator { Background = new SolidColorBrush(Color.FromArgb(0x30, 0xFF, 0xFF, 0xFF)), Margin = new Thickness(0, 4, 0, 14) });
         root.Children.Add(SectionLabel("DAYS FROM TODAY"));
-        root.Children.Add(FieldLabel("Target date"));
-        var p3 = MkPicker(DateTime.Today.AddMonths(3)); root.Children.Add(p3);
-        var daysBlock = new TextBlock { Foreground = new SolidColorBrush(C(0x88ccff)), FontSize = 13, FontFamily = new FontFamily("Consolas") };
+
+        var targetCard = new Border
+        {
+            Background = new SolidColorBrush(Color.FromArgb(0x40, 0x00, 0x00, 0x00)),
+            CornerRadius = new CornerRadius(10), Padding = new Thickness(12, 12, 12, 12)
+        };
+        var targetStack = new StackPanel();
+        targetCard.Child = targetStack;
+        targetStack.Children.Add(FieldLabel("Target date"));
+        var p3 = MkPicker(DateTime.Today.AddMonths(3)); targetStack.Children.Add(p3);
+        var daysBlock = new TextBlock
+        {
+            Foreground = new SolidColorBrush(CalAccent), FontSize = 15, FontWeight = FontWeights.SemiBold,
+            FontFamily = new FontFamily("Consolas"),
+            Effect = new System.Windows.Media.Effects.DropShadowEffect { Color = CalAccent, BlurRadius = 10, ShadowDepth = 0, Opacity = 0.35 }
+        };
         p3.SelectedDateChanged += (s, e) =>
         {
             if (p3.SelectedDate == null) return;
             int d = (p3.SelectedDate.Value - DateTime.Today).Days;
             daysBlock.Text = d >= 0 ? $"In {d} day{(d != 1 ? "s" : "")}" : $"{-d} day{(-d != 1 ? "s" : "")} ago";
         };
-        root.Children.Add(daysBlock);
+        targetStack.Children.Add(daysBlock);
+        root.Children.Add(targetCard);
+
         Calc();
         return root;
     }
@@ -1160,17 +1192,41 @@ public partial class MainWindow
     {
         var root = new StackPanel { Margin = new Thickness(12), Visibility = Visibility.Collapsed };
         root.Children.Add(SectionLabel("AGE CALCULATOR"));
-        root.Children.Add(FieldLabel("Date of birth"));
-        var dob = new DatePicker { SelectedDate = new DateTime(1990,1,1), Background = new SolidColorBrush(C(0x1e1e1e)), Foreground = Brushes.White, BorderBrush = new SolidColorBrush(C(0x333333)), Margin = new Thickness(0,0,0,6) };
-        ApplyDarkDatePickerStyle(dob);
-        root.Children.Add(dob);
-        root.Children.Add(FieldLabel("Calculate age on"));
-        var on = new DatePicker { SelectedDate = DateTime.Today, Background = new SolidColorBrush(C(0x1e1e1e)), Foreground = Brushes.White, BorderBrush = new SolidColorBrush(C(0x333333)), Margin = new Thickness(0,0,0,10) };
-        ApplyDarkDatePickerStyle(on);
-        root.Children.Add(on);
 
-        var ageBlock = new TextBlock { Foreground = new SolidColorBrush(C(0x88ccff)), FontSize = 13, FontFamily = new FontFamily("Consolas"), TextWrapping = TextWrapping.Wrap };
-        root.Children.Add(ageBlock);
+        var card = new Border
+        {
+            Background = new SolidColorBrush(Color.FromArgb(0x40, 0x00, 0x00, 0x00)),
+            CornerRadius = new CornerRadius(10), Padding = new Thickness(12, 12, 12, 12)
+        };
+        var stack = new StackPanel();
+        card.Child = stack;
+
+        DatePicker MkPicker(DateTime def) => new DatePicker
+        {
+            SelectedDate = def, Background = new SolidColorBrush(Color.FromArgb(0x50, 0x00, 0x00, 0x00)),
+            Foreground = Brushes.White, BorderBrush = new SolidColorBrush(Color.FromArgb(0x60, 0xFF, 0xFF, 0xFF)),
+            BorderThickness = new Thickness(1), Padding = new Thickness(6, 4, 6, 4),
+            Margin = new Thickness(0, 0, 0, 8)
+        };
+
+        stack.Children.Add(FieldLabel("Date of birth"));
+        var dob = MkPicker(new DateTime(1990, 1, 1));
+        ApplyDarkDatePickerStyle(dob);
+        stack.Children.Add(dob);
+
+        stack.Children.Add(FieldLabel("Calculate age on"));
+        var on = MkPicker(DateTime.Today);
+        ApplyDarkDatePickerStyle(on);
+        stack.Children.Add(on);
+
+        var ageBlock = new TextBlock
+        {
+            Foreground = new SolidColorBrush(CalAccent), FontSize = 15, FontWeight = FontWeights.SemiBold,
+            FontFamily = new FontFamily("Consolas"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 4, 0, 0),
+            Effect = new System.Windows.Media.Effects.DropShadowEffect { Color = CalAccent, BlurRadius = 10, ShadowDepth = 0, Opacity = 0.35 }
+        };
+        stack.Children.Add(ageBlock);
+        root.Children.Add(card);
 
         void Calc()
         {
