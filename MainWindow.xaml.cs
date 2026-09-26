@@ -8248,7 +8248,7 @@ private sealed class WeatherRetryHandler : DelegatingHandler
         var tintLayer = new Border();
         var shadeLayer = new Border
         {
-            Background = new LinearGradientBrush(Color.FromArgb(0x26, 0, 0, 0), Color.FromArgb(0x40, 0, 0, 0), 90)
+            Background = new LinearGradientBrush(Color.FromArgb(0x0F, 0, 0, 0), Color.FromArgb(0x1A, 0, 0, 0), 90)
         };
         var glassHost = new Grid { Visibility = Visibility.Collapsed };
         glassHost.Children.Add(wallLayer);
