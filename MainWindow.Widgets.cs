@@ -1761,6 +1761,10 @@ public partial class MainWindow
         btnColor.Click += (s, e) =>
         {
             accentIdx = (accentIdx + 1) % accents.Length;
+            rtb.Selection.ApplyPropertyValue(TextElement.ForegroundProperty, new SolidColorBrush(accents[accentIdx]));
+            btnColor.Foreground = new SolidColorBrush(accents[accentIdx]);
+            rtb.Focus();
+        };
 
         // ── Drag & drop ───────────────────────────────────────────────────────
         rtb.DragOver += (s, e) => { e.Effects = DragDropEffects.Copy; e.Handled = true; };
