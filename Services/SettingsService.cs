@@ -238,8 +238,7 @@ public class SettingsData
     public bool         MediaWidgetHoverWiden      { get; set; } = false;
     public bool         MediaWidgetAutoShowOnMinimize { get; set; } = true;
     public bool         MediaWidgetAutoShowMinimized  { get; set; } = false;
-    public string       NavigationProvider       { get; set; } = "Google Maps";
-    public List<string> NavigationCustomDomains  { get; set; } = new();
+
 
     // ── Tab title display ────────────────────────────────────────────────────
     public string TabTitleMode           { get; set; } = "Full";       // "Full" | "DomainOnly"

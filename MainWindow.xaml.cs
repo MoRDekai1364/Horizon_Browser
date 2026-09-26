@@ -328,7 +328,7 @@ public partial class MainWindow : Window
         ("RAM",        "💾  RAM Usage"),  ("Media",      "🎵  Media"),
         ("Weather",    "⛅  Weather"),     ("Calculator", "🧮  Calculator"),
         ("Notes",      "📝  Notes"),      ("Converter",  "⇄   Converter"),
-        ("Calendar",   "📅  Calendar"),   ("Navigation", "🧭  Navigation"),
+        ("Calendar",   "📅  Calendar"),
         ("Notifications", "🔔  Notifications"), ("Battery", "🔋  Battery"),
     };
 
@@ -6276,7 +6276,6 @@ return colors.length > 0 ? colors : null;
         "Calculator" => "🧮  Calculator",
         "Converter"  => "⇄   Converter",
         "Calendar"   => DateTime.Now.ToString("dd MMM"),
-        "Navigation" => GetNavWidgetText(),
         "Notifications" => GetNotificationsWidgetText(),
         "Battery"    => GetBatteryWidgetText(),
         _            => "--"
@@ -7223,7 +7222,6 @@ private sealed class WeatherRetryHandler : DelegatingHandler
             case "Video":      OpenMusicControlsPopup();   break;
             case "CPU":
             case "RAM":        OpenSystemDetailPopup();    break;
-            case "Navigation": if (_navActive) OpenNavHudWindow(); else OpenNavigationWindow(); break;
             case "Notifications": OpenNotificationsListPopup(); break;
             case "Battery":       OpenBatteryMenu();             break;
             

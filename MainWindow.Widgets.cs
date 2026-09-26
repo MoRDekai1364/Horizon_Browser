@@ -1745,12 +1745,6 @@ public partial class MainWindow
         return "";
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    //  SHARED UI HELPERS
-    // ═══════════════════════════════════════════════════════════════════════════
-
-
-
     private async Task<(double lat, double lon, bool ok)> GeocodeAddressAsync(string address)
     {
         try
@@ -2164,11 +2158,6 @@ public partial class MainWindow
             X1 = 8, Y1 = h - 10, X2 = 52, Y2 = h - 10,
             Stroke = new SolidColorBrush(C(0x2e3c50)), StrokeThickness = 2
         });
-        string scaleT = _navTotalDistanceKm > 0 ? $"{(_navTotalDistanceKm / 4.0):F1}km" : "~1km";
-        var sclLbl = new TextBlock { Text = scaleT, Foreground = new SolidColorBrush(C(0x2e3c50)), FontSize = 7 };
-        Canvas.SetLeft(sclLbl, 8); Canvas.SetTop(sclLbl, h - 21); canvas.Children.Add(sclLbl);
-    }
-
     // ═══════════════════════════════════════════════════════════════════════════
     //  SHARED UI HELPERS
     // ═══════════════════════════════════════════════════════════════════════════
