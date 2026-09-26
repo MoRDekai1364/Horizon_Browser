@@ -95,7 +95,7 @@ public static class HomeGlassService
         return new Rect(surface.X + (surface.Width - fw) / 2.0, surface.Y + (surface.Height - fh) / 2.0, fw, fh);
     }
 
-    public static Rect? GetViewbox(FrameworkElement el, double padDip)
+    public static Rect? GetViewbox(FrameworkElement el, double padDip, double offsetXDip = 0, double offsetYDip = 0)
     {
         var wp = WeatherBridge.ThemeWallpaper;
         if (wp == null || wp.PixelWidth <= 0 || wp.PixelHeight <= 0) return null;
@@ -107,19 +107,17 @@ public static class HomeGlassService
         if (surface.Width <= 0 || surface.Height <= 0) return null;
 
         double pad = padDip * GetDeviceScale(el);
-        var target = new Rect(r.Value.X - pad, r.Value.Y - pad, r.Value.Width + 2 * pad, r.Value.Height + 2 * pad);
+        double offsetX = offsetXDip * GetDeviceScale(el);
+        double offsetY = offsetYDip * GetDeviceScale(el);
+        var target = new Rect(r.Value.X - pad - offsetX, r.Value.Y - pad - offsetY, r.Value.Width + 2 * pad, r.Value.Height + 2 * pad);
         var frame = GetWallpaperFrame(surface, (double)wp.PixelWidth / wp.PixelHeight);
 
-        var raw = new Rect((target.X - frame.X) / frame.Width, (target.Y - frame.Y) / frame.Height,
-            target.Width / frame.Width, target.Height / frame.Height);
+        double vx = (target.X - frame.X) / frame.Width;
+        double vy = (target.Y - frame.Y) / frame.Height;
+        double vw = target.Width / frame.Width;
+        double vh = target.Height / frame.Height;
 
-        double x0 = Math.Clamp(raw.X, 0.0, 1.0);
-        double y0 = Math.Clamp(raw.Y, 0.0, 1.0);
-        double x1 = Math.Clamp(raw.X + raw.Width, 0.0, 1.0);
-        double y1 = Math.Clamp(raw.Y + raw.Height, 0.0, 1.0);
-        if (x1 <= x0 || y1 <= y0) return null;
-
-        return new Rect(x0, y0, x1 - x0, y1 - y0);
+        return new Rect(vx, vy, vw, vh);
     }
 
     public static Rect? GetOverlapLocal(FrameworkElement el)
@@ -150,7 +148,7 @@ public static class HomeGlassService
         glassHost.Visibility = Visibility.Visible;
     }
 
-    public static (Action Unbind, Action Refresh) Bind(FrameworkElement host, ImageBrush brush, double padDip, Action<Rect?>? onOverlapChanged = null, bool requireOverlap = true)
+    public static (Action Unbind, Action Refresh) Bind(FrameworkElement host, ImageBrush brush, double padDip, Action<Rect?>? onOverlapChanged = null, bool requireOverlap = true, double offsetXDip = 0, double offsetYDip = 0)
     {
         FrameworkElement? boundSurface = null;
         Window? mainWindow = null;
@@ -167,7 +165,7 @@ public static class HomeGlassService
                     : (WeatherBridge.WallpaperSurface is { IsVisible: true } ? new Rect(0, 0, host.ActualWidth, host.ActualHeight) : (Rect?)null);
                 onOverlapChanged?.Invoke(overlap);
                 var wallpaper = WeatherBridge.ThemeWallpaper;
-                var viewbox = (wallpaper != null && overlap != null) ? GetViewbox(host, padDip) : null;
+                var viewbox = (wallpaper != null && overlap != null) ? GetViewbox(host, padDip, offsetXDip, offsetYDip) : null;
                 if (wallpaper == null || viewbox == null)
                 {
                     brush.ImageSource = null;
@@ -307,7 +305,9 @@ public static class HomeGlassService
         Border blurTarget,
         double padDip = DefaultEdgeGlassPad,
         double blurRadius = DefaultEdgeGlassBlurRadius,
-        Action<Rect?>? onOverlapChanged = null)
+        Action<Rect?>? onOverlapChanged = null,
+        double offsetXDip = 0,
+        double offsetYDip = 0)
     {
         blurTarget.Effect = new System.Windows.Media.Effects.BlurEffect
         {
@@ -323,7 +323,7 @@ public static class HomeGlassService
         {
             ApplyOverlap(glassHost, overlap);
             onOverlapChanged?.Invoke(overlap);
-        }, requireOverlap: false);
+        }, requireOverlap: false, offsetXDip: offsetXDip, offsetYDip: offsetYDip);
     }
 
     public const double MinGlassSize = 8.0;

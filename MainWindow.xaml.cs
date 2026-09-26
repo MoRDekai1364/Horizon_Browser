@@ -275,7 +275,6 @@ public partial class MainWindow : Window
 
     // ── Tab Switcher (Ctrl+Tab window) ───────────────────────────────
     private Views.TabSwitcherWindow? _tabSwitcherWindow = null;
-    private int                      _tabSwitcherIndex  = 0;
     private List<TabViewModel>       _mruTabs           = new();
     private int                      _naturalWorkBottom = 0;
     private bool                     _isNarrowMode      = false;
@@ -2905,7 +2904,6 @@ return colors.length > 0 ? colors : null;
     private Action? _sidebarWallpaperGlassRefresh;
     private Action? _sidebarHomeBlurBleedUnbind;
     private Action? _sidebarHomeBlurBleedRefresh;
-    private LinearGradientBrush? _sidebarHomeCenterBrush;
 
     private void FadeReflowHeaderLeft(Action applyNewLayout)
     {
@@ -2958,9 +2956,11 @@ return colors.length > 0 ? colors : null;
                 bool homeActive = overlap != null;
                 HeaderAmbientGlow.Visibility = homeActive ? Visibility.Collapsed : Visibility.Visible;
                 UpdateHeaderButtonContrastForHome(homeActive);
-            });
+            },
+            offsetXDip: -22,
+            offsetYDip: -42); // Negative moves image UP, positive moves image DOWN
         _headerWallpaperGlassUnbind = unbind;
-        _headerWallpaperGlassRefresh = refresh;
+        _headerWallpaperGlassRefresh = refresh; 
 
         var (bleedUnbind, bleedRefresh) = HomeGlassService.AttachWallpaperEdgeGlass(
             HeaderHomeBlurBleedBorder,
