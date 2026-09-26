@@ -676,7 +676,7 @@
             <!-- Centered search + pins, confined to the middle column so it can never
                  overlap the left/right side columns (e.g. the media widget) regardless
                  of how wide their content gets. -->
-            <Grid x:Name="PnlSearchArea" Grid.Row="0" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="10,60,10,0">
+            <Grid x:Name="PnlSearchArea" Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10,0,10,0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>

@@ -978,7 +978,6 @@ public partial class HomePageView : UserControl
         var display = new BitmapImage();
         display.BeginInit();
         display.UriSource = new Uri(path, UriKind.Absolute);
-        display.DecodePixelWidth = 1920;
         display.CacheOption = BitmapCacheOption.OnLoad;
         display.EndInit();
         display.Freeze();
