@@ -1356,13 +1356,14 @@ public partial class MainWindow
         // ── Status bar ───────────────────────────────────────────────────────
         var statusTx = new TextBlock
         {
-            Foreground = new SolidColorBrush(Color.FromArgb(0xAA, 0xFF, 0xFF, 0xFF)), VerticalAlignment = VerticalAlignment.Center,
-            FontSize = 10, Margin = new Thickness(2, 6, 2, 0)
+            Foreground = new SolidColorBrush(Color.FromArgb(0xCC, 0xFF, 0xFF, 0xFF)), VerticalAlignment = VerticalAlignment.Center,
+            FontSize = 12, Margin = new Thickness(2, 8, 2, 0)
         };
         var statusBar = new StackPanel { Orientation = Orientation.Horizontal, Background = Brushes.Transparent };
         statusBar.Children.Add(statusTx);
         DockPanel.SetDock(statusBar, Dock.Bottom);
         outer.Children.Add(statusBar);
+        tabScroll.SizeChanged += (s, e) => { };
 
         // ── Rich text editor ─────────────────────────────────────────────────
         var rtb = new RichTextBox
@@ -1372,7 +1373,7 @@ public partial class MainWindow
             CaretBrush  = Brushes.White,
             BorderThickness = new Thickness(0),
             AcceptsReturn = true, AcceptsTab = true,
-            FontFamily  = new FontFamily("Segoe UI"), FontSize = 13,
+            FontFamily  = new FontFamily("Segoe UI"), FontSize = 14,
             Margin      = new Thickness(0),
             VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
             AllowDrop   = true,
@@ -1568,10 +1569,10 @@ public partial class MainWindow
 
                 var tabBtn = new Button
                 {
-                    Content = capName, FontSize = 11, Height = 28,
-                    Padding = new Thickness(10, 0, 5, 0),
+                    Content = capName, FontSize = 13, Height = 34,
+                    Padding = new Thickness(12, 0, 6, 0),
                     Background  = Brushes.Transparent,
-                    Foreground  = new SolidColorBrush(isCur ? notesCyan : Color.FromArgb(0x99, 0xFF, 0xFF, 0xFF)),
+                    Foreground  = new SolidColorBrush(isCur ? notesCyan : Color.FromArgb(0xCC, 0xFF, 0xFF, 0xFF)),
                     FontWeight  = isCur ? FontWeights.Bold : FontWeights.Normal,
                     BorderBrush = new SolidColorBrush(isCur ? notesCyan : Colors.Transparent),
                     BorderThickness = isCur ? new Thickness(0, 0, 0, 2) : new Thickness(0),
@@ -1581,10 +1582,10 @@ public partial class MainWindow
 
                 var closeBtn = new Button
                 {
-                    Content = "✕", FontSize = 9, Width = 18, Height = 18, Padding = new Thickness(0),
-                    Background  = Brushes.Transparent, Foreground  = new SolidColorBrush(C(0x555555)),
+                    Content = "✕", FontSize = 11, Width = 22, Height = 22, Padding = new Thickness(0),
+                    Background  = Brushes.Transparent, Foreground  = new SolidColorBrush(C(0x888888)),
                     BorderThickness = new Thickness(0), Cursor = Cursors.Hand,
-                    Margin  = new Thickness(0, 5, 3, 5), ToolTip = "Close tab"
+                    Margin  = new Thickness(0, 6, 4, 6), ToolTip = "Close tab"
                 };
                 closeBtn.Click += (s, e) =>
                 {
@@ -1603,8 +1604,8 @@ public partial class MainWindow
 
             var addBtn = new Button
             {
-                Content = "+", FontSize = 15, Width = 28, Height = 28,
-                Background = Brushes.Transparent, Foreground = new SolidColorBrush(C(0x444444)),
+                Content = "+", FontSize = 17, Width = 34, Height = 34,
+                Background = Brushes.Transparent, Foreground = new SolidColorBrush(C(0x888888)),
                 BorderThickness = new Thickness(0), Cursor = Cursors.Hand,
                 Margin = new Thickness(2, 0, 0, 0), ToolTip = "New note"
             };
@@ -1620,37 +1621,97 @@ public partial class MainWindow
                 RebuildTabBar();
             };
             tabBar.Children.Add(addBtn);
+            ApplyNotesTabStretch();
+        }
+
+        void ApplyNotesTabStretch()
+        {
+            var items = tabBar.Children.Cast<UIElement>().ToList();
+            if (items.Count < 2) return;
+            tabBar.UpdateLayout();
+            double sum = 0;
+            foreach (var it in items) sum += ((FrameworkElement)it).ActualWidth;
+            double extra = tabScroll.ActualWidth - sum;
+            double gap = extra > 0 ? extra / (items.Count - 1) : 0;
+            for (int i = 0; i < items.Count; i++)
+                ((FrameworkElement)items[i]).Margin = new Thickness(0, 0, i == items.Count - 1 ? 0 : gap, 0);
         }
 
         // ── Formatting toolbar ────────────────────────────────────────────────
-        Button FmtBtn(string lbl, string tip, int w = 28) => new Button
+        Button FmtBtn(string lbl, string tip, int w = 36) => new Button
         {
-            Content = lbl, Width = w, Height = 26, FontSize = 11, ToolTip = tip,
-            Margin = new Thickness(2, 2, 0, 2),
-            Background  = new SolidColorBrush(Color.FromArgb(0x30, 0x00, 0x00, 0x00)), Foreground = Brushes.White,
-            BorderBrush = new SolidColorBrush(Color.FromArgb(0x50, notesCyan.R, notesCyan.G, notesCyan.B)), BorderThickness = new Thickness(1),
+            Content = lbl, Width = w, Height = 34, FontSize = 14, ToolTip = tip,
+            Margin = new Thickness(3, 3, 0, 3),
+            Background  = new SolidColorBrush(Color.FromArgb(0x35, 0x00, 0x00, 0x00)), Foreground = Brushes.White,
+            BorderBrush = new SolidColorBrush(Color.FromArgb(0x60, notesCyan.R, notesCyan.G, notesCyan.B)), BorderThickness = new Thickness(1),
             Cursor = Cursors.Hand
         };
 
+        var btnUndo   = FmtBtn("↶",  "Undo (Ctrl+Z)");
+        var btnRedo   = FmtBtn("↷",  "Redo (Ctrl+Y)");
+        var fontFamilyBox = new ComboBox
+        {
+            ItemsSource = new[] { "Segoe UI", "Consolas", "Arial", "Georgia", "Times New Roman" },
+            SelectedIndex = 0, Width = 110, Height = 34, Margin = new Thickness(3, 3, 0, 3),
+            Background = new SolidColorBrush(Color.FromArgb(0x35, 0x00, 0x00, 0x00)), Foreground = Brushes.White,
+            BorderBrush = new SolidColorBrush(Color.FromArgb(0x60, notesCyan.R, notesCyan.G, notesCyan.B)), BorderThickness = new Thickness(1),
+            FontSize = 12
+        };
+        ApplyDarkComboBoxStyle(fontFamilyBox, notesCyan);
+        var fontSizeBox = new ComboBox
+        {
+            ItemsSource = new[] { "10", "11", "12", "13", "14", "16", "18", "20", "24", "28" },
+            SelectedIndex = 3, Width = 56, Height = 34, Margin = new Thickness(3, 3, 0, 3),
+            Background = new SolidColorBrush(Color.FromArgb(0x35, 0x00, 0x00, 0x00)), Foreground = Brushes.White,
+            BorderBrush = new SolidColorBrush(Color.FromArgb(0x60, notesCyan.R, notesCyan.G, notesCyan.B)), BorderThickness = new Thickness(1),
+            FontSize = 12
+        };
+        ApplyDarkComboBoxStyle(fontSizeBox, notesCyan);
         var btnBold   = FmtBtn("B",  "Bold (Ctrl+B)");   btnBold.FontWeight   = FontWeights.Bold;
         var btnItalic = FmtBtn("I",  "Italic (Ctrl+I)");  btnItalic.FontStyle  = FontStyles.Italic;
         var btnULine  = FmtBtn("U",  "Underline (Ctrl+U)");
-        var btnH1     = FmtBtn("H1", "Heading 1", 30);
-        var btnH2     = FmtBtn("H2", "Heading 2", 30);
-        var btnBullet = FmtBtn("• ≡", "Bullet list", 34);
-        var btnNum    = FmtBtn("1 ≡", "Numbered list", 34);
-        var btnCheck  = FmtBtn("☑", "Insert checkbox", 26);
-        var btnTable  = FmtBtn("⊞", "Insert table", 26);
-        var btnColor  = FmtBtn("A", "Cycle text colour", 26);
+        var btnStrike = FmtBtn("S",  "Strikethrough");    btnStrike.SetValue(TextBlock.TextDecorationsProperty, TextDecorations.Strikethrough);
+        var btnH1     = FmtBtn("H1", "Heading 1", 38);
+        var btnH2     = FmtBtn("H2", "Heading 2", 38);
+        var btnBullet = FmtBtn("• ≡", "Bullet list", 42);
+        var btnNum    = FmtBtn("1 ≡", "Numbered list", 42);
+        var btnCheck  = FmtBtn("☑", "Insert checkbox", 34);
+        var btnTable  = FmtBtn("⊞", "Insert table", 34);
+        var btnImage  = FmtBtn("🖼", "Insert image", 34);
+        var btnColor  = FmtBtn("A", "Cycle text colour", 34);
         btnColor.Foreground = new SolidColorBrush(notesCyan);
 
-        var fmtSep   = new Border { Width = 1, Margin = new Thickness(4, 3, 4, 3), Background = new SolidColorBrush(Color.FromArgb(0x40, 0xFF, 0xFF, 0xFF)) };
+        var fmtSep   = new Border { Width = 1, Margin = new Thickness(5, 4, 5, 4), Background = new SolidColorBrush(Color.FromArgb(0x40, 0xFF, 0xFF, 0xFF)) };
+        var fmtSep2  = new Border { Width = 1, Margin = new Thickness(5, 4, 5, 4), Background = new SolidColorBrush(Color.FromArgb(0x40, 0xFF, 0xFF, 0xFF)) };
         var btnSave  = BarButton("💾 Save", Color.FromArgb(0x30, 0x00, 0x00, 0x00), Color.FromArgb(0x60, 0x39, 0xD3, 0x53));
         var btnSync  = BarButton("☁ Sync", Color.FromArgb(0x30, 0x00, 0x00, 0x00), Color.FromArgb(0x60, notesCyan.R, notesCyan.G, notesCyan.B));
+        btnSave.FontSize = 13; btnSave.Height = 34;
+        btnSync.FontSize = 13; btnSync.Height = 34;
 
+        btnUndo.Click   += (s, e) => { ApplicationCommands.Undo.Execute(null, rtb); rtb.Focus(); };
+        btnRedo.Click   += (s, e) => { ApplicationCommands.Redo.Execute(null, rtb); rtb.Focus(); };
+        fontFamilyBox.SelectionChanged += (s, e) =>
+        {
+            if (fontFamilyBox.SelectedItem is string fam)
+                rtb.Selection.ApplyPropertyValue(TextElement.FontFamilyProperty, new FontFamily(fam));
+            rtb.Focus();
+        };
+        fontSizeBox.SelectionChanged += (s, e) =>
+        {
+            if (fontSizeBox.SelectedItem is string sz && double.TryParse(sz, out var szVal))
+                rtb.Selection.ApplyPropertyValue(TextElement.FontSizeProperty, szVal);
+            rtb.Focus();
+        };
         btnBold.Click   += (s, e) => { EditingCommands.ToggleBold.Execute(null, rtb);      rtb.Focus(); };
         btnItalic.Click += (s, e) => { EditingCommands.ToggleItalic.Execute(null, rtb);    rtb.Focus(); };
         btnULine.Click  += (s, e) => { EditingCommands.ToggleUnderline.Execute(null, rtb); rtb.Focus(); };
+        btnStrike.Click += (s, e) =>
+        {
+            var current = rtb.Selection.GetPropertyValue(Inline.TextDecorationsProperty);
+            bool isStrike = current is TextDecorationCollection tdc && tdc.Count > 0 && tdc[0].Location == TextDecorationLocation.Strikethrough;
+            rtb.Selection.ApplyPropertyValue(Inline.TextDecorationsProperty, isStrike ? null : TextDecorations.Strikethrough);
+            rtb.Focus();
+        };
         btnBullet.Click += (s, e) => { EditingCommands.ToggleBullets.Execute(null, rtb);   rtb.Focus(); };
         btnNum.Click    += (s, e) => { EditingCommands.ToggleNumbering.Execute(null, rtb); rtb.Focus(); };
         btnCheck.Click  += (s, e) =>
@@ -1662,6 +1723,25 @@ public partial class MainWindow
             rtb.Focus();
         };
         btnTable.Click  += (s, e) => OpenInsertTableDialog(rtb);
+        btnImage.Click  += (s, e) =>
+        {
+            var dlg = new Microsoft.Win32.OpenFileDialog { Filter = "Images|*.png;*.jpg;*.jpeg;*.gif;*.bmp;*.webp" };
+            if (dlg.ShowDialog() == true)
+            {
+                try
+                {
+                    var bmp = new System.Windows.Media.Imaging.BitmapImage();
+                    bmp.BeginInit();
+                    bmp.UriSource = new Uri(dlg.FileName); bmp.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
+                    bmp.DecodePixelWidth = 420; bmp.EndInit();
+                    var img = new Image { Source = bmp, MaxWidth = 420, Margin = new Thickness(0, 4, 0, 4), Stretch = Stretch.Uniform };
+                    var ic  = new InlineUIContainer(img, rtb.CaretPosition);
+                    rtb.CaretPosition = ic.ElementEnd;
+                }
+                catch { }
+            }
+            rtb.Focus();
+        };
 
         btnH1.Click += (s, e) =>
         {
@@ -1681,17 +1761,6 @@ public partial class MainWindow
         btnColor.Click += (s, e) =>
         {
             accentIdx = (accentIdx + 1) % accents.Length;
-            var brush = new SolidColorBrush(accents[accentIdx]);
-            rtb.Selection.ApplyPropertyValue(TextElement.ForegroundProperty, brush);
-            btnColor.Foreground = brush;
-            rtb.Focus();
-        };
-
-        btnSave.Click += (s, e) => { SaveCurrentTab(); statusTx.Text = "Saved ✓"; };
-        btnSync.Click += (s, e) => OpenNotesSyncDialog(rtb, statusTx);
-
-        foreach (UIElement el in new UIElement[] { btnBold, btnItalic, btnULine, fmtSep, btnH1, btnH2, btnBullet, btnNum, btnCheck, btnTable, btnColor, btnSave, btnSync })
-            fmtBar.Children.Add(el);
 
         // ── Drag & drop ───────────────────────────────────────────────────────
         rtb.DragOver += (s, e) => { e.Effects = DragDropEffects.Copy; e.Handled = true; };
