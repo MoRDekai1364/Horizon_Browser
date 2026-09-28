@@ -986,6 +986,7 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
         SelectComboBoxByTag(CboDefaultLanguage, s.DefaultLanguage);
 
         TxtMicrosoftClientId.Text  = s.MicrosoftClientId;
+        LoadVpnSettings();
 
         SliderScrollSpeed.Value = s.ScrollSpeedMultiplier;
         TblScrollSpeedValue.Text = $"{s.ScrollSpeedMultiplier:F2}×";
@@ -1098,6 +1099,7 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
             s.DefaultGoogleAccountEmail = dgai.Tag?.ToString() ?? "";
 
         s.MicrosoftClientId  = TxtMicrosoftClientId.Text.Trim();
+        SaveVpnSettings();
 
         SettingsService.Save();
         FluxJanitorService.Initialize();
@@ -1113,6 +1115,220 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
     }
 
     private void BtnCancel_Click(object sender, RoutedEventArgs e) { Close(); }
+
+    private string _vpnEditingId = "";
+    private string _vpnActiveId = "";
+    private bool _vpnListLoading;
+
+    private void LoadVpnSettings()
+    {
+        var s = SettingsService.Current;
+        ChkVpnEnabled.IsChecked     = s.VpnEnabled;
+        ChkVpnAutoConnect.IsChecked = s.VpnAutoConnect;
+        ChkVpnKillSwitch.IsChecked  = s.VpnKillSwitchEnabled;
+        ChkVpnNotify.IsChecked      = s.VpnNotifyOnFallback;
+        ChkVpnBlockWebRtc.IsChecked = s.VpnBlockWebRtcLeak;
+        TxtVpnBypass.Text           = s.VpnBypassList ?? "";
+        _vpnActiveId                = s.VpnActiveProfileId ?? "";
+        ClearVpnEditor();
+        RefreshVpnList(null);
+    }
+
+    private void SaveVpnSettings()
+    {
+        var s = SettingsService.Current;
+        s.VpnEnabled            = ChkVpnEnabled.IsChecked == true;
+        s.VpnAutoConnect        = ChkVpnAutoConnect.IsChecked == true;
+        s.VpnKillSwitchEnabled  = ChkVpnKillSwitch.IsChecked == true;
+        s.VpnNotifyOnFallback   = ChkVpnNotify.IsChecked == true;
+        s.VpnBlockWebRtcLeak    = ChkVpnBlockWebRtc.IsChecked == true;
+        s.VpnBypassList         = TxtVpnBypass.Text.Trim();
+        s.VpnActiveProfileId    = _vpnActiveId;
+        LogService.Write("VPN", $"Settings saved: enabled={s.VpnEnabled}, autoConnect={s.VpnAutoConnect}, killSwitch={s.VpnKillSwitchEnabled}, active={(string.IsNullOrEmpty(s.VpnActiveProfileId) ? "none" : s.VpnActiveProfileId)}");
+    }
+
+    private void RefreshVpnList(string? selectId)
+    {
+        _vpnListLoading = true;
+        try
+        {
+            LstVpnProfiles.Items.Clear();
+            ListBoxItem? toSelect = null;
+            foreach (var p in VpnProfileStore.Profiles)
+            {
+                var label = $"{p.Name}  ({p.Type}, {p.Host}:{p.Port})" + (p.Id == _vpnActiveId ? "  [ACTIVE]" : "");
+                var item = new ListBoxItem { Content = label, Tag = p.Id, Foreground = Brushes.White };
+                LstVpnProfiles.Items.Add(item);
+                if (p.Id == selectId) toSelect = item;
+            }
+            if (toSelect != null) LstVpnProfiles.SelectedItem = toSelect;
+        }
+        finally
+        {
+            _vpnListLoading = false;
+        }
+    }
+
+    private void ClearVpnEditor()
+    {
+        _vpnEditingId = "";
+        TxtVpnName.Text = "New Server";
+        CboVpnType.SelectedIndex = 0;
+        TxtVpnHost.Text = "";
+        TxtVpnPort.Text = "1080";
+        TxtVpnUser.Text = "";
+        PwdVpn.Password = "";
+    }
+
+    private void FillVpnEditor(VpnProfile p)
+    {
+        _vpnEditingId = p.Id;
+        TxtVpnName.Text = p.Name;
+        TxtVpnHost.Text = p.Host;
+        TxtVpnPort.Text = p.Port.ToString();
+        TxtVpnUser.Text = p.Username;
+        PwdVpn.Password = p.Password;
+        foreach (ComboBoxItem item in CboVpnType.Items)
+        {
+            if (item.Tag?.ToString() == p.Type.ToString()) { CboVpnType.SelectedItem = item; break; }
+        }
+    }
+
+    private bool TryReadVpnEditor(out VpnProfile profile, out string error)
+    {
+        var existing = string.IsNullOrEmpty(_vpnEditingId) ? null : VpnProfileStore.GetById(_vpnEditingId);
+        profile = new VpnProfile
+        {
+            Id       = string.IsNullOrEmpty(_vpnEditingId) ? Guid.NewGuid().ToString("N") : _vpnEditingId,
+            Name     = TxtVpnName.Text,
+            Host     = TxtVpnHost.Text,
+            Username = TxtVpnUser.Text,
+            Password = PwdVpn.Password,
+            Source   = existing?.Source ?? "Custom",
+            Type     = CboVpnType.SelectedItem is ComboBoxItem ti && ti.Tag?.ToString() == "Http"
+                           ? VpnUpstreamType.Http
+                           : VpnUpstreamType.Socks5
+        };
+
+        if (!int.TryParse(TxtVpnPort.Text.Trim(), out int port))
+        {
+            error = "Port must be a number.";
+            return false;
+        }
+        profile.Port = port;
+        return VpnProfileStore.Validate(profile, out error);
+    }
+
+    private void SetVpnStatus(string text, bool? ok)
+    {
+        TxtVpnStatus.Text = text;
+        TxtVpnStatus.Foreground = ok == true
+            ? new SolidColorBrush(Color.FromRgb(0x00, 0xFF, 0x88))
+            : ok == false
+                ? new SolidColorBrush(Color.FromRgb(0xFF, 0x55, 0x55))
+                : new SolidColorBrush(Color.FromRgb(0xAA, 0xAA, 0xAA));
+    }
+
+    private void LstVpnProfiles_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_vpnListLoading) return;
+        if (LstVpnProfiles.SelectedItem is not ListBoxItem item) return;
+        var profile = VpnProfileStore.GetById(item.Tag?.ToString());
+        if (profile == null) return;
+        FillVpnEditor(profile);
+        SetVpnStatus("", null);
+    }
+
+    private void BtnVpnNew_Click(object sender, RoutedEventArgs e)
+    {
+        _vpnListLoading = true;
+        LstVpnProfiles.SelectedItem = null;
+        _vpnListLoading = false;
+        ClearVpnEditor();
+        SetVpnStatus("", null);
+    }
+
+    private void BtnVpnSaveServer_Click(object sender, RoutedEventArgs e)
+    {
+        if (!TryReadVpnEditor(out var profile, out var error))
+        {
+            SetVpnStatus(error, false);
+            return;
+        }
+
+        if (!VpnProfileStore.TryAddOrUpdate(profile, out error))
+        {
+            SetVpnStatus(error, false);
+            return;
+        }
+
+        _vpnEditingId = profile.Id;
+        RefreshVpnList(profile.Id);
+        SetVpnStatus($"Saved '{profile.Name}'. Use TEST to verify it.", true);
+    }
+
+    private void BtnVpnDelete_Click(object sender, RoutedEventArgs e)
+    {
+        if (string.IsNullOrEmpty(_vpnEditingId) || VpnProfileStore.GetById(_vpnEditingId) == null)
+        {
+            SetVpnStatus("Select a saved server to delete.", false);
+            return;
+        }
+
+        var result = MessageBox.Show("Delete this VPN server?", "Horizon", MessageBoxButton.YesNo, MessageBoxImage.Question);
+        if (result != MessageBoxResult.Yes) return;
+
+        string id = _vpnEditingId;
+        if (!VpnProfileStore.Remove(id))
+        {
+            SetVpnStatus("Could not delete the server. See log.", false);
+            return;
+        }
+
+        if (_vpnActiveId == id) _vpnActiveId = "";
+        ClearVpnEditor();
+        RefreshVpnList(null);
+        SetVpnStatus("Server deleted.", true);
+    }
+
+    private void BtnVpnUse_Click(object sender, RoutedEventArgs e)
+    {
+        if (string.IsNullOrEmpty(_vpnEditingId) || VpnProfileStore.GetById(_vpnEditingId) == null)
+        {
+            SetVpnStatus("Save the server first, then select it.", false);
+            return;
+        }
+
+        _vpnActiveId = _vpnEditingId;
+        RefreshVpnList(_vpnActiveId);
+        SetVpnStatus("Active server set. Press SAVE to apply (restart needed if VPN was off).", true);
+    }
+
+    private async void BtnVpnTest_Click(object sender, RoutedEventArgs e)
+    {
+        if (!TryReadVpnEditor(out var profile, out var error))
+        {
+            SetVpnStatus(error, false);
+            return;
+        }
+
+        BtnVpnTest.IsEnabled = false;
+        SetVpnStatus("Testing connection...", null);
+        try
+        {
+            var (ok, info) = await VpnRelayService.TestProfileAsync(profile);
+            SetVpnStatus(ok ? $"OK. Exit IP: {info}" : $"Failed: {info}", ok);
+        }
+        catch (Exception ex)
+        {
+            LogService.RecordCrash(ex, "SettingsWindow.VpnTest");
+            SetVpnStatus($"Error: {ex.Message}", false);
+        }
+        finally
+        {
+            BtnVpnTest.IsEnabled = true;
+        }
+    }
 
     private static void SetComboByTag(ComboBox combo, string tag)
     {

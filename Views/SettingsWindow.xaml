@@ -208,6 +208,97 @@
                                 </ControlTemplate>
                             </Button.Template>
                         </Button>
+                        <Rectangle Height="1" Fill="#333" Margin="0,20,0,10"/>
+                        <TextBlock Text="VPN" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" Margin="0,5,0,5"/>
+                        <TextBlock Text="Routes browser traffic through a local relay to your chosen server. Other apps on this PC are not covered. Servers are stored encrypted for your Windows user."
+                                   Foreground="#AAA" TextWrapping="Wrap" FontSize="11" Margin="0,0,0,8"/>
+                        <CheckBox x:Name="ChkVpnEnabled" Content="Enable VPN routing (restart required)"
+                                  Foreground="{StaticResource Brush_Text}" Margin="0,5"
+                                  local:SearchIndex.Label="VPN Routing" local:SearchIndex.Description="Master switch for routing browser traffic through the VPN relay. Restart required."
+                                  ToolTip="Master switch. Off means the browser starts with no proxy and no relay."/>
+                        <CheckBox x:Name="ChkVpnAutoConnect" Content="Connect automatically on launch"
+                                  Foreground="{StaticResource Brush_Text}" Margin="0,5"
+                                  local:SearchIndex.Label="VPN Auto-Connect" local:SearchIndex.Description="Connects to the active VPN server when the browser starts."
+                                  ToolTip="Connects to the active server at startup."/>
+                        <CheckBox x:Name="ChkVpnKillSwitch" Content="Kill switch: block traffic if the VPN server drops"
+                                  Foreground="{StaticResource Brush_Text}" Margin="0,5"
+                                  local:SearchIndex.Label="VPN Kill Switch" local:SearchIndex.Description="Blocks browser traffic when the VPN server becomes unreachable instead of falling back to a direct connection."
+                                  ToolTip="Off: traffic falls back to a direct connection and exposes your real IP."/>
+                        <TextBlock Text="Kill switch off: if the server drops, traffic goes direct (your real IP is exposed) and you are notified."
+                                   Foreground="#FFAA00" TextWrapping="Wrap" FontSize="11" Margin="22,0,0,6"/>
+                        <CheckBox x:Name="ChkVpnNotify" Content="Notify me when the VPN drops or recovers"
+                                  Foreground="{StaticResource Brush_Text}" Margin="0,5"
+                                  local:SearchIndex.Label="VPN Notifications" local:SearchIndex.Description="Shows a notification when the VPN server drops or comes back."/>
+                        <CheckBox x:Name="ChkVpnBlockWebRtc" Content="Block WebRTC IP leaks (restart required)"
+                                  Foreground="{StaticResource Brush_Text}" Margin="0,5"
+                                  local:SearchIndex.Label="VPN WebRTC Leak Protection" local:SearchIndex.Description="Prevents WebRTC from exposing your real IP outside the VPN. Restart required."/>
+                        <TextBlock Text="Bypass list (semicolon separated; these hosts skip the VPN):" Foreground="{StaticResource Brush_Text}" Margin="0,10,0,4"/>
+                        <TextBox x:Name="TxtVpnBypass" Height="30" Background="#222" Foreground="White" BorderThickness="0" Margin="0,0,0,10"
+                                 ToolTip="Example: localhost;127.0.0.1;&lt;local&gt;;*.example.com"/>
+
+                        <TextBlock Text="VPN Servers" Foreground="{StaticResource Brush_Text}" FontWeight="Bold" Margin="0,5,0,4"/>
+                        <ListBox x:Name="LstVpnProfiles" Height="110" Background="#1A1A1A" BorderBrush="#333" Margin="0,0,0,8"
+                                 local:SearchIndex.Label="VPN Servers" local:SearchIndex.Description="Your saved VPN servers. Select one to edit it."
+                                 SelectionChanged="LstVpnProfiles_SelectionChanged"/>
+
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="130"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                                <TextBlock Text="Name" Foreground="#AAA" FontSize="11" Margin="0,0,0,2"/>
+                                <TextBox x:Name="TxtVpnName" Height="28" Background="#222" Foreground="White" BorderThickness="0"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="Type" Foreground="#AAA" FontSize="11" Margin="0,0,0,2"/>
+                                <ComboBox x:Name="CboVpnType" Height="28">
+                                    <ComboBoxItem Content="SOCKS5" Tag="Socks5"/>
+                                    <ComboBoxItem Content="HTTP proxy" Tag="Http"/>
+                                </ComboBox>
+                            </StackPanel>
+                        </Grid>
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="130"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                                <TextBlock Text="Host (name or IP, no scheme or port)" Foreground="#AAA" FontSize="11" Margin="0,0,0,2"/>
+                                <TextBox x:Name="TxtVpnHost" Height="28" Background="#222" Foreground="White" BorderThickness="0"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="Port" Foreground="#AAA" FontSize="11" Margin="0,0,0,2"/>
+                                <TextBox x:Name="TxtVpnPort" Height="28" Background="#222" Foreground="White" BorderThickness="0"/>
+                            </StackPanel>
+                        </Grid>
+                        <Grid Margin="0,0,0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                                <TextBlock Text="Username (optional)" Foreground="#AAA" FontSize="11" Margin="0,0,0,2"/>
+                                <TextBox x:Name="TxtVpnUser" Height="28" Background="#222" Foreground="White" BorderThickness="0"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="Password (optional)" Foreground="#AAA" FontSize="11" Margin="0,0,0,2"/>
+                                <PasswordBox x:Name="PwdVpn" Height="28" Background="#222" Foreground="White" BorderThickness="0"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <WrapPanel Margin="0,0,0,6">
+                            <Button Content="NEW" Click="BtnVpnNew_Click" Style="{StaticResource Style_StealthButton}" Width="80" Height="30" Margin="0,0,6,6"/>
+                            <Button Content="SAVE SERVER" Click="BtnVpnSaveServer_Click" Style="{StaticResource Style_StealthButton}" Width="110" Height="30" Margin="0,0,6,6"/>
+                            <Button x:Name="BtnVpnTest" Content="TEST" Click="BtnVpnTest_Click" Style="{StaticResource Style_StealthButton}" Width="80" Height="30" Margin="0,0,6,6"
+                                    ToolTip="Connects through this server and shows the exit IP. Does not need saving first."/>
+                            <Button Content="USE THIS SERVER" Click="BtnVpnUse_Click" Style="{StaticResource Style_StealthButton}" Width="130" Height="30" Margin="0,0,6,6"
+                                    ToolTip="Marks the saved server as active. Press the main SAVE button to apply."/>
+                            <Button Content="DELETE" Click="BtnVpnDelete_Click" Style="{StaticResource Style_StealthButton}" Width="80" Height="30" Margin="0,0,6,6"/>
+                        </WrapPanel>
+                        <TextBlock x:Name="TxtVpnStatus" Foreground="#AAA" TextWrapping="Wrap" FontSize="11" Margin="0,0,0,6"/>
+                        <TextBlock Text="Free public proxies can log or alter your traffic. Only use servers you trust."
+                                   Foreground="#FFAA00" TextWrapping="Wrap" FontSize="11" Margin="0,0,0,10"/>
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
