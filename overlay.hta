@@ -1,0 +1,140 @@
+<html>
+<head>
+<title>Horizon Update</title>
+<HTA:APPLICATION
+    ID="HorizonUpdateOverlay"
+    APPLICATIONNAME="Horizon Update"
+    BORDER="none"
+    CAPTION="no"
+    SHOWINTASKBAR="no"
+    SINGLEINSTANCE="yes"
+    SYSMENU="no"
+    MAXIMIZEBUTTON="no"
+    MINIMIZEBUTTON="no"
+    SCROLL="no"
+    WINDOWSTATE="maximize"
+/>
+<style>
+    html, body {
+        margin: 0; padding: 0; width: 100%; height: 100%;
+        background: #0B0F1A;
+        font-family: "Segoe UI", sans-serif;
+        overflow: hidden;
+    }
+    #wrap {
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        height: 100%;
+    }
+    #title {
+        font-size: 42px; font-weight: bold;
+        color: #00D9FF;
+        letter-spacing: 2px;
+        margin-bottom: 30px;
+    }
+    #step {
+        font-size: 20px;
+        color: #EAF6FF;
+        margin-bottom: 40px;
+    }
+    #barOuter {
+        width: 700px; height: 30px;
+        background: #1A2235;
+        border-radius: 6px;
+        overflow: hidden;
+        border: 1px solid #2A3550;
+    }
+    #barInner {
+        width: 0%; height: 100%;
+        background: linear-gradient(90deg, #FF2D78, #00D9FF);
+    }
+    #percent {
+        font-size: 16px; font-weight: bold;
+        color: #00D9FF;
+        margin-top: 16px;
+    }
+    #hint {
+        position: absolute; bottom: 40px;
+        font-size: 12px; color: #7A8AA0;
+    }
+</style>
+<script language="JScript">
+    var statusPath = "update_status.txt";
+    var pulseUp = true;
+    var pulseVal = 0;
+
+    function resolveStatusPath() {
+        try {
+            var fso = new ActiveXObject("Scripting.FileSystemObject");
+            var scriptDir = fso.GetParentFolderName(window.location.pathname.replace(/^\//, ""));
+            return scriptDir + "\\update_status.txt";
+        } catch (e) {
+            return "update_status.txt";
+        }
+    }
+
+    function readStatus() {
+        var step = "Working...";
+        var percent = -1;
+        try {
+            var fso = new ActiveXObject("Scripting.FileSystemObject");
+            var path = resolveStatusPath();
+            if (fso.FileExists(path)) {
+                var f = fso.OpenTextFile(path, 1);
+                var content = f.ReadAll();
+                f.Close();
+                var lines = content.split("\n");
+                for (var i = 0; i < lines.length; i++) {
+                    var line = lines[i].replace(/\r/g, "");
+                    if (line.indexOf("STEP:") === 0) step = line.substring(5);
+                    else if (line.indexOf("PERCENT:") === 0) percent = parseInt(line.substring(8), 10);
+                }
+            }
+        } catch (e) { }
+
+        document.getElementById("step").innerText = step;
+
+        if (step.indexOf("ERROR") === 0) {
+            document.getElementById("title").style.color = "#FF2D78";
+            document.getElementById("step").style.color = "#FF2D78";
+        }
+
+        if (!isNaN(percent) && percent >= 0) {
+            document.getElementById("barInner").style.width = percent + "%";
+            document.getElementById("percent").innerText = percent + "%";
+        }
+
+        if (step.replace(/\s+$/, "") === "DONE" || percent >= 100) {
+            setTimeout(function () { window.close(); }, 1200);
+            return;
+        }
+
+        setTimeout(readStatus, 400);
+    }
+
+    function pulseTitle() {
+        var el = document.getElementById("title");
+        pulseVal += pulseUp ? 8 : -8;
+        if (pulseVal >= 255) pulseUp = false;
+        if (pulseVal <= 0) pulseUp = true;
+        var g = 217 + Math.floor((255 - 217) * (pulseVal / 255));
+        el.style.color = "rgb(0," + g + ",255)";
+        setTimeout(pulseTitle, 120);
+    }
+
+    window.onload = function () {
+        readStatus();
+        pulseTitle();
+    };
+</script>
+</head>
+<body>
+    <div id="wrap">
+        <div id="title">UPDATING HORIZON BROWSER</div>
+        <div id="step">Starting...</div>
+        <div id="barOuter"><div id="barInner"></div></div>
+        <div id="percent">0%</div>
+    </div>
+    <div id="hint">Please do not close this window.</div>
+</body>
+</html>

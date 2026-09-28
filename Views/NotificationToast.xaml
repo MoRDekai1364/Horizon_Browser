@@ -1,0 +1,51 @@
+<Window x:Class="Horizon.Stealth.Views.NotificationToast"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="" WindowStyle="None" AllowsTransparency="True"
+        Background="Transparent" Topmost="True"
+        ShowInTaskbar="False" ResizeMode="NoResize"
+        Width="320" SizeToContent="Height">
+    <Border Margin="6" Background="#EE131313" CornerRadius="8"
+            BorderBrush="#404040" BorderThickness="1">
+        <Border.Effect>
+            <DropShadowEffect Color="Black" Opacity="0.6" BlurRadius="14"
+                              ShadowDepth="3" Direction="270"/>
+        </Border.Effect>
+        <Grid Margin="12,10,12,12">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Row 0: origin + close button -->
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock x:Name="TxtOrigin" Grid.Column="0"
+                           Foreground="#FF8888AA" FontSize="11"
+                           TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                <Button x:Name="BtnClose" Grid.Column="1"
+                        Content="✕" Width="20" Height="20"
+                        Background="Transparent" BorderThickness="0"
+                        Foreground="#FF666680" FontSize="11"
+                        Cursor="Hand" Padding="0" VerticalAlignment="Center"
+                        Click="BtnClose_Click"/>
+            </Grid>
+
+            <!-- Row 1: title -->
+            <TextBlock x:Name="TxtTitle" Grid.Row="1"
+                       Foreground="#FFDDDDF0" FontSize="13" FontWeight="SemiBold"
+                       TextWrapping="Wrap" Margin="0,4,0,0"
+                       Visibility="Collapsed"/>
+
+            <!-- Row 2: body -->
+            <TextBlock x:Name="TxtBody" Grid.Row="2"
+                       Foreground="#FFAAAACC" FontSize="12"
+                       TextWrapping="Wrap" Margin="0,4,0,0"
+                       Visibility="Collapsed"/>
+        </Grid>
+    </Border>
+</Window>
