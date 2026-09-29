@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 
 namespace Horizon.Stealth.Services;
 
@@ -49,6 +50,9 @@ public static class VpnRelayService
     private static string _lastMessage = "";
     private static string? _exitIp;
     private static int _failures;
+    private static long _totalBytes;
+
+    public static long TotalBytes => Interlocked.Read(ref _totalBytes);
 
     public static event Action<VpnRelayState, string>? StateChanged;
     public static event Action<string>? FallbackNotice;
@@ -791,10 +795,21 @@ public static class VpnRelayService
         }
     }
 
+    private static async Task CountedCopyAsync(NetworkStream src, NetworkStream dst)
+    {
+        var buf = new byte[81920];
+        int n;
+        while ((n = await src.ReadAsync(buf.AsMemory(0, buf.Length))) > 0)
+        {
+            await dst.WriteAsync(buf.AsMemory(0, n));
+            Interlocked.Add(ref _totalBytes, n);
+        }
+    }
+
     private static async Task PipeAsync(NetworkStream a, NetworkStream b)
     {
-        var t1 = a.CopyToAsync(b, 81920);
-        var t2 = b.CopyToAsync(a, 81920);
+        var t1 = CountedCopyAsync(a, b);
+        var t2 = CountedCopyAsync(b, a);
         _ = t1.ContinueWith(t => { _ = t.Exception; }, TaskContinuationOptions.OnlyOnFaulted);
         _ = t2.ContinueWith(t => { _ = t.Exception; }, TaskContinuationOptions.OnlyOnFaulted);
         await Task.WhenAny(t1, t2);

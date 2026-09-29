@@ -651,6 +651,18 @@
                     </ItemsControl>
                 </StackPanel>
 
+                <StackPanel x:Name="PnlVpnAdBlock" Tag="VpnAdBlock" Margin="0,20,0,0" Visibility="Collapsed" RenderTransformOrigin="0,0" PreviewMouseLeftButtonDown="Widget_PreviewMouseLeftButtonDown" MouseMove="Widget_MouseMove">
+                    <StackPanel.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform x:Name="VpnAdBlockScale" ScaleX="1.0" ScaleY="1.0"/>
+                            <TranslateTransform x:Name="VpnAdBlockTrans" X="0" Y="0"/>
+                        </TransformGroup>
+                    </StackPanel.RenderTransform>
+                    <TextBlock x:Name="TblVpnAdBlockStatus" Text="VPN off" FontSize="21" Foreground="#DDD" HorizontalAlignment="Left"/>
+                    <TextBlock x:Name="TblVpnAdBlockCountry" Text="" FontSize="16" Foreground="#999" HorizontalAlignment="Left" Margin="2,4,0,0" Visibility="Collapsed"/>
+                    <TextBlock x:Name="TblVpnAdBlockSpeed" Text="" FontSize="16" Foreground="#999" HorizontalAlignment="Left" Margin="2,2,0,0" Visibility="Collapsed"/>
+                </StackPanel>
+
                 <StackPanel x:Name="PnlMedia" Tag="Media" Margin="0,26,0,0" Visibility="Collapsed" RenderTransformOrigin="0,0" PreviewMouseLeftButtonDown="Widget_PreviewMouseLeftButtonDown" MouseMove="Widget_MouseMove">
                     <StackPanel.RenderTransform>
                         <TransformGroup>

@@ -162,6 +162,7 @@ public class SettingsData
     public bool HomeShowFavoritesWidget { get; set; } = true;
     public bool HomeShowBookmarksWidget { get; set; } = true; 
     public bool HomeShowBatteryWidget   { get; set; } = true; 
+    public bool HomeShowVpnAdBlockWidget { get; set; } = true; 
 
     public bool   HomeAdaptiveColorsEnabled { get; set; } = true;
     public double HomeTintStrength           { get; set; } = 30.0;

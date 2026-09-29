@@ -484,6 +484,8 @@ public partial class HomePageView : UserControl
         DownloadsBridge.Updated += RefreshDownloads;
         RefreshDownloads();
 
+        InitVpnAdBlockWidget();
+
         BookmarkService.OnUpdated += RefreshBookmarks;
         RefreshBookmarks();
 
@@ -1552,6 +1554,74 @@ public partial class HomePageView : UserControl
         });
     }
 
+    private DispatcherTimer? _vpnAdBlockTimer;
+    private long _vpnAdBlockLastBytes;
+    private DateTime _vpnAdBlockLastSampleUtc;
+
+    private void InitVpnAdBlockWidget()
+    {
+        VpnRelayService.StateChanged += (state, msg) => Dispatcher.BeginInvoke(RefreshVpnAdBlockWidget);
+
+        _vpnAdBlockLastBytes = VpnRelayService.TotalBytes;
+        _vpnAdBlockLastSampleUtc = DateTime.UtcNow;
+
+        _vpnAdBlockTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
+        _vpnAdBlockTimer.Tick += (s, e) => RefreshVpnAdBlockWidget();
+        _vpnAdBlockTimer.Start();
+
+        RefreshVpnAdBlockWidget();
+    }
+
+    private void RefreshVpnAdBlockWidget()
+    {
+        var show = SettingsService.Current.HomeShowVpnAdBlockWidget;
+        PnlVpnAdBlock.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+        if (!show) return;
+
+        var state = VpnRelayService.State;
+        var connected = state == VpnRelayState.Connected;
+
+        TblVpnAdBlockStatus.Text = state switch
+        {
+            VpnRelayState.Connected  => "VPN connected",
+            VpnRelayState.Connecting => "VPN connecting...",
+            VpnRelayState.Fallback   => "VPN fallback (direct)",
+            VpnRelayState.Blocked    => "VPN blocked",
+            _                        => "VPN off"
+        };
+
+        var country = VpnRelayService.ActiveProfile?.Country;
+        TblVpnAdBlockCountry.Text = string.IsNullOrEmpty(country) ? "" : $"Server country: {country}";
+        TblVpnAdBlockCountry.Visibility = (connected && !string.IsNullOrEmpty(country)) ? Visibility.Visible : Visibility.Collapsed;
+
+        var now = DateTime.UtcNow;
+        var nowBytes = VpnRelayService.TotalBytes;
+        var elapsed = (now - _vpnAdBlockLastSampleUtc).TotalSeconds;
+
+        if (connected && elapsed > 0.5)
+        {
+            var deltaBytes = nowBytes - _vpnAdBlockLastBytes;
+            var bps = deltaBytes / elapsed;
+            TblVpnAdBlockSpeed.Text = $"{FormatSpeed(bps)}";
+            TblVpnAdBlockSpeed.Visibility = Visibility.Visible;
+        }
+        else
+        {
+            TblVpnAdBlockSpeed.Visibility = Visibility.Collapsed;
+        }
+
+        _vpnAdBlockLastBytes = nowBytes;
+        _vpnAdBlockLastSampleUtc = now;
+    }
+
+    private static string FormatSpeed(double bytesPerSecond)
+    {
+        var bits = bytesPerSecond * 8.0;
+        if (bits >= 1_000_000) return $"{bits / 1_000_000:0.0} Mbps";
+        if (bits >= 1_000) return $"{bits / 1_000:0} Kbps";
+        return $"{bits:0} bps";
+    }
+
     private void RefreshBookmarks()
     {
         Dispatcher.Invoke(() =>
@@ -2130,7 +2200,8 @@ public partial class HomePageView : UserControl
                 new WidgetPosition { WidgetId = "Calendar", Row = 1, Column = 0 },
                 new WidgetPosition { WidgetId = "Events", Row = 1, Column = 0 },
                 new WidgetPosition { WidgetId = "Downloads", Row = 2, Column = 0 },
-                new WidgetPosition { WidgetId = "Media", Row = 3, Column = 0 },
+                new WidgetPosition { WidgetId = "VpnAdBlock", Row = 3, Column = 0 },
+                new WidgetPosition { WidgetId = "Media", Row = 4, Column = 0 },
                 new WidgetPosition { WidgetId = "Favorites", Row = 1, Column = 1 },
                 new WidgetPosition { WidgetId = "Bookmarks", Row = 2, Column = 1 }
             };
@@ -2140,7 +2211,8 @@ public partial class HomePageView : UserControl
                 new WidgetPosition { WidgetId = "Calendar", Row = 0, Column = 1 },
                 new WidgetPosition { WidgetId = "Events", Row = 0, Column = 0 },
                 new WidgetPosition { WidgetId = "Downloads", Row = 1, Column = 0 },
-                new WidgetPosition { WidgetId = "Media", Row = 2, Column = 0 },
+                new WidgetPosition { WidgetId = "VpnAdBlock", Row = 2, Column = 0 },
+                new WidgetPosition { WidgetId = "Media", Row = 3, Column = 0 },
                 new WidgetPosition { WidgetId = "Favorites", Row = 1, Column = 1 },
                 new WidgetPosition { WidgetId = "Bookmarks", Row = 2, Column = 1 }
             };
@@ -2333,6 +2405,7 @@ public partial class HomePageView : UserControl
             { "Calendar", (PnlCalendar, CalendarTrans, CalendarScale) },
             { "Events", (PnlCalendarEvents, EventsTrans, EventsScale) },
             { "Downloads", (PnlDownloads, DownloadsTrans, DownloadsScale) },
+            { "VpnAdBlock", (PnlVpnAdBlock, VpnAdBlockTrans, VpnAdBlockScale) },
             { "Media", (PnlMedia, MediaTrans, MediaScale) },
             { "Favorites", (PnlFavoritesContainer, null, null) },
             { "Bookmarks", (PnlBookmarksContainer, null, null) }
