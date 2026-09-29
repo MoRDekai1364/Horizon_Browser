@@ -1804,7 +1804,7 @@ public partial class MainWindow : Window
     {
         if (newBrowser.IsHomeActive)
         {
-            newTab.Title = "New Tab";
+            newTab.Title = "Home";
             newTab.Url = Controls.BrowserView.HomeSentinel;
         }
         if (CurrentBrowser == newBrowser)
@@ -3112,6 +3112,19 @@ return colors.length > 0 ? colors : null;
         SidebarContainer.SizeChanged += (s, e) => { if (IsHomeActive()) RefreshHeaderWallpaperCrop(); };
 
         UpdateHeaderHomeState();
+
+        var (glassUnbind, glassRefresh) = HomeGlassService.Bind(
+            HeaderContainer,
+            new ImageBrush(),
+            HomeGlassService.DefaultEdgeGlassPad,
+            overlap =>
+            {
+                HomeGlassService.ApplyOverlap(HeaderWallpaperGlass, overlap);
+                RefreshHeaderWallpaperCrop();
+            },
+            requireOverlap: false);
+        _headerWallpaperGlassUnbind = glassUnbind;
+        _headerWallpaperGlassRefresh = glassRefresh;
 
         var (bleedUnbind, bleedRefresh) = HomeGlassService.AttachWallpaperEdgeGlass(
             HeaderHomeBlurBleedBorder,
