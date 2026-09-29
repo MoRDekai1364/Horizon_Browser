@@ -1806,6 +1806,34 @@ public partial class HomePageView : UserControl
     private void BtnMediaAudioOnly_Click(object sender, RoutedEventArgs e) => MediaBridge.SendCommand("AUDIOONLY");
     private void TblMediaTitle_Click(object sender, MouseButtonEventArgs e) => MediaBridge.SendCommand("RETURNTAB");
 
+    private double _mediaMarqueeTextWidth = -1;
+    private double _mediaMarqueeContainerWidth = -1;
+
+    private void TblMediaTitle_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        UpdateMediaTitleMarquee();
+    }
+
+    private void UpdateMediaTitleMarquee()
+    {
+        double textWidth = Horizon.Stealth.Controls.MarqueeText.Measure(TblMediaTitle);
+        double containerWidth = MediaTitleClip.MaxWidth;
+
+        if (!Horizon.Stealth.Controls.MarqueeText.IsNeeded(textWidth, containerWidth))
+        {
+            _mediaMarqueeTextWidth = -1;
+            _mediaMarqueeContainerWidth = -1;
+            Horizon.Stealth.Controls.MarqueeText.Reset(MediaTitleTT);
+            return;
+        }
+
+        if (textWidth == _mediaMarqueeTextWidth && containerWidth == _mediaMarqueeContainerWidth) return;
+
+        _mediaMarqueeTextWidth = textWidth;
+        _mediaMarqueeContainerWidth = containerWidth;
+        Horizon.Stealth.Controls.MarqueeText.Start(MediaTitleTT, textWidth, containerWidth);
+    }
+
     private void WidgetClockWeather_Click(object sender, MouseButtonEventArgs e)
     {
         var mainWin = Window.GetWindow(this) as MainWindow;
@@ -2354,7 +2382,7 @@ public partial class HomePageView : UserControl
 
         if (ZoneMedia != null && PnlMedia.Visibility == Visibility.Visible)
         {
-            ZoneMedia.Width = Math.Max(TblMediaTitle.ActualWidth, TblMediaArtist.ActualWidth);
+            ZoneMedia.Width = Math.Max(MediaTitleClip.ActualWidth, TblMediaArtist.ActualWidth);
             ZoneMedia.Height = TblMediaTitle.ActualHeight + (TblMediaArtist.Visibility == Visibility.Visible ? TblMediaArtist.ActualHeight : 0);
             Canvas.SetLeft(ZoneMedia, ClockWeatherIslandPadding);
             try

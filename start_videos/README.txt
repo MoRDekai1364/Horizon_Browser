@@ -1,0 +1,1 @@
+NOTE: the system ONLY accepts video with the title: Animate_this_image

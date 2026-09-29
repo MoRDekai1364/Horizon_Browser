@@ -677,9 +677,18 @@
                             <TranslateTransform x:Name="MediaTrans" X="0" Y="0"/>
                         </TransformGroup>
                     </StackPanel.RenderTransform>
-                    <TextBlock x:Name="TblMediaTitle" Text="" FontSize="24" Foreground="#DDD" HorizontalAlignment="Left"
-                               MaxWidth="352" TextWrapping="Wrap" TextTrimming="None" Cursor="Hand"
-                               MouseLeftButtonUp="TblMediaTitle_Click"/>
+                    <Border x:Name="MediaTitleClip" HorizontalAlignment="Left" MaxWidth="352" ClipToBounds="True">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock x:Name="TblMediaTitle" Text="" FontSize="24" Foreground="#DDD" HorizontalAlignment="Left"
+                                       TextWrapping="NoWrap" TextTrimming="None" Cursor="Hand"
+                                       MouseLeftButtonUp="TblMediaTitle_Click"
+                                       SizeChanged="TblMediaTitle_SizeChanged">
+                                <TextBlock.RenderTransform>
+                                    <TranslateTransform x:Name="MediaTitleTT" X="0"/>
+                                </TextBlock.RenderTransform>
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
                     <TextBlock x:Name="TblMediaArtist" Text="" FontSize="16" Foreground="#999" HorizontalAlignment="Left"
                                MaxWidth="352" TextWrapping="Wrap" TextTrimming="None" Margin="2,4,0,0" Visibility="Collapsed"/>
                     <StackPanel x:Name="PnlMediaButtons" Orientation="Horizontal" Margin="0,12,0,0">

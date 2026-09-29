@@ -167,8 +167,23 @@ public partial class MainWindow : Window
             string script = @"(() => {
                 let title = null;
                 let artist = '';
+                if (location.hostname.includes('music.youtube.com')) {
+                    const md = navigator.mediaSession && navigator.mediaSession.metadata;
+                    if (md && md.title) {
+                        title = md.title;
+                        if (md.artist) artist = md.artist;
+                    }
+                    if (!title) {
+                        const pt = document.querySelector('ytmusic-player-bar .title');
+                        if (pt && pt.innerText.trim()) title = pt.innerText.trim();
+                    }
+                    if (!artist) {
+                        const pb = document.querySelector('ytmusic-player-bar .byline');
+                        if (pb && pb.innerText.trim()) artist = pb.innerText.split('•')[0].trim();
+                    }
+                }
                 const m = document.querySelector('video, audio');
-                if (m && m.title) title = m.title;
+                if (!title && m && m.title) title = m.title;
                 if (!title) {
                     const yt = document.querySelector('h1.style-scope.ytd-watch-metadata');
                     if (yt) title = yt.innerText;
@@ -1684,6 +1699,7 @@ public partial class MainWindow : Window
             reflowView.Visibility = Visibility.Visible;
 
         Dispatcher.BeginInvoke(DispatcherPriority.Loaded, ResetPrimaryScrollToStart);
+        Dispatcher.BeginInvoke(DispatcherPriority.Loaded, UpdateMediaWidgetLayout);
     }
 
     private void ResetPrimaryScrollToStart()
@@ -4377,6 +4393,8 @@ return colors.length > 0 ? colors : null;
             {
                 if (!tab.HasEverPlayedAudio || !_tabViews.TryGetValue(tab, out var bv)) return;
                 await RefreshMediaTabPaletteAsync(tab, bv);
+                if ((bv.MainWebView?.Source?.Host ?? "").Contains("music.youtube.com", StringComparison.OrdinalIgnoreCase))
+                    await UpdateTabMediaMetadataAsync(tab, bv);
             };
             prt.Start();
             _paletteRefreshTimers[tab] = prt;
@@ -7076,6 +7094,7 @@ return colors.length > 0 ? colors : null;
     private void RefreshWidgetDisplay()
     {
         string mode = CurrentWidgetMode();
+        if (mode != "Media" && mode != "Music") StopMediaWidgetMarquee();
 
         var _mediaVidTab    = _allTabs.FirstOrDefault(t => t.IsPlayingAudio && t.HasVideo && !t.IsAudioOnlyMode);
         var _mediaAudTab    = _allTabs.FirstOrDefault(t => t.IsPlayingAudio && (!t.HasVideo || t.IsAudioOnlyMode));
@@ -7095,13 +7114,13 @@ return colors.length > 0 ? colors : null;
             activeHost,
             _mediaActiveTab?.PaletteColors);
 
-        bool wantMarquee = (mode == "Weather" && SettingsService.Current.WeatherWidgetMarquee)
-                        || ((mode == "Media" || mode == "Music") && SettingsService.Current.MediaWidgetMarquee);
+        bool wantMarquee = mode == "Weather" && SettingsService.Current.WeatherWidgetMarquee;
+        bool mediaAuto = IsMediaAutoMode();
 
         if (!wantMarquee)
         {
             if (_isMarqueeRunning) StopWidgetMarquee();
-            if (!_widgetFading) TxtWidget.Text = GetWidgetText();
+            if (!_widgetFading && !mediaAuto) TxtWidget.Text = GetWidgetText();
         }
         else
         {
@@ -7135,8 +7154,13 @@ return colors.length > 0 ? colors : null;
             else
                 UpdateWeatherWidgetWidth();
         }
+        else if (mediaAuto)
+            UpdateMediaWidgetLayout();
         else
+        {
+            StopMediaWidgetMarquee();
             AnimateWidgetWidth(_widgetDefaultWidth);
+        }
     }
 
     private double _sidebarScrollTarget = 0.0;
@@ -11025,6 +11049,7 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
         if (string.IsNullOrEmpty(fullText)) return;
         TxtWidget.Text = fullText;
         TxtWidget.HorizontalAlignment = HorizontalAlignment.Left;
+        WidgetTextHost.HorizontalAlignment = HorizontalAlignment.Left;
         TxtWidget.Margin = new Thickness(6, 0, 0, 0);
 
         var ft = new System.Windows.Media.FormattedText(
@@ -11042,6 +11067,7 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
         if (_marqueeTextWidth <= containerW)
         {
             TxtWidget.HorizontalAlignment = HorizontalAlignment.Center;
+            WidgetTextHost.HorizontalAlignment = HorizontalAlignment.Center;
             TxtWidget.Margin = new Thickness(0);
             return;
         }
@@ -11075,7 +11101,78 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
         if (TxtWidget == null) return;
         TxtWidget.RenderTransform     = Transform.Identity;
         TxtWidget.HorizontalAlignment = HorizontalAlignment.Center;
+        WidgetTextHost.HorizontalAlignment = HorizontalAlignment.Center;
         TxtWidget.Margin              = new Thickness(0);
+    }
+
+    private TranslateTransform? _widgetMediaTT;
+    private double _widgetMediaMarqueeText = -1;
+    private double _widgetMediaMarqueeContainer = -1;
+
+    private bool IsMediaAutoMode()
+    {
+        string mode = CurrentWidgetMode();
+        return (mode == "Media" || mode == "Music") && !SettingsService.Current.MediaWidgetHoverWiden;
+    }
+
+    private double GetMaxMediaWidgetWidth()
+    {
+        if (_isNarrowMode) return _widgetDefaultWidth;
+        double current = HeaderWidgetBorder.ActualWidth > 0 ? HeaderWidgetBorder.ActualWidth : _widgetDefaultWidth;
+        double usedByTabs = Tabs.Sum(t => t.TabWidth + TAB_MARGIN * 2);
+        double tabAreaAtDefault = GetTabBarAvailableWidth() + (2.0 / 3.0) * (current - _widgetDefaultWidth);
+        double spare = tabAreaAtDefault - usedByTabs - 8;
+        double max = _widgetDefaultWidth + Math.Max(0, spare) * 1.5;
+        return Math.Min(320, max);
+    }
+
+    private void UpdateMediaWidgetLayout()
+    {
+        if (HeaderWidgetBorder == null || !IsMediaAutoMode()) return;
+
+        string fullText = GetWidgetMediaTextFull();
+        if (!_widgetFading) TxtWidget.Text = fullText;
+
+        double textWidth = Controls.MarqueeText.Measure(TxtWidget, fullText);
+        double target = _widgetDefaultWidth;
+        if (!SettingsService.Current.MediaWidgetMarquee)
+            target = Math.Max(_widgetDefaultWidth, Math.Min(textWidth + 24, GetMaxMediaWidgetWidth()));
+        target = Math.Round(target);
+        AnimateWidgetWidth(target);
+
+        if (!Controls.MarqueeText.IsNeeded(textWidth, target - 24))
+        {
+            StopMediaWidgetMarquee();
+            return;
+        }
+
+        double container = target - 2;
+        bool alive = _widgetMediaTT != null && ReferenceEquals(TxtWidget.RenderTransform, _widgetMediaTT);
+        WidgetTextHost.HorizontalAlignment = HorizontalAlignment.Left;
+        if (alive
+            && Math.Abs(textWidth - _widgetMediaMarqueeText) < 0.5
+            && Math.Abs(container - _widgetMediaMarqueeContainer) < 2) return;
+
+        if (!alive)
+        {
+            _widgetMediaTT = new TranslateTransform();
+            TxtWidget.RenderTransform = _widgetMediaTT;
+        }
+        _widgetMediaMarqueeText = textWidth;
+        _widgetMediaMarqueeContainer = container;
+        Controls.MarqueeText.Start(_widgetMediaTT!, textWidth, container);
+    }
+
+    private void StopMediaWidgetMarquee()
+    {
+        if (_widgetMediaTT == null) return;
+        Controls.MarqueeText.Reset(_widgetMediaTT);
+        if (ReferenceEquals(TxtWidget.RenderTransform, _widgetMediaTT))
+            TxtWidget.RenderTransform = Transform.Identity;
+        _widgetMediaTT = null;
+        _widgetMediaMarqueeText = -1;
+        _widgetMediaMarqueeContainer = -1;
+        WidgetTextHost.HorizontalAlignment = HorizontalAlignment.Center;
     }
 
     private string GetWidgetMediaTextFull()

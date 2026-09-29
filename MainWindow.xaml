@@ -1017,11 +1017,15 @@
                                         HorizontalAlignment="Left" VerticalAlignment="Stretch"
                                         CornerRadius="5" Width="0" Margin="1"/>
                                 <!-- Normal text display (clock, cpu, etc.) -->
-                                <TextBlock x:Name="TxtWidget"
-                                           Foreground="#dddddd" FontSize="16" FontWeight="Bold"
-                                           FontFamily="Consolas"
-                                           HorizontalAlignment="Center" VerticalAlignment="Center"
-                                           Text="--:--"/>
+                                <Border x:Name="WidgetTextClip" ClipToBounds="True" VerticalAlignment="Center">
+                                    <StackPanel x:Name="WidgetTextHost" Orientation="Horizontal" HorizontalAlignment="Center">
+                                        <TextBlock x:Name="TxtWidget"
+                                                   Foreground="#dddddd" FontSize="16" FontWeight="Bold"
+                                                   FontFamily="Consolas"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                   Text="--:--"/>
+                                    </StackPanel>
+                                </Border>
                                 <!-- Seconds-in-corner sub-text (clock mode 3 only) -->
                                 <TextBlock x:Name="TxtWidgetSub"
                                            Foreground="#888888" FontSize="11" FontFamily="Consolas"
