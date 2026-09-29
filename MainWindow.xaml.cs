@@ -233,6 +233,7 @@ public partial class MainWindow : Window
                     {
                         tab.MediaTitle = parsedTitle;
                         tab.Title = parsedTitle;
+                        ScheduleReflow();
                     }
                     _mediaArtistCache[tab] = parsedArtist;
                     Dispatcher.Invoke(RefreshWidgetDisplay);
@@ -1632,6 +1633,7 @@ public partial class MainWindow : Window
         int protectedCount = _allTabs.Count(t => t.HasEverPlayedAudio || t.HasEverDownloaded);
         int regularCount   = _allTabs.Count - protectedCount;
         var (regularFit, regularWidth) = GetRegularTabLayout(protectedCount, regularCount);
+        var mediaWidths = ComputeMediaTabWidths(regularFit == regularCount && regularWidth >= TAB_DEFAULT_WIDTH - 0.01);
 
         var titleGroups = _allTabs
             .GroupBy(t => t.DisplayTitle, StringComparer.OrdinalIgnoreCase)
@@ -1647,7 +1649,13 @@ public partial class MainWindow : Window
             if (isProtected)
             {
                 // Protected tabs: always primary, always default width — no shrinking
-                tab.TabWidth   = tab.HasEverPlayedAudio ? TAB_MEDIA_WIDTH : TAB_DEFAULT_WIDTH;
+                if (tab.HasEverPlayedAudio)
+                    AnimateTabWidth(tab, mediaWidths.TryGetValue(tab, out var mediaTarget) ? mediaTarget : TAB_MEDIA_WIDTH);
+                else
+                {
+                    _tabWidthTargets.Remove(tab);
+                    tab.TabWidth = TAB_DEFAULT_WIDTH;
+                }
                 goesToPrimary  = true;
             }
             else
@@ -1704,6 +1712,85 @@ public partial class MainWindow : Window
 
         Dispatcher.BeginInvoke(DispatcherPriority.Loaded, ResetPrimaryScrollToStart);
         Dispatcher.BeginInvoke(DispatcherPriority.Loaded, UpdateMediaWidgetLayout);
+    }
+
+    private readonly Dictionary<TabViewModel, double> _tabWidthTargets = new();
+    private DispatcherTimer? _tabWidthTimer;
+
+    private double MeasureMediaTabText(TabViewModel tab)
+    {
+        var ft = new System.Windows.Media.FormattedText(
+            tab.Title ?? "",
+            System.Globalization.CultureInfo.CurrentCulture,
+            FlowDirection.LeftToRight,
+            new Typeface(FontFamily, FontStyles.Normal, FontWeights.SemiBold, FontStretches.Normal),
+            11, Brushes.White,
+            VisualTreeHelper.GetDpi(this).PixelsPerDip);
+        return ft.Width;
+    }
+
+    private Dictionary<TabViewModel, double> ComputeMediaTabWidths(bool canGrow)
+    {
+        var result = new Dictionary<TabViewModel, double>();
+        var mediaTabs = _allTabs.Where(t => t.HasEverPlayedAudio).ToList();
+        if (mediaTabs.Count == 0) return result;
+
+        double spare = 0;
+        if (canGrow && !_isNarrowMode)
+            spare = Math.Max(0, GetTabBarAvailableWidth() - GetTabsNaturalDemand() - 8);
+
+        foreach (var tab in mediaTabs)
+        {
+            double wanted = MeasureMediaTabText(tab) + 50;
+            double extra  = Math.Max(0, Math.Min(wanted - TAB_MEDIA_WIDTH, spare));
+            spare -= extra;
+            result[tab] = TAB_MEDIA_WIDTH + extra;
+        }
+        return result;
+    }
+
+    private void AnimateTabWidth(TabViewModel tab, double target)
+    {
+        target = Math.Round(target);
+        if (Math.Abs(tab.TabWidth - target) < 0.5)
+        {
+            tab.TabWidth = target;
+            _tabWidthTargets.Remove(tab);
+            return;
+        }
+        _tabWidthTargets[tab] = target;
+        if (_tabWidthTimer == null)
+        {
+            _tabWidthTimer = new DispatcherTimer(DispatcherPriority.Render) { Interval = TimeSpan.FromMilliseconds(16) };
+            _tabWidthTimer.Tick += TabWidthTimer_Tick;
+        }
+        if (!_tabWidthTimer.IsEnabled) _tabWidthTimer.Start();
+    }
+
+    private void TabWidthTimer_Tick(object? sender, EventArgs e)
+    {
+        foreach (var pair in _tabWidthTargets.ToList())
+        {
+            var tab = pair.Key;
+            if (!_allTabs.Contains(tab))
+            {
+                _tabWidthTargets.Remove(tab);
+                continue;
+            }
+            double diff = pair.Value - tab.TabWidth;
+            if (Math.Abs(diff) < 0.5)
+            {
+                tab.TabWidth = pair.Value;
+                _tabWidthTargets.Remove(tab);
+                continue;
+            }
+            tab.TabWidth += diff * 0.22;
+        }
+        if (_tabWidthTargets.Count == 0)
+        {
+            _tabWidthTimer?.Stop();
+            Dispatcher.BeginInvoke(DispatcherPriority.Loaded, UpdateMediaWidgetLayout);
+        }
     }
 
     private void ResetPrimaryScrollToStart()

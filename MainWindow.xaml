@@ -459,7 +459,7 @@
                                                                            VerticalAlignment="Center"
                                                                            TextWrapping="NoWrap"
                                                                            TextTrimming="CharacterEllipsis"
-                                                                           MaxWidth="95"/>
+                                                                           MaxWidth="{Binding TabTextMaxWidth}"/>
                                                                 <TextBlock Text="🎵" FontSize="9" Margin="4,0,0,0"
                                                                            Foreground="{Binding TitleForeground}"
                                                                            VerticalAlignment="Center">

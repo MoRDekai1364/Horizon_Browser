@@ -241,8 +241,10 @@ public class TabViewModel : INotifyPropertyChanged
     public double TabWidth
     {
         get => _tabWidth;
-        set { _tabWidth = value; OnPropertyChanged(); }
+        set { _tabWidth = value; OnPropertyChanged(); OnPropertyChanged(nameof(TabTextMaxWidth)); }
     }
+
+    public double TabTextMaxWidth => Math.Max(40.0, _tabWidth - 50.0);
 
     public string DomainTitle
     {
