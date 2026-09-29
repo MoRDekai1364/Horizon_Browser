@@ -59,6 +59,17 @@ public static class MusicSites
 
     public static string JsHostTest { get; } = BuildJsHostTest();
 
+    public static bool IsMusicHost(string? host)
+    {
+        if (string.IsNullOrEmpty(host)) return false;
+        host = host.ToLowerInvariant();
+        foreach (var s in HostSuffixes)
+            if (host == s || host.EndsWith("." + s, StringComparison.Ordinal)) return true;
+        foreach (var p in HostPrefixes)
+            if (host.StartsWith(p, StringComparison.Ordinal)) return true;
+        return false;
+    }
+
     public static bool IsBrandSuffix(string suffix)
     {
         foreach (var brand in BrandNames)

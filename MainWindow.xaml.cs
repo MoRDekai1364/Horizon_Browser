@@ -167,7 +167,7 @@ public partial class MainWindow : Window
             string script = @"(() => {
                 let title = null;
                 let artist = '';
-                if (location.hostname.includes('music.youtube.com')) {
+                if (__HZ_MUSIC_HOST__) {
                     const md = navigator.mediaSession && navigator.mediaSession.metadata;
                     if (md && md.title) {
                         title = md.title;
@@ -218,7 +218,7 @@ public partial class MainWindow : Window
                 }
                 return JSON.stringify({ title: title, artist: artist });
             })()";
-            string result = await browser.MainWebView.CoreWebView2.ExecuteScriptAsync(script);
+            string result = await browser.MainWebView.CoreWebView2.ExecuteScriptAsync(script.Replace("__HZ_MUSIC_HOST__", MusicSites.JsHostTest));
             if (!string.IsNullOrEmpty(result) && result != "null")
             {
                 var unescaped = System.Text.Json.JsonSerializer.Deserialize<string>(result);
@@ -232,7 +232,7 @@ public partial class MainWindow : Window
                     if (!string.IsNullOrEmpty(parsedTitle))
                     {
                         tab.MediaTitle = parsedTitle;
-                        tab.Title = parsedTitle;
+                        if (tab.Title != parsedTitle) { tab.Title = parsedTitle; RefitMediaTabWidths(); }
                         ScheduleReflow();
                     }
                     _mediaArtistCache[tab] = parsedArtist;
@@ -1715,6 +1715,18 @@ public partial class MainWindow : Window
     }
 
     private readonly Dictionary<TabViewModel, double> _tabWidthTargets = new();
+
+    private void RefitMediaTabWidths()
+    {
+        if (_isReflowing || _allTabs.Count == 0) return;
+        int protectedCount = _allTabs.Count(t => t.HasEverPlayedAudio || t.HasEverDownloaded);
+        int regularCount   = _allTabs.Count - protectedCount;
+        var (regularFit, regularWidth) = GetRegularTabLayout(protectedCount, regularCount);
+        var widths = ComputeMediaTabWidths(regularFit == regularCount && regularWidth >= TAB_DEFAULT_WIDTH - 0.01);
+        foreach (var pair in widths)
+            AnimateTabWidth(pair.Key, pair.Value);
+        Dispatcher.BeginInvoke(DispatcherPriority.Loaded, UpdateMediaWidgetLayout);
+    }
     private DispatcherTimer? _tabWidthTimer;
 
     private double MeasureMediaTabText(TabViewModel tab)
@@ -1737,7 +1749,8 @@ public partial class MainWindow : Window
 
         double spare = 0;
         if (canGrow && !_isNarrowMode)
-            spare = Math.Max(0, GetTabBarAvailableWidth() - GetTabsNaturalDemand() - 8);
+            double atDefaultWidget = GetTabBarAvailableWidth() + (2.0 / 3.0) * Math.Max(0, (HeaderWidgetBorder?.ActualWidth ?? _widgetDefaultWidth) - _widgetDefaultWidth);
+            spare = Math.Max(0, atDefaultWidget - GetTabsNaturalDemand() - 8);
 
         foreach (var tab in mediaTabs)
         {
@@ -4234,6 +4247,13 @@ return colors.length > 0 ? colors : null;
             if (core == null || tab.IsSleeping) return;
 
             string res = await core.ExecuteScriptAsync(@"(() => {
+                if (!location.hostname.includes('youtube.com')) {
+                    const hzArt = navigator.mediaSession?.metadata?.artwork;
+                    if (hzArt && hzArt.length) {
+                        const hzBest = hzArt[hzArt.length - 1];
+                        if (hzBest?.src?.startsWith('http')) return hzBest.src;
+                    }
+                }
                 const ytmList = document.querySelectorAll('ytmusic-player-bar img.image, ytmusic-player-bar yt-img-shadow img, #song-image yt-img-shadow img, #song-image img, ytmusic-player-bar img');
                 for (const ytm of ytmList) {
                     const s = ytm.currentSrc || ytm.src || '';
@@ -4489,7 +4509,7 @@ return colors.length > 0 ? colors : null;
             {
                 if (!tab.HasEverPlayedAudio || !_tabViews.TryGetValue(tab, out var bv)) return;
                 await RefreshMediaTabPaletteAsync(tab, bv);
-                if ((bv.MainWebView?.Source?.Host ?? "").Contains("music.youtube.com", StringComparison.OrdinalIgnoreCase))
+                if (MusicSites.IsMusicHost(bv.MainWebView?.Source?.Host))
                     await UpdateTabMediaMetadataAsync(tab, bv);
             };
             prt.Start();
@@ -11217,7 +11237,7 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
     {
         if (_isNarrowMode) return _widgetDefaultWidth;
         double current = HeaderWidgetBorder.ActualWidth > 0 ? HeaderWidgetBorder.ActualWidth : _widgetDefaultWidth;
-        double usedByTabs = Tabs.Sum(t => t.TabWidth + TAB_MARGIN * 2);
+        double usedByTabs = Tabs.Sum(t => (_tabWidthTargets.TryGetValue(t, out var targetW) ? targetW : t.TabWidth) + TAB_MARGIN * 2);
         double tabAreaAtDefault = GetTabBarAvailableWidth() + (2.0 / 3.0) * (current - _widgetDefaultWidth);
         double spare = tabAreaAtDefault - usedByTabs - 8;
         double max = _widgetDefaultWidth + Math.Max(0, spare) * 1.5;
