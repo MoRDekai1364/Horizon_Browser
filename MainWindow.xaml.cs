@@ -1809,6 +1809,11 @@ public partial class MainWindow : Window
         }
         if (CurrentBrowser == newBrowser)
         {
+            if (newBrowser.IsHomeActive)
+            {
+                OmniboxControl.SetText(Controls.BrowserView.HomeSentinel);
+                MobileOmniboxControl.SetText(Controls.BrowserView.HomeSentinel);
+            }
             UpdateHeaderHomeState();
             UpdateBackButtonVisibility();
         }
@@ -1883,6 +1888,11 @@ public partial class MainWindow : Window
 
         string title = newBrowser.MainWebView.CoreWebView2?.DocumentTitle ?? "New Tab";
         string url = newBrowser.MainWebView.Source?.ToString() ?? string.Empty;
+        if (newBrowser.IsHomeActive)
+        {
+            title = "Home";
+            url = Controls.BrowserView.HomeSentinel;
+        }
 
         if (newTab.IsSleeping) { newTab.IsLoading = false; return; }
 
@@ -1937,7 +1947,7 @@ public partial class MainWindow : Window
             UpdateInstallButtonVisibility(url);
             UpdateBackButtonVisibility();
         }
-        if (e.IsSuccess) HistoryService.Add(title, url);
+        if (e.IsSuccess && !newBrowser.IsHomeActive) HistoryService.Add(title, url);
 
         // Reapply per-tab volume setting after each navigation
         if (!newBrowser.IsProcessCrashed && newTab.Volume < 1.0 && newBrowser.MainWebView.CoreWebView2 != null)
@@ -2067,7 +2077,8 @@ public partial class MainWindow : Window
                 try 
                 {
                     if (newTab.IsSleeping) return;
-                    if (newTab.HasCustomTitle) return; 
+                    if (newTab.HasCustomTitle) return;
+                    if (newBrowser.IsHomeActive) return; 
 
                     if (newTab.IsPlayingAudio || newTab.HasEverPlayedAudio)
                     {
@@ -2220,9 +2231,9 @@ return colors.length > 0 ? colors : null;
             _tabClickCount[selectedTab] = _tabClickCount.TryGetValue(selectedTab, out int cc) ? cc + 1 : 1;
             WakeTab(selectedTab);
 
-            if (activeView.MainWebView?.Source != null)
+            if (activeView.IsHomeActive || activeView.MainWebView?.Source != null)
             {
-                string tabUrl = activeView.MainWebView.Source.ToString();
+                string tabUrl = activeView.IsHomeActive ? Controls.BrowserView.HomeSentinel : activeView.MainWebView!.Source.ToString();
                 OmniboxControl.SetText(tabUrl);
                 MobileOmniboxControl.SetText(tabUrl);
                 UpdateInstallButtonVisibility(tabUrl);
@@ -2529,7 +2540,30 @@ return colors.length > 0 ? colors : null;
 
     private void BtnForward_Click(object sender, RoutedEventArgs e)
     {
-        if (CurrentBrowser?.MainWebView?.CanGoForward == true) CurrentBrowser.MainWebView.GoForward();
+        NavigateForward();
+    }
+
+    private void NavigateForward()
+    {
+        var browser = CurrentBrowser;
+        if (browser == null) return;
+        if (!browser.GoForwardOrSite()) return;
+
+        string? src = browser.MainWebView?.Source?.ToString();
+        string? ttl = browser.MainWebView?.CoreWebView2?.DocumentTitle;
+        var tab = GetCurrentTabViewModel();
+        if (tab != null)
+        {
+            if (!string.IsNullOrEmpty(src)) tab.Url = src;
+            if (!tab.HasCustomTitle && !string.IsNullOrEmpty(ttl)) tab.Title = ttl;
+        }
+        if (!string.IsNullOrEmpty(src))
+        {
+            OmniboxControl.SetText(src);
+            MobileOmniboxControl.SetText(src);
+            UpdateInstallButtonVisibility(src);
+        }
+        UpdateBackButtonVisibility();
     }
 
     private void BtnBack_RightClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -2842,7 +2876,7 @@ return colors.length > 0 ? colors : null;
 
         if (alt && e.Key == Key.Right)
         {
-            if (CurrentBrowser?.MainWebView?.CanGoForward == true) CurrentBrowser.MainWebView.GoForward();
+            NavigateForward();
             e.Handled = true;
             return;
         }
@@ -2997,6 +3031,8 @@ return colors.length > 0 ? colors : null;
 
         HeaderAmbientGlow.Visibility = homeActive ? Visibility.Collapsed : Visibility.Visible;
         HeaderWallpaperGlass.Visibility = homeActive ? Visibility.Visible : Visibility.Collapsed;
+        SidebarSiteGlow.Visibility = homeActive ? Visibility.Collapsed : Visibility.Visible;
+        if (!homeActive) SidebarWallpaperGlass.Visibility = Visibility.Collapsed;
 
         UpdateHeaderButtonContrastForHome(homeActive);
 
@@ -3119,7 +3155,7 @@ return colors.length > 0 ? colors : null;
             HomeGlassService.DefaultEdgeGlassPad,
             overlap =>
             {
-                HomeGlassService.ApplyOverlap(HeaderWallpaperGlass, overlap);
+                HomeGlassService.ApplyOverlap(HeaderWallpaperGlass, IsHomeActive() ? overlap : null);
                 RefreshHeaderWallpaperCrop();
             },
             requireOverlap: false);
@@ -3214,8 +3250,9 @@ return colors.length > 0 ? colors : null;
             HomeGlassService.DefaultEdgeGlassPad,
             overlap =>
             {
-                HomeGlassService.ApplyOverlap(SidebarWallpaperGlass, overlap);
-                SidebarSiteGlow.Visibility = overlap != null ? Visibility.Collapsed : Visibility.Visible;
+                bool homeNow = IsHomeActive();
+                HomeGlassService.ApplyOverlap(SidebarWallpaperGlass, homeNow ? overlap : null);
+                SidebarSiteGlow.Visibility = homeNow ? Visibility.Collapsed : Visibility.Visible;
                 RefreshSidebarBlurCrop();
             },
             requireOverlap: false);
@@ -4044,8 +4081,7 @@ return colors.length > 0 ? colors : null;
 
             StartColorAnimation(tab);
 
-            if (tab.PaletteColors.Count < 2)
-                _ = RefreshMediaTabPaletteAsync(tab, browser);
+            _ = RefreshMediaTabPaletteAsync(tab, browser);
         }
         else
         {
@@ -4091,8 +4127,11 @@ return colors.length > 0 ? colors : null;
             if (core == null || tab.IsSleeping) return;
 
             string res = await core.ExecuteScriptAsync(@"(() => {
-                const ytm = document.querySelector('#song-image yt-img-shadow img, ytmusic-player-bar yt-img-shadow img, ytmusic-player-bar img, #song-image img');
-                if (ytm?.src?.startsWith('http')) return ytm.src;
+                const ytmList = document.querySelectorAll('ytmusic-player-bar img.image, ytmusic-player-bar yt-img-shadow img, #song-image yt-img-shadow img, #song-image img, ytmusic-player-bar img');
+                for (const ytm of ytmList) {
+                    const s = ytm.currentSrc || ytm.src || '';
+                    if (s.startsWith('http')) return s.replace(/=w\d+-h\d+[^&]*$/, '=w544-h544-l90-rj');
+                }
                 const sp = document.querySelector('[data-testid=""CoverSlotExpanded""] img, .cover-art img');
                 if (sp?.src?.startsWith('http')) return sp.src;
                 const sc = document.querySelector('.playbackSoundBadge__artworkLink img, .sc-artwork img');

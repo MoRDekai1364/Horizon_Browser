@@ -2353,6 +2353,28 @@ public partial class BrowserView : UserControl
 
     public bool CanGoBackToHome => _cameFromHome && !IsHomeActive;
 
+    private bool _forwardToSite;
+
+    public bool CanGoForwardToSite => _forwardToSite && IsHomeActive;
+
+    public bool GoForwardOrSite()
+    {
+        if (CanGoForwardToSite)
+        {
+            _forwardToSite = false;
+            _cameFromHome = true;
+            NativeHomePage.Visibility = Visibility.Collapsed;
+            MainWebView.Visibility = Visibility.Visible;
+            HomeStateChanged?.Invoke();
+            return true;
+        }
+
+        if (!IsHomeActive && MainWebView?.CanGoForward == true)
+            MainWebView.GoForward();
+
+        return false;
+    }
+
     public void GoBackOrHome()
     {
         if (MainWebView?.CanGoBack == true)
@@ -2362,6 +2384,7 @@ public partial class BrowserView : UserControl
         else if (CanGoBackToHome)
         {
             Navigate(HomeSentinel);
+            _forwardToSite = true;
         }
     }
 
@@ -2370,6 +2393,7 @@ public partial class BrowserView : UserControl
         if (url == HomeSentinel)
         {
             _cameFromHome = false;
+            _forwardToSite = false;
             MainWebView.Visibility = Visibility.Collapsed;
             NativeHomePage.Visibility = Visibility.Visible;
             HomeStateChanged?.Invoke();
@@ -2377,6 +2401,7 @@ public partial class BrowserView : UserControl
         }
 
         if (IsHomeActive) _cameFromHome = true;
+        _forwardToSite = false;
         NativeHomePage.Visibility = Visibility.Collapsed;
         MainWebView.Visibility = Visibility.Visible;
         HomeStateChanged?.Invoke();

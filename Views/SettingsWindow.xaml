@@ -104,9 +104,12 @@
                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" PanningMode="VerticalOnly">
                     <StackPanel Margin="10,10,20,10">
                         <TextBlock Text="Home Page" Foreground="{StaticResource Brush_Text}"/>
-                        <TextBox x:Name="TxtHome" Height="30" Margin="0,5,0,15" Background="#222" Foreground="White" BorderThickness="0"
+                        <TextBox x:Name="TxtHome" Height="30" Margin="0,5,0,8" Background="#222" Foreground="White" BorderThickness="0"
                                  local:SearchIndex.Label="Home Page" local:SearchIndex.Description="The URL that loads when you open a new tab or the browser starts."
                                  ToolTip="The URL that loads when you open a new tab or the browser starts."/>
+                        <Button x:Name="BtnResetHome" Content="Reset to default (horizon://home)" HorizontalAlignment="Left" Padding="10,3" Margin="0,0,0,15"
+                                local:SearchIndex.Label="Reset Home Page" local:SearchIndex.Description="Restore the home page to the built-in horizon://home."
+                                Click="BtnResetHome_Click"/>
                         
                         <TextBlock Text="Search Engine" Foreground="{StaticResource Brush_Text}"/>
                         <ComboBox x:Name="CboSearch" Height="30" Margin="0,5,0,5"

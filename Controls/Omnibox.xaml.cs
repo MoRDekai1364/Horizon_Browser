@@ -38,7 +38,7 @@ public partial class Omnibox : UserControl
         // Already an absolute URL
         if (Uri.TryCreate(raw, UriKind.Absolute, out var uri) &&
             (uri.Scheme == "http" || uri.Scheme == "https" ||
-             uri.Scheme == "about" || uri.Scheme == "data" ||
+             uri.Scheme == "about" || uri.Scheme == "data" || uri.Scheme == "horizon" ||
              uri.Scheme == "chrome-extension" || uri.Scheme == "file"))
             return raw;
 

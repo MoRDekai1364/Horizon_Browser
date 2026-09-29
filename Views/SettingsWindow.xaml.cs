@@ -680,6 +680,11 @@ public partial class SettingsWindow : Window
     win.ShowDialog();
 }
 
+private void BtnResetHome_Click(object sender, RoutedEventArgs e)
+{
+    TxtHome.Text = "horizon://home";
+}
+
 private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
     {
         // Clamp growth to the visible work area (excludes the taskbar), minus a
