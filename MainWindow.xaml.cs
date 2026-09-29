@@ -1749,8 +1749,10 @@ public partial class MainWindow : Window
 
         double spare = 0;
         if (canGrow && !_isNarrowMode)
+        {
             double atDefaultWidget = GetTabBarAvailableWidth() + (2.0 / 3.0) * Math.Max(0, (HeaderWidgetBorder?.ActualWidth ?? _widgetDefaultWidth) - _widgetDefaultWidth);
             spare = Math.Max(0, atDefaultWidget - GetTabsNaturalDemand() - 8);
+        }
 
         foreach (var tab in mediaTabs)
         {
@@ -3149,10 +3151,16 @@ return colors.length > 0 ? colors : null;
     {
         bool homeActive = IsHomeActive();
 
+        bool glowWasHidden = HeaderAmbientGlow.Visibility != Visibility.Visible;
+        bool glassWasHidden = HeaderWallpaperGlass.Visibility != Visibility.Visible;
+        bool sidebarGlowWasHidden = SidebarSiteGlow.Visibility != Visibility.Visible;
         HeaderAmbientGlow.Visibility = homeActive ? Visibility.Collapsed : Visibility.Visible;
         HeaderWallpaperGlass.Visibility = homeActive ? Visibility.Visible : Visibility.Collapsed;
         SidebarSiteGlow.Visibility = homeActive ? Visibility.Collapsed : Visibility.Visible;
         if (!homeActive) SidebarWallpaperGlass.Visibility = Visibility.Collapsed;
+        if (!homeActive && glowWasHidden) FadeGlassIn(HeaderAmbientGlow);
+        if (!homeActive && sidebarGlowWasHidden) FadeGlassIn(SidebarSiteGlow);
+        if (homeActive && glassWasHidden) FadeGlassIn(HeaderWallpaperGlass);
 
         UpdateHeaderButtonContrastForHome(homeActive);
 
@@ -3259,8 +3267,10 @@ return colors.length > 0 ? colors : null;
 
         WeatherBridge.ThemeUpdated += () => Dispatcher.BeginInvoke(new Action(() =>
         {
+            bool headerWallpaperChanged = !ReferenceEquals(_headerOwnBlurBrush!.ImageSource, WeatherBridge.ThemeWallpaper);
             _headerOwnBlurBrush!.ImageSource = WeatherBridge.ThemeWallpaper;
             _headerSidebarStripBrush!.ImageSource = WeatherBridge.ThemeWallpaper;
+            if (headerWallpaperChanged) FadeGlassIn(HeaderWallpaperGlass);
             UpdateHeaderHomeState();
         }));
 
@@ -3275,7 +3285,9 @@ return colors.length > 0 ? colors : null;
             HomeGlassService.DefaultEdgeGlassPad,
             overlap =>
             {
+                bool headerGlassWasHidden = HeaderWallpaperGlass.Visibility != Visibility.Visible;
                 HomeGlassService.ApplyOverlap(HeaderWallpaperGlass, IsHomeActive() ? overlap : null);
+                if (headerGlassWasHidden && HeaderWallpaperGlass.Visibility == Visibility.Visible) FadeGlassIn(HeaderWallpaperGlass);
                 RefreshHeaderWallpaperCrop();
             },
             requireOverlap: false);
@@ -3358,7 +3370,9 @@ return colors.length > 0 ? colors : null;
 
         void RefreshSidebarBlurSource()
         {
+            bool sidebarWallpaperChanged = !ReferenceEquals(_sidebarOwnBlurBrush!.ImageSource, WeatherBridge.ThemeWallpaper);
             _sidebarOwnBlurBrush!.ImageSource = WeatherBridge.ThemeWallpaper;
+            if (sidebarWallpaperChanged) FadeGlassIn(SidebarWallpaperGlass);
             RefreshSidebarBlurCrop();
         }
         RefreshSidebarBlurSource();
@@ -3371,7 +3385,9 @@ return colors.length > 0 ? colors : null;
             overlap =>
             {
                 bool homeNow = IsHomeActive();
+                bool sidebarGlassWasHidden = SidebarWallpaperGlass.Visibility != Visibility.Visible;
                 HomeGlassService.ApplyOverlap(SidebarWallpaperGlass, homeNow ? overlap : null);
+                if (sidebarGlassWasHidden && SidebarWallpaperGlass.Visibility == Visibility.Visible) FadeGlassIn(SidebarWallpaperGlass);
                 SidebarSiteGlow.Visibility = homeNow ? Visibility.Collapsed : Visibility.Visible;
                 RefreshSidebarBlurCrop();
             },
@@ -3550,6 +3566,7 @@ return colors.length > 0 ? colors : null;
                 _headerGlowSubscribedTab.PropertyChanged += HeaderGlowTab_PropertyChanged;
         }
 
+        var glowFrom = CaptureGlowColors();
         var palette = tab?.PaletteColors;
         if (palette == null || palette.Count == 0)
         {
@@ -3565,6 +3582,7 @@ return colors.length > 0 ? colors : null;
             }
             SetHeaderButtonForeground(null);
             SetSidebarSecondaryAccent(null);
+            PlayGlowFade(glowFrom);
             return;
         }
 
@@ -3584,6 +3602,7 @@ return colors.length > 0 ? colors : null;
 
         SetHeaderButtonForeground(ChooseContrastingBW(main));
         SetSidebarSecondaryAccent(main);
+        PlayGlowFade(glowFrom);
     }
 
     // Off-homepage, the sidebar's accent ("Brush.Neon") tracks the same
@@ -3605,6 +3624,84 @@ return colors.length > 0 ? colors : null;
             neonDim.Color = dim;
         else
             Application.Current.Resources["Brush.NeonDim"] = new SolidColorBrush(dim);
+    }
+
+    private const int GlowFadeMs = 300;
+
+    private static Duration GlowFadeDuration => new Duration(TimeSpan.FromMilliseconds(GlowFadeMs));
+
+    private static Color CaptureStopColor(GradientStop stop)
+    {
+        Color current = stop.Color;
+        stop.BeginAnimation(GradientStop.ColorProperty, null);
+        return current;
+    }
+
+    private static Color CaptureBrushColor(string key)
+    {
+        if (Application.Current.Resources[key] is SolidColorBrush brush)
+        {
+            Color current = brush.Color;
+            if (!brush.IsFrozen) brush.BeginAnimation(SolidColorBrush.ColorProperty, null);
+            return current;
+        }
+        return Colors.Transparent;
+    }
+
+    private Color[] CaptureGlowColors()
+    {
+        var colors = new Color[9];
+        for (int i = 0; i < 3; i++)
+        {
+            colors[i] = _headerGlowBrush != null ? CaptureStopColor(_headerGlowBrush.GradientStops[i]) : Colors.Transparent;
+            colors[3 + i] = _sidebarGlowBrush != null ? CaptureStopColor(_sidebarGlowBrush.GradientStops[i]) : Colors.Transparent;
+        }
+        colors[6] = CaptureBrushColor("Brush_HeaderButtonForeground");
+        colors[7] = CaptureBrushColor("Brush.Neon");
+        colors[8] = CaptureBrushColor("Brush.NeonDim");
+        return colors;
+    }
+
+    private static void FadeColorFrom(Animatable target, DependencyProperty property, Color from)
+    {
+        Color to = (Color)target.GetValue(property);
+        if (from == to) return;
+        Color animFrom = from.A == 0 ? Color.FromArgb(0, to.R, to.G, to.B) : from;
+        Color animTo = to.A == 0 ? Color.FromArgb(0, from.R, from.G, from.B) : to;
+        var anim = new ColorAnimation(animFrom, animTo, GlowFadeDuration)
+        {
+            EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut },
+            FillBehavior = FillBehavior.Stop
+        };
+        target.BeginAnimation(property, anim);
+    }
+
+    private static void FadeResourceBrush(string key, Color from)
+    {
+        if (Application.Current.Resources[key] is SolidColorBrush brush && !brush.IsFrozen)
+            FadeColorFrom(brush, SolidColorBrush.ColorProperty, from);
+    }
+
+    private void PlayGlowFade(Color[] from)
+    {
+        for (int i = 0; i < 3; i++)
+        {
+            if (_headerGlowBrush != null) FadeColorFrom(_headerGlowBrush.GradientStops[i], GradientStop.ColorProperty, from[i]);
+            if (_sidebarGlowBrush != null) FadeColorFrom(_sidebarGlowBrush.GradientStops[i], GradientStop.ColorProperty, from[3 + i]);
+        }
+        FadeResourceBrush("Brush_HeaderButtonForeground", from[6]);
+        FadeResourceBrush("Brush.Neon", from[7]);
+        FadeResourceBrush("Brush.NeonDim", from[8]);
+    }
+
+    private static void FadeGlassIn(UIElement element)
+    {
+        var anim = new DoubleAnimation(0.0, 1.0, GlowFadeDuration)
+        {
+            EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut },
+            FillBehavior = FillBehavior.Stop
+        };
+        element.BeginAnimation(UIElement.OpacityProperty, anim);
     }
 
     private static bool IsPaletteDarkMode(List<Color> palette)

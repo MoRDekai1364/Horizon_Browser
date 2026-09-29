@@ -813,6 +813,23 @@ public partial class HomePageView : UserControl
         return true;
     }
 
+    private void CrossfadeWallpaper(ImageSource? previous, ImageSource? next)
+    {
+        if (previous == null || next == null || ReferenceEquals(previous, next)) return;
+        var ghost = new System.Windows.Shapes.Rectangle
+        {
+            IsHitTestVisible = false,
+            Fill = new ImageBrush(previous) { Stretch = Stretch.UniformToFill, Opacity = BgImageBrush.Opacity }
+        };
+        RootHomeGrid.Children.Insert(0, ghost);
+        var anim = new DoubleAnimation(1.0, 0.0, new Duration(TimeSpan.FromMilliseconds(300)))
+        {
+            EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut }
+        };
+        anim.Completed += (_, _) => RootHomeGrid.Children.Remove(ghost);
+        ghost.BeginAnimation(UIElement.OpacityProperty, anim);
+    }
+
     private async void ApplyWallpaper()
     {
         if (_wallpaperApplyBusy) return;
@@ -856,6 +873,7 @@ public partial class HomePageView : UserControl
 
                 if (TryGetCachedWallpaper(path, out var cachedBmp, out var cachedAvg))
                 {
+                    CrossfadeWallpaper(BgImageBrush.ImageSource, cachedBmp);
                     BgImageBrush.ImageSource = cachedBmp;
                     WeatherBridge.SetWallpaperSurface(RootHomeGrid);
                     WeatherBridge.SetWallpaper(cachedBmp);
@@ -867,6 +885,7 @@ public partial class HomePageView : UserControl
 
                     if (myToken != _wallpaperLoadToken) return;
 
+                    CrossfadeWallpaper(BgImageBrush.ImageSource, bmp);
                     BgImageBrush.ImageSource = bmp;
                     WeatherBridge.SetWallpaperSurface(RootHomeGrid);
                     WeatherBridge.SetWallpaper(bmp);
