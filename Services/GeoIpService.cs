@@ -19,7 +19,7 @@ public static class GeoIpService
     private const string ChecksumUrl = "https://github.com/sapics/ip-location-db/releases/download/checksum/server-country-ipv4-num.csv.sha256";
     private static readonly TimeSpan RefreshInterval = TimeSpan.FromDays(14);
 
-    private static readonly string _dir      = Path.Combine(LogService.UserDataRoot, "geoip");
+    private static readonly string _dir      = Path.Combine(ConfigService.UserDataRoot, "geoip");
     private static readonly string _dbPath   = Path.Combine(_dir, "server-country-ipv4-num.csv");
     private static readonly string _metaPath = Path.Combine(_dir, "meta.json");
     private static readonly HttpClient _http = new HttpClient { Timeout = TimeSpan.FromSeconds(20) };

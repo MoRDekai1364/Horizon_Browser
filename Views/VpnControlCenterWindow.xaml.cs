@@ -219,7 +219,7 @@ public partial class VpnControlCenterWindow : Window
         TxtVpnCountry.Text = p.Country ?? "";
         foreach (ComboBoxItem cti in CboVpnType.Items)
         {
-            if ((string)cti.Tag == p.Type) { CboVpnType.SelectedItem = cti; break; }
+            if ((string)cti.Tag == p.Type.ToString()) { CboVpnType.SelectedItem = cti; break; }
         }
     }
 
@@ -230,7 +230,7 @@ public partial class VpnControlCenterWindow : Window
         {
             Id       = string.IsNullOrEmpty(_vpnEditingId) ? Guid.NewGuid().ToString("N") : _vpnEditingId,
             Name     = TxtVpnName.Text.Trim(),
-            Type     = (CboVpnType.SelectedItem as ComboBoxItem)?.Tag as string ?? "Http",
+            Type     = Enum.TryParse<VpnUpstreamType>((CboVpnType.SelectedItem as ComboBoxItem)?.Tag as string, out var vt) ? vt : VpnUpstreamType.Http,
             Host     = TxtVpnHost.Text.Trim(),
             Port     = int.TryParse(TxtVpnPort.Text.Trim(), out var port) ? port : 0,
             Username = TxtVpnUsername.Text.Trim(),
@@ -251,7 +251,11 @@ public partial class VpnControlCenterWindow : Window
             return;
         }
 
-        VpnProfileStore.Save(profile);
+        if (!VpnProfileStore.TryAddOrUpdate(profile, out var saveError))
+        {
+            SetVpnStatus(saveError, false);
+            return;
+        }
         _vpnEditingId = profile.Id;
         RefreshVpnList(profile.Id);
         SetVpnStatus("Server saved.", true);
@@ -266,7 +270,7 @@ public partial class VpnControlCenterWindow : Window
         }
 
         string id = _vpnEditingId;
-        VpnProfileStore.Delete(id);
+        VpnProfileStore.Remove(id);
         if (_vpnActiveId == id) _vpnActiveId = "";
         ClearVpnEditor();
         RefreshVpnList(null);

@@ -17,7 +17,7 @@ public class ThroughputSample
 
 public static class VpnThroughputHistoryService
 {
-    private static readonly string _dir  = Path.Combine(LogService.UserDataRoot, "vpn_history");
+    private static readonly string _dir  = Path.Combine(ConfigService.UserDataRoot, "vpn_history");
     private static readonly string _path = Path.Combine(_dir, "throughput.jsonl");
 
     private const int SampleIntervalSeconds = 30;
