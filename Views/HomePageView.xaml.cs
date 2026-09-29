@@ -2198,6 +2198,15 @@ public partial class HomePageView : UserControl
 
     private void InitDefaultLayoutSets()
     {
+        foreach (var existingSet in SettingsService.Current.SavedLayoutSets)
+        {
+            if (existingSet.NormalLayout != null && !existingSet.NormalLayout.Widgets.Any(w => w.WidgetId == "VpnAdBlock"))
+                existingSet.NormalLayout.Widgets.Add(new WidgetPosition { WidgetId = "VpnAdBlock", Row = 99, Column = 0 });
+
+            if (existingSet.InactivityLayout != null && !existingSet.InactivityLayout.Widgets.Any(w => w.WidgetId == "VpnAdBlock"))
+                existingSet.InactivityLayout.Widgets.Add(new WidgetPosition { WidgetId = "VpnAdBlock", Row = 99, Column = 0 });
+        }
+
         if (SettingsService.Current.SavedLayoutSets.Count == 0)
         {
             var def = new LayoutSet { Name = "Default Layout" };

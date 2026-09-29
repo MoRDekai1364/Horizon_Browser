@@ -482,8 +482,26 @@
                 </Border>
             </Button>
 
-            <Button x:Name="BtnChangeWallpaper" Grid.Row="1" Height="26"
-                    HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,16,16"
+            <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,16,16">
+
+                <Border x:Name="PnlVpnAdBlock" Tag="VpnAdBlock" Background="#991A1A1A" CornerRadius="13" BorderBrush="#80FFFFFF" BorderThickness="1.5"
+                        Cursor="Hand" Visibility="Collapsed" Margin="0,0,10,0" Padding="16,4,16,4" VerticalAlignment="Center"
+                        RenderTransformOrigin="0.5,0.5" PreviewMouseLeftButtonDown="Widget_PreviewMouseLeftButtonDown" MouseMove="Widget_MouseMove" MouseLeftButtonUp="WidgetVpnAdBlock_Click">
+                    <Border.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform x:Name="VpnAdBlockScale" ScaleX="1.0" ScaleY="1.0"/>
+                            <TranslateTransform x:Name="VpnAdBlockTrans" X="0" Y="0"/>
+                        </TransformGroup>
+                    </Border.RenderTransform>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock x:Name="TblVpnAdBlockStatus" Text="VPN off" FontSize="11" FontWeight="SemiBold" Foreground="White" HorizontalAlignment="Center"/>
+                        <TextBlock x:Name="TblVpnAdBlockCountry" Text="" FontSize="9" Foreground="#CCC" HorizontalAlignment="Center" Margin="0,1,0,0" Visibility="Collapsed"/>
+                        <TextBlock x:Name="TblVpnAdBlockSpeed" Text="" FontSize="9" Foreground="#CCC" HorizontalAlignment="Center" Margin="0,0,0,0" Visibility="Collapsed"/>
+                    </StackPanel>
+                </Border>
+
+            <Button x:Name="BtnChangeWallpaper" Height="26"
+                    HorizontalAlignment="Right" VerticalAlignment="Bottom"
                     Click="BtnChangeWallpaper_Click" BorderThickness="0" Cursor="Hand"
                     Background="Transparent" Padding="0">
                 <Button.Template>
@@ -517,6 +535,7 @@
                     </StackPanel>
                 </Border>
             </Button>
+            </StackPanel>
 
             <!-- Overlapping centered layout: Left section sits anchored to the top-left, while the search area spans the entire width with horizontal centering so it remains permanently centered against the true viewport regardless of left panel dimensions or widget visibility. -->
             <Grid x:Name="GridHomeLayout" Grid.Row="1">
@@ -649,18 +668,6 @@
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
-                </StackPanel>
-
-                <StackPanel x:Name="PnlVpnAdBlock" Tag="VpnAdBlock" Margin="0,20,0,0" Background="Transparent" Cursor="Hand" Visibility="Collapsed" RenderTransformOrigin="0,0" PreviewMouseLeftButtonDown="Widget_PreviewMouseLeftButtonDown" MouseMove="Widget_MouseMove" MouseLeftButtonUp="WidgetVpnAdBlock_Click">
-                    <StackPanel.RenderTransform>
-                        <TransformGroup>
-                            <ScaleTransform x:Name="VpnAdBlockScale" ScaleX="1.0" ScaleY="1.0"/>
-                            <TranslateTransform x:Name="VpnAdBlockTrans" X="0" Y="0"/>
-                        </TransformGroup>
-                    </StackPanel.RenderTransform>
-                    <TextBlock x:Name="TblVpnAdBlockStatus" Text="VPN off" FontSize="21" Foreground="#DDD" HorizontalAlignment="Left"/>
-                    <TextBlock x:Name="TblVpnAdBlockCountry" Text="" FontSize="16" Foreground="#999" HorizontalAlignment="Left" Margin="2,4,0,0" Visibility="Collapsed"/>
-                    <TextBlock x:Name="TblVpnAdBlockSpeed" Text="" FontSize="16" Foreground="#999" HorizontalAlignment="Left" Margin="2,2,0,0" Visibility="Collapsed"/>
                 </StackPanel>
 
                 <StackPanel x:Name="PnlMedia" Tag="Media" Margin="0,26,0,0" Visibility="Collapsed" RenderTransformOrigin="0,0" PreviewMouseLeftButtonDown="Widget_PreviewMouseLeftButtonDown" MouseMove="Widget_MouseMove">

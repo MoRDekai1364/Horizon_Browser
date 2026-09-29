@@ -56,10 +56,16 @@ public partial class VpnControlCenterWindow : Window
 
     // ── VPN section ─────────────────────────────────────────────────────────
 
+    private bool _initialVpnEnabled;
+    private bool _initialVpnAutoConnect;
+
     private void LoadVpnSection()
     {
         _loading = true;
         var s = SettingsService.Current;
+
+        _initialVpnEnabled = s.VpnEnabled;
+        _initialVpnAutoConnect = s.VpnAutoConnect;
 
         ChkVpnEnabled.IsChecked = s.VpnEnabled;
         ChkVpnAutoConnect.IsChecked = s.VpnAutoConnect;
@@ -75,21 +81,17 @@ public partial class VpnControlCenterWindow : Window
         }
         if (CboGeoLookupMode.SelectedItem == null) CboGeoLookupMode.SelectedIndex = 0;
 
-        ChkVpnEnabled.Checked   += (_, _) => SaveVpnSettings();
-        ChkVpnEnabled.Unchecked += (_, _) => SaveVpnSettings();
-        ChkVpnAutoConnect.Checked   += (_, _) => SaveVpnSettings();
-        ChkVpnAutoConnect.Unchecked += (_, _) => SaveVpnSettings();
-        ChkVpnKillSwitch.Checked   += (_, _) => SaveVpnSettings();
-        ChkVpnKillSwitch.Unchecked += (_, _) => SaveVpnSettings();
-        ChkVpnNotify.Checked   += (_, _) => SaveVpnSettings();
-        ChkVpnNotify.Unchecked += (_, _) => SaveVpnSettings();
-        ChkVpnBlockWebRtc.Checked   += (_, _) => SaveVpnSettings();
-        ChkVpnBlockWebRtc.Unchecked += (_, _) => SaveVpnSettings();
-        TxtVpnBypass.LostFocus += (_, _) => SaveVpnSettings();
-        CboGeoLookupMode.SelectionChanged += (_, _) => SaveVpnSettings();
+
 
         ClearVpnEditor();
         _loading = false;
+    }
+
+    private void BtnSaveAll_Click(object sender, RoutedEventArgs e)
+    {
+        SaveVpnSettings();
+        SaveAdGuardSettings();
+        SetVpnStatus("Settings saved.", true);
     }
 
     private void SaveVpnSettings()
@@ -105,6 +107,35 @@ public partial class VpnControlCenterWindow : Window
         s.VpnActiveProfileId = _vpnActiveId;
         s.GeoLookupMode = (CboGeoLookupMode.SelectedItem as ComboBoxItem)?.Tag as string ?? "Local";
         SettingsService.Save();
+
+        bool needsRestart = s.VpnEnabled != _initialVpnEnabled || s.VpnAutoConnect != _initialVpnAutoConnect;
+        if (needsRestart)
+        {
+            _initialVpnEnabled = s.VpnEnabled;
+            _initialVpnAutoConnect = s.VpnAutoConnect;
+            PromptRestart();
+        }
+    }
+
+    private void PromptRestart()
+    {
+        var result = MessageBox.Show(
+            "VPN startup settings changed. Restart Horizon now to apply them?",
+            "Restart required", MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+        if (result != MessageBoxResult.Yes) return;
+
+        try
+        {
+            var exePath = Environment.ProcessPath;
+            if (!string.IsNullOrEmpty(exePath))
+                System.Diagnostics.Process.Start(exePath);
+        }
+        catch (Exception ex)
+        {
+            LogService.RecordCrash(ex, "VpnControlCenterWindow.PromptRestart");
+        }
+        Application.Current.Shutdown();
     }
 
     private void RefreshVpnList(string? selectId)
@@ -329,8 +360,6 @@ public partial class VpnControlCenterWindow : Window
     {
         var s = SettingsService.Current;
         ChkAdGuardEnabled.IsChecked = s.AdGuardEnabled;
-        ChkAdGuardEnabled.Checked   += (_, _) => { s.AdGuardEnabled = true; SettingsService.Save(); };
-        ChkAdGuardEnabled.Unchecked += (_, _) => { s.AdGuardEnabled = false; SettingsService.Save(); };
 
         PnlAdGuardFilters.Children.Add(AdGuardRow("Block Ads", s.AdGuard_BlockAds, v => s.AdGuard_BlockAds = v));
         PnlAdGuardFilters.Children.Add(AdGuardRow("Block Trackers", s.AdGuard_BlockTrackers, v => s.AdGuard_BlockTrackers = v));
@@ -338,11 +367,21 @@ public partial class VpnControlCenterWindow : Window
         PnlAdGuardFilters.Children.Add(AdGuardRow("Social Widgets", s.AdGuard_SocialWidgets, v => s.AdGuard_SocialWidgets = v));
     }
 
+    private void SaveAdGuardSettings()
+    {
+        var s = SettingsService.Current;
+        s.AdGuardEnabled = ChkAdGuardEnabled.IsChecked == true;
+        foreach (var child in PnlAdGuardFilters.Children)
+        {
+            if (child is CheckBox chk && chk.Tag is Action<bool> setter)
+                setter(chk.IsChecked == true);
+        }
+        SettingsService.Save();
+    }
+
     private static CheckBox AdGuardRow(string label, bool value, Action<bool> setter)
     {
-        var chk = new CheckBox { Content = label, Foreground = Brushes.Gainsboro, Margin = new Thickness(0, 4, 0, 4), IsChecked = value };
-        chk.Checked   += (_, _) => { setter(true);  SettingsService.Save(); };
-        chk.Unchecked += (_, _) => { setter(false); SettingsService.Save(); };
+        var chk = new CheckBox { Content = label, Foreground = Brushes.Gainsboro, Margin = new Thickness(0, 4, 0, 4), IsChecked = value, Tag = setter };
         return chk;
     }
 

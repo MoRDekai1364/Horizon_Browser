@@ -6,3 +6,4 @@ version 2.7.6
 + made all widget windows with rounded corners
 + made changelog.txt show its content at the browser settings
 + applied monitor-based visual blur system
++ added vpn (in progress)
