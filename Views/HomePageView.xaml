@@ -651,7 +651,7 @@
                     </ItemsControl>
                 </StackPanel>
 
-                <StackPanel x:Name="PnlVpnAdBlock" Tag="VpnAdBlock" Margin="0,20,0,0" Visibility="Collapsed" RenderTransformOrigin="0,0" PreviewMouseLeftButtonDown="Widget_PreviewMouseLeftButtonDown" MouseMove="Widget_MouseMove">
+                <StackPanel x:Name="PnlVpnAdBlock" Tag="VpnAdBlock" Margin="0,20,0,0" Background="Transparent" Cursor="Hand" Visibility="Collapsed" RenderTransformOrigin="0,0" PreviewMouseLeftButtonDown="Widget_PreviewMouseLeftButtonDown" MouseMove="Widget_MouseMove" MouseLeftButtonUp="WidgetVpnAdBlock_Click">
                     <StackPanel.RenderTransform>
                         <TransformGroup>
                             <ScaleTransform x:Name="VpnAdBlockScale" ScaleX="1.0" ScaleY="1.0"/>

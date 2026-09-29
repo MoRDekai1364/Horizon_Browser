@@ -236,6 +236,8 @@
                         <TextBox x:Name="TxtVpnBypass" Height="30" Background="#222" Foreground="White" BorderThickness="0" Margin="0,0,0,10"
                                  ToolTip="Example: localhost;127.0.0.1;&lt;local&gt;;*.example.com"/>
 
+                        <Button x:Name="BtnOpenVpnControlCenter" Content="Open Full Control Center" HorizontalAlignment="Left" Padding="10,4" Margin="0,4,0,10" Click="BtnOpenVpnControlCenter_Click"/>
+
                         <TextBlock Text="Quick Connect by Country" Foreground="{StaticResource Brush_Text}" FontWeight="Bold" Margin="0,5,0,4"/>
                         <Grid Margin="0,0,0,8">
                             <Grid.ColumnDefinitions>

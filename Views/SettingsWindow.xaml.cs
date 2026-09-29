@@ -1307,6 +1307,12 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
         SetVpnStatus("Server deleted.", true);
     }
 
+    private void BtnOpenVpnControlCenter_Click(object sender, RoutedEventArgs e)
+    {
+        var win = new VpnControlCenterWindow { Owner = this };
+        win.Show();
+    }
+
     private void RefreshVpnCountryPicker()
     {
         var selected = (CboVpnCountryPicker.SelectedItem as string) ?? "";

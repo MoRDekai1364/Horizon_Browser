@@ -142,6 +142,7 @@ public partial class App : Application
 
             _ = StealthEnvironment.InitializeAsync();
             GeoIpService.KickOffBackgroundRefresh();
+            VpnThroughputHistoryService.Start();
 
             try
             {

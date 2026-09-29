@@ -1,0 +1,157 @@
+<Window x:Class="Horizon.Stealth.Views.VpnControlCenterWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="VPN &amp; AdBlock Control Center" Width="900" Height="640" MinWidth="820" MinHeight="560"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource Brush_DeepBackground}"
+        Loaded="Window_Loaded" Closed="Window_Closed">
+
+    <Window.Resources>
+        <Style TargetType="ToolTip">
+            <Setter Property="Background" Value="#222"/>
+            <Setter Property="Foreground" Value="#DDD"/>
+            <Setter Property="BorderBrush" Value="#444"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock x:Name="TblStatusHeader" Grid.Row="0" Text="VPN status: unknown" FontSize="18" Foreground="White" Margin="0,0,0,12"/>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="16"/>
+                <ColumnDefinition Width="320"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- LEFT: VPN -->
+            <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <TextBlock Text="VPN" FontWeight="Bold" Foreground="White" FontSize="15" Margin="0,0,0,6"/>
+
+                    <CheckBox x:Name="ChkVpnEnabled" Content="VPN enabled" Foreground="#DDD" Margin="0,3"/>
+                    <CheckBox x:Name="ChkVpnAutoConnect" Content="Auto-connect on startup" Foreground="#DDD" Margin="0,3"/>
+                    <CheckBox x:Name="ChkVpnKillSwitch" Content="Kill switch" Foreground="#DDD" Margin="0,3"/>
+                    <CheckBox x:Name="ChkVpnNotify" Content="Notify on drop/recover" Foreground="#DDD" Margin="0,3"/>
+                    <CheckBox x:Name="ChkVpnBlockWebRtc" Content="Block WebRTC leaks" Foreground="#DDD" Margin="0,3"/>
+
+                    <TextBlock Text="Bypass list (semicolon separated)" Foreground="#AAA" FontSize="11" Margin="0,8,0,2"/>
+                    <TextBox x:Name="TxtVpnBypass" Height="26" Background="#222" Foreground="White" BorderThickness="0"/>
+
+                    <TextBlock Text="Country lookup" Foreground="#AAA" FontSize="11" Margin="0,10,0,2"/>
+                    <ComboBox x:Name="CboGeoLookupMode" Height="26" Background="#222" Foreground="White" BorderThickness="0">
+                        <ComboBoxItem Content="Local (offline database, default)" Tag="Local"/>
+                        <ComboBoxItem Content="Api (online, on-demand)" Tag="Api"/>
+                        <ComboBoxItem Content="Off (manual entry only)" Tag="Off"/>
+                    </ComboBox>
+
+                    <TextBlock Text="Quick connect by country" Foreground="#AAA" FontSize="11" Margin="0,10,0,2"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="100"/>
+                        </Grid.ColumnDefinitions>
+                        <ComboBox x:Name="CboVpnCountryPicker" Grid.Column="0" Height="26" Background="#222" Foreground="White" BorderThickness="0" Margin="0,0,6,0"/>
+                        <Button x:Name="BtnVpnQuickConnect" Grid.Column="1" Content="Connect" Height="26" Click="BtnVpnQuickConnect_Click"/>
+                    </Grid>
+
+                    <TextBlock Text="Servers" FontWeight="Bold" Foreground="White" FontSize="14" Margin="0,16,0,6"/>
+                    <ListBox x:Name="LstVpnProfiles" Height="110" Background="#1A1A1A" BorderBrush="#333" Margin="0,0,0,8"
+                             SelectionChanged="LstVpnProfiles_SelectionChanged"/>
+
+                    <Grid Margin="0,0,0,4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="8"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Name" Foreground="#AAA" FontSize="11"/>
+                            <TextBox x:Name="TxtVpnName" Height="26" Background="#222" Foreground="White" BorderThickness="0"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="Type" Foreground="#AAA" FontSize="11"/>
+                            <ComboBox x:Name="CboVpnType" Height="26" Background="#222" Foreground="White" BorderThickness="0">
+                                <ComboBoxItem Content="Http" Tag="Http"/>
+                                <ComboBoxItem Content="Socks5" Tag="Socks5"/>
+                            </ComboBox>
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid Margin="0,4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="8"/>
+                            <ColumnDefinition Width="90"/>
+                            <ColumnDefinition Width="8"/>
+                            <ColumnDefinition Width="70"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Host" Foreground="#AAA" FontSize="11"/>
+                            <TextBox x:Name="TxtVpnHost" Height="26" Background="#222" Foreground="White" BorderThickness="0"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="Port" Foreground="#AAA" FontSize="11"/>
+                            <TextBox x:Name="TxtVpnPort" Height="26" Background="#222" Foreground="White" BorderThickness="0"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="4">
+                            <TextBlock Text="Country" Foreground="#AAA" FontSize="11"/>
+                            <TextBox x:Name="TxtVpnCountry" Height="26" MaxLength="2" CharacterCasing="Upper" Background="#222" Foreground="White" BorderThickness="0"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid Margin="0,4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="8"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Username" Foreground="#AAA" FontSize="11"/>
+                            <TextBox x:Name="TxtVpnUsername" Height="26" Background="#222" Foreground="White" BorderThickness="0"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="Password" Foreground="#AAA" FontSize="11"/>
+                            <PasswordBox x:Name="PwdVpn" Height="26" Background="#222" Foreground="White" BorderThickness="0"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                        <Button x:Name="BtnVpnNew" Content="New" Padding="10,4" Margin="0,0,6,0" Click="BtnVpnNew_Click"/>
+                        <Button x:Name="BtnVpnSaveServer" Content="Save Server" Padding="10,4" Margin="0,0,6,0" Click="BtnVpnSaveServer_Click"/>
+                        <Button x:Name="BtnVpnUse" Content="Set Active" Padding="10,4" Margin="0,0,6,0" Click="BtnVpnUse_Click"/>
+                        <Button x:Name="BtnVpnTest" Content="Test" Padding="10,4" Margin="0,0,6,0" Click="BtnVpnTest_Click"/>
+                        <Button x:Name="BtnVpnDelete" Content="Delete" Padding="10,4" Click="BtnVpnDelete_Click"/>
+                    </StackPanel>
+
+                    <TextBlock x:Name="TblVpnStatus" Text="" FontSize="12" Margin="0,8,0,0" TextWrapping="Wrap"/>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- RIGHT: AdGuard -->
+            <StackPanel Grid.Column="2">
+                <TextBlock Text="AdGuard" FontWeight="Bold" Foreground="White" FontSize="15" Margin="0,0,0,6"/>
+                <CheckBox x:Name="ChkAdGuardEnabled" Content="AdGuard enabled" Foreground="#DDD" Margin="0,3"/>
+                <StackPanel x:Name="PnlAdGuardFilters" Margin="0,8,0,0"/>
+                <TextBlock Text="Configure filter lists and custom rules inside the AdGuard popup (toolbar icon)." Foreground="#888" FontSize="11" TextWrapping="Wrap" Margin="0,8,0,0"/>
+            </StackPanel>
+        </Grid>
+
+        <TextBlock Grid.Row="2" Text="Throughput history" FontWeight="Bold" Foreground="White" FontSize="14" Margin="0,14,0,4"/>
+        <Border Grid.Row="3" Height="140" Background="#1A1A1A" BorderBrush="#333" BorderThickness="1">
+            <Grid>
+                <Canvas x:Name="ThroughputCanvas" ClipToBounds="True"/>
+                <TextBlock x:Name="TblThroughputEmpty" Text="No data yet. Samples are recorded every 30s while connected." Foreground="#666" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <TextBlock x:Name="TblThroughputCurrent" Text="" Foreground="#8fd6a0" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="8"/>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

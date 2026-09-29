@@ -1835,6 +1835,13 @@ public partial class HomePageView : UserControl
         e.Handled = true;
     }
 
+    private void WidgetVpnAdBlock_Click(object sender, MouseButtonEventArgs e)
+    {
+        var win = new Horizon.Stealth.Views.VpnControlCenterWindow { Owner = Window.GetWindow(this) };
+        win.Show();
+        e.Handled = true;
+    }
+
     private void WidgetCalendar_Click(object sender, MouseButtonEventArgs e)
     {
         var mainWin = Window.GetWindow(this) as MainWindow;
