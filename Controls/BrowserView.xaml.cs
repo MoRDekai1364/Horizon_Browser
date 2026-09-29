@@ -1452,7 +1452,7 @@ public partial class BrowserView : UserControl
             (function() {
                 'use strict';
                 if (window.__horizonScriptDisabled) return;
-                if (window.location.hostname.includes('music.youtube.com')) return;
+                if (__HZ_MUSIC_HOST__) return;
 
                 // ── Ad skipping ──────────────────────────────────────────────────────
                 const manageAds = () => {
@@ -1710,7 +1710,7 @@ public partial class BrowserView : UserControl
             })();
         ";
 
-        var _regAutomation = MainWebView.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(automationScript);
+        var _regAutomation = MainWebView.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(automationScript.Replace("__HZ_MUSIC_HOST__", MusicSites.JsHostTest));
         var _regPrint      = MainWebView.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(@"
 (function() {
     var _origPrint = window.print;

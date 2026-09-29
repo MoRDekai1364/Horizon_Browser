@@ -280,7 +280,8 @@ public class TabViewModel : INotifyPropertyChanged
                         suffix.IndexOf("Twitch", StringComparison.OrdinalIgnoreCase) >= 0 ||
                         suffix.IndexOf("Spotify", StringComparison.OrdinalIgnoreCase) >= 0 ||
                         suffix.IndexOf("SoundCloud", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                        suffix.Equals(DomainTitle, StringComparison.OrdinalIgnoreCase))
+                        suffix.Equals(DomainTitle, StringComparison.OrdinalIgnoreCase) ||
+                        Core.MusicSites.IsBrandSuffix(suffix))
                     {
                         title = title.Substring(0, dashIdx).Trim();
                     }

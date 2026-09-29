@@ -329,6 +329,8 @@ public partial class MainWindow : Window
     private DispatcherTimer? _marqueeTimer;
     private double           _marqueeOffset    = 0;
     private double           _marqueeTextWidth = 0;
+    private double           _marqueeViewportWidth = _widgetDefaultWidth - 12;
+    private const double     _widgetTabGap     = 12.0;
     private bool             _isMarqueeRunning = false;
     private DispatcherTimer? _videoWidgetTimer = null;
     private readonly DispatcherTimer _sessionAutoSaveTimer = new() { Interval = TimeSpan.FromSeconds(20) };
@@ -1697,6 +1699,8 @@ public partial class MainWindow : Window
                      ?? ListOverflowTabs.SelectedItem as TabViewModel;
         if (reflowSel != null && _tabViews.TryGetValue(reflowSel, out var reflowView))
             reflowView.Visibility = Visibility.Visible;
+
+        
 
         Dispatcher.BeginInvoke(DispatcherPriority.Loaded, ResetPrimaryScrollToStart);
         Dispatcher.BeginInvoke(DispatcherPriority.Loaded, UpdateMediaWidgetLayout);
@@ -4152,6 +4156,11 @@ return colors.length > 0 ? colors : null;
                 if (sp?.src?.startsWith('http')) return sp.src;
                 const sc = document.querySelector('.playbackSoundBadge__artworkLink img, .sc-artwork img');
                 if (sc?.src?.startsWith('http')) return sc.src;
+                const msArt = navigator.mediaSession?.metadata?.artwork;
+                if (msArt && msArt.length) {
+                    const msBest = msArt[msArt.length - 1];
+                    if (msBest?.src?.startsWith('http')) return msBest.src;
+                }
                 const og = document.querySelector('meta[property=""og:image""]')?.content;
                 if (og?.startsWith('http')) return og;
                 return null;
@@ -7125,10 +7134,11 @@ return colors.length > 0 ? colors : null;
         else
         {
             string marqueeText = mode == "Weather" ? _weatherCache : GetWidgetMediaTextFull();
-            if (!_isMarqueeRunning || TxtWidget.Text != marqueeText)
+            double marqueeWidth = mode == "Weather" ? _widgetDefaultWidth : GetMediaMarqueeWidth(marqueeText);
+            if (!_isMarqueeRunning || TxtWidget.Text != marqueeText || Math.Abs(_marqueeViewportWidth - (marqueeWidth - 12)) > 0.5)
             {
                 StopWidgetMarquee();
-                if (!_widgetFading) StartWidgetMarquee(marqueeText);
+                if (!_widgetFading) StartWidgetMarquee(marqueeText, marqueeWidth);
             }
         }
 
@@ -11044,7 +11054,7 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
 
     // ── Weather widget: adaptive width animation ──────────────────────────────
     // ── Widget marquee & hover-widen ─────────────────────────────────────────
-    private void StartWidgetMarquee(string fullText)
+    private void StartWidgetMarquee(string fullText, double widgetWidth)
     {
         if (string.IsNullOrEmpty(fullText)) return;
         TxtWidget.Text = fullText;
@@ -11062,7 +11072,8 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
             VisualTreeHelper.GetDpi(this).PixelsPerDip);
 
         _marqueeTextWidth = ft.Width;
-        double containerW = _widgetDefaultWidth - 12;
+        double containerW = widgetWidth - 12;
+        _marqueeViewportWidth = containerW;
 
         if (_marqueeTextWidth <= containerW)
         {
@@ -11087,7 +11098,7 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
     private void MarqueeTimer_Tick(object? sender, EventArgs e)
     {
         _marqueeOffset += 1.5;
-        double travel = _marqueeTextWidth - (_widgetDefaultWidth - 12);
+        double travel = _marqueeTextWidth - _marqueeViewportWidth;
         if (_marqueeOffset > travel + 50) _marqueeOffset = -40;
         if (TxtWidget?.RenderTransform is TranslateTransform tt)
             tt.X = -Math.Max(0, _marqueeOffset);
@@ -11123,7 +11134,7 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
         double tabAreaAtDefault = GetTabBarAvailableWidth() + (2.0 / 3.0) * (current - _widgetDefaultWidth);
         double spare = tabAreaAtDefault - usedByTabs - 8;
         double max = _widgetDefaultWidth + Math.Max(0, spare) * 1.5;
-        return Math.Min(320, max);
+        return max;
     }
 
     private void UpdateMediaWidgetLayout()
@@ -11207,6 +11218,62 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
         AnimateWidgetWidth(target);
     }
 
+    private double MeasureWidgetTextWidth(string text)
+    {
+        var ft = new System.Windows.Media.FormattedText(
+            text,
+            System.Globalization.CultureInfo.CurrentCulture,
+            FlowDirection.LeftToRight,
+            new Typeface(TxtWidget.FontFamily, TxtWidget.FontStyle,
+                         TxtWidget.FontWeight, TxtWidget.FontStretch),
+            TxtWidget.FontSize, Brushes.White,
+            VisualTreeHelper.GetDpi(this).PixelsPerDip);
+        return ft.Width;
+    }
+
+    private double GetTabColumnShare()
+    {
+        if (ListTabs.Parent is Grid headerGrid && headerGrid.ColumnDefinitions.Count > 2)
+        {
+            double omniW = headerGrid.ColumnDefinitions[1].ActualWidth;
+            double tabsW = headerGrid.ColumnDefinitions[2].ActualWidth;
+            if (omniW + tabsW > 0) return Math.Clamp(tabsW / (omniW + tabsW), 0.25, 1.0);
+        }
+        return 2.0 / 3.0;
+    }
+
+    private double GetTabsNaturalDemand()
+    {
+        double demand = 0;
+        foreach (var t in _allTabs)
+            demand += (t.HasEverPlayedAudio ? TAB_MEDIA_WIDTH : TAB_DEFAULT_WIDTH) + TAB_MARGIN * 2;
+        return demand;
+    }
+
+    private double GetWidgetMaxWidth()
+    {
+        if (HeaderWidgetBorder == null || ListTabs == null) return _widgetDefaultWidth;
+        double widgetNow = HeaderWidgetBorder.ActualWidth;
+        double tabsNow   = ListTabs.ActualWidth;
+        if (widgetNow < 1 || tabsNow < 50) return _widgetDefaultWidth;
+        double spare = tabsNow - GetTabsNaturalDemand() - _widgetTabGap;
+        if (spare <= 0) return _widgetDefaultWidth;
+        return Math.Max(_widgetDefaultWidth, widgetNow + spare / GetTabColumnShare());
+    }
+
+    private double GetMediaMarqueeWidth(string fullText)
+    {
+        double wanted = MeasureWidgetTextWidth(fullText) + 24;
+        return Math.Min(Math.Max(_widgetDefaultWidth, wanted), GetWidgetMaxWidth());
+    }
+
+    private void UpdateMediaWidgetFit()
+    {
+        string mode = CurrentWidgetMode();
+        if ((mode == "Media" || mode == "Music") && SettingsService.Current.MediaWidgetMarquee)
+            RefreshWidgetDisplay();
+    }
+
     private void HeaderWidget_MouseEnter(object sender, MouseEventArgs e)
     {
         string mode = CurrentWidgetMode();
@@ -11245,7 +11312,7 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
 
         var miMarquee = new MenuItem
         {
-            Header      = "Marquee text (no auto-widen)",
+            Header      = isWeather ? "Marquee text (no auto-widen)" : "Marquee text (auto-widen, scroll only if tabs need the room)",
             IsCheckable = true,
             IsChecked   = marquee,
             Foreground  = menuFg,
