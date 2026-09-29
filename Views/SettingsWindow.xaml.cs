@@ -1144,6 +1144,7 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
         s.VpnBlockWebRtcLeak    = ChkVpnBlockWebRtc.IsChecked == true;
         s.VpnBypassList         = TxtVpnBypass.Text.Trim();
         s.VpnActiveProfileId    = _vpnActiveId;
+        s.GeoLookupMode         = (CboGeoLookupMode.SelectedItem as ComboBoxItem)?.Tag as string ?? "Local";
         LogService.Write("VPN", $"Settings saved: enabled={s.VpnEnabled}, autoConnect={s.VpnAutoConnect}, killSwitch={s.VpnKillSwitchEnabled}, active={(string.IsNullOrEmpty(s.VpnActiveProfileId) ? "none" : s.VpnActiveProfileId)}");
     }
 
@@ -1156,7 +1157,7 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
             ListBoxItem? toSelect = null;
             foreach (var p in VpnProfileStore.Profiles)
             {
-                var label = $"{p.Name}  ({p.Type}, {p.Host}:{p.Port})" + (p.Id == _vpnActiveId ? "  [ACTIVE]" : "");
+                var label = $"{p.Name}  ({p.Type}, {p.Host}:{p.Port}{(string.IsNullOrEmpty(p.Country) ? "" : ", " + p.Country)})" + (p.Id == _vpnActiveId ? "  [ACTIVE]" : "");
                 var item = new ListBoxItem { Content = label, Tag = p.Id, Foreground = Brushes.White };
                 LstVpnProfiles.Items.Add(item);
                 if (p.Id == selectId) toSelect = item;
@@ -1167,6 +1168,8 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
         {
             _vpnListLoading = false;
         }
+
+        RefreshVpnCountryPicker();
     }
 
     private void ClearVpnEditor()
@@ -1178,6 +1181,17 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
         TxtVpnPort.Text = "1080";
         TxtVpnUser.Text = "";
         PwdVpn.Password = "";
+        TxtVpnCountry.Text = "";
+
+        foreach (ComboBoxItem item in CboGeoLookupMode.Items)
+        {
+            if ((string)item.Tag == SettingsService.Current.GeoLookupMode)
+            {
+                CboGeoLookupMode.SelectedItem = item;
+                break;
+            }
+        }
+        if (CboGeoLookupMode.SelectedItem == null) CboGeoLookupMode.SelectedIndex = 0;
     }
 
     private void FillVpnEditor(VpnProfile p)
@@ -1188,6 +1202,7 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
         TxtVpnPort.Text = p.Port.ToString();
         TxtVpnUser.Text = p.Username;
         PwdVpn.Password = p.Password;
+        TxtVpnCountry.Text = p.Country ?? "";
         foreach (ComboBoxItem item in CboVpnType.Items)
         {
             if (item.Tag?.ToString() == p.Type.ToString()) { CboVpnType.SelectedItem = item; break; }
@@ -1205,6 +1220,7 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
             Username = TxtVpnUser.Text,
             Password = PwdVpn.Password,
             Source   = existing?.Source ?? "Custom",
+            Country  = TxtVpnCountry.Text.Trim(),
             Type     = CboVpnType.SelectedItem is ComboBoxItem ti && ti.Tag?.ToString() == "Http"
                            ? VpnUpstreamType.Http
                            : VpnUpstreamType.Socks5
@@ -1289,6 +1305,80 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
         ClearVpnEditor();
         RefreshVpnList(null);
         SetVpnStatus("Server deleted.", true);
+    }
+
+    private void RefreshVpnCountryPicker()
+    {
+        var selected = (CboVpnCountryPicker.SelectedItem as string) ?? "";
+
+        var countries = VpnProfileStore.Profiles
+            .Select(p => (p.Country ?? "").Trim().ToUpperInvariant())
+            .Where(c => c.Length == 2)
+            .Distinct()
+            .OrderBy(c => c)
+            .ToList();
+
+        CboVpnCountryPicker.ItemsSource = countries;
+
+        if (countries.Contains(selected))
+            CboVpnCountryPicker.SelectedItem = selected;
+        else if (countries.Count > 0)
+            CboVpnCountryPicker.SelectedIndex = 0;
+
+        BtnVpnQuickConnect.IsEnabled = countries.Count > 0;
+    }
+
+    private async void BtnVpnQuickConnect_Click(object sender, RoutedEventArgs e)
+    {
+        var country = CboVpnCountryPicker.SelectedItem as string;
+        if (string.IsNullOrEmpty(country))
+        {
+            SetVpnStatus("No countries available. Set a country on a saved server first.", false);
+            return;
+        }
+
+        var candidates = VpnProfileStore.Profiles
+            .Where(p => string.Equals((p.Country ?? "").Trim(), country, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        if (candidates.Count == 0)
+        {
+            SetVpnStatus($"No saved server found for {country}.", false);
+            return;
+        }
+
+        var profile = candidates[Random.Shared.Next(candidates.Count)];
+
+        BtnVpnQuickConnect.IsEnabled = false;
+        SetVpnStatus($"Connecting to {profile.Name} ({country})...", null);
+        try
+        {
+            var (ok, info) = await VpnRelayService.ConnectAsync(profile);
+            if (ok)
+            {
+                _vpnActiveId = profile.Id;
+                var s = SettingsService.Current;
+                s.VpnEnabled = true;
+                s.VpnActiveProfileId = profile.Id;
+                SettingsService.Save();
+                RefreshVpnList(_vpnActiveId);
+                ChkVpnEnabled.IsChecked = true;
+                SetVpnStatus($"Connected via {profile.Name}, exit IP {info}", true);
+            }
+            else
+            {
+                SetVpnStatus($"Failed: {info}", false);
+            }
+        }
+        catch (Exception ex)
+        {
+            LogService.RecordCrash(ex, "SettingsWindow.VpnQuickConnect");
+            SetVpnStatus($"Error: {ex.Message}", false);
+        }
+        finally
+        {
+            BtnVpnQuickConnect.IsEnabled = true;
+        }
     }
 
     private void BtnVpnUse_Click(object sender, RoutedEventArgs e)

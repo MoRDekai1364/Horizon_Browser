@@ -1,4 +1,4 @@
-Project Map Generated: 2026-09-28 14:35:22.798539
+Project Map Generated: 2026-09-29 09:35:50.898578
 Root: E:\Programming\Personal_projects\Horizon_Browser\development_version_beta
 
 LEGEND & ICONS:
@@ -29,8 +29,14 @@ Report Mode: TREE
         |-- 📁 logs
             |-- 📁 refs
                 |-- 📁 heads
-                    |-- 📄 new_changes (235.00 B)
-            |-- 📄 HEAD (235.00 B)
+                    |-- 📄 new_changes (685.00 B)
+                |-- 📁 remotes
+                    |-- 📁 origin
+                        |-- 📄 HEAD (168.00 B)
+                        |-- 📄 new_changes (543.00 B)
+                        |-- 📄 official_release (189.00 B)
+                        |-- 📄 Stable_pre-release (189.00 B)
+            |-- 📄 HEAD (685.00 B)
         |-- 📁 objects
             |-- 📁 00
                 |-- 📄 40657c7208add21700635d220a84a4017adea1 (1.59 MB)
@@ -135,6 +141,7 @@ Report Mode: TREE
                 |-- 📄 5f2c1243943701d3481966c7c5a8c3b7f017eb (23.84 KB)
                 |-- 📄 6ab10818ccc7f2d41a90d176c6eb6ebba847fc (335.44 KB)
                 |-- 📄 6b8360bcf252d326f412ad0b1816ab2c2ebd6f (485.00 B)
+                |-- 📄 8c8b523fe841f63f666278c55b228805f28cf2 (311.00 B)
                 |-- 📄 9352ac4c09a1fd07c157086f486c0261c7b3de (55.90 KB)
                 |-- 📄 c440cdbac14d833a7da33881791f037802c916 (1.71 MB)
             |-- 📁 11
@@ -306,6 +313,7 @@ Report Mode: TREE
             |-- 📁 2a
                 |-- 📄 0eae7939d4cd8352970f4a39f5d967845388ab (2.89 MB)
                 |-- 📄 d71d21125b106798c59f4c51175653571952af (29.86 KB)
+                |-- 📄 dac8b28bb3be6261d43a6a09c4b3e89ac5daba (1.11 KB)
             |-- 📁 2b
                 |-- 📄 0780d1d30de6a153b4f2b4ee415b113fe8edc5 (58.00 B)
                 |-- 📄 15e3f8566a922bc18807d7177e2d3d347ad3ea (76.35 KB)
@@ -370,7 +378,9 @@ Report Mode: TREE
                 |-- 📄 8338b3e13a73b2e011429e776f26f84d368467 (1.26 KB)
                 |-- 📄 cd806e3ad8a6720bffb488db061362c9ab7334 (121.96 KB)
                 |-- 📄 e33ad9e5318e3c36dda12cd9385787ed770ba5 (8.75 KB)
+                |-- 📄 e3c90a38435c9adc1d0612c6abc343259901cd (7.13 KB)
             |-- 📁 36
+                |-- 📄 0780261e7748c4ebd77c6112c8f02aa262e60e (21.43 KB)
                 |-- 📄 39dc75ab9fe6ff6d118c8ac2440aed5bc8eec9 (77.00 B)
             |-- 📁 37
                 |-- 📄 1c0b9731eed7920cfd39568289b9412f55c79c (5.58 KB)
@@ -461,6 +471,7 @@ Report Mode: TREE
             |-- 📁 43
                 |-- 📄 26422bd0f7910e5392649711ba9a6d216491c5 (955.00 B)
                 |-- 📄 3baf4c017de9336fca99c6bbf0fb1edbbdd023 (1.83 MB)
+                |-- 📄 b11b0f0ec5bd2fed1556531928387f8ce1387a (8.04 KB)
                 |-- 📄 b97e733c0dc3a1bb91fd3cd8a611c8974784dd (2.22 KB)
                 |-- 📄 c50934a389b5b9ee44f146a0baaf4f01bbc37c (13.12 KB)
                 |-- 📄 de1c2b2bab5003c331610fdc7a86e4b16a2151 (4.43 KB)
@@ -738,6 +749,7 @@ Report Mode: TREE
                 |-- 📄 723cadb70f2150e5658d9d43af181c679043db (6.19 MB)
                 |-- 📄 92d648b8122fcf5df74299a59ce6c428f0fa98 (2.49 MB)
                 |-- 📄 b3ae4a9f3d0c3dae7d5455b6df52ff3299fd99 (58.00 B)
+                |-- 📄 f6b2033e754a734e8c67a8a03d84a028517dce (1.93 KB)
             |-- 📁 6e
                 |-- 📄 22c4865975714abcca4803353c35fb6012c03a (11.29 KB)
                 |-- 📄 5f584fb41879f87fa074bbeea91387c0718c05 (300.00 B)
@@ -958,6 +970,7 @@ Report Mode: TREE
                 |-- 📄 3f63b27f5187fe7cf753ac9f48826d08fb8ab2 (58.00 B)
                 |-- 📄 46ddaa02fee15a02471fa175bc74bafac9b600 (3.38 KB)
                 |-- 📄 5735f239d8542fd5b0ec737686002d14407c32 (178.00 B)
+                |-- 📄 715e27e37b9152b05b361d25e45064d88de18a (82.00 B)
                 |-- 📄 863be90d5ee5376a66ef113aa3b0672c496647 (271.20 KB)
                 |-- 📄 c901e0d2e8c36cc495a204b89c4481d225de3c (264.76 KB)
             |-- 📁 8f
@@ -1084,6 +1097,7 @@ Report Mode: TREE
                 |-- 📄 4652f7f01eed92c15461b1b7a58d519fdcb472 (1.78 MB)
                 |-- 📄 56d8677db3e35cf6f1ec71d11bedccdb1d09f8 (78.00 B)
                 |-- 📄 56e448fa133c22c47b46a61247490469d01ed1 (6.15 KB)
+                |-- 📄 5fddfbcbe71eff4340df733e603da6ce574786 (16.31 KB)
                 |-- 📄 72a7f7b9f3ccdf25239af9b4aa6a31e994c11f (57.00 B)
                 |-- 📄 90ddfd1dc27e75d5efb24bdebd0d50f2fc5492 (58.00 B)
                 |-- 📄 bd3320323bdf073409070203f953142628d5bd (24.22 KB)
@@ -1155,6 +1169,7 @@ Report Mode: TREE
                 |-- 📄 09ee43c3b796e4acad6d4cba8585686b9cc782 (748.00 B)
                 |-- 📄 37389c816c0496d60ed9a00d3ee3779827b3ed (1.82 KB)
                 |-- 📄 53d8f754b0482b772e32febde8eb53d7c6df47 (9.85 KB)
+                |-- 📄 5e26f1e2cf6b179ed9aa3e8a3a444bc8d9b541 (529.00 B)
                 |-- 📄 6adbc01b2d2ce9cf1326678301875cf10cd6af (779.00 B)
                 |-- 📄 ff0f834e293276cfd81559892fb72d59068050 (57.00 B)
             |-- 📁 ab
@@ -1215,6 +1230,7 @@ Report Mode: TREE
                 |-- 📄 cf9e09d5b00be736fbec89be5f75f91f36c266 (12.99 KB)
             |-- 📁 b4
                 |-- 📄 0cca8dec792d26fd12860ee6c2d9f7b0e5150f (1.53 KB)
+                |-- 📄 189390e69a33fcdc5080b5f48202660c036518 (1.11 KB)
                 |-- 📄 70f1a7a31f1fb1c467d851b19ee4de4cc279a1 (913.42 KB)
                 |-- 📄 a54a239aeac25d3646bd91f9fe1ac461f28b79 (243.00 B)
                 |-- 📄 cc2f1ee1f179474ee49a8450faaacf37549d66 (1.85 MB)
@@ -1231,6 +1247,7 @@ Report Mode: TREE
             |-- 📁 b7
                 |-- 📄 2fed78aff1243034607755b893223103791799 (828.00 B)
                 |-- 📄 38a5a17aba53ef96582a24d3efa6595118e718 (431.00 B)
+                |-- 📄 6d559c2a8effa1b3d9b618da7cbf010137c18d (82.00 B)
                 |-- 📄 9bead744615e61b73787a4f435255d41cd48ce (57.00 B)
                 |-- 📄 a98ed9fddb79f8cdecf6075eddf701097cd46c (105.20 KB)
             |-- 📁 b8
@@ -1347,6 +1364,7 @@ Report Mode: TREE
                 |-- 📄 d8363d766204e77feca1dda834997dac10e041 (58.00 B)
                 |-- 📄 f209218f3ab275d240b675e178e77b68640848 (182.00 B)
             |-- 📁 cc
+                |-- 📄 0cf0bfbb9d34da56c5b5529eb1f1b98c3faf7b (395.00 B)
                 |-- 📄 432bf462f7fbc4b9f1e8ca119a912052d48865 (58.00 B)
                 |-- 📄 5399fa71437ffcc4892ea6b993829f77cdc090 (2.60 MB)
                 |-- 📄 8694689c8b6427bb57489571423a327b73099c (1.89 KB)
@@ -1493,8 +1511,10 @@ Report Mode: TREE
                 |-- 📄 ef710fefc3b1f46d80322a2902bfec43f8e348 (2.11 MB)
             |-- 📁 e6
                 |-- 📄 32b025120f99c12ab4a34c908dee81a8fdca97 (18.03 KB)
+                |-- 📄 4cc9b156a9ac0d47199476f586818be1d97ab4 (99.00 B)
                 |-- 📄 50e1b519d7e7dde97b3d2c69273f25cd96b6ee (51.00 B)
                 |-- 📄 9de29bb2d1d6434b8b29ae775ad8c2e48c5391 (15.00 B)
+                |-- 📄 a1bf56bb0a57f7f1b0d6bf9b18a116fb6df24f (48.74 KB)
                 |-- 📄 c68069ad1301c3a3fbc53df1c01ec5b53d17c5 (33.00 B)
                 |-- 📄 d6c6e31599718fe813508de915e73ef6310a65 (5.83 KB)
                 |-- 📄 dbd35e3c873f8be4b8dfd5f824538fabc897bc (12.24 KB)
@@ -1527,6 +1547,7 @@ Report Mode: TREE
                 |-- 📄 a1853608ffd250fe900c79ab8322ad96dd1788 (35.77 KB)
             |-- 📁 eb
                 |-- 📄 40c23b50198c2e3d4a806c3339c0ffc6a285a1 (2.61 MB)
+                |-- 📄 4ac3f8fe6d88643b4c862290c7b02fa9ddbcc7 (1.93 KB)
                 |-- 📄 54d727858ffdf7bc5a79be48490b80f7377568 (5.78 KB)
                 |-- 📄 6726b5730677bda166d4f5871f065bf9bede3d (361.06 KB)
                 |-- 📄 73523752e6314ef925ca0e82140de00adf1bf5 (6.94 KB)
@@ -1641,6 +1662,7 @@ Report Mode: TREE
                 |-- 📄 911dc41d94d621087b407a11f6e183aac69c17 (80.27 KB)
                 |-- 📄 e5f8a9e3b3202d46ffcd5533db00e1738ea109 (1.01 KB)
             |-- 📁 fe
+                |-- 📄 046848f38d40652dda2b6b18aead33a2bf5ee8 (154.00 B)
                 |-- 📄 09015c639f13856471d01f4f69ff4bc5ab0512 (218.41 KB)
                 |-- 📄 2231c0dfda7dd56038e911fd1c81a1b0f3a355 (58.00 B)
                 |-- 📄 6ff96a7415898a93f54fdb3e53f5ca9c46f1cc (58.00 B)
@@ -1652,18 +1674,29 @@ Report Mode: TREE
                 |-- 📄 3f0e30852ee90ef6a0621c13858a719186ef50 (6.80 KB)
                 |-- 📄 b7caf84e88c86ba96eca67b9adc13bacda7c44 (58.00 B)
             |-- 📁 info
+                |-- 📁 commit-graphs
+                    |-- 📄 commit-graph-chain (41.00 B)
+                    |-- 📄 graph-75523851a205e51ffe5d843c1997b82536c7e8df.graph (10.34 KB)
             |-- 📁 pack
+                |-- 📄 pack-e16d50097a91e40b63980e9393d5954b51e77402.idx (94.75 KB)
+                |-- 📄 pack-e16d50097a91e40b63980e9393d5954b51e77402.pack (629.71 MB)
+                |-- 📄 pack-e16d50097a91e40b63980e9393d5954b51e77402.rev (13.44 KB)
                 |-- 📄 tmp_pack_yazvcd (111.74 MB)
         |-- 📁 refs
             |-- 📁 heads
                 |-- 📄 new_changes (41.00 B)
+            |-- 📁 remotes
+                |-- 📁 origin
+                    |-- 📄 HEAD (42.00 B)
+                    |-- 📄 new_changes (41.00 B)
             |-- 📁 tags
-        |-- 📄 COMMIT_EDITMSG (74.71 KB)
-        |-- 📄 config (252.00 B)
+        |-- 📄 COMMIT_EDITMSG (209.00 B)
+        |-- 📄 config (324.00 B)
         |-- 📄 description (73.00 B)
-        |-- 📄 FETCH_HEAD (0.00 B)
+        |-- 📄 FETCH_HEAD (380.00 B)
         |-- 📄 HEAD (28.00 B)
-        |-- 📄 index (144.34 KB)
+        |-- 📄 index (144.67 KB)
+        |-- 📄 packed-refs (1.88 KB)
     |-- 📁 Controls
         |-- 📄 BookmarkIconConverter.cs (1.47 KB)
         |-- 📄 BrowserView.xaml (3.68 KB)
@@ -1693,7 +1726,10 @@ Report Mode: TREE
         |-- 📝 TERMS_OF SERVICE.txt (4.06 KB)
         |-- 📝 version.txt (26.00 B)
     |-- 📁 logs
+        |-- 📝 push_to_github_20260928_155607.log (42.44 KB)
+        |-- 📝 push_to_github_20260928_160120.log (9.87 KB)
         |-- 📝 scan_debug_1790595251.log (67.00 B)
+        |-- 📝 scan_debug_1790595318.log (67.00 B)
     |-- 📁 Output
         |-- ⚙️ Setup_Horizon_Browser_Beta.exe (46.70 MB)
     |-- 📁 Services
@@ -1710,6 +1746,7 @@ Report Mode: TREE
         |-- 📄 ExtensionRecord.cs (981.00 B)
         |-- 📄 ExtensionService.cs (11.98 KB)
         |-- 📄 FluxJanitorService.cs (3.41 KB)
+        |-- 📄 GeoIpService.cs (8.49 KB)
         |-- 📄 GithubUpdateService.cs (8.07 KB)
         |-- 📄 HealthService.cs (1.18 KB)
         |-- 📄 HistoryService.cs (2.97 KB)
@@ -1719,15 +1756,15 @@ Report Mode: TREE
         |-- 📄 MediaBridge.cs (2.57 KB)
         |-- 📄 MediaDownloadService.cs (17.25 KB)
         |-- 📄 NotificationCenterService.cs (1.67 KB)
-        |-- 📄 SettingsService.cs (17.86 KB)
+        |-- 📄 SettingsService.cs (17.95 KB)
         |-- 📄 SiteNotificationPermissionService.cs (2.36 KB)
         |-- 📄 Startupservice.cs (1.73 KB)
         |-- 📄 TabSleepRulesService.cs (2.83 KB)
         |-- 📄 ThemeService.cs (1.15 KB)
         |-- 📄 TintService.cs (492.00 B)
         |-- 📄 VaultService.cs (9.13 KB)
-        |-- 📄 VpnProfileStore.cs (7.23 KB)
-        |-- 📄 VpnRelayService.cs (29.36 KB)
+        |-- 📄 VpnProfileStore.cs (7.64 KB)
+        |-- 📄 VpnRelayService.cs (29.38 KB)
         |-- 📄 WeatherBridge.cs (3.50 KB)
         |-- 📄 WidgetBackdropService.cs (10.21 KB)
     |-- 📁 src
@@ -1794,8 +1831,8 @@ Report Mode: TREE
         |-- 📄 MaintenanceWindow.xaml.cs (6.16 KB)
         |-- 📄 NotificationToast.xaml (2.35 KB)
         |-- 📄 NotificationToast.xaml.cs (1.13 KB)
-        |-- 📄 SettingsWindow.xaml (92.91 KB)
-        |-- 📄 SettingsWindow.xaml.cs (83.81 KB)
+        |-- 📄 SettingsWindow.xaml (95.99 KB)
+        |-- 📄 SettingsWindow.xaml.cs (86.97 KB)
         |-- 📄 StartupVideoWindow.xaml (1.06 KB)
         |-- 📄 StartupVideoWindow.xaml.cs (9.99 KB)
         |-- 📄 TabSwitcherWindow.xaml (8.53 KB)
@@ -2001,7 +2038,7 @@ Report Mode: TREE
     |-- 📄 .gitignore (31.00 B)
     |-- 📝 _SmartCopy.config.txt (277.00 B)
     |-- 📄 App.xaml (576.00 B)
-    |-- 📄 App.xaml.cs (8.90 KB)
+    |-- 📄 App.xaml.cs (9.08 KB)
     |-- ⚙️ backup.bat (1.87 KB)
     |-- ⚙️ Build_Release.bat (3.59 KB)
     |-- 📝 changelog.txt (364.00 B)
@@ -2031,7 +2068,7 @@ Report Mode: TREE
     |-- 📄 overlay.hta (4.00 KB)
     |-- 📝 path.txt (85.00 B)
     |-- 📝 PRIVACY_POLICY.md (2.66 KB)
-    |-- 📝 project_map_1790595322.txt (0.00 B)
+    |-- 📝 project_map_1790663750.txt (0.00 B)
     |-- 💻 project_mapper.py (20.83 KB)
     |-- 💻 push_to_github.py (19.87 KB)
     |-- 📝 README.md (2.63 KB)

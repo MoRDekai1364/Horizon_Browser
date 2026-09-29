@@ -281,6 +281,7 @@ public class SettingsData
     public bool   VpnBlockWebRtcLeak    { get; set; } = true;
     public string VpnBypassList         { get; set; } = "localhost;127.0.0.1;<local>";
     public bool   VpnWizardCompleted    { get; set; } = false;
+    public string GeoLookupMode         { get; set; } = "Local"; // "Local" | "Api" | "Off"
 
     // ── Calculator AI mode API keys ──────────────────────────────────────────
     public string ClaudeApiKey   { get; set; } = "";

@@ -22,6 +22,7 @@ public class VpnProfile
     public string Username { get; set; } = "";
     public string Password { get; set; } = "";
     public string Source { get; set; } = "Custom";
+    public string Country { get; set; } = "";
 
     [JsonIgnore]
     public bool HasCredentials => !string.IsNullOrEmpty(Username);
@@ -142,6 +143,13 @@ public static class VpnProfileStore
             error = "Username and password must both be set or both empty.";
             return false;
         }
+        var country = (profile.Country ?? "").Trim().ToUpperInvariant();
+        if (country.Length != 0 && (country.Length != 2 || !country.All(c => c >= 'A' && c <= 'Z')))
+        {
+            error = "Country must be a 2-letter code (e.g. DE) or empty.";
+            return false;
+        }
+        profile.Country = country;
         profile.Host = host;
         profile.Name = profile.Name.Trim();
         return true;
@@ -156,7 +164,8 @@ public static class VpnProfileStore
         Port = p.Port,
         Username = p.Username,
         Password = p.Password,
-        Source = p.Source
+        Source = p.Source,
+        Country = p.Country ?? ""
     };
 
     private static void EnsureLoaded()

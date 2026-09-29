@@ -137,7 +137,11 @@ public partial class App : Application
 
             // Kick off WebView2 environment creation immediately — in parallel
             // with WPF window construction so the first tab is ready faster.
+            try { SettingsService.Load(); }
+            catch (Exception ex) { LogService.RecordCrash(ex, "Startup Settings Load"); }
+
             _ = StealthEnvironment.InitializeAsync();
+            GeoIpService.KickOffBackgroundRefresh();
 
             try
             {

@@ -236,6 +236,29 @@
                         <TextBox x:Name="TxtVpnBypass" Height="30" Background="#222" Foreground="White" BorderThickness="0" Margin="0,0,0,10"
                                  ToolTip="Example: localhost;127.0.0.1;&lt;local&gt;;*.example.com"/>
 
+                        <TextBlock Text="Quick Connect by Country" Foreground="{StaticResource Brush_Text}" FontWeight="Bold" Margin="0,5,0,4"/>
+                        <Grid Margin="0,0,0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="110"/>
+                            </Grid.ColumnDefinitions>
+                            <ComboBox x:Name="CboVpnCountryPicker" Grid.Column="0" Height="28" Background="#222" Foreground="White" BorderThickness="0" Margin="0,0,8,0"
+                                      local:SearchIndex.Label="VPN Quick Connect Country" local:SearchIndex.Description="Pick a country and connect to a matching saved server."/>
+                            <Button x:Name="BtnVpnQuickConnect" Grid.Column="1" Content="Connect" Height="28" Click="BtnVpnQuickConnect_Click"/>
+                        </Grid>
+
+                        <TextBlock Text="Country Lookup" Foreground="{StaticResource Brush_Text}" FontWeight="Bold" Margin="0,10,0,4"/>
+                        <ComboBox x:Name="CboGeoLookupMode" Height="28" Background="#222" Foreground="White" BorderThickness="0" Margin="0,0,0,4"
+                                  local:SearchIndex.Label="Geo Lookup Mode" local:SearchIndex.Description="Chooses how server countries are detected: offline database or live API.">
+                            <ComboBoxItem Content="Local (offline database, default)" Tag="Local"/>
+                            <ComboBoxItem Content="Api (online, on-demand)" Tag="Api"/>
+                            <ComboBoxItem Content="Off (manual entry only)" Tag="Off"/>
+                        </ComboBox>
+                        <TextBlock Text="Local: downloads a country database in the background and updates it periodically. Works offline once downloaded, nothing is sent per-lookup."
+                                   Foreground="#888" TextWrapping="Wrap" FontSize="11" Margin="0,0,0,2"/>
+                        <TextBlock Text="Api: looks up each server's country on demand over the internet. No download needed, but each lookup is a live request to a third-party service."
+                                   Foreground="#888" TextWrapping="Wrap" FontSize="11" Margin="0,0,0,10"/>
+
                         <TextBlock Text="VPN Servers" Foreground="{StaticResource Brush_Text}" FontWeight="Bold" Margin="0,5,0,4"/>
                         <ListBox x:Name="LstVpnProfiles" Height="110" Background="#1A1A1A" BorderBrush="#333" Margin="0,0,0,8"
                                  local:SearchIndex.Label="VPN Servers" local:SearchIndex.Description="Your saved VPN servers. Select one to edit it."
@@ -270,6 +293,17 @@
                             <StackPanel Grid.Column="1">
                                 <TextBlock Text="Port" Foreground="#AAA" FontSize="11" Margin="0,0,0,2"/>
                                 <TextBox x:Name="TxtVpnPort" Height="28" Background="#222" Foreground="White" BorderThickness="0"/>
+                            </StackPanel>
+                        </Grid>
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="130"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="Country (2-letter code)" Foreground="#AAA" FontSize="11" Margin="0,0,0,2"/>
+                                <TextBox x:Name="TxtVpnCountry" Height="28" MaxLength="2" CharacterCasing="Upper" Background="#222" Foreground="White" BorderThickness="0"
+                                         ToolTip="Optional. ISO 3166-1 alpha-2 code, e.g. DE, US, NL."/>
                             </StackPanel>
                         </Grid>
                         <Grid Margin="0,0,0,8">
