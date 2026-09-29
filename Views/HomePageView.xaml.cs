@@ -61,6 +61,7 @@ public partial class HomePageView : UserControl
                 WeatherBridge.SetWallpaperSurface(null);
         };
         PnlClockWeather.SizeChanged += (_, __) => UpdateClockWeatherIslandBounds();
+        PnlClockWeather.SizeChanged += (_, __) => ReanchorInactivityMedia();
         IsVisibleChanged += (_, e) =>
         {
             if (!IsVisible) return;
@@ -2452,6 +2453,23 @@ public partial class HomePageView : UserControl
         }
     }
 
+    private bool _layoutInactive;
+
+    private double GetMediaTopLeftOffsetY(bool forceLayout)
+    {
+        if (PnlMedia.Visibility != Visibility.Visible) return 0.0;
+        if (forceLayout && IsLoaded) PnlClockWeather.UpdateLayout();
+        return -VisualTreeHelper.GetOffset(PnlMedia).Y;
+    }
+
+    private void ReanchorInactivityMedia()
+    {
+        if (!_layoutInactive || PnlMedia.Visibility != Visibility.Visible) return;
+        double y = GetMediaTopLeftOffsetY(false);
+        if (Math.Abs(MediaTrans.Y - y) < 0.5) return;
+        AnimateDouble(MediaTrans, TranslateTransform.YProperty, y, TimeSpan.FromMilliseconds(250), new CubicEase { EasingMode = EasingMode.EaseOut });
+    }
+
     private void ApplyActiveLayoutMatrix(bool useInactivity, TimeSpan? animDuration = null, IEasingFunction? easing = null)
     {
         var activeSet = SettingsService.Current.SavedLayoutSets.FirstOrDefault(l => l.Id == SettingsService.Current.ActiveLayoutSetId);
@@ -2461,6 +2479,7 @@ public partial class HomePageView : UserControl
         if (profile == null || profile.Widgets.Count == 0) return;
 
         SetClockWeatherIslandVisible(!useInactivity && !_inEditMode && _isContentVisible);
+        _layoutInactive = useInactivity;
 
         var map = new Dictionary<string, (UIElement Elem, TranslateTransform? Trans, ScaleTransform? Scale)>
         {
@@ -2490,6 +2509,11 @@ public partial class HomePageView : UserControl
                 double centerBase = wp.Column == 0 ? col0Center : (wp.Column == 2 ? col2Center : col1Center);
                 targetX = centerBase - col0Center;
                 targetY = wp.Row * 110.0;
+                if (wp.WidgetId == "Media")
+                {
+                    targetX = 0;
+                    targetY = GetMediaTopLeftOffsetY(true);
+                }
 
                 if (animDuration.HasValue && easing != null)
                 {

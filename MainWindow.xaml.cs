@@ -1615,6 +1615,20 @@ public partial class MainWindow : Window
         return (fit, Math.Max(TAB_MIN_WIDTH, fitWidth));
     }
 
+    private static void SyncTabCollection(ObservableCollection<TabViewModel> target, List<TabViewModel> desired)
+    {
+        for (int i = target.Count - 1; i >= 0; i--)
+            if (!desired.Contains(target[i])) target.RemoveAt(i);
+
+        for (int i = 0; i < desired.Count; i++)
+        {
+            if (i < target.Count && ReferenceEquals(target[i], desired[i])) continue;
+            int existing = target.IndexOf(desired[i]);
+            if (existing >= 0) target.Move(existing, i);
+            else target.Insert(i, desired[i]);
+        }
+    }
+
     private void ReflowTabs()
     {
         if (_isNarrowMode) { RefreshCompactBadge(); RefreshMobileTabBadge(); }
@@ -1625,8 +1639,8 @@ public partial class MainWindow : Window
         var previousOverflow = new HashSet<TabViewModel>(OverflowTabs);
 
         _isReflowing = true;
-        Tabs.Clear();
-        OverflowTabs.Clear();
+        var desiredPrimary  = new List<TabViewModel>();
+        var desiredOverflow = new List<TabViewModel>();
 
         // Protected tabs (media-mode or download-mode) always stay at TAB_DEFAULT_WIDTH.
         // Regular tabs get the remaining space and can shrink or overflow.
@@ -1671,13 +1685,16 @@ public partial class MainWindow : Window
             else
                 tab.DuplicateTitleIndex = 0;
 
-            if (goesToPrimary) Tabs.Add(tab);
+            if (goesToPrimary) desiredPrimary.Add(tab);
             else
             {
-                OverflowTabs.Add(tab);
+                desiredOverflow.Add(tab);
                 if (!previousOverflow.Contains(tab)) AnimateOverflowTabIn(tab);
             }
         }
+
+        SyncTabCollection(Tabs, desiredPrimary);
+        SyncTabCollection(OverflowTabs, desiredOverflow);
 
         if (selectedItem != null)
         {
@@ -11351,11 +11368,11 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
         double textWidth = Controls.MarqueeText.Measure(TxtWidget, fullText);
         double target = _widgetDefaultWidth;
         if (!SettingsService.Current.MediaWidgetMarquee)
-            target = Math.Max(_widgetDefaultWidth, Math.Min(textWidth + 24, GetMaxMediaWidgetWidth()));
+            target = Math.Max(_widgetDefaultWidth, Math.Min(Math.Ceiling(textWidth) + 24, GetMaxMediaWidgetWidth()));
         target = Math.Round(target);
         AnimateWidgetWidth(target);
 
-        if (!Controls.MarqueeText.IsNeeded(textWidth, target - 24))
+        if (!Controls.MarqueeText.IsNeeded(textWidth, target - 24 + 1.0))
         {
             StopMediaWidgetMarquee();
             return;
