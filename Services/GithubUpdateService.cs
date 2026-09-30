@@ -138,16 +138,19 @@ public static class GithubUpdateService
 
             string? matchedUrl = null;
             string? matchedName = null;
+            int bestRank = int.MaxValue;
             foreach (var asset in assetsEl.EnumerateArray())
             {
                 string name = asset.TryGetProperty("name", out var n) ? n.GetString() ?? "" : "";
                 string nameLower = name.ToLowerInvariant();
-                if (nameLower.Contains(localChannel))
-                {
-                    matchedName = name;
-                    matchedUrl = asset.TryGetProperty("browser_download_url", out var u) ? u.GetString() : null;
-                    break;
-                }
+                if (!MatchesChannel(nameLower, localChannel)) continue;
+                int rank = RankAsset(nameLower);
+                if (rank < 0 || rank >= bestRank) continue;
+                string? assetUrl = asset.TryGetProperty("browser_download_url", out var u) ? u.GetString() : null;
+                if (string.IsNullOrEmpty(assetUrl)) continue;
+                bestRank = rank;
+                matchedName = name;
+                matchedUrl = assetUrl;
             }
 
             if (matchedUrl == null)
@@ -173,6 +176,25 @@ public static class GithubUpdateService
             result.ErrorMessage = ex.Message;
             return result;
         }
+    }
+
+    private static readonly string[] ArchiveExtensions = { ".zip", ".7z", ".rar", ".tar", ".gz", ".tgz" };
+
+    private static bool MatchesChannel(string nameLower, string channel)
+    {
+        if (channel != "release") return nameLower.Contains(channel);
+        if (nameLower.Contains("alpha") || nameLower.Contains("beta")) return false;
+        return nameLower.Contains("release") || nameLower.Contains("official") || nameLower.Contains("stable") || nameLower.Contains("setup");
+    }
+
+    private static int RankAsset(string nameLower)
+    {
+        string ext = Path.GetExtension(nameLower);
+        bool setupLike = nameLower.Contains("setup") || nameLower.Contains("install");
+        if (ext == ".exe") return setupLike ? 0 : 1;
+        if (ext == ".msi") return 2;
+        if (Array.IndexOf(ArchiveExtensions, ext) >= 0) return 3;
+        return -1;
     }
 
     private static string ExtractVersionFromText(string text)
@@ -214,7 +236,7 @@ public static class GithubUpdateService
         string downloadsFolder = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
         if (!Directory.Exists(downloadsFolder)) downloadsFolder = Path.GetTempPath();
-        string destPath = Path.Combine(downloadsFolder, assetName);
+        string destPath = Path.Combine(downloadsFolder, Path.GetFileName(assetName));
 
         using var response = await _http.GetAsync(assetUrl, HttpCompletionOption.ResponseHeadersRead);
         response.EnsureSuccessStatusCode();
