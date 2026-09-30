@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Collections.Generic;
 
 namespace Horizon.Stealth.Services;
@@ -39,7 +40,38 @@ public static class SettingsService
     private static readonly string _folder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "HorizonData");
     private static readonly string _path = Path.Combine(_folder, "config.json");
 
-    public static SettingsData Current { get; private set; } = new();
+    public static SettingsData Current { get; private set; } = DefaultSettingsService.Apply(new SettingsData());
+
+    public const int CurrentConfigVersion = 1;
+
+    private static SettingsData? ReadFile(string path)
+    {
+        try
+        {
+            if (!File.Exists(path)) return null;
+            return CompatJson.Deserialize<SettingsData>(File.ReadAllText(path), () => DefaultSettingsService.Apply(new SettingsData()));
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static void PreserveCorrupt()
+    {
+        try
+        {
+            string stamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+            File.Copy(_path, Path.Combine(_folder, $"config.corrupt_{stamp}.json"), true);
+        }
+        catch { }
+    }
+
+    private static void Migrate(SettingsData data)
+    {
+        if (data.ConfigVersion > CurrentConfigVersion) return;
+        data.ConfigVersion = CurrentConfigVersion;
+    }
 
     public static void Load()
     {
@@ -49,9 +81,13 @@ public static class SettingsService
 
             if (File.Exists(_path))
             {
-                var json = File.ReadAllText(_path);
-                var data = JsonSerializer.Deserialize<SettingsData>(json);
-                if (data != null) Current = data;
+                var data = ReadFile(_path) ?? ReadFile(_path + ".bak");
+                if (data == null)
+                {
+                    PreserveCorrupt();
+                    data = DefaultSettingsService.Apply(new SettingsData());
+                }
+                Current = data;
             }
             else
             {
@@ -60,9 +96,11 @@ public static class SettingsService
         }
         catch (Exception ex)
         {
-            Current = new SettingsData();
+            Current = DefaultSettingsService.Apply(new SettingsData());
             LogService.RecordCrash(ex, "Settings Load");
         }
+
+        Migrate(Current);
 
         // v2 migration: old default (1270) was nearly identical to the default window width
         // (1280). Any saved value ≥ 1000 was the broken value — reset to the correct default.
@@ -88,7 +126,10 @@ public static class SettingsService
         {
             var options = new JsonSerializerOptions { WriteIndented = true };
             var json = JsonSerializer.Serialize(Current, options);
-            File.WriteAllText(_path, json);
+            string tmp = _path + ".tmp";
+            File.WriteAllText(tmp, json);
+            if (File.Exists(_path)) File.Copy(_path, _path + ".bak", true);
+            File.Move(tmp, _path, true);
         }
         catch (Exception ex)
         {
@@ -128,6 +169,11 @@ public class LayoutSet
 
 public class SettingsData
 {
+    public int ConfigVersion { get; set; } = 1;
+
+    [JsonExtensionData]
+    public Dictionary<string, JsonElement>? ExtraData { get; set; }
+
     public List<LayoutSet> SavedLayoutSets { get; set; } = new();
     public string ActiveLayoutSetId { get; set; } = "";
     public string HomePage         { get; set; } = "horizon://home";

@@ -219,7 +219,7 @@ public partial class App : Application
             catch (Exception ex)
             {
                 LogService.RecordCrash(ex, "Failed to launch MainWindow");
-                MessageBox.Show("Could not launch Browser.\n" + ex.Message);
+                MessageBox.Show("Could not launch Browser.\n" + ex.Message + "\n\nAt: " + (ex.StackTrace ?? "").Split('\n')[0].Trim());
                 Shutdown();
             }
         }

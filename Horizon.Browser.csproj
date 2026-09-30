@@ -25,6 +25,7 @@
 
   <ItemGroup>
     <None Include="start_videos\**" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="default_settings.txt" CopyToOutputDirectory="PreserveNewest" Condition="Exists('default_settings.txt')" />
   </ItemGroup>
 
   <ItemGroup>

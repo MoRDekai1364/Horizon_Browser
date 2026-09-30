@@ -11,6 +11,16 @@ set "SRC_DIR=src"
 set "OUT_DIR=bin\Release"
 set "UPDATE_MGR=Update_Manager.bat"
 set "BIN_NAME=Horizon.Browser.exe"
+set "DEFAULTS_FILE=default_settings.txt"
+set "DEF_ICON="
+set "DEF_VIDEO="
+if exist "%DEFAULTS_FILE%" for /f "usebackq tokens=1,* delims==" %%A in ("%DEFAULTS_FILE%") do (
+    if /i "%%A"=="@AppIcon" set "DEF_ICON=%%B"
+    if /i "%%A"=="@StartupVideo" set "DEF_VIDEO=%%B"
+)
+if defined DEF_ICON if exist "%DEF_ICON%" for %%I in ("%DEF_ICON%") do set "ICON_PATH=%%~fI"
+if defined DEF_ICON if not exist "%DEF_ICON%" echo [WARN] Icon from default_settings.txt not found: %DEF_ICON%
+if defined ICON_PATH goto :IconAutoFound
 
 if exist "%SRC_DIR%\*.ico" (
     for %%F in ("%SRC_DIR%\*.ico") do (
@@ -56,6 +66,23 @@ if %errorlevel% neq 0 (
         exit /b
     )
     echo [WARN] dotnet exited with non-zero code but binary exists ^(SDK workload logger bug^). Continuing.
+)
+
+echo [2b/3] Applying default_settings.txt...
+if exist "%DEFAULTS_FILE%" (
+    findstr /v /b /c:"@" "%DEFAULTS_FILE%" > "%OUT_DIR%\default_settings.txt"
+    >> "%OUT_DIR%\default_settings.txt" echo.
+    echo [INFO] default_settings.txt packaged.
+)
+if defined DEF_VIDEO (
+    if exist "%DEF_VIDEO%" (
+        if not exist "%OUT_DIR%\start_videos" mkdir "%OUT_DIR%\start_videos"
+        copy /y "%DEF_VIDEO%" "%OUT_DIR%\start_videos\" >nul
+        for %%V in ("%DEF_VIDEO%") do >> "%OUT_DIR%\default_settings.txt" echo StartupVideoFileName=%%~nxV
+        echo [INFO] Startup video packaged.
+    ) else (
+        echo [WARN] Startup video from default_settings.txt not found: %DEF_VIDEO%
+    )
 )
 
 echo [3/3] Creating desktop shortcut...

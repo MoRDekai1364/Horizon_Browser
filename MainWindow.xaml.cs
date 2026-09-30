@@ -1108,7 +1108,7 @@ public partial class MainWindow : Window
     private void ShowUpdateInstallBanner(string installerPath)
     {
         _pendingUpdateInstallerPath = installerPath;
-        PanelUpdateBanner.Visibility = Visibility.Visible;
+        if (PanelUpdateBanner != null) PanelUpdateBanner.Visibility = Visibility.Visible;
     }
 
     private void BtnDismissUpdateBanner_Click(object sender, RoutedEventArgs e)
@@ -1249,6 +1249,9 @@ public partial class MainWindow : Window
             : SettingsService.Current.HomePage;
 
         InitializeComponent();
+
+        if (!string.IsNullOrEmpty(_pendingUpdateInstallerPath))
+            if (PanelUpdateBanner != null) PanelUpdateBanner.Visibility = Visibility.Visible;
 
         InitHeaderAmbientGlow();
         InitSidebarAmbientGlow();

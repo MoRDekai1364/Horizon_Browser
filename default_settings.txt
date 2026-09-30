@@ -1,0 +1,16 @@
+# Horizon Browser default settings, read by Build_Release.bat and by the browser at startup.
+# Format: Key=Value (no spaces around =). Lines starting with # or ; are comments.
+# Any property name from config.json works as a Key.
+# These become the defaults for fresh installs and for settings missing from a restored config.
+# A user's own saved value always wins.
+# Lists use ; as separator, for example WeatherFavoriteCities=Sofia;Paris
+#
+# Build-time keys (used only by Build_Release.bat, not shipped):
+#   @AppIcon=src\YourIcon.ico
+#   @StartupVideo=start_videos\YourVideo.mp4
+#
+ShowStartupVideo=true
+StartupVideoMode=Fixed
+StartupVideoFileName=Animate_this_image.mp4
+AppIcon=src\IMG_20260930_110456.ico
+StartupVideo=start_videos\Mechanical.mp4
