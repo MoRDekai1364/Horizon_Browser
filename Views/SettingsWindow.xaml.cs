@@ -1121,6 +1121,37 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
 
     private void BtnCancel_Click(object sender, RoutedEventArgs e) { Close(); }
 
+    private void BtnResetAll_Click(object sender, RoutedEventArgs e)
+    {
+        bool wipe = ChkResetWipeData.IsChecked == true;
+        string prompt = wipe
+            ? "Reset ALL settings to defaults AND delete saved data (accounts, API keys, tokens, pins, session URLs, saved homepages, layouts, notes, favorites)?\n\nThis cannot be undone."
+            : "Reset ALL settings to defaults (settings, header, sidebar, homepage)?\n\nAccounts, keys, pins and other saved data are kept.";
+
+        if (MessageBox.Show(prompt, "Horizon", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No) != MessageBoxResult.Yes)
+            return;
+
+        try
+        {
+            int count = SettingsService.ResetToDefaults(wipe);
+            var s = SettingsService.Current;
+            ThemeService.ApplyTheme(s.Theme);
+            BackgroundKeepAliveService.OnSettingChanged();
+            StartupService.Apply(s.StartOnSystemStartup);
+            FluxJanitorService.Initialize();
+            LogService.Write("SETTINGS", $"Reset ALL from SettingsWindow. WipeData={wipe}, properties={count}");
+
+            MessageBox.Show(wipe ? "Settings reset and data deleted. Restart Horizon to finish." : "Settings reset to defaults.", "Horizon", MessageBoxButton.OK, MessageBoxImage.Information);
+            SettingsApplied?.Invoke();
+            Close();
+        }
+        catch (Exception ex)
+        {
+            LogService.RecordCrash(ex, "ResetAllSettings");
+            MessageBox.Show($"Reset failed:\n{ex.Message}", "Horizon", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
     private string _vpnEditingId = "";
     private string _vpnActiveId = "";
     private bool _vpnListLoading;

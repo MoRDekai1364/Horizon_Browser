@@ -3,6 +3,8 @@ using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 
 namespace Horizon.Stealth.Services;
 
@@ -119,6 +121,55 @@ public static class SettingsService
         new SearchEngineEntry { Name = "Brave",       Url = "https://search.brave.com/search?q={query}", BuiltIn = true },
         new SearchEngineEntry { Name = "Ecosia",      Url = "https://www.ecosia.org/search?q={query}",  BuiltIn = true },
     };
+
+    private static readonly HashSet<string> AlwaysKeepProperties = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "ConfigVersion", "ExtraData"
+    };
+
+    private static readonly HashSet<string> DataProperties = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "ClaudeApiKey", "ChatGptApiKey", "GeminiApiKey",
+        "GoogleClientId", "GoogleClientSecret", "MicrosoftClientId",
+        "GoogleOAuthToken", "MicrosoftOAuthToken", "SyncAccounts",
+        "DefaultGoogleAccountEmail", "GoogleAccountOrder", "GoogleBrowserAccounts",
+        "AccountSwitcherButtonX", "AccountSwitcherButtonY",
+        "PinnedUrls", "LastSessionUrls", "SavedHomepages", "CustomSearchEngines",
+        "SavedLayoutSets", "ActiveLayoutSetId", "PinnedFsLocations",
+        "WidgetNotes", "WidgetNoteTabs", "WidgetWeatherCity", "WeatherFavoriteCities",
+        "VpnActiveProfileId", "NextDnsId", "PendingUpdateInstallerPath",
+        "WallpaperCustomList", "WallpaperFolderPath",
+        "StartupVideoCustomList", "HomeVisualizerWebsites"
+    };
+
+    public static int ResetToDefaults(bool wipeData)
+    {
+        var fresh = DefaultSettingsService.Apply(new SettingsData());
+        var target = Current;
+        int changed = 0;
+
+        var props = typeof(SettingsData).GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            .Where(p => p.CanRead && p.CanWrite && p.GetIndexParameters().Length == 0);
+
+        foreach (var p in props)
+        {
+            if (AlwaysKeepProperties.Contains(p.Name)) continue;
+            if (!wipeData && DataProperties.Contains(p.Name)) continue;
+            try
+            {
+                p.SetValue(target, p.GetValue(fresh));
+                changed++;
+            }
+            catch (Exception ex)
+            {
+                LogService.Write("SETTINGS", $"Reset skipped '{p.Name}': {ex.Message}");
+            }
+        }
+
+        Save();
+        LogService.Write("SETTINGS", $"ResetToDefaults done. WipeData={wipeData}, properties reset={changed}");
+        return changed;
+    }
 
     public static void Save()
     {
