@@ -12,6 +12,11 @@ public static class DefaultSettingsService
     public const string FileName = "default_settings.txt";
 
     private static Dictionary<string, string>? _cache;
+    private static readonly Dictionary<string, int> _lines = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly List<string> _loadIssues = new();
+    private static readonly List<string> _appliedKeys = new();
+    private static string _sourcePath = "";
+    private static bool _reported;
 
     private static Dictionary<string, string> Load()
     {
@@ -21,19 +26,29 @@ public static class DefaultSettingsService
         try
         {
             string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, FileName);
+            _sourcePath = path;
+            if (!File.Exists(path)) _loadIssues.Add($"File not found: {path}");
             if (File.Exists(path))
             {
-                foreach (string raw in File.ReadAllLines(path))
+                string[] allLines = File.ReadAllLines(path);
+                for (int n = 0; n < allLines.Length; n++)
                 {
-                    string line = raw.Trim();
+                    string line = allLines[n].Trim();
                     if (line.Length == 0 || line.StartsWith('#') || line.StartsWith(';') || line.StartsWith('@')) continue;
                     int eq = line.IndexOf('=');
-                    if (eq <= 0) continue;
+                    if (eq <= 0)
+                    {
+                        _loadIssues.Add($"Line {n + 1}: no '=' found, ignored: {line}");
+                        continue;
+                    }
                     string key = line.Substring(0, eq).Trim();
                     string value = line.Substring(eq + 1).Trim();
                     if (value.Length >= 2 && value.StartsWith('"') && value.EndsWith('"'))
                         value = value.Substring(1, value.Length - 2);
-                    if (key.Length > 0) map[key] = value;
+                    if (key.Length == 0) continue;
+                    if (map.ContainsKey(key)) _loadIssues.Add($"Line {n + 1}: duplicate key '{key}', line {_lines[key]} overridden");
+                    map[key] = value;
+                    _lines[key] = n + 1;
                 }
             }
         }
@@ -49,19 +64,50 @@ public static class DefaultSettingsService
     public static T Apply<T>(T target) where T : class
     {
         var map = Load();
-        if (map.Count == 0) return target;
+        if (map.Count == 0)
+        {
+            if (!_reported)
+            {
+                _reported = true;
+                WriteReport(0, 0);
+            }
+            return target;
+        }
 
         var props = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance)
             .Where(p => p.CanRead && p.CanWrite && p.GetIndexParameters().Length == 0)
             .ToDictionary(p => p.Name, p => p, StringComparer.OrdinalIgnoreCase);
 
+        bool report = !_reported;
+        _reported = true;
+        int applied = 0;
+
         foreach (var kv in map)
         {
-            if (!props.TryGetValue(kv.Key, out PropertyInfo? pi)) continue;
+            int lineNo = _lines.TryGetValue(kv.Key, out int ln) ? ln : 0;
+            if (!props.TryGetValue(kv.Key, out PropertyInfo? pi))
+            {
+                if (report)
+                {
+                    string hint = kv.Key.Equals("AppIcon", StringComparison.OrdinalIgnoreCase) || kv.Key.Equals("StartupVideo", StringComparison.OrdinalIgnoreCase)
+                        ? " (build-time key, needs @ prefix)"
+                        : "";
+                    _loadIssues.Add($"Line {lineNo}: unknown key '{kv.Key}'{hint}");
+                }
+                continue;
+            }
             try
             {
                 if (TryConvert(kv.Value, pi.PropertyType, out object? converted))
+                {
                     pi.SetValue(target, converted);
+                    applied++;
+                    if (report) _appliedKeys.Add(kv.Key);
+                }
+                else if (report)
+                {
+                    _loadIssues.Add($"Line {lineNo}: bad value '{kv.Value}' for '{kv.Key}' ({pi.PropertyType.Name}), ignored");
+                }
             }
             catch (Exception ex)
             {
@@ -69,7 +115,26 @@ public static class DefaultSettingsService
             }
         }
 
+        if (report) WriteReport(map.Count, applied);
+
         return target;
+    }
+
+    private static void WriteReport(int total, int applied)
+    {
+        try
+        {
+            LogService.Write("DefaultSettings", $"Source: {_sourcePath}");
+            LogService.Write("DefaultSettings", $"Keys read: {total}, applied: {applied}, issues: {_loadIssues.Count}");
+            foreach (string issue in _loadIssues)
+                LogService.Write("DefaultSettings", $"ISSUE {issue}");
+            var map = _cache ?? new Dictionary<string, string>();
+            foreach (string key in _appliedKeys)
+                LogService.Write("DefaultSettings", $"Applied {key}={map[key]}");
+        }
+        catch
+        {
+        }
     }
 
     private static bool TryConvert(string text, Type type, out object? result)

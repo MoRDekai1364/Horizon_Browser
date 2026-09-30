@@ -1,16 +1,542 @@
 # Horizon Browser default settings, read by Build_Release.bat and by the browser at startup.
 # Format: Key=Value (no spaces around =). Lines starting with # or ; are comments.
-# Any property name from config.json works as a Key.
-# These become the defaults for fresh installs and for settings missing from a restored config.
-# A user's own saved value always wins.
-# Lists use ; as separator, for example WeatherFavoriteCities=Sofia;Paris
+# A user's own saved value in HorizonData\config.json always wins over this file.
+# To test a change: delete HorizonData\config.json in the build output, or use Reset in settings.
+# Lists use ; as separator. Booleans: true or false. Empty value = empty text or empty list.
 #
-# Build-time keys (used only by Build_Release.bat, not shipped):
-#   @AppIcon=src\YourIcon.ico
-#   @StartupVideo=start_videos\YourVideo.mp4
+# HOW TO SEARCH (Ctrl+F):
+#   [S03]       jumps to a section
+#   [S03.05]    jumps to one setting
+#   key name    example: HomeShowClock
+#   any word    example: marquee, wallpaper, video
 #
+# HOW TO EDIT: change only the value after =. The line above each key shows type, allowed values, default.
+#
+# INDEX
+#   [S01] STARTUP AND BUILD (8)
+#   [S02] GENERAL (16)
+#   [S03] HEADER AND SIDEBAR (18)
+#   [S04] TABS (13)
+#   [S05] HOME PAGE (21)
+#   [S06] WALLPAPER AND BACKGROUND (7)
+#   [S07] PRIVACY AND BLOCKING (19)
+#   [S08] VPN (8)
+#   [S09] DOWNLOAD CLEANUP (3)
+#   [S10] ACCOUNTS (3)
+#   [BUILD] Build-time keys
+#
+# NOT EXPOSED (runtime state, secrets, complex data): tokens, API keys, client secrets, pinned tabs,
+#   layouts, sync accounts, last session, cached video size, window positions, download folder.
+
+#==============================================================================
+# [BUILD] BUILD-TIME KEYS - used only by Build_Release.bat, never shipped
+# The @ prefix is required. Without it the line is ignored and the build prints a warning.
+# @AppIcon      path to a .ico file, becomes the exe icon
+# @StartupVideo path to a video, copied into the build and set as StartupVideoFileName
+#==============================================================================
+@AppIcon=src\IMG_20260930_110456.ico
+@StartupVideo=start_videos\Mechanical.mp4
+
+#==============================================================================
+# [S01] STARTUP AND BUILD
+#==============================================================================
+
+# [S01.01] Play the startup video when the browser opens
+#   type: bool | values: true|false | default: true
 ShowStartupVideo=true
+
+# [S01.02] How the startup video is chosen
+#   type: string | values: Fixed|Random|Custom | default: Fixed
 StartupVideoMode=Fixed
+
+# [S01.03] Video used in Fixed mode. Build overrides it when @StartupVideo is set
+#   type: string | values: file name inside start_videos | default: Animate_this_image.mp4
 StartupVideoFileName=Animate_this_image.mp4
-AppIcon=src\IMG_20260930_110456.ico
-StartupVideo=start_videos\Mechanical.mp4
+
+# [S01.04] Play order, Custom mode only
+#   type: string | values: Sequential|Random | default: Sequential
+StartupVideoOrder=Sequential
+
+# [S01.05] Videos used in Custom mode, example: a.mp4;b.mp4
+#   type: list | values: file names separated by ; | default: empty
+StartupVideoCustomList=
+
+# [S01.06] Background color behind the startup video
+#   type: string | values: #RRGGBB | default: #0A1A3C
+StartupVideoBgColorHex=#0A1A3C
+
+# [S01.07] Closing the window hides to tray instead of exiting
+#   type: bool | values: true|false | default: false
+BackgroundKeepAliveEnabled=false
+
+# [S01.08] Launch minimized to tray at Windows login
+#   type: bool | values: true|false | default: false
+StartOnSystemStartup=false
+
+#==============================================================================
+# [S02] GENERAL
+#==============================================================================
+
+# [S02.01] Page opened by the home button and new tabs
+#   type: string | values: URL or horizon://home | default: horizon://home
+HomePage=horizon://home
+
+# [S02.02] Default search engine name
+#   type: string | values: AlohFind|DuckDuckGo|Google|Bing|Brave|Ecosia | default: AlohFind
+SearchEngine=AlohFind
+
+# [S02.03] Search URL, must match SearchEngine
+#   type: string | values: URL containing {query} | default: https://alohafind.com/search/?q={query}
+SearchEngineUrl=https://alohafind.com/search/?q={query}
+
+# [S02.04] Horizon = dark, Light = light, Redmond = classic
+#   type: string | values: Horizon|Light|Redmond | default: Horizon
+Theme=Horizon
+
+# [S02.05] Default page language
+#   type: string | values: language code, example en | default: en
+DefaultLanguage=en
+
+# [S02.06] Allow a separate language per tab
+#   type: bool | values: true|false | default: true
+PerTabLanguageEnabled=true
+
+# [S02.07] Page zoom for new tabs, 1.0 = 100 percent
+#   type: double | values: 0.25 to 5.0 | default: 1.0
+DefaultZoomLevel=1.0
+
+# [S02.08] Scroll speed, 1.0 = native Chrome speed
+#   type: double | values: 0.1 to 5.0 | default: 1.07
+ScrollSpeedMultiplier=1.07
+
+# [S02.09] Stealth mode
+#   type: bool | values: true|false | default: true
+IsStealthMode=true
+
+# [S02.10] How location is looked up
+#   type: string | values: Local|Api|Off | default: Local
+GeoLookupMode=Local
+
+# [S02.11] 0 = enforce minimum width, 1 = auto mobile header below threshold, 2 = always compact tab badge
+#   type: int | values: 0|1|2 | default: 1
+NarrowWindowMode=1
+
+# [S02.12] Window width in pixels that counts as narrow
+#   type: int | values: 200 to 999 | default: 600
+NarrowWindowThresholdPx=600
+
+# [S02.13] Show the restore-session prompt after a crash or restart
+#   type: bool | values: true|false | default: true
+ShowSessionRestore=true
+
+# [S02.14] Restore the last session without asking
+#   type: bool | values: true|false | default: false
+AutoRestoreSession=false
+
+# [S02.15] Check for updates in the background
+#   type: bool | values: true|false | default: true
+SilentUpdateCheckEnabled=true
+
+# [S02.16] Download found updates automatically
+#   type: bool | values: true|false | default: true
+AutoDownloadUpdatesEnabled=true
+
+#==============================================================================
+# [S03] HEADER AND SIDEBAR
+#==============================================================================
+
+# [S03.01] Hide the header until the mouse touches the top edge
+#   type: bool | values: true|false | default: false
+AutoHideHeader=false
+
+# [S03.02] Hide the sidebar until the mouse touches the left edge
+#   type: bool | values: true|false | default: false
+AutoHideSidebar=false
+
+# [S03.03] Delay in ms before the header appears
+#   type: int | values: 0 to 2000 | default: 300
+HeaderSensitivityMs=300
+
+# [S03.04] Delay in ms before the sidebar appears
+#   type: int | values: 0 to 2000 | default: 300
+SidebarSensitivityMs=300
+
+# [S03.05] Header widget modes to cycle through
+#   type: list | values: Clock|Weather separated by ; | default: Clock
+WidgetModes=Clock
+
+# [S03.06] Seconds between widget mode changes
+#   type: int | values: 1 to 600 | default: 7
+WidgetCycleSecs=7
+
+# [S03.07] Show the cycle button on the header widget
+#   type: bool | values: true|false | default: true
+WidgetShowCycle=true
+
+# [S03.08] Stop the header widget from cycling
+#   type: bool | values: true|false | default: false
+WidgetDisableCycle=false
+
+# [S03.09] Default header widget note text
+#   type: string | values: any text | default: empty
+WidgetNotes=
+
+# [S03.10] City shown in the header weather widget
+#   type: string | values: city name | default: empty
+WidgetWeatherCity=
+
+# [S03.11] Favorite cities, example: Sofia;Paris
+#   type: list | values: city names separated by ; | default: empty
+WeatherFavoriteCities=
+
+# [S03.12] 0 = 24h with seconds, 1 = 24h, 2 = 12h AM/PM, 3 = 24h small seconds, 4 = stopwatch, 5 = timer
+#   type: int | values: 0|1|2|3|4|5 | default: 0
+ClockMode=0
+
+# [S03.13] Scroll long weather text in the header widget
+#   type: bool | values: true|false | default: false
+WeatherWidgetMarquee=false
+
+# [S03.14] Widen the weather widget on hover
+#   type: bool | values: true|false | default: false
+WeatherWidgetHoverWiden=false
+
+# [S03.15] Scroll long media titles in the header widget
+#   type: bool | values: true|false | default: false
+MediaWidgetMarquee=false
+
+# [S03.16] Widen the media widget on hover
+#   type: bool | values: true|false | default: false
+MediaWidgetHoverWiden=false
+
+# [S03.17] Show the media widget when the window minimizes
+#   type: bool | values: true|false | default: true
+MediaWidgetAutoShowOnMinimize=true
+
+# [S03.18] Keep the media widget shown while minimized
+#   type: bool | values: true|false | default: false
+MediaWidgetAutoShowMinimized=false
+
+#==============================================================================
+# [S04] TABS
+#==============================================================================
+
+# [S04.01] Tabs per row
+#   type: int | values: 1 to 50 | default: 10
+TabsPerRow=10
+
+# [S04.02] Tab title text
+#   type: string | values: Full|DomainOnly | default: Full
+TabTitleMode=Full
+
+# [S04.03] Tab title hover effect
+#   type: string | values: FadeIn|None | default: FadeIn
+TabTitleHoverMode=FadeIn
+
+# [S04.04] Where visualizer colors are sampled from
+#   type: string | values: Favicon|Thumbnail | default: Thumbnail
+VisualizerColorScheme=Thumbnail
+
+# [S04.05] Seconds between color samples
+#   type: double | values: 0.1 to 60 | default: 1.0
+PaletteSampleRateSec=1.0
+
+# [S04.06] Put inactive tabs to sleep
+#   type: bool | values: true|false | default: true
+SleepingTabsEnabled=true
+
+# [S04.07] Minutes of inactivity before a tab sleeps
+#   type: int | values: 1 to 1440 | default: 10
+SleepingTabsMinutes=10
+
+# [S04.08] Normal tab width
+#   type: double | values: pixels | default: 140.0
+TabDefaultWidth=140.0
+
+# [S04.09] Tab width while media plays
+#   type: double | values: pixels | default: 160.0
+TabMediaPlaybackWidth=160.0
+
+# [S04.10] Tab width in download mode
+#   type: double | values: pixels | default: 160.0
+TabDownloadModeWidth=160.0
+
+# [S04.11] Media tab width on hover
+#   type: double | values: pixels | default: 181.0
+MediaTabHoverWidth=181.0
+
+# [S04.12] Download tab width on hover
+#   type: double | values: pixels | default: 200.0
+DownloadTabHoverWidth=200.0
+
+# [S04.13] 0 = most recently used tab, 1 = next tab in tab-bar order
+#   type: int | values: 0|1 | default: 0
+TabSwitcherOrder=0
+
+#==============================================================================
+# [S05] HOME PAGE
+#==============================================================================
+
+# [S05.01] Show the clock and weather section
+#   type: bool | values: true|false | default: true
+HomeShowClockWeatherSection=true
+
+# [S05.02] Show the search section
+#   type: bool | values: true|false | default: true
+HomeShowSearchSection=true
+
+# [S05.03] Show the clock
+#   type: bool | values: true|false | default: true
+HomeShowClock=true
+
+# [S05.04] Show the weather widget
+#   type: bool | values: true|false | default: true
+HomeShowWeather=true
+
+# [S05.05] Show the media widget
+#   type: bool | values: true|false | default: true
+HomeShowMediaWidget=true
+
+# [S05.06] Show the calendar widget
+#   type: bool | values: true|false | default: true
+HomeShowCalendarWidget=true
+
+# [S05.07] Show the downloads widget
+#   type: bool | values: true|false | default: true
+HomeShowDownloadsWidget=true
+
+# [S05.08] Show the favorites widget
+#   type: bool | values: true|false | default: true
+HomeShowFavoritesWidget=true
+
+# [S05.09] Show the bookmarks widget
+#   type: bool | values: true|false | default: true
+HomeShowBookmarksWidget=true
+
+# [S05.10] Show the battery widget
+#   type: bool | values: true|false | default: true
+HomeShowBatteryWidget=true
+
+# [S05.11] Show the VPN and ad-block widget
+#   type: bool | values: true|false | default: true
+HomeShowVpnAdBlockWidget=true
+
+# [S05.12] Tint the home page from the wallpaper colors
+#   type: bool | values: true|false | default: true
+HomeAdaptiveColorsEnabled=true
+
+# [S05.13] Strength of the color tint
+#   type: double | values: 0 to 100 | default: 30.0
+HomeTintStrength=30.0
+
+# [S05.14] Home page font
+#   type: string | values: installed font name | default: Segoe UI
+HomeFontFamily=Segoe UI
+
+# [S05.15] Seconds of inactivity before home page UI fades
+#   type: double | values: seconds | default: 15.0
+HomeInactivityTimeoutSeconds=15.0
+
+# [S05.16] Show the music visualizer on the home page
+#   type: bool | values: true|false | default: false
+HomeVisualizerEnabled=false
+
+# [S05.17] Where the visualizer is active
+#   type: string | values: Everywhere|MediaTabOnly|SelectedWebsites | default: Everywhere
+HomeVisualizerScope=Everywhere
+
+# [S05.18] Sites used when scope is SelectedWebsites
+#   type: list | values: sites separated by ; | default: empty
+HomeVisualizerWebsites=
+
+# [S05.19] Weather widget layout
+#   type: string | values: Auto|Compact|Wide | default: Auto
+WeatherLayoutMode=Auto
+
+# [S05.20] Weather right pane open by default
+#   type: bool | values: true|false | default: true
+WeatherRightPaneDefaultOpen=true
+
+# [S05.21] Weather left pane open by default
+#   type: bool | values: true|false | default: false
+WeatherLeftPaneDefaultOpen=false
+
+#==============================================================================
+# [S06] WALLPAPER AND BACKGROUND
+#==============================================================================
+
+# [S06.01] Fixed background image path
+#   type: string | values: file path or empty | default: empty
+BackgroundImage=
+
+# [S06.02] Background opacity
+#   type: double | values: 0.0 to 1.0 | default: 1.0
+BackgroundOpacity=1.0
+
+# [S06.03] How the wallpaper is chosen
+#   type: string | values: Fixed|Random|Custom | default: Random
+WallpaperMode=Random
+
+# [S06.04] Wallpaper used in Fixed mode
+#   type: string | values: file name inside wallpapers | default: empty
+WallpaperFileName=
+
+# [S06.05] Order in Custom mode
+#   type: string | values: Sequential|Random | default: Sequential
+WallpaperOrder=Sequential
+
+# [S06.06] Wallpapers used in Custom mode
+#   type: list | values: file names separated by ; | default: empty
+WallpaperCustomList=
+
+# [S06.07] Custom wallpaper folder
+#   type: string | values: folder path or empty | default: empty
+WallpaperFolderPath=
+
+#==============================================================================
+# [S07] PRIVACY AND BLOCKING
+#==============================================================================
+
+# [S07.01] SponsorBlock on YouTube
+#   type: bool | values: true|false | default: true
+EnableSponsorBlock=true
+
+# [S07.02] Skip sponsor segments
+#   type: bool | values: true|false | default: true
+SB_Sponsors=true
+
+# [S07.03] Skip intro segments
+#   type: bool | values: true|false | default: true
+SB_Intro=true
+
+# [S07.04] Skip outro segments
+#   type: bool | values: true|false | default: true
+SB_Outro=true
+
+# [S07.05] Skip interaction reminders
+#   type: bool | values: true|false | default: false
+SB_Interaction=false
+
+# [S07.06] Skip self-promotion segments
+#   type: bool | values: true|false | default: true
+SB_SelfPromo=true
+
+# [S07.07] Skip off-topic music segments
+#   type: bool | values: true|false | default: false
+SB_MusicOfftopic=false
+
+# [S07.08] NextDNS profile
+#   type: string | values: NextDNS profile ID or empty | default: empty
+NextDnsId=
+
+# [S07.09] AdGuard extension
+#   type: bool | values: true|false | default: true
+AdGuardEnabled=true
+
+# [S07.10] Block ads
+#   type: bool | values: true|false | default: true
+AdGuard_BlockAds=true
+
+# [S07.11] Block trackers
+#   type: bool | values: true|false | default: true
+AdGuard_BlockTrackers=true
+
+# [S07.12] Block annoyances
+#   type: bool | values: true|false | default: true
+AdGuard_BlockAnnoyances=true
+
+# [S07.13] Block social widgets
+#   type: bool | values: true|false | default: false
+AdGuard_SocialWidgets=false
+
+# [S07.14] Hide sponsored search results
+#   type: bool | values: true|false | default: true
+HideSponsoredResults=true
+
+# [S07.15] Consent-O-Matic extension
+#   type: bool | values: true|false | default: true
+ConsentOMaticEnabled=true
+
+# [S07.16] Reject marketing cookies
+#   type: bool | values: true|false | default: true
+CoM_RejectMarketing=true
+
+# [S07.17] Reject analytics cookies
+#   type: bool | values: true|false | default: true
+CoM_RejectAnalytics=true
+
+# [S07.18] Reject preference cookies
+#   type: bool | values: true|false | default: true
+CoM_RejectPreferences=true
+
+# [S07.19] Reject other cookies
+#   type: bool | values: true|false | default: true
+CoM_RejectOthers=true
+
+#==============================================================================
+# [S08] VPN
+#==============================================================================
+
+# [S08.01] VPN
+#   type: bool | values: true|false | default: false
+VpnEnabled=false
+
+# [S08.02] Connect VPN at startup
+#   type: bool | values: true|false | default: false
+VpnAutoConnect=false
+
+# [S08.03] Active VPN profile
+#   type: string | values: profile ID or empty | default: empty
+VpnActiveProfileId=
+
+# [S08.04] Block traffic if VPN drops
+#   type: bool | values: true|false | default: false
+VpnKillSwitchEnabled=false
+
+# [S08.05] Notify when VPN falls back
+#   type: bool | values: true|false | default: true
+VpnNotifyOnFallback=true
+
+# [S08.06] Block WebRTC IP leaks
+#   type: bool | values: true|false | default: true
+VpnBlockWebRtcLeak=true
+
+# [S08.07] Hosts that skip the VPN
+#   type: string | values: hosts separated by ; | default: localhost;127.0.0.1;<local>
+VpnBypassList=localhost;127.0.0.1;<local>
+
+# [S08.08] VPN setup wizard finished
+#   type: bool | values: true|false | default: false
+VpnWizardCompleted=false
+
+#==============================================================================
+# [S09] DOWNLOAD CLEANUP
+#==============================================================================
+
+# [S09.01] Small file size threshold in MB
+#   type: int | values: 0 = off | default: 0
+JanitorSmallFileMb=0
+
+# [S09.02] Large file size threshold in GB
+#   type: int | values: 0 = off | default: 0
+JanitorLargeFileGb=0
+
+# [S09.03] Minutes before files are cleaned
+#   type: int | values: 0 = off | default: 0
+JanitorRetentionMin=0
+
+#==============================================================================
+# [S10] ACCOUNTS
+#==============================================================================
+
+# [S10.01] Google sign-in client ID
+#   type: string | values: OAuth client ID or empty | default: empty
+GoogleClientId=
+
+# [S10.02] Microsoft sign-in client ID
+#   type: string | values: OAuth client ID or empty | default: empty
+MicrosoftClientId=
+
+# [S10.03] Default Google account
+#   type: string | values: email or empty | default: empty
+DefaultGoogleAccountEmail=

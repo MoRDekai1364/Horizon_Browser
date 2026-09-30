@@ -109,7 +109,7 @@ public static class GithubUpdateService
                 return result;
             }
 
-            string apiUrl = $"https://api.github.com/repos/{ownerRepo}/releases/latest";
+            string apiUrl = $"https://api.github.com/repos/{ownerRepo}/releases?per_page=30";
             using var response = await _http.GetAsync(apiUrl);
             if (!response.IsSuccessStatusCode)
             {
@@ -119,7 +119,26 @@ public static class GithubUpdateService
 
             string json = await response.Content.ReadAsStringAsync();
             using var doc = JsonDocument.Parse(json);
-            var root = doc.RootElement;
+            JsonElement root = default;
+            bool releaseFound = false;
+            if (doc.RootElement.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var rel in doc.RootElement.EnumerateArray())
+                {
+                    if (rel.TryGetProperty("draft", out var draftEl) && draftEl.ValueKind == JsonValueKind.True) continue;
+                    bool isPre = rel.TryGetProperty("prerelease", out var preEl) && preEl.ValueKind == JsonValueKind.True;
+                    if (isPre && localChannel == "release") continue;
+                    if (!ReleaseHasChannelAsset(rel, localChannel)) continue;
+                    root = rel;
+                    releaseFound = true;
+                    break;
+                }
+            }
+            if (!releaseFound)
+            {
+                result.ErrorMessage = $"No release found for channel '{localChannel}'.";
+                return result;
+            }
 
             string tagName = root.TryGetProperty("tag_name", out var tagEl) ? tagEl.GetString() ?? "" : "";
             string remoteVersion = ExtractVersionFromText(tagName);
@@ -185,6 +204,18 @@ public static class GithubUpdateService
         if (channel != "release") return nameLower.Contains(channel);
         if (nameLower.Contains("alpha") || nameLower.Contains("beta")) return false;
         return nameLower.Contains("release") || nameLower.Contains("official") || nameLower.Contains("stable") || nameLower.Contains("setup");
+    }
+
+    private static bool ReleaseHasChannelAsset(JsonElement release, string channel)
+    {
+        if (!release.TryGetProperty("assets", out var assets) || assets.ValueKind != JsonValueKind.Array) return false;
+        foreach (var asset in assets.EnumerateArray())
+        {
+            string name = asset.TryGetProperty("name", out var n) ? n.GetString() ?? "" : "";
+            string nameLower = name.ToLowerInvariant();
+            if (MatchesChannel(nameLower, channel) && RankAsset(nameLower) >= 0) return true;
+        }
+        return false;
     }
 
     private static int RankAsset(string nameLower)
