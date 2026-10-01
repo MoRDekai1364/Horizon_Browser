@@ -6385,65 +6385,50 @@ return colors.length > 0 ? colors : null;
              url.StartsWith("http://",  StringComparison.OrdinalIgnoreCase));
     }
 
-    private void BtnInstallWebApp_Click(object sender, RoutedEventArgs e)
+    private async void BtnInstallWebApp_Click(object sender, RoutedEventArgs e)
     {
         var browser = CurrentBrowser;
-        if (browser?.MainWebView?.CoreWebView2 == null) return;
+        var core = browser?.MainWebView?.CoreWebView2;
+        if (browser == null || core == null) return;
 
         string url   = browser.MainWebView.Source?.ToString() ?? "";
-        string title = browser.MainWebView.CoreWebView2.DocumentTitle;
+        string title = core.DocumentTitle;
         if (string.IsNullOrEmpty(url) || !url.StartsWith("http")) return;
 
         try
         {
-            string host = new Uri(url).Host.Replace("www.", "");
-            string appName = !string.IsNullOrWhiteSpace(title)
-                ? title.Split(new char[]{'-','|'})[0].Trim()
-                : host;
-            if (appName.Length > 40) appName = appName.Substring(0, 40).Trim();
+            var s = SettingsService.Current;
+            var r = await WebAppService.InstallAsync(
+                url,
+                title,
+                async () => await core.GetFaviconAsync(Microsoft.Web.WebView2.Core.CoreWebView2FaviconImageSize.Large),
+                s.WebAppShortcutDesktop,
+                s.WebAppShortcutStartMenu);
 
-            string appsRoot = System.IO.Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "Horizon_Browser", "WebApps");
-            System.IO.Directory.CreateDirectory(appsRoot);
-
-            string horizonExe = System.Reflection.Assembly.GetExecutingAssembly().Location;
-            string exeCandidate = System.IO.Path.ChangeExtension(horizonExe, ".exe");
-            if (!System.IO.File.Exists(exeCandidate)) exeCandidate = horizonExe;
-
-            string desktopDir = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-            string lnkPath    = System.IO.Path.Combine(desktopDir, appName + ".lnk");
-            string workDir    = System.IO.Path.GetDirectoryName(exeCandidate) ?? "";
-
-            // Write a .ps1 script to a temp file and run it.
-            // This avoids all command-line quoting issues with special chars in paths.
-            string ps1 = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "horizon_webapp_" + Guid.NewGuid().ToString("N") + ".ps1");
-            string psLines =
-                "$ws = New-Object -ComObject WScript.Shell" + Environment.NewLine +
-                "$s  = $ws.CreateShortcut(@'" + Environment.NewLine + lnkPath + Environment.NewLine + "'@)" + Environment.NewLine +
-                "$s.TargetPath = @'" + Environment.NewLine + exeCandidate + Environment.NewLine + "'@" + Environment.NewLine +
-                "$s.Arguments = @'" + Environment.NewLine + url + Environment.NewLine + "'@" + Environment.NewLine +
-                "$s.WorkingDirectory = @'" + Environment.NewLine + workDir + Environment.NewLine + "'@" + Environment.NewLine +
-                "$s.Save()";
-            System.IO.File.WriteAllText(ps1, psLines, System.Text.Encoding.UTF8);
-
-            var psi = new System.Diagnostics.ProcessStartInfo("powershell.exe",
-                "-NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"" + ps1 + "\"")
+            if (r.Manifest == null)
             {
-                CreateNoWindow = true,
-                UseShellExecute = false
-            };
-            var proc = System.Diagnostics.Process.Start(psi);
-            proc?.WaitForExit(5000);
-            try { System.IO.File.Delete(ps1); } catch { }
+                string err = r.Errors.Count > 0 ? string.Join("\n", r.Errors) : "Unknown error.";
+                LogService.Write("WEBAPP", "Install failed: " + err);
+                MessageBox.Show("Web App install failed:\n" + err, "Web App", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
 
-            bool ok = System.IO.File.Exists(lnkPath);
-            string msg = ok
-                ? "'" + appName + "' installed as a Web App!\n\nShortcut added to Desktop."
-                : "Web App files saved to:\n" + appsRoot + "\n\nNote: Desktop shortcut could not be created.";
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine("'" + r.Manifest.Name + "' " + (r.IsUpdate ? "updated." : "installed as a Web App."));
+            sb.AppendLine();
+            sb.AppendLine("Icon: " + (r.IconOk ? "available" : "not available"));
+            sb.AppendLine("Desktop shortcut: " + (!r.DesktopRequested ? "off in Settings" : r.DesktopOk ? "created" : "failed"));
+            sb.AppendLine("Start Menu shortcut: " + (!r.StartMenuRequested ? "off in Settings" : r.StartMenuOk ? "created" : "failed"));
+            sb.AppendLine("Folder: " + r.AppDir);
+            if (r.Errors.Count > 0)
+            {
+                sb.AppendLine();
+                sb.AppendLine("Details:");
+                foreach (var er in r.Errors) sb.AppendLine("- " + er);
+            }
 
-            MessageBox.Show(msg, "Web App Installed", MessageBoxButton.OK, MessageBoxImage.Information);
-            LogService.Write("WEBAPP", "Installed: " + appName + " -> " + url);
+            MessageBox.Show(sb.ToString(), "Web App Installed", MessageBoxButton.OK,
+                r.Errors.Count > 0 ? MessageBoxImage.Warning : MessageBoxImage.Information);
         }
         catch (Exception ex)
         {

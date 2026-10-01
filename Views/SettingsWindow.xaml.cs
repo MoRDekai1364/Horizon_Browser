@@ -956,6 +956,8 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
         
         ChkHideHeader.IsChecked     = s.AutoHideHeader;
         ChkHideSidebar.IsChecked    = s.AutoHideSidebar;
+        ChkWebAppDesktop.IsChecked  = s.WebAppShortcutDesktop;
+        ChkWebAppStartMenu.IsChecked = s.WebAppShortcutStartMenu;
         ChkSessionRestore.IsChecked      = s.ShowSessionRestore;
         ChkAutoRestoreSession.IsChecked  = s.AutoRestoreSession;
         ChkBackgroundKeepAlive.IsChecked = s.BackgroundKeepAliveEnabled;
@@ -1051,6 +1053,8 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
 
         s.AutoHideHeader     = ChkHideHeader.IsChecked     == true;
         s.AutoHideSidebar    = ChkHideSidebar.IsChecked    == true;
+        s.WebAppShortcutDesktop   = ChkWebAppDesktop.IsChecked   == true;
+        s.WebAppShortcutStartMenu = ChkWebAppStartMenu.IsChecked == true;
         s.ShowSessionRestore  = ChkSessionRestore.IsChecked     == true;
         s.AutoRestoreSession        = ChkAutoRestoreSession.IsChecked  == true;
         s.BackgroundKeepAliveEnabled = ChkBackgroundKeepAlive.IsChecked == true;

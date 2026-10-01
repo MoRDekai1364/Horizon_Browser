@@ -272,6 +272,8 @@ public class SettingsData
 
     public bool AutoHideHeader { get; set; } = false;
     public bool AutoHideSidebar { get; set; } = false;
+    public bool WebAppShortcutDesktop { get; set; } = true;
+    public bool WebAppShortcutStartMenu { get; set; } = true;
     public int HeaderSensitivityMs { get; set; } = 300;
     public int SidebarSensitivityMs { get; set; } = 300;
     

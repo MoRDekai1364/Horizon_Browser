@@ -543,7 +543,14 @@
                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" PanningMode="VerticalOnly">
                     <StackPanel Margin="10,10,20,10">
 
-                        <TextBlock Text="PRIVACY &amp; BLOCKING" Foreground="{StaticResource Brush_Accent}" FontSize="15" FontWeight="Bold" Margin="0,0,0,12"/>
+                        <TextBlock Text="WEB APPS" Foreground="{StaticResource Brush_Accent}" FontSize="15" FontWeight="Bold" Margin="0,0,0,12"/>
+
+                        <CheckBox x:Name="ChkWebAppDesktop" Content="Create Desktop shortcut when installing a Web App" Foreground="{StaticResource Brush_Text}" Margin="0,10"
+                                  ToolTip="Adds a shortcut for the installed Web App to the Desktop."/>
+                        <CheckBox x:Name="ChkWebAppStartMenu" Content="Create Start Menu shortcut when installing a Web App" Foreground="{StaticResource Brush_Text}" Margin="0,10"
+                                  ToolTip="Adds a shortcut for the installed Web App to the Start Menu (Horizon Web Apps folder)."/>
+
+                        <TextBlock Text="PRIVACY &amp; BLOCKING" Foreground="{StaticResource Brush_Accent}" FontSize="15" FontWeight="Bold" Margin="0,24,0,12"/>
 
                         <CheckBox x:Name="ChkStealth" Content="Enable Stealth Mode (Anti-Fingerprinting)" Foreground="{StaticResource Brush_Text}" Margin="0,10"
                                   ToolTip="Randomizes fingerprinting metrics to reduce tracking."/>

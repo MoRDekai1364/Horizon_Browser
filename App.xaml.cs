@@ -153,6 +153,23 @@ public partial class App : Application
                 {
                     var arg = e.Args[i];
 
+                    if (arg.StartsWith("--webapp-id=", StringComparison.OrdinalIgnoreCase))
+                    {
+                        string appId = arg.Substring("--webapp-id=".Length).Trim('"');
+                        var appManifest = Horizon.Stealth.Services.WebAppService.Load(appId);
+                        if (appManifest != null)
+                        {
+                            isWebApp = true;
+                            startUrl = appManifest.StartUrl;
+                            LogService.Write("BOOT", $"WebApp manifest loaded: {appId} -> {startUrl}");
+                        }
+                        else
+                        {
+                            LogService.Write("BOOT", $"WebApp manifest not found or invalid: {appId}");
+                        }
+                        continue;
+                    }
+
                     if (arg.StartsWith("--webapp="))
                     {
                         isWebApp = true;
