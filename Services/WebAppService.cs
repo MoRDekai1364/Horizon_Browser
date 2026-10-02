@@ -80,6 +80,10 @@ public static class WebAppService
             if (!File.Exists(path)) return null;
             var manifest = JsonSerializer.Deserialize<WebAppManifest>(File.ReadAllText(path, Encoding.UTF8));
             if (manifest == null || string.IsNullOrEmpty(manifest.StartUrl)) return null;
+            if (!Uri.TryCreate(manifest.StartUrl, UriKind.Absolute, out var startUri) ||
+                (startUri.Scheme != Uri.UriSchemeHttp && startUri.Scheme != Uri.UriSchemeHttps)) return null;
+            if (!string.Equals(manifest.Id, id, StringComparison.OrdinalIgnoreCase)) return null;
+            if (manifest.Icon.Contains("..") || Path.IsPathRooted(manifest.Icon)) manifest.Icon = "";
             return manifest;
         }
         catch (Exception ex)
@@ -199,6 +203,232 @@ public static class WebAppService
             result.Errors.Add(ex.Message);
         }
         return result;
+    }
+
+    public static List<WebAppManifest> LoadAll()
+    {
+        var list = new List<WebAppManifest>();
+        try
+        {
+            if (!Directory.Exists(RootDir)) return list;
+            foreach (var dir in Directory.GetDirectories(RootDir))
+            {
+                string id = Path.GetFileName(dir);
+                if (!IsValidId(id)) continue;
+                var m = Load(id);
+                if (m != null) list.Add(m);
+            }
+            list.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.CurrentCultureIgnoreCase));
+        }
+        catch (Exception ex)
+        {
+            LogService.RecordCrash(ex, "WebAppService.LoadAll");
+        }
+        return list;
+    }
+
+    public static bool Uninstall(string id, List<string> errors)
+    {
+        try
+        {
+            if (!IsValidId(id))
+            {
+                errors.Add("Invalid Web App id.");
+                return false;
+            }
+
+            var manifest = Load(id);
+            WebAppHostService.CloseById(id);
+
+            if (manifest != null)
+            {
+                DeleteShortcutFile(manifest.DesktopShortcutPath, errors);
+                DeleteShortcutFile(manifest.StartMenuShortcutPath, errors);
+                RemoveStartMenuFolderIfEmpty();
+            }
+
+            string dir = GetAppDir(id);
+            if (Directory.Exists(dir))
+            {
+                try
+                {
+                    Directory.Delete(dir, true);
+                }
+                catch (Exception first)
+                {
+                    LogService.Write(LogTag, "Uninstall folder delete failed once: " + first.Message);
+                    System.Threading.Thread.Sleep(300);
+                    try { Directory.Delete(dir, true); }
+                    catch (Exception second) { errors.Add("Folder: " + second.Message); }
+                }
+            }
+
+            LogService.Write(LogTag, $"Uninstalled {id}. errors={errors.Count}");
+            return !Directory.Exists(dir);
+        }
+        catch (Exception ex)
+        {
+            LogService.RecordCrash(ex, "WebAppService.Uninstall");
+            errors.Add(ex.Message);
+            return false;
+        }
+    }
+
+    public static bool Rename(string id, string newName, List<string> errors)
+    {
+        try
+        {
+            var m = Load(id);
+            if (m == null)
+            {
+                errors.Add("Web App not found.");
+                return false;
+            }
+
+            string name = (newName ?? "").Trim();
+            if (name.Length == 0)
+            {
+                errors.Add("The name is empty.");
+                return false;
+            }
+            if (name.Length > 40) name = name.Substring(0, 40).Trim();
+
+            bool hadDesktop = !string.IsNullOrEmpty(m.DesktopShortcutPath) && File.Exists(m.DesktopShortcutPath);
+            bool hadMenu = !string.IsNullOrEmpty(m.StartMenuShortcutPath) && File.Exists(m.StartMenuShortcutPath);
+
+            DeleteShortcutFile(m.DesktopShortcutPath, errors);
+            DeleteShortcutFile(m.StartMenuShortcutPath, errors);
+
+            m.Name = name;
+            CreateShortcutsFor(m, hadDesktop, hadMenu, errors);
+            SaveManifest(m);
+            LogService.Write(LogTag, $"Renamed {id} to '{name}'.");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            LogService.RecordCrash(ex, "WebAppService.Rename");
+            errors.Add(ex.Message);
+            return false;
+        }
+    }
+
+    public static bool RecreateShortcuts(string id, bool desktop, bool startMenu, List<string> errors)
+    {
+        try
+        {
+            var m = Load(id);
+            if (m == null)
+            {
+                errors.Add("Web App not found.");
+                return false;
+            }
+
+            DeleteShortcutFile(m.DesktopShortcutPath, errors);
+            DeleteShortcutFile(m.StartMenuShortcutPath, errors);
+            CreateShortcutsFor(m, desktop, startMenu, errors);
+            SaveManifest(m);
+            LogService.Write(LogTag, $"Shortcuts recreated for {id}. desktop={desktop} startMenu={startMenu} errors={errors.Count}");
+            return errors.Count == 0;
+        }
+        catch (Exception ex)
+        {
+            LogService.RecordCrash(ex, "WebAppService.RecreateShortcuts");
+            errors.Add(ex.Message);
+            return false;
+        }
+    }
+
+    private static void SaveManifest(WebAppManifest m)
+    {
+        string dir = GetAppDir(m.Id);
+        Directory.CreateDirectory(dir);
+        string path = Path.Combine(dir, ManifestFileName);
+        string tmp = path + ".tmp";
+        File.WriteAllText(tmp, JsonSerializer.Serialize(m, JsonOpts), new UTF8Encoding(false));
+        File.Move(tmp, path, true);
+    }
+
+    private static void DeleteShortcutFile(string? path, List<string> errors)
+    {
+        if (string.IsNullOrEmpty(path)) return;
+        if (!path.EndsWith(".lnk", StringComparison.OrdinalIgnoreCase)) return;
+        try
+        {
+            if (File.Exists(path)) File.Delete(path);
+        }
+        catch (Exception ex)
+        {
+            errors.Add("Shortcut: " + ex.Message);
+        }
+    }
+
+    private static void RemoveStartMenuFolderIfEmpty()
+    {
+        try
+        {
+            string programs = Environment.GetFolderPath(Environment.SpecialFolder.Programs);
+            if (string.IsNullOrEmpty(programs)) return;
+            string folder = Path.Combine(programs, StartMenuFolderName);
+            if (Directory.Exists(folder) && Directory.GetFileSystemEntries(folder).Length == 0)
+                Directory.Delete(folder);
+        }
+        catch
+        {
+        }
+    }
+
+    private static void CreateShortcutsFor(WebAppManifest m, bool desktop, bool startMenu, List<string> errors)
+    {
+        m.DesktopShortcutPath = "";
+        m.StartMenuShortcutPath = "";
+
+        string exe = ResolveExePath();
+        if (string.IsNullOrEmpty(exe) || !File.Exists(exe))
+        {
+            errors.Add("Horizon executable path could not be resolved: '" + exe + "'");
+            return;
+        }
+
+        string workDir = Path.GetDirectoryName(exe) ?? "";
+        string iconPath = string.IsNullOrEmpty(m.Icon) ? "" : Path.Combine(GetAppDir(m.Id), m.Icon);
+        string iconLocation = (!string.IsNullOrEmpty(iconPath) && File.Exists(iconPath) ? iconPath : exe) + ",0";
+        string host = Uri.TryCreate(m.StartUrl, UriKind.Absolute, out var u) ? u.Host : "app";
+        string hostTag = SanitizeFileName(host, "app");
+        string baseName = SanitizeFileName(m.Name, hostTag);
+        string args = "--webapp-id=" + m.Id;
+        string description = "Horizon Web App: " + m.Name;
+
+        if (desktop)
+        {
+            string folder = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+            if (string.IsNullOrEmpty(folder))
+            {
+                errors.Add("Desktop folder could not be resolved.");
+            }
+            else
+            {
+                string path = ResolveShortcutPath(folder, baseName, hostTag, null);
+                if (CreateShortcut(path, exe, args, workDir, iconLocation, description, "Desktop", errors))
+                    m.DesktopShortcutPath = path;
+            }
+        }
+
+        if (startMenu)
+        {
+            string programs = Environment.GetFolderPath(Environment.SpecialFolder.Programs);
+            if (string.IsNullOrEmpty(programs))
+            {
+                errors.Add("Start Menu folder could not be resolved.");
+            }
+            else
+            {
+                string folder = Path.Combine(programs, StartMenuFolderName);
+                string path = ResolveShortcutPath(folder, baseName, hostTag, null);
+                if (CreateShortcut(path, exe, args, workDir, iconLocation, description, "Start Menu", errors))
+                    m.StartMenuShortcutPath = path;
+            }
+        }
     }
 
     private static string BuildId(Uri uri)

@@ -959,6 +959,7 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
         ChkWebAppDesktop.IsChecked  = s.WebAppShortcutDesktop;
         ChkWebAppStartMenu.IsChecked = s.WebAppShortcutStartMenu;
         ChkWebAppOffer.IsChecked = s.WebAppOfferOnLeave;
+        RefreshWebApps();
         ChkSessionRestore.IsChecked      = s.ShowSessionRestore;
         ChkAutoRestoreSession.IsChecked  = s.AutoRestoreSession;
         ChkBackgroundKeepAlive.IsChecked = s.BackgroundKeepAliveEnabled;
@@ -1126,6 +1127,96 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
     }
 
     private void BtnCancel_Click(object sender, RoutedEventArgs e) { Close(); }
+
+    private void RefreshWebApps()
+    {
+        try
+        {
+            var items = WebAppService.LoadAll();
+            LstWebApps.ItemsSource = items;
+            TxtWebAppName.Text = "";
+            TxtWebAppStatus.Text = items.Count == 0 ? "No Web Apps installed." : items.Count + " Web App(s) installed.";
+        }
+        catch (Exception ex)
+        {
+            LogService.RecordCrash(ex, "SettingsWindow.RefreshWebApps");
+        }
+    }
+
+    private WebAppManifest? SelectedWebApp() => LstWebApps.SelectedItem as WebAppManifest;
+
+    private void LstWebApps_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+    {
+        TxtWebAppName.Text = SelectedWebApp()?.Name ?? "";
+    }
+
+    private void BtnWebAppOpen_Click(object sender, RoutedEventArgs e)
+    {
+        var m = SelectedWebApp();
+        if (m == null)
+        {
+            TxtWebAppStatus.Text = "Select a Web App first.";
+            return;
+        }
+        WebAppHostService.OpenOrActivate(m);
+    }
+
+    private void BtnWebAppRename_Click(object sender, RoutedEventArgs e)
+    {
+        var m = SelectedWebApp();
+        if (m == null)
+        {
+            TxtWebAppStatus.Text = "Select a Web App first.";
+            return;
+        }
+
+        var errors = new System.Collections.Generic.List<string>();
+        bool ok = WebAppService.Rename(m.Id, TxtWebAppName.Text, errors);
+        RefreshWebApps();
+        TxtWebAppStatus.Text = ok
+            ? "Renamed. Shortcuts updated." + (errors.Count > 0 ? " Warnings: " + string.Join("; ", errors) : "")
+            : "Rename failed: " + string.Join("; ", errors);
+    }
+
+    private void BtnWebAppShortcuts_Click(object sender, RoutedEventArgs e)
+    {
+        var m = SelectedWebApp();
+        if (m == null)
+        {
+            TxtWebAppStatus.Text = "Select a Web App first.";
+            return;
+        }
+
+        var errors = new System.Collections.Generic.List<string>();
+        bool desktop = ChkWebAppDesktop.IsChecked == true;
+        bool startMenu = ChkWebAppStartMenu.IsChecked == true;
+        bool ok = WebAppService.RecreateShortcuts(m.Id, desktop, startMenu, errors);
+        RefreshWebApps();
+        TxtWebAppStatus.Text = ok
+            ? "Shortcuts recreated."
+            : "Shortcuts: " + string.Join("; ", errors);
+    }
+
+    private void BtnWebAppUninstall_Click(object sender, RoutedEventArgs e)
+    {
+        var m = SelectedWebApp();
+        if (m == null)
+        {
+            TxtWebAppStatus.Text = "Select a Web App first.";
+            return;
+        }
+
+        if (MessageBox.Show("Uninstall '" + m.Name + "'?\n\nIts shortcuts and saved files will be deleted.",
+                "Horizon", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No) != MessageBoxResult.Yes)
+            return;
+
+        var errors = new System.Collections.Generic.List<string>();
+        bool ok = WebAppService.Uninstall(m.Id, errors);
+        RefreshWebApps();
+        TxtWebAppStatus.Text = ok
+            ? "Uninstalled."
+            : "Uninstall incomplete: " + string.Join("; ", errors);
+    }
 
     private void BtnResetAll_Click(object sender, RoutedEventArgs e)
     {

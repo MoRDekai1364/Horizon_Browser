@@ -47,13 +47,23 @@ public partial class WebAppWindow : Window
     private ResizeMode _prevResize = ResizeMode.CanResize;
     private Rect _prevBounds;
 
-    public WebAppWindow(WebAppManifest manifest)
+    private readonly WebAppJournalEntry? _restore;
+    private bool _restoreRevealed;
+    private int _generation;
+
+    public WebAppManifest Manifest => _manifest;
+
+    public WebAppWindow(WebAppManifest manifest, WebAppJournalEntry? restore = null)
     {
         _manifest = manifest;
+        _restore = restore;
+        _generation = restore?.Generation ?? 0;
         _scopeHost = Uri.TryCreate(manifest.StartUrl, UriKind.Absolute, out var startUri) ? startUri.Host : "";
         _scopeSite = RegistrableDomain(_scopeHost);
 
         InitializeComponent();
+
+        if (_restore != null) PrepareRestore(_restore);
 
         Title = manifest.Name;
         BarTitle.Text = manifest.Name;
@@ -75,7 +85,7 @@ public partial class WebAppWindow : Window
         };
         _barTimer.Tick += OnBarTick;
 
-        Browser.Navigate(manifest.StartUrl);
+        Browser.Navigate(!string.IsNullOrEmpty(_restore?.Url) ? _restore!.Url : manifest.StartUrl);
         LogService.Write(LogTag, $"Window created. id={manifest.Id} start={manifest.StartUrl} scopeSite={_scopeSite}");
     }
 
@@ -129,8 +139,189 @@ public partial class WebAppWindow : Window
 
         var core = Browser.MainWebView.CoreWebView2;
         core.NavigationStarting += OnNavigationStarting;
+        core.NavigationCompleted += OnNavigationCompletedForRestore;
         core.DocumentTitleChanged += (_, _) => UpdateTitle();
         core.ContainsFullScreenElementChanged += (_, _) => SetFullscreen(core.ContainsFullScreenElement);
+    }
+
+    private const string StateScript =
+        "(function(){try{var m=document.querySelector('video,audio');var t=0;" +
+        "if(m&&isFinite(m.currentTime)&&m.currentTime>0&&!m.ended)t=m.currentTime;" +
+        "return JSON.stringify({x:window.scrollX||0,y:window.scrollY||0,t:t});}catch(e){return null;}})()";
+
+    private static bool IsOnAnyScreen(WebAppJournalEntry r)
+    {
+        double vl = SystemParameters.VirtualScreenLeft;
+        double vt = SystemParameters.VirtualScreenTop;
+        double vr = vl + SystemParameters.VirtualScreenWidth;
+        double vb = vt + SystemParameters.VirtualScreenHeight;
+        return r.Left + 100 < vr && r.Left + r.Width - 100 > vl && r.Top + 50 < vb && r.Top + r.Height - 50 > vt;
+    }
+
+    private void PrepareRestore(WebAppJournalEntry r)
+    {
+        try
+        {
+            if (r.Width >= 300 && r.Height >= 200 && IsOnAnyScreen(r))
+            {
+                WindowStartupLocation = WindowStartupLocation.Manual;
+                Left = r.Left;
+                Top = r.Top;
+                Width = r.Width;
+                Height = r.Height;
+            }
+            if (r.Maximized) WindowState = WindowState.Maximized;
+
+            string snapshotPath = Path.Combine(WebAppService.GetAppDir(_manifest.Id), "snapshot.png");
+            if (File.Exists(snapshotPath))
+            {
+                var bmp = new BitmapImage();
+                bmp.BeginInit();
+                bmp.CacheOption = BitmapCacheOption.OnLoad;
+                bmp.UriSource = new Uri(snapshotPath, UriKind.Absolute);
+                bmp.EndInit();
+                bmp.Freeze();
+                SnapshotImage.Source = bmp;
+                SnapshotImage.Visibility = Visibility.Visible;
+                Browser.Visibility = Visibility.Hidden;
+            }
+
+            var revealTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(15) };
+            revealTimer.Tick += (_, _) =>
+            {
+                revealTimer.Stop();
+                RevealBrowser();
+            };
+            revealTimer.Start();
+
+            var stableTimer = new DispatcherTimer { Interval = TimeSpan.FromMinutes(2) };
+            stableTimer.Tick += (_, _) =>
+            {
+                stableTimer.Stop();
+                _generation = 0;
+            };
+            stableTimer.Start();
+
+            LogService.Write(LogTag, $"Restore prepared for {_manifest.Id}. Generation={_generation}");
+        }
+        catch (Exception ex)
+        {
+            LogService.RecordCrash(ex, "WebAppWindow.PrepareRestore");
+            RevealBrowser();
+        }
+    }
+
+    private void RevealBrowser()
+    {
+        if (_restoreRevealed) return;
+        _restoreRevealed = true;
+        Browser.Visibility = Visibility.Visible;
+        SnapshotImage.Visibility = Visibility.Collapsed;
+        SnapshotImage.Source = null;
+    }
+
+    private async void OnNavigationCompletedForRestore(object? sender, CoreWebView2NavigationCompletedEventArgs e)
+    {
+        if (_restore == null || _restoreRevealed) return;
+        try
+        {
+            var core = Browser.MainWebView.CoreWebView2;
+            if (e.IsSuccess && core != null)
+            {
+                var inv = System.Globalization.CultureInfo.InvariantCulture;
+                string js =
+                    "(function(){try{window.scrollTo(" + _restore.ScrollX.ToString(inv) + "," + _restore.ScrollY.ToString(inv) + ");}catch(e){}" +
+                    "try{var t=" + _restore.MediaTime.ToString(inv) + ";if(t>0){var m=document.querySelector('video,audio');" +
+                    "if(m){var s=function(){try{m.currentTime=t;}catch(e){}};" +
+                    "if(m.readyState>0)s();else m.addEventListener('loadedmetadata',s,{once:true});}}}catch(e){}})()";
+                await core.ExecuteScriptAsync(js);
+            }
+        }
+        catch (Exception ex)
+        {
+            LogService.RecordCrash(ex, "WebAppWindow.RestoreScript");
+        }
+        finally
+        {
+            RevealBrowser();
+        }
+    }
+
+    public async System.Threading.Tasks.Task<WebAppJournalEntry?> CaptureStateAsync(bool withSnapshot)
+    {
+        try
+        {
+            if (_restore != null && !_restoreRevealed) return _restore;
+
+            var core = Browser.MainWebView?.CoreWebView2;
+
+            Rect bounds;
+            bool maximized;
+            if (_isFullscreen)
+            {
+                bounds = _prevBounds;
+                maximized = _prevState == WindowState.Maximized;
+            }
+            else if (WindowState == WindowState.Normal)
+            {
+                bounds = new Rect(Left, Top, Width, Height);
+                maximized = false;
+            }
+            else
+            {
+                bounds = RestoreBounds;
+                maximized = WindowState == WindowState.Maximized;
+            }
+            if (bounds.IsEmpty) bounds = new Rect(Left, Top, Width, Height);
+
+            var entry = new WebAppJournalEntry
+            {
+                Id = _manifest.Id,
+                Url = core != null && !string.IsNullOrEmpty(core.Source) ? core.Source : _manifest.StartUrl,
+                Left = bounds.Left,
+                Top = bounds.Top,
+                Width = bounds.Width,
+                Height = bounds.Height,
+                Maximized = maximized,
+                Generation = _generation,
+                SavedUtc = DateTime.UtcNow.ToString("o")
+            };
+
+            if (core != null)
+            {
+                string res = await core.ExecuteScriptAsync(StateScript);
+                string? inner = System.Text.Json.JsonSerializer.Deserialize<string>(res);
+                if (!string.IsNullOrEmpty(inner))
+                {
+                    using var doc = System.Text.Json.JsonDocument.Parse(inner);
+                    entry.ScrollX = doc.RootElement.GetProperty("x").GetDouble();
+                    entry.ScrollY = doc.RootElement.GetProperty("y").GetDouble();
+                    entry.MediaTime = doc.RootElement.GetProperty("t").GetDouble();
+                }
+
+                if (withSnapshot && WindowState != WindowState.Minimized && IsVisible && Browser.Visibility == Visibility.Visible)
+                    await SaveSnapshotAsync(core);
+            }
+
+            return entry;
+        }
+        catch (Exception ex)
+        {
+            LogService.RecordCrash(ex, "WebAppWindow.CaptureStateAsync");
+            return null;
+        }
+    }
+
+    private async System.Threading.Tasks.Task SaveSnapshotAsync(CoreWebView2 core)
+    {
+        string dir = WebAppService.GetAppDir(_manifest.Id);
+        string tmpPath = Path.Combine(dir, "snapshot.png.tmp");
+        string finalPath = Path.Combine(dir, "snapshot.png");
+        using (var fs = new FileStream(tmpPath, FileMode.Create, FileAccess.Write, FileShare.None))
+        {
+            await core.CapturePreviewAsync(CoreWebView2CapturePreviewImageFormat.Png, fs);
+        }
+        File.Move(tmpPath, finalPath, true);
     }
 
     private void UpdateTitle()

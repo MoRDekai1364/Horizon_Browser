@@ -87,6 +87,7 @@
         </Border>
 
         <controls:BrowserView x:Name="Browser" Grid.Row="1"/>
+        <Image x:Name="SnapshotImage" Grid.Row="1" Stretch="Fill" Visibility="Collapsed" IsHitTestVisible="False"/>
 
         <Popup x:Name="BarPopup" AllowsTransparency="True" StaysOpen="True" Focusable="False"
                Placement="Relative" PlacementTarget="{Binding ElementName=RootGrid}"

@@ -107,6 +107,15 @@ public partial class App : Application
             return;
         }
 
+        foreach (var standbyArg in e.Args)
+        {
+            if (standbyArg.Equals("--webapp-standby", StringComparison.OrdinalIgnoreCase))
+            {
+                RunStandby(e);
+                return;
+            }
+        }
+
         string? webAppId = null;
         foreach (var arg in e.Args)
         {
@@ -270,6 +279,122 @@ public partial class App : Application
         }
     }
 
+    private async void RunStandby(StartupEventArgs e)
+    {
+        int parentPid = 0;
+        foreach (var a in e.Args)
+        {
+            if (a.StartsWith("--parent-pid=", StringComparison.OrdinalIgnoreCase) &&
+                int.TryParse(a.Substring("--parent-pid=".Length), out var p))
+                parentPid = p;
+        }
+
+        var claim = parentPid > 0 ? WebAppJournalService.TryClaimStandby(parentPid) : null;
+        if (claim == null)
+        {
+            LogService.Write("BOOT", $"Standby not needed or already running (parent {parentPid}).");
+            Shutdown();
+            return;
+        }
+
+        base.OnStartup(e);
+        ShutdownMode = ShutdownMode.OnExplicitShutdown;
+        LogService.Write("BOOT", $"Mode: Web App standby watcher (parent {parentPid}).");
+
+        try
+        {
+            System.Diagnostics.Process? parent = null;
+            try { parent = System.Diagnostics.Process.GetProcessById(parentPid); }
+            catch { }
+
+            bool gone = parent == null;
+            while (!gone)
+            {
+                await System.Threading.Tasks.Task.Delay(1500);
+                try { gone = parent!.HasExited; }
+                catch { gone = true; }
+
+                if (!gone && !WebAppJournalService.JournalExists(parentPid))
+                {
+                    LogService.Write("BOOT", "Standby: parent has no Web Apps left. Watcher exiting.");
+                    GC.KeepAlive(claim);
+                    Shutdown();
+                    return;
+                }
+            }
+            GC.KeepAlive(claim);
+
+            var entries = WebAppJournalService.Read(parentPid);
+            WebAppJournalService.Delete(parentPid);
+            if (entries.Count == 0)
+            {
+                LogService.Write("BOOT", "Standby: parent ended with nothing to restore.");
+                Shutdown();
+                return;
+            }
+
+            LogService.Write("BOOT", $"Standby: parent {parentPid} ended unexpectedly. Restoring {entries.Count} Web App window(s).");
+
+            if (BackgroundKeepAliveService.TryActivateExistingInstance("PING"))
+            {
+                foreach (var entry in entries)
+                    BackgroundKeepAliveService.TryActivateExistingInstance("OPENWEBAPP:" + entry.Id);
+                LogService.Write("BOOT", "Standby: another Horizon instance is running. Forwarded the Web Apps to it.");
+                Shutdown();
+                return;
+            }
+
+            bool isHost = WebAppHostService.TryBecomeHost();
+            for (int i = 0; !isHost && i < 10; i++)
+            {
+                await System.Threading.Tasks.Task.Delay(500);
+                if (BackgroundKeepAliveService.TryActivateExistingInstance("PING"))
+                {
+                    foreach (var entry in entries)
+                        BackgroundKeepAliveService.TryActivateExistingInstance("OPENWEBAPP:" + entry.Id);
+                    LogService.Write("BOOT", "Standby: another host took over. Forwarded the Web Apps to it.");
+                    Shutdown();
+                    return;
+                }
+                isHost = WebAppHostService.TryBecomeHost();
+            }
+
+            if (!isHost)
+            {
+                LogService.Write("BOOT", "Standby: could not become the host. Giving up.");
+                Shutdown();
+                return;
+            }
+
+            foreach (var entry in entries) entry.Generation++;
+            entries.RemoveAll(x => x.Generation >= 3);
+            if (entries.Count == 0)
+            {
+                LogService.Write("BOOT", "Standby: restore loop guard reached. Nothing restored.");
+                Shutdown();
+                return;
+            }
+
+            try { SettingsService.Load(); }
+            catch (Exception ex) { LogService.RecordCrash(ex, "Standby Settings Load"); }
+
+            try { ThemeService.ApplyTheme(SettingsService.Current.Theme); }
+            catch (Exception ex) { LogService.RecordCrash(ex, "Standby ApplyTheme"); }
+
+            _ = StealthEnvironment.InitializeAsync();
+            BackgroundKeepAliveService.OnMainWindowRequested = ShowNewMainWindow;
+
+            int opened = WebAppHostService.RestoreHost(entries);
+            ShutdownMode = ShutdownMode.OnLastWindowClose;
+            if (opened == 0) Shutdown();
+        }
+        catch (Exception ex)
+        {
+            LogService.RecordCrash(ex, "RunStandby");
+            Shutdown();
+        }
+    }
+
     private static bool _mainServicesStarted;
 
     private void ShowNewMainWindow(string? startUrl)
@@ -371,6 +496,7 @@ public partial class App : Application
     {
         LogService.RecordCrash(e.Exception, "UI Dispatcher");
         e.Handled = true; 
+        WebAppJournalService.CrashShutdown = true;
         ShowCrashDialog(e.Exception);
         Shutdown();
     }
