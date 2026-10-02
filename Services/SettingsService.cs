@@ -124,7 +124,7 @@ public static class SettingsService
 
     private static readonly HashSet<string> AlwaysKeepProperties = new(StringComparer.OrdinalIgnoreCase)
     {
-        "ConfigVersion", "ExtraData"
+        "ConfigVersion", "ExtraData", "VpnRelayPort"
     };
 
     private static readonly HashSet<string> DataProperties = new(StringComparer.OrdinalIgnoreCase)
@@ -274,6 +274,8 @@ public class SettingsData
     public bool AutoHideSidebar { get; set; } = false;
     public bool WebAppShortcutDesktop { get; set; } = true;
     public bool WebAppShortcutStartMenu { get; set; } = true;
+    public bool WebAppOfferOnLeave { get; set; } = true;
+    public int VpnRelayPort { get; set; } = 0;
     public int HeaderSensitivityMs { get; set; } = 300;
     public int SidebarSensitivityMs { get; set; } = 300;
     

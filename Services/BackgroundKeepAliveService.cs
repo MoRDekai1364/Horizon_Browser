@@ -15,6 +15,11 @@ public static class BackgroundKeepAliveService
     private static Forms.NotifyIcon? _trayIcon;
     private static CancellationTokenSource? _pipeCts;
     private static Window? _mainWindow;
+    private static bool _allowRealClose;
+
+    public static Action<string?>? OnMainWindowRequested;
+
+    public static bool HasLiveMainWindow => _mainWindow != null;
 
     /// <summary>
     /// Fired on the UI thread when another process (e.g. a Jump List task) sends
@@ -22,6 +27,8 @@ public static class BackgroundKeepAliveService
     /// Wired up by MainWindow to its media-widget command handler.
     /// </summary>
     public static Action<string>? OnMediaCommandReceived;
+    public static Action<string>? OnOpenUrlReceived;
+    public static Action<string>? OnOpenWebAppReceived;
 
     /// <summary>
     /// Call at App startup before creating MainWindow.
@@ -44,6 +51,11 @@ public static class BackgroundKeepAliveService
     public static void Initialize(Window mainWindow)
     {
         _mainWindow = mainWindow;
+        mainWindow.Closed += (_, _) =>
+        {
+            if (ReferenceEquals(_mainWindow, mainWindow)) _mainWindow = null;
+            DestroyTrayIcon();
+        };
         // Always on now, independent of the "hide to tray on close" setting below —
         // this pipe is also what catches Jump List media-control relaunches and
         // routes them back into this instance instead of spawning a new window.
@@ -63,6 +75,7 @@ public static class BackgroundKeepAliveService
     /// </summary>
     public static bool InterceptClose()
     {
+        if (_allowRealClose) return false;
         if (!SettingsService.Current.BackgroundKeepAliveEnabled) return false;
         HideToTray();
         return true;
@@ -88,6 +101,48 @@ public static class BackgroundKeepAliveService
 
     // ── Private ──────────────────────────────────────────────────────────────
 
+    public static void StartPipeServerForHost() => StartPipeServer();
+
+    public static void CloseMainKeepWebApps()
+    {
+        Application.Current?.Dispatcher.Invoke(() =>
+        {
+            DestroyTrayIcon();
+            var w = _mainWindow;
+            if (w == null) return;
+            _allowRealClose = true;
+            try { w.Close(); }
+            finally { _allowRealClose = false; }
+        });
+    }
+
+    private static void RebuildTrayMenu(Forms.ContextMenuStrip menu)
+    {
+        menu.Items.Clear();
+        menu.Items.Add("Open Horizon", null, (_, _) => ShowFromTray());
+
+        var apps = WebAppHostService.GetOpenApps();
+        if (apps.Count > 0)
+        {
+            menu.Items.Add(new Forms.ToolStripSeparator());
+            menu.Items.Add(new Forms.ToolStripMenuItem("Web Apps") { Enabled = false });
+            foreach (var entry in apps)
+            {
+                string id = entry.Id;
+                menu.Items.Add("    " + entry.Name, null, (_, _) =>
+                    Application.Current?.Dispatcher.Invoke(() => WebAppHostService.ActivateById(id)));
+            }
+            menu.Items.Add(new Forms.ToolStripSeparator());
+            menu.Items.Add("Exit Horizon (keep Web Apps open)", null, (_, _) => CloseMainKeepWebApps());
+            menu.Items.Add("Quit everything (close Web Apps too)", null, (_, _) => ForceShutdown());
+        }
+        else
+        {
+            menu.Items.Add(new Forms.ToolStripSeparator());
+            menu.Items.Add("Exit", null, (_, _) => ForceShutdown());
+        }
+    }
+
     private static void HideToTray()
     {
         _mainWindow?.Dispatcher.Invoke(() =>
@@ -99,13 +154,24 @@ public static class BackgroundKeepAliveService
 
     private static void ShowFromTray()
     {
-        _mainWindow?.Dispatcher.Invoke(() =>
+        var app = Application.Current;
+        if (app == null) return;
+
+        app.Dispatcher.Invoke(() =>
         {
-            _mainWindow.Show();
-            if (_mainWindow.WindowState == WindowState.Minimized)
-                _mainWindow.WindowState = WindowState.Normal;
-            _mainWindow.Activate();
-            _mainWindow.Focus();
+            var w = _mainWindow;
+            if (w == null)
+            {
+                DestroyTrayIcon();
+                OnMainWindowRequested?.Invoke(null);
+                return;
+            }
+
+            w.Show();
+            if (w.WindowState == WindowState.Minimized)
+                w.WindowState = WindowState.Normal;
+            w.Activate();
+            w.Focus();
             DestroyTrayIcon();
         });
     }
@@ -127,9 +193,8 @@ public static class BackgroundKeepAliveService
         _trayIcon.DoubleClick += (_, _) => ShowFromTray();
 
         var menu = new Forms.ContextMenuStrip();
-        menu.Items.Add("Open Horizon", null, (_, _) => ShowFromTray());
-        menu.Items.Add(new Forms.ToolStripSeparator());
-        menu.Items.Add("Exit", null, (_, _) => ForceShutdown());
+        menu.Opening += (_, _) => RebuildTrayMenu(menu);
+        RebuildTrayMenu(menu);
         _trayIcon.ContextMenuStrip = menu;
     }
 
@@ -162,6 +227,27 @@ public static class BackgroundKeepAliveService
                     if (cmd == "ACTIVATE")
                     {
                         ShowFromTray();
+                    }
+                    else if (cmd != null && cmd.StartsWith("OPENWEBAPP:"))
+                    {
+                        var webAppId = cmd.Substring("OPENWEBAPP:".Length).Trim();
+                        if (WebAppService.IsValidId(webAppId))
+                        {
+                            Application.Current?.Dispatcher.Invoke(() => OnOpenWebAppReceived?.Invoke(webAppId));
+                        }
+                    }
+                    else if (cmd != null && cmd.StartsWith("OPENURL:"))
+                    {
+                        var openUrl = cmd.Substring("OPENURL:".Length).Trim();
+                        if (Uri.TryCreate(openUrl, UriKind.Absolute, out var parsedUrl) &&
+                            (parsedUrl.Scheme == Uri.UriSchemeHttp || parsedUrl.Scheme == Uri.UriSchemeHttps))
+                        {
+                            Application.Current?.Dispatcher.Invoke(() =>
+                            {
+                                ShowFromTray();
+                                OnOpenUrlReceived?.Invoke(parsedUrl.AbsoluteUri);
+                            });
+                        }
                     }
                     else if (cmd != null && cmd.StartsWith("MEDIA:"))
                     {

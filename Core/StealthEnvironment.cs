@@ -167,7 +167,7 @@ public static class StealthEnvironment
                     if (SettingsService.Current.VpnBlockWebRtcLeak)
                         args.Append("--force-webrtc-ip-handling-policy=disable_non_proxied_udp ");
                     LogService.Write("ENGINE", $"VPN relay attached on 127.0.0.1:{VpnRelayService.Port}");
-                    StartVpnAutoConnect();
+                    if (!VpnRelayService.IsPeer) StartVpnAutoConnect();
                 }
                 else if (SettingsService.Current.VpnKillSwitchEnabled)
                 {

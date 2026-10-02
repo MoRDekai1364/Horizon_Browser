@@ -549,6 +549,8 @@
                                   ToolTip="Adds a shortcut for the installed Web App to the Desktop."/>
                         <CheckBox x:Name="ChkWebAppStartMenu" Content="Create Start Menu shortcut when installing a Web App" Foreground="{StaticResource Brush_Text}" Margin="0,10"
                                   ToolTip="Adds a shortcut for the installed Web App to the Start Menu (Horizon Web Apps folder)."/>
+                        <CheckBox x:Name="ChkWebAppOffer" Content="Ask what to do when a link leaves a Web App's site" Foreground="{StaticResource Brush_Text}" Margin="0,10"
+                                  ToolTip="Shows a bar offering to stay in the window, open in Horizon, or open in your default browser. Turn off to always stay in the window."/>
 
                         <TextBlock Text="PRIVACY &amp; BLOCKING" Foreground="{StaticResource Brush_Accent}" FontSize="15" FontWeight="Bold" Margin="0,24,0,12"/>
 

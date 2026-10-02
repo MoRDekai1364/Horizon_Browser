@@ -1,0 +1,116 @@
+<Window x:Class="Horizon.Stealth.Views.WebAppWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:Horizon.Stealth.Controls"
+        xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+        Title="Horizon Web App" Height="750" Width="1100"
+        WindowStyle="None" ResizeMode="CanResize" AllowsTransparency="False"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource Brush_Background}">
+
+    <shell:WindowChrome.WindowChrome>
+        <shell:WindowChrome CaptionHeight="0" ResizeBorderThickness="5" GlassFrameThickness="0" CornerRadius="8"/>
+    </shell:WindowChrome.WindowChrome>
+
+    <Window.Resources>
+        <Style x:Key="BarButton" TargetType="Button">
+            <Setter Property="Width" Value="30"/>
+            <Setter Property="Height" Value="22"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#888"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="3">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#33FFFFFF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="OfferButton" TargetType="Button">
+            <Setter Property="Height" Value="26"/>
+            <Setter Property="Padding" Value="12,0"/>
+            <Setter Property="Margin" Value="8,0,0,0"/>
+            <Setter Property="Background" Value="#1f3a4d"/>
+            <Setter Property="Foreground" Value="#e6f3fb"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="4" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#2b5a78"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid x:Name="RootGrid">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Border x:Name="OfferBar" Grid.Row="0" Visibility="Collapsed"
+                Background="#12202b" BorderBrush="#2f6f9f" BorderThickness="0,0,0,1">
+            <DockPanel Margin="12,7">
+                <Button x:Name="BtnOfferNever" DockPanel.Dock="Right" Style="{StaticResource OfferButton}"
+                        Content="Don't ask again" Click="BtnOfferNever_Click"/>
+                <Button x:Name="BtnOfferBrowser" DockPanel.Dock="Right" Style="{StaticResource OfferButton}"
+                        Content="Open in default browser" Click="BtnOfferBrowser_Click"/>
+                <Button x:Name="BtnOfferHorizon" DockPanel.Dock="Right" Style="{StaticResource OfferButton}"
+                        Content="Open in Horizon" Click="BtnOfferHorizon_Click"/>
+                <Button x:Name="BtnOfferStay" DockPanel.Dock="Right" Style="{StaticResource OfferButton}"
+                        Content="Stay in this window" Click="BtnOfferStay_Click"/>
+                <TextBlock x:Name="OfferText" VerticalAlignment="Center" Foreground="#cfe6f5"
+                           FontSize="13" TextTrimming="CharacterEllipsis"/>
+            </DockPanel>
+        </Border>
+
+        <controls:BrowserView x:Name="Browser" Grid.Row="1"/>
+
+        <Popup x:Name="BarPopup" AllowsTransparency="True" StaysOpen="True" Focusable="False"
+               Placement="Relative" PlacementTarget="{Binding ElementName=RootGrid}"
+               HorizontalOffset="0" VerticalOffset="0" IsOpen="False">
+            <Grid x:Name="BarRoot" Height="32" Opacity="0">
+                <Grid.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Color="#CC0b0b0b" Offset="0"/>
+                        <GradientStop Color="#000b0b0b" Offset="1"/>
+                    </LinearGradientBrush>
+                </Grid.Background>
+                <Rectangle x:Name="BarDragGrip" Fill="#01000000" Cursor="SizeAll"
+                           HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                           Margin="0,0,110,0" MouseLeftButtonDown="BarDragGrip_MouseLeftButtonDown"/>
+                <TextBlock x:Name="BarTitle" HorizontalAlignment="Left" VerticalAlignment="Center"
+                           Margin="12,0,120,0" Foreground="#888" FontSize="12"
+                           TextTrimming="CharacterEllipsis" IsHitTestVisible="False"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
+                            VerticalAlignment="Center" Margin="0,0,8,0">
+                    <Button x:Name="BtnBarMin" Style="{StaticResource BarButton}" Content="&#x2013;" Click="BtnBarMin_Click"/>
+                    <Button x:Name="BtnBarMax" Style="{StaticResource BarButton}" Content="&#x25A1;" Click="BtnBarMax_Click"/>
+                    <Button x:Name="BtnBarClose" Style="{StaticResource BarButton}" Foreground="#cc4444" Content="&#x2715;" Click="BtnBarClose_Click"/>
+                </StackPanel>
+            </Grid>
+        </Popup>
+    </Grid>
+</Window>

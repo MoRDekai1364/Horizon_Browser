@@ -50,6 +50,13 @@ public static class VpnRelayService
     private static string _lastMessage = "";
     private static string? _exitIp;
     private static int _failures;
+    private static bool _peerMode;
+    private static CancellationTokenSource? _peerCts;
+
+    private const string PingHost = "horizon-relay.invalid";
+    private const int MinRelayPort = 1024;
+    private const int PeerPollMs = 500;
+    private const int PeerMissThreshold = 2;
     private static long _totalBytes;
 
     public static long TotalBytes => Interlocked.Read(ref _totalBytes);
@@ -58,6 +65,8 @@ public static class VpnRelayService
     public static event Action<string>? FallbackNotice;
 
     public static int Port { get; private set; }
+
+    public static bool IsPeer => _peerMode;
 
     public static VpnRelayState State
     {
@@ -83,32 +92,247 @@ public static class VpnRelayService
     {
         lock (_lock)
         {
-            if (_listener != null) return true;
-            try
+            if (_listener != null || _peerMode) return true;
+        }
+
+        TcpListener? listener = null;
+        bool peer = false;
+        int saved = SettingsService.Current.VpnRelayPort;
+
+        if (saved >= MinRelayPort && saved <= 65535)
+        {
+            listener = TryBindLoopback(saved);
+            if (listener == null)
             {
-                _cts = new CancellationTokenSource();
-                _listener = new TcpListener(IPAddress.Loopback, 0);
-                _listener.Start();
-                Port = ((IPEndPoint)_listener.LocalEndpoint).Port;
+                if (ProbeOwner(saved, out _))
+                {
+                    peer = true;
+                    LogService.Write("VPN", $"Relay port {saved} is owned by another Horizon process. Sharing it.");
+                }
+                else
+                {
+                    LogService.Write("VPN", $"Relay port {saved} is busy and not owned by Horizon. Choosing a new port.");
+                }
             }
-            catch (Exception ex)
+        }
+
+        if (listener == null && !peer)
+        {
+            listener = TryBindLoopback(0);
+            if (listener == null) return false;
+
+            int chosen = ((IPEndPoint)listener.LocalEndpoint).Port;
+            SettingsService.Current.VpnRelayPort = chosen;
+            try { SettingsService.Save(); }
+            catch (Exception ex) { LogService.RecordCrash(ex, "VpnRelayService.SavePort"); }
+        }
+
+        lock (_lock)
+        {
+            if (_listener != null || _peerMode)
             {
-                try { _listener?.Stop(); } catch { }
-                _listener = null;
-                _cts?.Dispose();
-                _cts = null;
-                LogService.RecordCrash(ex, "VpnRelayService.Start");
-                return false;
+                try { listener?.Stop(); } catch { }
+                return true;
             }
 
+            if (peer)
+            {
+                _peerMode = true;
+                Port = saved;
+                _peerCts = new CancellationTokenSource();
+                var peerToken = _peerCts.Token;
+                _ = Task.Run(() => PeerWatchLoopAsync(peerToken));
+            }
+            else
+            {
+                _cts = new CancellationTokenSource();
+                _listener = listener;
+                Port = ((IPEndPoint)listener!.LocalEndpoint).Port;
+                var token = _cts.Token;
+                var active = listener!;
+                _ = Task.Run(() => AcceptLoopAsync(active, token));
+                _ = Task.Run(() => HealthLoopAsync(token));
+            }
+        }
+
+        if (peer)
+            SetState(VpnRelayState.Direct, $"Relay shared with another Horizon process on 127.0.0.1:{Port}");
+        else
+            SetState(VpnRelayState.Direct, $"Relay listening on 127.0.0.1:{Port}");
+        return true;
+    }
+
+    private static TcpListener? TryBindLoopback(int port)
+    {
+        TcpListener? l = null;
+        try
+        {
+            l = new TcpListener(IPAddress.Loopback, port);
+            l.ExclusiveAddressUse = true;
+            l.Start();
+            return l;
+        }
+        catch (Exception ex)
+        {
+            try { l?.Stop(); } catch { }
+            LogService.Write("VPN", $"Bind 127.0.0.1:{port} failed: {ex.Message}");
+            return null;
+        }
+    }
+
+    private static bool ProbeOwner(int port, out string info)
+    {
+        info = "";
+        try
+        {
+            using var tc = new TcpClient();
+            tc.NoDelay = true;
+            if (!tc.ConnectAsync(IPAddress.Loopback, port).Wait(500)) return false;
+            tc.ReceiveTimeout = 800;
+            tc.SendTimeout = 800;
+
+            var s = tc.GetStream();
+            var req = Encoding.ASCII.GetBytes(
+                $"GET http://{PingHost}/state HTTP/1.1\r\nHost: {PingHost}\r\nConnection: close\r\n\r\n");
+            s.Write(req, 0, req.Length);
+
+            var buf = new byte[512];
+            var sb = new StringBuilder();
+            int n;
+            while ((n = s.Read(buf, 0, buf.Length)) > 0)
+            {
+                sb.Append(Encoding.Latin1.GetString(buf, 0, n));
+                if (sb.Length > 4096) break;
+            }
+
+            string resp = sb.ToString();
+            if (!resp.StartsWith("HTTP/1.1 200", StringComparison.Ordinal)) return false;
+            if (resp.IndexOf("X-Horizon-Relay: 1", StringComparison.Ordinal) < 0) return false;
+
+            int split = resp.IndexOf("\r\n\r\n", StringComparison.Ordinal);
+            info = split >= 0 ? resp.Substring(split + 4).Trim() : "";
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private static async Task PeerWatchLoopAsync(CancellationToken ct)
+    {
+        int misses = 0;
+        string lastInfo = "";
+        while (!ct.IsCancellationRequested)
+        {
+            try { await Task.Delay(PeerPollMs, ct); }
+            catch { break; }
+
+            int port = Port;
+            if (ProbeOwner(port, out string info))
+            {
+                misses = 0;
+                lastInfo = info;
+                MirrorOwnerState(info);
+                continue;
+            }
+
+            misses++;
+            if (misses < PeerMissThreshold) continue;
+
+            if (TakeOver(port, lastInfo)) break;
+            misses = 0;
+        }
+    }
+
+    private static void MirrorOwnerState(string info)
+    {
+        var parts = info.Split('|');
+        if (parts.Length == 0 || !Enum.TryParse<VpnRelayState>(parts[0], out var st)) return;
+        string? exit = parts.Length > 1 && parts[1].Length > 0 ? parts[1] : null;
+
+        bool changed;
+        lock (_lock)
+        {
+            changed = _state != st;
+            _exitIp = exit;
+        }
+        if (changed) SetState(st, "Shared relay: " + st);
+    }
+
+    private static bool TakeOver(int port, string lastInfo)
+    {
+        var listener = TryBindLoopback(port);
+        if (listener == null) return false;
+
+        var parts = lastInfo.Split('|');
+        bool wasUpstream = parts.Length > 0 &&
+            (parts[0] == nameof(VpnRelayState.Connected) ||
+             parts[0] == nameof(VpnRelayState.Fallback) ||
+             parts[0] == nameof(VpnRelayState.Connecting));
+        string profileId = parts.Length > 2 ? parts[2] : "";
+
+        lock (_lock)
+        {
+            if (!_peerMode)
+            {
+                try { listener.Stop(); } catch { }
+                return true;
+            }
+
+            _peerMode = false;
+            try { _peerCts?.Cancel(); } catch { }
+            _peerCts = null;
+
+            _cts = new CancellationTokenSource();
+            _listener = listener;
+            Port = port;
             var token = _cts.Token;
-            var listener = _listener;
             _ = Task.Run(() => AcceptLoopAsync(listener, token));
             _ = Task.Run(() => HealthLoopAsync(token));
         }
 
-        SetState(VpnRelayState.Direct, $"Relay listening on 127.0.0.1:{Port}");
+        SetState(VpnRelayState.Direct, $"Took over the relay on 127.0.0.1:{port}");
+
+        if (wasUpstream && profileId.Length > 0)
+        {
+            var profile = VpnProfileStore.GetById(profileId);
+            if (profile != null)
+            {
+                LogService.Write("VPN", $"Takeover: reconnecting profile '{profile.Name}'.");
+                _ = ConnectAsync(profile);
+            }
+            else
+            {
+                LogService.Write("VPN", $"Takeover: profile {profileId} not found, staying direct.");
+            }
+        }
         return true;
+    }
+
+    private static async Task WritePingAsync(NetworkStream s, CancellationToken ct)
+    {
+        try
+        {
+            VpnRelayState st;
+            string exit;
+            string profileId;
+            lock (_lock)
+            {
+                st = _state;
+                exit = _exitIp ?? "";
+                profileId = _profile?.Id ?? "";
+            }
+
+            var payload = Encoding.UTF8.GetBytes(st.ToString() + "|" + exit + "|" + profileId);
+            var head = Encoding.ASCII.GetBytes(
+                $"HTTP/1.1 200 OK\r\nX-Horizon-Relay: 1\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Length: {payload.Length}\r\nConnection: close\r\n\r\n");
+            await s.WriteAsync(head, ct);
+            await s.WriteAsync(payload, ct);
+        }
+        catch
+        {
+        }
     }
 
     public static void Stop()
@@ -131,6 +355,7 @@ public static class VpnRelayService
     public static async Task<(bool Ok, string Message)> ConnectAsync(VpnProfile profile, CancellationToken ct = default)
     {
         if (!Start()) return (false, "Relay failed to start. See log.");
+        if (_peerMode) return (false, "The VPN relay is currently controlled by another Horizon process. Try again in a few seconds.");
         if (!VpnProfileStore.Validate(profile, out string error)) return (false, error);
 
         var snapshot = CloneProfile(profile);
@@ -452,6 +677,12 @@ public static class VpnRelayService
             }
             else
             {
+                if (targetStr.StartsWith("http://" + PingHost + "/", StringComparison.OrdinalIgnoreCase))
+                {
+                    await WritePingAsync(cs, ct);
+                    return;
+                }
+
                 if (!Uri.TryCreate(targetStr, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttp)
                 {
                     await WriteStatusAsync(cs, 400, "Bad Request", "Only absolute http:// targets are supported for non-CONNECT requests.", ct);

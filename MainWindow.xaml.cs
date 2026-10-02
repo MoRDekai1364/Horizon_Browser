@@ -350,9 +350,12 @@ public partial class MainWindow : Window
         ("Notifications", "🔔  Notifications"), ("Battery", "🔋  Battery"),
     };
 
+    private bool _closedForReal;
+
     private void MainWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
     {
         if (BackgroundKeepAliveService.InterceptClose()) { e.Cancel = true; return; }
+        _closedForReal = true;
 
         _clockTimer.Stop();
         _widgetCycleTimer?.Stop();
@@ -1229,7 +1232,11 @@ public partial class MainWindow : Window
 
         WriteCurrentPathFile();
 
-        GithubUpdateService.UpdateReadyToInstall += (path) => Dispatcher.Invoke(() => ShowUpdateInstallBanner(path));
+        GithubUpdateService.UpdateReadyToInstall += (path) =>
+        {
+            if (_closedForReal) return;
+            Dispatcher.Invoke(() => ShowUpdateInstallBanner(path));
+        };
 
         if (!string.IsNullOrEmpty(SettingsService.Current.PendingUpdateInstallerPath)
             && File.Exists(SettingsService.Current.PendingUpdateInstallerPath))
@@ -1261,6 +1268,12 @@ public partial class MainWindow : Window
         this.Closing += MainWindow_Closing;
         BackgroundKeepAliveService.Initialize(this);
         BackgroundKeepAliveService.OnMediaCommandReceived = ExecuteMediaWidgetCommand;
+        BackgroundKeepAliveService.OnOpenUrlReceived = url => CreateNewTab(url);
+        BackgroundKeepAliveService.OnOpenWebAppReceived = id =>
+        {
+            var m = WebAppService.Load(id);
+            if (m != null) WebAppHostService.OpenOrActivate(m);
+        };
         this.StateChanged += MainWindow_StateChanged;
 
         Application.Current.SessionEnding += (s, e) => SaveCurrentSession();
@@ -2961,6 +2974,8 @@ return colors.length > 0 ? colors : null;
     {
         if (SettingsService.Current.BackgroundKeepAliveEnabled)
             this.Close(); // triggers Closing → intercepted by BackgroundKeepAliveService
+        else if (WebAppHostService.OpenWindowCount > 0)
+            this.Close();
         else
             Application.Current.Shutdown();
     }
@@ -3287,6 +3302,7 @@ return colors.length > 0 ? colors : null;
 
         WeatherBridge.ThemeUpdated += () => Dispatcher.BeginInvoke(new Action(() =>
         {
+            if (_closedForReal) return;
             bool headerWallpaperChanged = !ReferenceEquals(_headerOwnBlurBrush!.ImageSource, WeatherBridge.ThemeWallpaper);
             _headerOwnBlurBrush!.ImageSource = WeatherBridge.ThemeWallpaper;
             _headerSidebarStripBrush!.ImageSource = WeatherBridge.ThemeWallpaper;
@@ -3396,7 +3412,11 @@ return colors.length > 0 ? colors : null;
             RefreshSidebarBlurCrop();
         }
         RefreshSidebarBlurSource();
-        WeatherBridge.ThemeUpdated += () => Dispatcher.BeginInvoke(new Action(RefreshSidebarBlurSource));
+        WeatherBridge.ThemeUpdated += () =>
+        {
+            if (_closedForReal) return;
+            Dispatcher.BeginInvoke(new Action(RefreshSidebarBlurSource));
+        };
 
         var (unbind, refresh) = HomeGlassService.Bind(
             SidebarContainer,

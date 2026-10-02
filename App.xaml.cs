@@ -107,6 +107,21 @@ public partial class App : Application
             return;
         }
 
+        string? webAppId = null;
+        foreach (var arg in e.Args)
+        {
+            if (arg.StartsWith("--webapp-id=", StringComparison.OrdinalIgnoreCase))
+            {
+                webAppId = arg.Substring("--webapp-id=".Length).Trim('"');
+                break;
+            }
+        }
+        if (webAppId != null)
+        {
+            LaunchWebApp(e, webAppId);
+            return;
+        }
+
         // Single-instance: if a hidden Horizon is already running, wake it and exit.
         if (Horizon.Stealth.Services.BackgroundKeepAliveService.TryActivateExistingInstance())
         {
@@ -143,11 +158,13 @@ public partial class App : Application
             _ = StealthEnvironment.InitializeAsync();
             GeoIpService.KickOffBackgroundRefresh();
             VpnThroughputHistoryService.Start();
+            _mainServicesStarted = true;
 
             try
             {
                 string? startUrl = null;
                 bool isWebApp = false;
+                Horizon.Stealth.Services.WebAppManifest? webAppManifest = null;
 
                 for (int i = 0; i < e.Args.Length; i++)
                 {
@@ -161,6 +178,7 @@ public partial class App : Application
                         {
                             isWebApp = true;
                             startUrl = appManifest.StartUrl;
+                            webAppManifest = appManifest;
                             LogService.Write("BOOT", $"WebApp manifest loaded: {appId} -> {startUrl}");
                         }
                         else
@@ -193,6 +211,16 @@ public partial class App : Application
                         LogService.Write("BOOT", $"Launch argument detected: {arg}");
                     }
                 }
+
+                if (webAppManifest != null)
+                {
+                    LogService.Write("BOOT", $"Mode: WebApp window ({webAppManifest.Id})");
+                    var webAppWindow = new Horizon.Stealth.Views.WebAppWindow(webAppManifest);
+                    webAppWindow.Show();
+                    return;
+                }
+
+                BackgroundKeepAliveService.OnMainWindowRequested = ShowNewMainWindow;
 
                 var browser = new MainWindow(startUrl, isWebApp);
 
@@ -239,6 +267,103 @@ public partial class App : Application
                 MessageBox.Show("Could not launch Browser.\n" + ex.Message + "\n\nAt: " + (ex.StackTrace ?? "").Split('\n')[0].Trim());
                 Shutdown();
             }
+        }
+    }
+
+    private static bool _mainServicesStarted;
+
+    private void ShowNewMainWindow(string? startUrl)
+    {
+        try
+        {
+            if (!_mainServicesStarted)
+            {
+                _mainServicesStarted = true;
+                GeoIpService.KickOffBackgroundRefresh();
+                VpnThroughputHistoryService.Start();
+            }
+
+            var browser = new MainWindow(startUrl, false);
+            browser.Show();
+            if (browser.WindowState == WindowState.Minimized) browser.WindowState = WindowState.Normal;
+            browser.Activate();
+            LogService.Write("BOOT", "Main window created in the running process.");
+        }
+        catch (Exception ex)
+        {
+            LogService.RecordCrash(ex, "ShowNewMainWindow");
+            MessageBox.Show("Could not open the main window.\n" + ex.Message, "Horizon", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private void LaunchWebApp(StartupEventArgs e, string webAppId)
+    {
+        try
+        {
+            var manifest = WebAppService.Load(webAppId);
+            if (manifest == null)
+            {
+                LogService.Write("BOOT", $"WebApp manifest not found or invalid: {webAppId}");
+                MessageBox.Show("This Web App is no longer installed.", "Horizon Web App", MessageBoxButton.OK, MessageBoxImage.Warning);
+                Shutdown();
+                return;
+            }
+
+            WebAppHostService.AllowForeground();
+
+            if (BackgroundKeepAliveService.TryActivateExistingInstance("OPENWEBAPP:" + webAppId))
+            {
+                LogService.Write("BOOT", $"WebApp {webAppId} routed to the running Horizon.");
+                Shutdown();
+                return;
+            }
+
+            bool routed = WebAppHostService.TrySendToHost(webAppId);
+            bool isHost = false;
+            if (!routed)
+            {
+                isHost = WebAppHostService.TryBecomeHost();
+                for (int i = 0; !routed && !isHost && i < 25; i++)
+                {
+                    System.Threading.Thread.Sleep(200);
+                    routed = WebAppHostService.TrySendToHost(webAppId);
+                    if (!routed) isHost = WebAppHostService.TryBecomeHost();
+                }
+            }
+
+            if (routed)
+            {
+                LogService.Write("BOOT", $"WebApp {webAppId} routed to the running Web App host.");
+                Shutdown();
+                return;
+            }
+
+            if (!isHost)
+            {
+                LogService.Write("BOOT", $"WebApp {webAppId} could not be routed or hosted.");
+                MessageBox.Show("Could not start the Web App host. Check the log for details.", "Horizon Web App", MessageBoxButton.OK, MessageBoxImage.Error);
+                Shutdown();
+                return;
+            }
+
+            LogService.Write("BOOT", "Mode: Web App Host");
+            base.OnStartup(e);
+
+            try { SettingsService.Load(); }
+            catch (Exception ex) { LogService.RecordCrash(ex, "WebAppHost Settings Load"); }
+
+            try { ThemeService.ApplyTheme(SettingsService.Current.Theme); }
+            catch (Exception ex) { LogService.RecordCrash(ex, "WebAppHost ApplyTheme"); }
+
+            _ = StealthEnvironment.InitializeAsync();
+            BackgroundKeepAliveService.OnMainWindowRequested = ShowNewMainWindow;
+            WebAppHostService.StartHost(manifest);
+        }
+        catch (Exception ex)
+        {
+            LogService.RecordCrash(ex, "LaunchWebApp");
+            MessageBox.Show("Could not launch the Web App.\n" + ex.Message, "Horizon Web App", MessageBoxButton.OK, MessageBoxImage.Error);
+            Shutdown();
         }
     }
 
