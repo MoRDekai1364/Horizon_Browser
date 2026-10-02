@@ -297,7 +297,7 @@
 
                     <Button x:Name="BtnCompactTabsBadge" Grid.Column="2"
                             HorizontalAlignment="Left" VerticalAlignment="Center"
-                            Margin="44,0,0,0"
+                            Margin="84,0,0,0"
                             Visibility="Collapsed"
                             Click="BtnCompactTabsBadge_Click"
                             Style="{StaticResource Style_StealthButton}"
@@ -316,8 +316,19 @@
                         <TextBlock Text="&#xE8A9;" FontFamily="Segoe MDL2 Assets" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                     </Button>
 
+                    <Button x:Name="BtnCreateWebApp" Grid.Column="2"
+                            Click="BtnInstallWebApp_Click"
+                            Style="{StaticResource Style_StealthButton}"
+                            Width="36" Height="36"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            Margin="44,0,0,0"
+                            ToolTip="Install this page as a Web App">
+                        <TextBlock Text="&#xE71D;" FontFamily="Segoe MDL2 Assets" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </Button>
+
                     <ListBox x:Name="ListTabs" Grid.Column="2"
-                             Margin="44,0,0,0"
+                             Margin="84,0,0,0"
                              ItemsSource="{Binding Tabs}"
                              Background="Transparent" BorderThickness="0"
                              ScrollViewer.HorizontalScrollBarVisibility="Hidden"
@@ -950,6 +961,20 @@
                                                                 <DoubleAnimation Storyboard.TargetName="FullTitleHoverPanel"
                                                                     Storyboard.TargetProperty="Opacity"
                                                                     To="0" Duration="0:0:0.4"/>
+                                                            </Storyboard>
+                                                        </BeginStoryboard>
+                                                    </MultiDataTrigger.ExitActions>
+                                                </MultiDataTrigger>
+
+                                                <MultiDataTrigger>
+                                                    <MultiDataTrigger.Conditions>
+                                                        <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="False"/>
+                                                        <Condition Binding="{Binding HasEverPlayedAudio}" Value="False"/>
+                                                        <Condition Binding="{Binding HasEverDownloaded}" Value="False"/>
+                                                    </MultiDataTrigger.Conditions>
+                                                    <MultiDataTrigger.EnterActions>
+                                                        <BeginStoryboard>
+                                                            <Storyboard>
                                                                 <DoubleAnimation Storyboard.TargetName="NormalTitlePanel"
                                                                     Storyboard.TargetProperty="Opacity"
                                                                     To="1" Duration="0:0:0.4">
@@ -957,7 +982,7 @@
                                                                 </DoubleAnimation>
                                                             </Storyboard>
                                                         </BeginStoryboard>
-                                                    </MultiDataTrigger.ExitActions>
+                                                    </MultiDataTrigger.EnterActions>
                                                 </MultiDataTrigger>
 
                                             </ControlTemplate.Triggers>
@@ -980,26 +1005,11 @@
                                     Style="{StaticResource Style_StealthButton}" Width="28" Height="28" FontSize="11"
                                     Margin="4,0,0,0" ToolTip="Dismiss (you can install later from Settings)"/>
                         </StackPanel>
-                        <!-- ── Widget nav buttons ─────────────────────────── -->
-                        <StackPanel Orientation="Vertical" VerticalAlignment="Center" Margin="0,0,4,0">
-                            <Button x:Name="BtnWidgetPrev" Content="▲"
-                                    Style="{StaticResource Style_StealthButton}"
-                                    Width="22" Height="20" FontSize="11" Padding="0"
-                                    Click="BtnWidgetPrev_Click"
-                                    MouseRightButtonUp="BtnWidgetNav_RightClick"
-                                    ToolTip="Previous widget (right-click to pick)"/>
-                            <Button x:Name="BtnWidgetNext" Content="▼"
-                                    Style="{StaticResource Style_StealthButton}"
-                                    Width="22" Height="20" FontSize="11" Padding="0"
-                                    Click="BtnWidgetNext_Click"
-                                    MouseRightButtonUp="BtnWidgetNav_RightClick"
-                                    ToolTip="Next widget (right-click to pick)"/>
-                        </StackPanel>
                         <!-- ── Header Widget ──────────────────────────────── -->
                         <Border x:Name="HeaderWidgetBorder"
                                 Width="146" Height="42"
                                 Background="#66141414" BorderBrush="#2a2a2a" BorderThickness="1"
-                                CornerRadius="6" Margin="0,0,6,0" Cursor="Hand"
+                                CornerRadius="6" Margin="0,0,4,0" Cursor="Hand"
                                 VerticalAlignment="Center"
                                 MouseRightButtonUp="HeaderWidget_RightClick"
                                 MouseWheel="HeaderWidget_MouseWheel"
@@ -1039,6 +1049,20 @@
                                        HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
                             </Grid>
                         </Border>
+                        <StackPanel Orientation="Vertical" VerticalAlignment="Center" Margin="0,0,6,0">
+                            <Button x:Name="BtnWidgetPrev" Content="▲"
+                                    Style="{StaticResource Style_StealthButton}"
+                                    Width="22" Height="20" FontSize="11" Padding="0"
+                                    Click="BtnWidgetPrev_Click"
+                                    MouseRightButtonUp="BtnWidgetNav_RightClick"
+                                    ToolTip="Previous widget (right-click to pick)"/>
+                            <Button x:Name="BtnWidgetNext" Content="▼"
+                                    Style="{StaticResource Style_StealthButton}"
+                                    Width="22" Height="20" FontSize="11" Padding="0"
+                                    Click="BtnWidgetNext_Click"
+                                    MouseRightButtonUp="BtnWidgetNav_RightClick"
+                                    ToolTip="Next widget (right-click to pick)"/>
+                        </StackPanel>
                         <Button Content="&#x2795;" Click="BtnNewTab_Click" Style="{StaticResource Style_StealthButton}" Width="42" Height="42" FontSize="18"
                                 ToolTip="New Tab (Ctrl + T)"/>
                         <Button Content="&#x2699;&#xFE0E;" Click="BtnSettings_Click" Style="{StaticResource Style_StealthButton}" Width="42" Height="42" FontSize="18"

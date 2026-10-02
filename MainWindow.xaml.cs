@@ -1603,7 +1603,7 @@ public partial class MainWindow : Window
         if (_lastGoodTabBarWidth >= 50)
             return _lastGoodTabBarWidth;
         // Last resort: estimate from window width
-        double reserved = 136 + 290 + 44 + 250;
+        double reserved = 136 + 290 + 84 + 250;
         available = ActualWidth - reserved;
         return available < 50 ? 50 : available;
     }
@@ -6403,6 +6403,12 @@ return colors.length > 0 ? colors : null;
             !string.IsNullOrEmpty(url) &&
             (url.StartsWith("https://", StringComparison.OrdinalIgnoreCase) ||
              url.StartsWith("http://",  StringComparison.OrdinalIgnoreCase));
+
+        if (BtnCreateWebApp != null)
+        {
+            BtnCreateWebApp.IsEnabled = _canInstallWebApp;
+            BtnCreateWebApp.Opacity   = _canInstallWebApp ? 1.0 : 0.4;
+        }
     }
 
     private async void BtnInstallWebApp_Click(object sender, RoutedEventArgs e)

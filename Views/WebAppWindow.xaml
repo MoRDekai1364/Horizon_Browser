@@ -17,7 +17,7 @@
             <Setter Property="Width" Value="30"/>
             <Setter Property="Height" Value="22"/>
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="#888"/>
+            <Setter Property="Foreground" Value="#D0D0D0"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="FontSize" Value="11"/>
             <Setter Property="Cursor" Value="Hand"/>
@@ -30,7 +30,7 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#33FFFFFF"/>
+                                <Setter TargetName="Bd" Property="Background" Value="#55FFFFFF"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -92,24 +92,24 @@
         <Popup x:Name="BarPopup" AllowsTransparency="True" StaysOpen="True" Focusable="False"
                Placement="Relative" PlacementTarget="{Binding ElementName=RootGrid}"
                HorizontalOffset="0" VerticalOffset="0" IsOpen="False">
-            <Grid x:Name="BarRoot" Height="32" Opacity="0">
+            <Grid x:Name="BarRoot" Height="36" Opacity="0">
                 <Grid.Background>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                        <GradientStop Color="#CC0b0b0b" Offset="0"/>
-                        <GradientStop Color="#000b0b0b" Offset="1"/>
+                        <GradientStop Color="#F20b0b0b" Offset="0"/>
+                        <GradientStop Color="#800b0b0b" Offset="1"/>
                     </LinearGradientBrush>
                 </Grid.Background>
                 <Rectangle x:Name="BarDragGrip" Fill="#01000000" Cursor="SizeAll"
                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                            Margin="0,0,110,0" MouseLeftButtonDown="BarDragGrip_MouseLeftButtonDown"/>
                 <TextBlock x:Name="BarTitle" HorizontalAlignment="Left" VerticalAlignment="Center"
-                           Margin="12,0,120,0" Foreground="#888" FontSize="12"
+                           Margin="12,0,120,0" Foreground="#CCCCCC" FontSize="12"
                            TextTrimming="CharacterEllipsis" IsHitTestVisible="False"/>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
                             VerticalAlignment="Center" Margin="0,0,8,0">
                     <Button x:Name="BtnBarMin" Style="{StaticResource BarButton}" Content="&#x2013;" Click="BtnBarMin_Click"/>
                     <Button x:Name="BtnBarMax" Style="{StaticResource BarButton}" Content="&#x25A1;" Click="BtnBarMax_Click"/>
-                    <Button x:Name="BtnBarClose" Style="{StaticResource BarButton}" Foreground="#cc4444" Content="&#x2715;" Click="BtnBarClose_Click"/>
+                    <Button x:Name="BtnBarClose" Style="{StaticResource BarButton}" Foreground="#FF6666" Content="&#x2715;" Click="BtnBarClose_Click"/>
                 </StackPanel>
             </Grid>
         </Popup>

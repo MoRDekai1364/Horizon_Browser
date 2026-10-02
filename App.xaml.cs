@@ -229,6 +229,7 @@ public partial class App : Application
                     return;
                 }
 
+                _isBrowserProcess = true;
                 BackgroundKeepAliveService.OnMainWindowRequested = ShowNewMainWindow;
 
                 var browser = new MainWindow(startUrl, isWebApp);
@@ -396,6 +397,27 @@ public partial class App : Application
     }
 
     private static bool _mainServicesStarted;
+    private static bool _isBrowserProcess;
+
+    private static void ApplyBrowserWindowIdentity(Window window)
+    {
+        try
+        {
+            var hwnd = new System.Windows.Interop.WindowInteropHelper(window).EnsureHandle();
+            if (hwnd == IntPtr.Zero) return;
+
+            string exe = Environment.ProcessPath ?? "";
+            bool a = WindowPropertyStore.SetString(hwnd, WindowPropertyStore.PidRelaunchCommand, "\"" + exe + "\"");
+            bool b = WindowPropertyStore.SetString(hwnd, WindowPropertyStore.PidRelaunchIconResource, exe + ",0");
+            bool c = WindowPropertyStore.SetString(hwnd, WindowPropertyStore.PidRelaunchDisplayName, "Horizon Browser");
+            bool d = WindowPropertyStore.SetString(hwnd, WindowPropertyStore.PidAppUserModelId, "Horizon.Stealth.Browser");
+            LogService.Write("BOOT", $"Browser window identity set in host process. relaunch={a} icon={b} name={c} id={d}");
+        }
+        catch (Exception ex)
+        {
+            LogService.RecordCrash(ex, "ApplyBrowserWindowIdentity");
+        }
+    }
 
     private void ShowNewMainWindow(string? startUrl)
     {
@@ -409,6 +431,7 @@ public partial class App : Application
             }
 
             var browser = new MainWindow(startUrl, false);
+            if (!_isBrowserProcess) ApplyBrowserWindowIdentity(browser);
             browser.Show();
             if (browser.WindowState == WindowState.Minimized) browser.WindowState = WindowState.Normal;
             browser.Activate();

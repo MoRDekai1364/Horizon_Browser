@@ -29,7 +29,7 @@ public partial class WebAppWindow : Window
     private const string LogTag = "WEBAPP";
     private const int WM_NCLBUTTONDOWN = 0x00A1;
     private const int HTCAPTION = 2;
-    private const long BarHoldMs = 2500;
+    private const long BarHoldMs = 4000;
 
     private readonly WebAppManifest _manifest;
     private readonly string _scopeHost;
@@ -578,7 +578,7 @@ public partial class WebAppWindow : Window
         Matrix toDevice = source.CompositionTarget.TransformToDevice;
         Point tl = RootGrid.PointToScreen(new Point(0, 0));
         double width = RootGrid.ActualWidth * toDevice.M11;
-        double edge = 8 * toDevice.M22;
+        double edge = (_barVisible ? 56 : 24) * toDevice.M22;
         return p.X >= tl.X && p.X <= tl.X + width && p.Y >= tl.Y && p.Y <= tl.Y + edge;
     }
 
