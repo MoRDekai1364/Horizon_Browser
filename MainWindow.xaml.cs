@@ -265,6 +265,7 @@ public partial class MainWindow : Window
     private bool _isWebAppMode = false;
     private WindowState _previousWindowState = WindowState.Normal;
     private ResizeMode _fsPrevResize = ResizeMode.CanResizeWithGrip;
+    private System.Windows.Rect _fsPrevBounds = System.Windows.Rect.Empty;
 
     // ── Tab Drag & Drop ──────────────────────────────────────────────
     private TabViewModel?   _draggedTab      = null;
@@ -1405,7 +1406,7 @@ public partial class MainWindow : Window
             var clientPt = this.PointFromScreen(new Point(screenPt.X, screenPt.Y));
 
             // ── Header top-edge poll ───────────────────────────────────────
-            bool headerAutoHide = SettingsService.Current.AutoHideHeader || _isFullscreen;
+            bool headerAutoHide = SettingsService.Current.AutoHideHeader && !_isFullscreen;
             bool headerHidden   = HeaderContainer.Height == 0;
             if (headerAutoHide && headerHidden && !_isWebAppMode)
             {
@@ -1422,7 +1423,7 @@ public partial class MainWindow : Window
             }
 
             // ── Sidebar right-edge poll ────────────────────────────────────
-            bool autoHide = SettingsService.Current.AutoHideSidebar || _isFullscreen;
+            bool autoHide = SettingsService.Current.AutoHideSidebar && !_isFullscreen;
             bool sidebarHidden = SidebarContainer.Width < 10;
             if (!autoHide || !sidebarHidden)
             {
@@ -1497,7 +1498,7 @@ public partial class MainWindow : Window
         {
             if (_isWebAppMode) { ShowWebAppBar(); return; }
             _headerHideTimer.Stop();
-            if ((SettingsService.Current.AutoHideHeader || _isFullscreen) && HeaderContainer.Height == 0)
+            if (SettingsService.Current.AutoHideHeader && !_isFullscreen && HeaderContainer.Height == 0)
                 _headerTimer.Start();
         };
 
@@ -1511,7 +1512,7 @@ public partial class MainWindow : Window
         SensorPillLeft.MouseEnter += (s, e) =>
         {
             if (_isWebAppMode) { ShowWebAppBar(); return; }
-            if ((SettingsService.Current.AutoHideHeader || _isFullscreen) && HeaderContainer.Height == 0)
+            if (SettingsService.Current.AutoHideHeader && !_isFullscreen && HeaderContainer.Height == 0)
                 _headerTimer.Start();
         };
         SensorPillLeft.MouseLeave += (s, e) =>
@@ -5364,7 +5365,16 @@ return colors.length > 0 ? colors : null;
         if (on)
         {
             _previousWindowState = WindowState;
+            _fsPrevBounds = WindowState == WindowState.Maximized
+                ? RestoreBounds
+                : new System.Windows.Rect(Left, Top, Width, Height);
             _fsPrevResize = ResizeMode;
+
+            var hwnd = new WindowInteropHelper(this).Handle;
+            var monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
+            var mi = new WMI { cbSize = Marshal.SizeOf(typeof(WMI)) };
+            bool haveMonitor = monitor != IntPtr.Zero && GetMonitorInfo(monitor, ref mi);
+
             _isFullscreen = true;
 
             RowHeader.Height = new GridLength(0);
@@ -5372,8 +5382,24 @@ return colors.length > 0 ? colors : null;
             SidebarContainer.Width = 0;
             ListOverflowTabs.Visibility = Visibility.Collapsed;
             ResizeMode = ResizeMode.NoResize;
-            if (WindowState == WindowState.Maximized) WindowState = WindowState.Normal;
-            WindowState = WindowState.Maximized;
+
+            if (WindowState != WindowState.Normal) WindowState = WindowState.Normal;
+
+            if (haveMonitor)
+            {
+                var src = PresentationSource.FromVisual(this);
+                double sx = src?.CompositionTarget?.TransformFromDevice.M11 ?? 1.0;
+                double sy = src?.CompositionTarget?.TransformFromDevice.M22 ?? 1.0;
+                Left   = mi.rcMonitor.left * sx;
+                Top    = mi.rcMonitor.top * sy;
+                Width  = (mi.rcMonitor.right - mi.rcMonitor.left) * sx;
+                Height = (mi.rcMonitor.bottom - mi.rcMonitor.top) * sy;
+            }
+            else
+            {
+                WindowState = WindowState.Maximized;
+            }
+            BorderThickness = new Thickness(0);
         }
         else
         {
@@ -5382,7 +5408,16 @@ return colors.length > 0 ? colors : null;
             ApplyLayoutState();
             ReflowTabs();
             ResizeMode = _fsPrevResize;
-            WindowState = _previousWindowState;
+
+            if (WindowState == WindowState.Normal && !_fsPrevBounds.IsEmpty)
+            {
+                Left   = _fsPrevBounds.Left;
+                Top    = _fsPrevBounds.Top;
+                Width  = _fsPrevBounds.Width;
+                Height = _fsPrevBounds.Height;
+            }
+            if (_previousWindowState != WindowState.Normal) WindowState = _previousWindowState;
+            else BorderThickness = new Thickness(1);
         }
     }
 
