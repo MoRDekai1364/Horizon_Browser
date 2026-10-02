@@ -93,12 +93,14 @@
                Placement="Relative" PlacementTarget="{Binding ElementName=RootGrid}"
                HorizontalOffset="0" VerticalOffset="0" IsOpen="False">
             <Grid x:Name="BarRoot" Height="36" Opacity="0">
-                <Grid.Background>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                        <GradientStop Color="#F20b0b0b" Offset="0"/>
-                        <GradientStop Color="#800b0b0b" Offset="1"/>
-                    </LinearGradientBrush>
-                </Grid.Background>
+                <Border CornerRadius="8,8,0,0" IsHitTestVisible="False">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop Color="#F20b0b0b" Offset="0"/>
+                            <GradientStop Color="#800b0b0b" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Border.Background>
+                </Border>
                 <Rectangle x:Name="BarDragGrip" Fill="#01000000" Cursor="SizeAll"
                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                            Margin="0,0,110,0" MouseLeftButtonDown="BarDragGrip_MouseLeftButtonDown"/>

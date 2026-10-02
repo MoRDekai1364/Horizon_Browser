@@ -551,7 +551,7 @@ public partial class WebAppWindow : Window
                 return;
             }
 
-            bool hot = IsCursorInTopEdge() || (_barVisible && BarRoot.IsMouseOver);
+            bool hot = IsCursorInTopEdge();
             if (hot)
             {
                 _barLastActive = Environment.TickCount64;
@@ -579,7 +579,8 @@ public partial class WebAppWindow : Window
         Point tl = RootGrid.PointToScreen(new Point(0, 0));
         double width = RootGrid.ActualWidth * toDevice.M11;
         double edge = (_barVisible ? 56 : 24) * toDevice.M22;
-        return p.X >= tl.X && p.X <= tl.X + width && p.Y >= tl.Y && p.Y <= tl.Y + edge;
+        double zoneLeft = tl.X + width * 0.75;
+        return p.X >= zoneLeft && p.X <= tl.X + width && p.Y >= tl.Y && p.Y <= tl.Y + edge;
     }
 
     private void ShowBar()
