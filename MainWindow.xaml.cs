@@ -1339,6 +1339,7 @@ public partial class MainWindow : Window
         this.SizeChanged += (s, e) =>
         {
             if (ActualWidth < 100) return;
+            if (_isFullscreen) LogService.Write("FSDIAG", $"SizeChanged fs size={ActualWidth}x{ActualHeight} state={WindowState}");
             ScheduleReflow();
             ApplyNarrowWindowMode();
         };
@@ -1743,7 +1744,10 @@ public partial class MainWindow : Window
         var reflowSel = ListTabs.SelectedItem as TabViewModel
                      ?? ListOverflowTabs.SelectedItem as TabViewModel;
         if (reflowSel != null && _tabViews.TryGetValue(reflowSel, out var reflowView))
+        {
+            LogService.Write("FSDIAG", $"ReflowTabs forces visible '{reflowSel.DisplayTitle}' fs={_isFullscreen}");
             reflowView.Visibility = Visibility.Visible;
+        }
 
         
 
@@ -2362,6 +2366,7 @@ return colors.length > 0 ? colors : null;
 
         if (selectedTab != null && _tabViews.ContainsKey(selectedTab))
         {
+            LogService.Write("FSDIAG", $"Tabs_SelectionChanged selected='{selectedTab.DisplayTitle}' fs={_isFullscreen} fsTab='{_fullscreenTab?.DisplayTitle}'\n{Environment.StackTrace}");
             if (_fullscreenTab != null && !ReferenceEquals(_fullscreenTab, selectedTab))
             {
                 var fsView = _tabViews.TryGetValue(_fullscreenTab, out var fv) ? fv : null;
@@ -5360,6 +5365,7 @@ return colors.length > 0 ? colors : null;
 
     private void ApplyFullscreenState(bool on)
     {
+        LogService.Write("FSDIAG", $"ApplyFullscreenState on={on} current={_isFullscreen} win={WindowState} size={ActualWidth}x{ActualHeight} active='{_activeTabView?.IsHomeActive}'");
         if (on == _isFullscreen) return;
 
         if (on)
@@ -5423,6 +5429,7 @@ return colors.length > 0 ? colors : null;
 
     private void OnTabFullscreenChanged(TabViewModel tab, Controls.BrowserView view, bool on)
     {
+        LogService.Write("FSDIAG", $"OnTabFullscreenChanged tab='{tab.DisplayTitle}' on={on} isActive={ReferenceEquals(_activeTabView, view)} home={view.IsHomeActive}");
         try
         {
             if (on)
