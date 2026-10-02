@@ -259,9 +259,9 @@ public partial class MainWindow : Window
     private bool _wpfShellLastFocused = true; // true = WPF shell had last click, false = WebView
     private bool _isSidebarLocked    = false;
     private DispatcherTimer _headerHideTimer = new DispatcherTimer();
-    private System.Windows.Media.Animation.Storyboard? _notifySb;
     private bool _isReflowing = false;
     private bool _isFullscreen = false;
+    private TabViewModel? _fullscreenTab;
     private bool _isWebAppMode = false;
     private WindowState _previousWindowState = WindowState.Normal;
     private ResizeMode _fsPrevResize = ResizeMode.CanResizeWithGrip;
@@ -2325,19 +2325,7 @@ return colors.length > 0 ? colors : null;
     }
 };
 
-    newBrowser.MainWebView.WebMessageReceived += (s, e) =>
-    {
-        try
-        {
-            string json = e.WebMessageAsJson ?? "";
-            if (json.Contains("fullscreen"))
-            {
-                bool isFullscreen = json.Contains("true");
-                if (isFullscreen != _isFullscreen) ToggleFullscreen();
-            }
-        }
-        catch { }
-    };
+    newBrowser.FullscreenChanged += on => OnTabFullscreenChanged(newTab, newBrowser, on);
 
     _allTabs.Add(newTab);
     _tabViews[newTab] = newBrowser;
@@ -2373,6 +2361,14 @@ return colors.length > 0 ? colors : null;
 
         if (selectedTab != null && _tabViews.ContainsKey(selectedTab))
         {
+            if (_fullscreenTab != null && !ReferenceEquals(_fullscreenTab, selectedTab))
+            {
+                var fsView = _tabViews.TryGetValue(_fullscreenTab, out var fv) ? fv : null;
+                _fullscreenTab = null;
+                ApplyFullscreenState(false);
+                if (fsView != null) _ = ExitTabFullscreenAsync(fsView);
+            }
+
             if (_activeTabView != null) _activeTabView.Visibility = Visibility.Collapsed;
             _headerWallpaperGlassRefresh?.Invoke();
             _headerHomeBlurBleedRefresh?.Invoke();
@@ -2466,6 +2462,12 @@ return colors.length > 0 ? colors : null;
             _closedTabHistory.Add((_ctUrl, tabToClose.Title ?? "Closed Tab"));
             if (_closedTabHistory.Count > MaxClosedTabHistory)
                 _closedTabHistory.RemoveAt(0);
+        }
+
+        if (ReferenceEquals(_fullscreenTab, tabToClose))
+        {
+            _fullscreenTab = null;
+            ApplyFullscreenState(false);
         }
 
         _tabImageUrls.Remove(tabToClose);
@@ -2988,13 +2990,6 @@ return colors.length > 0 ? colors : null;
         bool ctrl  = (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control;
         bool alt   = (Keyboard.Modifiers & ModifierKeys.Alt)     == ModifierKeys.Alt;
         bool shift = (Keyboard.Modifiers & ModifierKeys.Shift)   == ModifierKeys.Shift;
-
-        if (e.Key == Key.F11)
-        {
-            ToggleFullscreen();
-            e.Handled = true;
-            return;
-        }
 
         if (ctrl && e.Key == Key.T)
         {
@@ -5362,11 +5357,11 @@ return colors.length > 0 ? colors : null;
         }
     }
 
-    private void ToggleFullscreen()
+    private void ApplyFullscreenState(bool on)
     {
-        PlayFullscreenFlash();
+        if (on == _isFullscreen) return;
 
-        if (!_isFullscreen)
+        if (on)
         {
             _previousWindowState = WindowState;
             _fsPrevResize = ResizeMode;
@@ -5379,117 +5374,56 @@ return colors.length > 0 ? colors : null;
             ResizeMode = ResizeMode.NoResize;
             if (WindowState == WindowState.Maximized) WindowState = WindowState.Normal;
             WindowState = WindowState.Maximized;
-            LogFullscreenGeometry("enter");
-            PlayFullscreenNotify();
         }
         else
         {
             _isFullscreen = false;
 
-            _notifySb?.Stop();
-            _notifySb = null;
-            FullscreenNotifyBar.Opacity = 0;
-
             ApplyLayoutState();
             ReflowTabs();
             ResizeMode = _fsPrevResize;
             WindowState = _previousWindowState;
-            LogFullscreenGeometry("exit");
         }
     }
 
-    private void LogFullscreenGeometry(string tag)
+    private void OnTabFullscreenChanged(TabViewModel tab, Controls.BrowserView view, bool on)
     {
-        Dispatcher.BeginInvoke(new Action(() =>
+        try
         {
-            try
+            if (on)
             {
-                var h = new WindowInteropHelper(this).Handle;
-                var mon = MonitorFromWindow(h, MONITOR_DEFAULTTONEAREST);
-                var mi = new WMI { cbSize = Marshal.SizeOf(typeof(WMI)) };
-                GetMonitorInfo(mon, ref mi);
-                GetWindowRect(h, out var r);
-                LogService.Write("FULLSCREEN", $"{tag}: window=({r.left},{r.top},{r.right},{r.bottom}) monitor=({mi.rcMonitor.left},{mi.rcMonitor.top},{mi.rcMonitor.right},{mi.rcMonitor.bottom}) work=({mi.rcWork.left},{mi.rcWork.top},{mi.rcWork.right},{mi.rcWork.bottom}) state={WindowState} resize={ResizeMode}");
+                if (!ReferenceEquals(_activeTabView, view))
+                {
+                    _ = ExitTabFullscreenAsync(view);
+                    return;
+                }
+                _fullscreenTab = tab;
+                ApplyFullscreenState(true);
             }
-            catch (Exception ex)
+            else if (ReferenceEquals(_fullscreenTab, tab))
             {
-                LogService.RecordCrash(ex, "LogFullscreenGeometry");
+                _fullscreenTab = null;
+                ApplyFullscreenState(false);
             }
-        }), System.Windows.Threading.DispatcherPriority.ApplicationIdle);
-    }
-
-    private void PlayFullscreenFlash()
-    {
-        FullscreenFlash.Opacity = 0;
-        var fadeIn = new System.Windows.Media.Animation.DoubleAnimation
-        {
-            From         = 0.0,
-            To           = 0.75,
-            Duration     = TimeSpan.FromMilliseconds(100),
-            FillBehavior = System.Windows.Media.Animation.FillBehavior.Stop,
-        };
-        var fadeOut = new System.Windows.Media.Animation.DoubleAnimation
-        {
-            From         = 0.75,
-            To           = 0.0,
-            BeginTime    = TimeSpan.FromMilliseconds(100),
-            Duration     = TimeSpan.FromMilliseconds(350),
-            FillBehavior = System.Windows.Media.Animation.FillBehavior.Stop,
-        };
-        var sb = new System.Windows.Media.Animation.Storyboard
-        {
-            FillBehavior = System.Windows.Media.Animation.FillBehavior.Stop
-        };
-        sb.Children.Add(fadeIn);
-        sb.Children.Add(fadeOut);
-        System.Windows.Media.Animation.Storyboard.SetTarget(fadeIn,  FullscreenFlash);
-        System.Windows.Media.Animation.Storyboard.SetTarget(fadeOut, FullscreenFlash);
-        System.Windows.Media.Animation.Storyboard.SetTargetProperty(fadeIn,  new PropertyPath(UIElement.OpacityProperty));
-        System.Windows.Media.Animation.Storyboard.SetTargetProperty(fadeOut, new PropertyPath(UIElement.OpacityProperty));
-        sb.Completed += (s, e) => FullscreenFlash.Opacity = 0;
-        sb.Begin();
-    }
-
-
-    private void PlayFullscreenNotify()
-    {
-        _notifySb?.Stop();
-        var bar = FullscreenNotifyBar;
-        bar.RenderTransform = new System.Windows.Media.TranslateTransform(0, -36);
-        bar.Opacity = 0;
-
-        var sb = new System.Windows.Media.Animation.Storyboard
-        {
-            FillBehavior = System.Windows.Media.Animation.FillBehavior.Stop
-        };
-
-        void Add(System.Windows.Media.Animation.DoubleAnimation a, DependencyProperty prop)
-        {
-            a.FillBehavior = System.Windows.Media.Animation.FillBehavior.Stop;
-            System.Windows.Media.Animation.Storyboard.SetTarget(a, bar);
-            System.Windows.Media.Animation.Storyboard.SetTargetProperty(a, new PropertyPath(prop));
-            sb.Children.Add(a);
         }
+        catch (Exception ex)
+        {
+            LogService.RecordCrash(ex, "OnTabFullscreenChanged");
+        }
+    }
 
-        var slideIn = new System.Windows.Media.Animation.DoubleAnimation(-36, 0, TimeSpan.FromMilliseconds(320))
-            { EasingFunction = new System.Windows.Media.Animation.CubicEase { EasingMode = System.Windows.Media.Animation.EasingMode.EaseOut } };
-        slideIn.FillBehavior = System.Windows.Media.Animation.FillBehavior.Stop;
-        System.Windows.Media.Animation.Storyboard.SetTarget(slideIn, bar);
-        System.Windows.Media.Animation.Storyboard.SetTargetProperty(slideIn, new PropertyPath("RenderTransform.(TranslateTransform.Y)"));
-        sb.Children.Add(slideIn);
-
-        Add(new System.Windows.Media.Animation.DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(220)),
-            UIElement.OpacityProperty);
-        Add(new System.Windows.Media.Animation.DoubleAnimation(1, 1, TimeSpan.FromMilliseconds(3500))
-            { BeginTime = TimeSpan.FromMilliseconds(220) },
-            UIElement.OpacityProperty);
-        Add(new System.Windows.Media.Animation.DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(500))
-            { BeginTime = TimeSpan.FromMilliseconds(3720) },
-            UIElement.OpacityProperty);
-
-        sb.Completed += (s, e) => { bar.Opacity = 0; _notifySb = null; };
-        _notifySb = sb;
-        sb.Begin();
+    private async Task ExitTabFullscreenAsync(Controls.BrowserView view)
+    {
+        try
+        {
+            var core = view.MainWebView?.CoreWebView2;
+            if (core != null)
+                await core.ExecuteScriptAsync("if (document.fullscreenElement) document.exitFullscreen();");
+        }
+        catch (Exception ex)
+        {
+            LogService.RecordCrash(ex, "ExitTabFullscreenAsync");
+        }
     }
 
     // ────────────────────────────────────────────────────────────────

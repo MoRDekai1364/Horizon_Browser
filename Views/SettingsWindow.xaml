@@ -933,14 +933,6 @@
                         <Grid Margin="0,0,0,6">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                             <Border Background="#1A1A1A" CornerRadius="3" Padding="8,4">
-                                <TextBlock Text="F11" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" FontFamily="Consolas"/>
-                            </Border>
-                            <TextBlock Grid.Column="1" Text="Toggle fullscreen mode" Foreground="#DDD" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
-                        </Grid>
-
-                        <Grid Margin="0,0,0,6">
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                            <Border Background="#1A1A1A" CornerRadius="3" Padding="8,4">
                                 <TextBlock Text="Q" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" FontFamily="Consolas"/>
                             </Border>
                             <TextBlock Grid.Column="1" Text="Toggle Picture-in-Picture for the active video" Foreground="#DDD" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>

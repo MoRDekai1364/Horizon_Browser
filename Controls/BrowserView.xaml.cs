@@ -35,6 +35,7 @@ public partial class BrowserView : UserControl
         string Uri = "");
 
     public event EventHandler<DownloadInfo>? DownloadProgressChanged;
+    public event Action<bool>? FullscreenChanged;
 
     private CoreWebView2DownloadOperation? _activeDownloadOp;
     private bool _dlPaused = false;
@@ -646,6 +647,7 @@ public partial class BrowserView : UserControl
                 MainWebView.CoreWebView2.ProcessFailed += (s, e) =>
                 {
                     _processCrashed = true;
+                    FullscreenChanged?.Invoke(false);
                     Dispatcher.Invoke(async () =>
                     {
                         try
@@ -674,6 +676,11 @@ public partial class BrowserView : UserControl
                 MainWebView.CoreWebView2.NavigationStarting    += CoreWebView2_NavigationStarting;
                 MainWebView.CoreWebView2.NotificationReceived  += CoreWebView2_NotificationReceived;
                 MainWebView.CoreWebView2.HistoryChanged        += CoreWebView2_HistoryChanged;
+                MainWebView.CoreWebView2.ContainsFullScreenElementChanged += (_, _) =>
+                {
+                    try { FullscreenChanged?.Invoke(MainWebView.CoreWebView2.ContainsFullScreenElement); }
+                    catch (Exception ex) { LogService.RecordCrash(ex, "BrowserView.FullscreenChanged"); }
+                };
 
                 await InitializeAutomationAsync();
 
@@ -1644,13 +1651,6 @@ public partial class BrowserView : UserControl
                 } else {
                     startObserver();
                 }
-
-                // ── Fullscreen bridge ────────────────────────────────────────────────
-                document.addEventListener('fullscreenchange', () => {
-                    window.chrome?.webview?.postMessage({
-                        type: 'fullscreen', value: !!document.fullscreenElement
-                    });
-                });
 
                 // ── Q key → Picture-in-Picture ───────────────────────────────────────
                 document.addEventListener('keydown', (e) => {
