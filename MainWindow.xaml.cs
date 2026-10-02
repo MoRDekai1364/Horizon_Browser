@@ -264,6 +264,7 @@ public partial class MainWindow : Window
     private bool _isFullscreen = false;
     private bool _isWebAppMode = false;
     private WindowState _previousWindowState = WindowState.Normal;
+    private ResizeMode _fsPrevResize = ResizeMode.CanResizeWithGrip;
 
     // ── Tab Drag & Drop ──────────────────────────────────────────────
     private TabViewModel?   _draggedTab      = null;
@@ -639,6 +640,8 @@ public partial class MainWindow : Window
 
     private void HandleWindowPositionChanging(IntPtr hwnd, IntPtr lParam)
     {
+        if (_isFullscreen) return;
+
         var wp = (WINDOWPOS)Marshal.PtrToStructure(lParam, typeof(WINDOWPOS))!;
         if ((wp.flags & SWP_NOMOVE) != 0 && (wp.flags & SWP_NOSIZE) != 0) return;
 
@@ -5366,14 +5369,17 @@ return colors.length > 0 ? colors : null;
         if (!_isFullscreen)
         {
             _previousWindowState = WindowState;
+            _fsPrevResize = ResizeMode;
             _isFullscreen = true;
 
             RowHeader.Height = new GridLength(0);
             HeaderContainer.Height = 0;
             SidebarContainer.Width = 0;
             ListOverflowTabs.Visibility = Visibility.Collapsed;
+            ResizeMode = ResizeMode.NoResize;
             if (WindowState == WindowState.Maximized) WindowState = WindowState.Normal;
             WindowState = WindowState.Maximized;
+            LogFullscreenGeometry("enter");
             PlayFullscreenNotify();
         }
         else
@@ -5386,8 +5392,30 @@ return colors.length > 0 ? colors : null;
 
             ApplyLayoutState();
             ReflowTabs();
+            ResizeMode = _fsPrevResize;
             WindowState = _previousWindowState;
+            LogFullscreenGeometry("exit");
         }
+    }
+
+    private void LogFullscreenGeometry(string tag)
+    {
+        Dispatcher.BeginInvoke(new Action(() =>
+        {
+            try
+            {
+                var h = new WindowInteropHelper(this).Handle;
+                var mon = MonitorFromWindow(h, MONITOR_DEFAULTTONEAREST);
+                var mi = new WMI { cbSize = Marshal.SizeOf(typeof(WMI)) };
+                GetMonitorInfo(mon, ref mi);
+                GetWindowRect(h, out var r);
+                LogService.Write("FULLSCREEN", $"{tag}: window=({r.left},{r.top},{r.right},{r.bottom}) monitor=({mi.rcMonitor.left},{mi.rcMonitor.top},{mi.rcMonitor.right},{mi.rcMonitor.bottom}) work=({mi.rcWork.left},{mi.rcWork.top},{mi.rcWork.right},{mi.rcWork.bottom}) state={WindowState} resize={ResizeMode}");
+            }
+            catch (Exception ex)
+            {
+                LogService.RecordCrash(ex, "LogFullscreenGeometry");
+            }
+        }), System.Windows.Threading.DispatcherPriority.ApplicationIdle);
     }
 
     private void PlayFullscreenFlash()
