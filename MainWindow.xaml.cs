@@ -6421,7 +6421,7 @@ return colors.length > 0 ? colors : null;
             var r = await WebAppService.InstallAsync(
                 url,
                 title,
-                async () => await core.GetFaviconAsync(Microsoft.Web.WebView2.Core.CoreWebView2FaviconImageSize.Large),
+                async () => await core.GetFaviconAsync(Microsoft.Web.WebView2.Core.CoreWebView2FaviconImageFormat.Png),
                 s.WebAppShortcutDesktop,
                 s.WebAppShortcutStartMenu);
 
