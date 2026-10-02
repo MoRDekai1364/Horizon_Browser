@@ -597,7 +597,10 @@ public partial class BrowserView : UserControl
         };
         InstallExtDismissBtn.Click += (_, _) => HideExtensionInstallBar();
         NativeHomePage.NavigateRequested += url => Navigate(url);
-        Loaded += (_, _) => InitializeAsync();
+        Loaded += (_, _) =>
+        {
+            if (MainWebView.CoreWebView2 == null) InitializeAsync();
+        };
     }
 
     private void OnBecameVisible(object sender, DependencyPropertyChangedEventArgs e)
