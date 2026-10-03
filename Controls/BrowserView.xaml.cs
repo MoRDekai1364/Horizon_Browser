@@ -2395,7 +2395,6 @@ public partial class BrowserView : UserControl
     {
         if (url == HomeSentinel)
         {
-            Horizon.Stealth.Services.LogService.Write("FSDIAG", $"BrowserView.Navigate(HomeSentinel)\n{Environment.StackTrace}");
             _cameFromHome = false;
             _forwardToSite = false;
             MainWebView.Visibility = Visibility.Collapsed;

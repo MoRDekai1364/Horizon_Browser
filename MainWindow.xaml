@@ -6,7 +6,7 @@
         xmlns:controls="clr-namespace:Horizon.Stealth.Controls"
         xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         mc:Ignorable="d"
-        Title="Horizon Stealth" Height="720" Width="1280"
+        Title="Horizon Browser" Height="720" Width="1280"
         WindowStyle="None" ResizeMode="CanResizeWithGrip"
         AllowsTransparency="False"
         Background="{StaticResource Brush_Background}">

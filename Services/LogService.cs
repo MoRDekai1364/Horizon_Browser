@@ -11,6 +11,68 @@ public static class LogService
     private static string _debugLogFile;
     private static string _crashTapeFile;
 
+    public static volatile bool DebugEnabled;
+    public static string CurrentLogPath => _debugLogFile;
+
+    private const int DebugQueueCap = 20000;
+    private static readonly System.Collections.Concurrent.ConcurrentQueue<string> _debugQueue = new();
+    private static readonly object _timerLock = new();
+    private static System.Threading.Timer? _debugFlushTimer;
+    private static int _debugQueued;
+    private static int _debugDropped;
+
+    public static void Debug(string source, Func<string> message)
+    {
+        if (!DebugEnabled) return;
+
+        if (System.Threading.Interlocked.Increment(ref _debugQueued) > DebugQueueCap)
+        {
+            System.Threading.Interlocked.Decrement(ref _debugQueued);
+            System.Threading.Interlocked.Increment(ref _debugDropped);
+            return;
+        }
+
+        string text;
+        try { text = message(); }
+        catch (Exception ex) { text = "debug message failed: " + ex.Message; }
+
+        _debugQueue.Enqueue($"[{DateTime.Now:HH:mm:ss.fff}] [{source.ToUpper()}] [DBG] {text}");
+        EnsureDebugTimer();
+    }
+
+    private static void EnsureDebugTimer()
+    {
+        if (_debugFlushTimer != null) return;
+        lock (_timerLock)
+        {
+            _debugFlushTimer ??= new System.Threading.Timer(_ => FlushDebug(), null, 250, 250);
+        }
+    }
+
+    public static void FlushDebug()
+    {
+        if (_debugQueue.IsEmpty && _debugDropped == 0) return;
+
+        var sb = new StringBuilder();
+        while (_debugQueue.TryDequeue(out var line))
+        {
+            sb.AppendLine(line);
+            System.Threading.Interlocked.Decrement(ref _debugQueued);
+        }
+
+        int dropped = System.Threading.Interlocked.Exchange(ref _debugDropped, 0);
+        if (dropped > 0)
+            sb.AppendLine($"[{DateTime.Now:HH:mm:ss.fff}] [LOG] [DBG] {dropped} debug lines dropped (queue full)");
+
+        if (sb.Length == 0) return;
+
+        lock (_lock)
+        {
+            try { File.AppendAllText(_debugLogFile, sb.ToString()); }
+            catch { }
+        }
+    }
+
     static LogService()
     {
         if (!Directory.Exists(_logDirectory))
@@ -19,6 +81,7 @@ public static class LogService
         string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
         _debugLogFile = Path.Combine(_logDirectory, $"debug_{timestamp}.log");
         _crashTapeFile = Path.Combine(_logDirectory, $"crash_tape_{timestamp}.err");
+        AppDomain.CurrentDomain.ProcessExit += (_, _) => FlushDebug();
     }
 
     public static void Initialize()
@@ -48,9 +111,10 @@ public static class LogService
 
     public static void RecordCrash(Exception ex, string context = "Global")
     {
+        FlushDebug();
         var sb = new StringBuilder();
         sb.AppendLine("==========================================");
-        sb.AppendLine("===       HORIZON BLACK BOX TAPE       ===");
+        sb.AppendLine("===       HORIZON BLACK LOG TAPE       ===");
         sb.AppendLine("==========================================");
         sb.AppendLine($"Timestamp: {DateTime.Now}");
         sb.AppendLine($"Context:   {context}");

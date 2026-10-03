@@ -196,6 +196,7 @@ public static class WebAppService
 
             result.Manifest = manifest;
             LogService.Write(LogTag, $"Install done. id={id} icon={result.IconOk} desktop={result.DesktopOk} startMenu={result.StartMenuOk} errors={result.Errors.Count}");
+            RaiseChanged();
         }
         catch (Exception ex)
         {
@@ -225,6 +226,76 @@ public static class WebAppService
             LogService.RecordCrash(ex, "WebAppService.LoadAll");
         }
         return list;
+    }
+
+    public static event Action? Changed;
+
+    private static List<WebAppManifest>? _cacheList;
+    private static DateTime _cacheUtc = DateTime.MinValue;
+    private static readonly object _cacheLock = new();
+
+    private static void RaiseChanged()
+    {
+        lock (_cacheLock) { _cacheList = null; }
+        try { Changed?.Invoke(); }
+        catch (Exception ex) { LogService.RecordCrash(ex, "WebAppService.Changed"); }
+    }
+
+    private static List<WebAppManifest> LoadAllCached()
+    {
+        lock (_cacheLock)
+        {
+            if (_cacheList != null && (DateTime.UtcNow - _cacheUtc).TotalSeconds < 5) return _cacheList;
+            _cacheList = LoadAll();
+            _cacheUtc = DateTime.UtcNow;
+            return _cacheList;
+        }
+    }
+
+    public static WebAppManifest? FindForUrl(string? url)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(url)) return null;
+            if (!Uri.TryCreate(url, UriKind.Absolute, out var target)) return null;
+            if (target.Scheme != Uri.UriSchemeHttp && target.Scheme != Uri.UriSchemeHttps) return null;
+
+            WebAppManifest? best = null;
+            int bestLen = -1;
+
+            foreach (var m in LoadAllCached())
+            {
+                string scopeText = string.IsNullOrEmpty(m.Scope) ? m.StartUrl : m.Scope;
+                if (!Uri.TryCreate(scopeText, UriKind.Absolute, out var scope)) continue;
+                if (!string.Equals(scope.Scheme, target.Scheme, StringComparison.OrdinalIgnoreCase)) continue;
+                if (scope.Port != target.Port) continue;
+                if (!string.Equals(NormalizeHost(scope.Host), NormalizeHost(target.Host), StringComparison.OrdinalIgnoreCase)) continue;
+
+                string scopePath = scope.AbsolutePath;
+                if (!scopePath.EndsWith("/")) scopePath += "/";
+                string targetPath = target.AbsolutePath;
+                if (!targetPath.EndsWith("/")) targetPath += "/";
+                if (!targetPath.StartsWith(scopePath, StringComparison.OrdinalIgnoreCase)) continue;
+
+                if (scopePath.Length > bestLen)
+                {
+                    best = m;
+                    bestLen = scopePath.Length;
+                }
+            }
+
+            return best;
+        }
+        catch (Exception ex)
+        {
+            LogService.RecordCrash(ex, "WebAppService.FindForUrl");
+            return null;
+        }
+    }
+
+    private static string NormalizeHost(string host)
+    {
+        return host.StartsWith("www.", StringComparison.OrdinalIgnoreCase) ? host.Substring(4) : host;
     }
 
     public static bool Uninstall(string id, List<string> errors)
@@ -264,6 +335,7 @@ public static class WebAppService
             }
 
             LogService.Write(LogTag, $"Uninstalled {id}. errors={errors.Count}");
+            RaiseChanged();
             return !Directory.Exists(dir);
         }
         catch (Exception ex)
@@ -313,6 +385,49 @@ public static class WebAppService
         }
     }
 
+    public static bool SetShortcut(string id, bool desktop, bool enable, List<string> errors)
+    {
+        try
+        {
+            var m = Load(id);
+            if (m == null)
+            {
+                errors.Add("Web App not found.");
+                return false;
+            }
+
+            string keepDesktop = m.DesktopShortcutPath;
+            string keepMenu = m.StartMenuShortcutPath;
+            string current = desktop ? m.DesktopShortcutPath : m.StartMenuShortcutPath;
+
+            DeleteShortcutFile(current, errors);
+
+            if (enable)
+            {
+                CreateShortcutsFor(m, desktop, !desktop, errors);
+                if (desktop) m.StartMenuShortcutPath = keepMenu;
+                else m.DesktopShortcutPath = keepDesktop;
+            }
+            else
+            {
+                if (desktop) m.DesktopShortcutPath = "";
+                else m.StartMenuShortcutPath = "";
+            }
+
+            SaveManifest(m);
+            if (!desktop && !enable) RemoveStartMenuFolderIfEmpty();
+
+            LogService.Write(LogTag, $"SetShortcut id={id} kind={(desktop ? "desktop" : "startmenu")} enable={enable} errors={errors.Count}");
+            return errors.Count == 0;
+        }
+        catch (Exception ex)
+        {
+            LogService.RecordCrash(ex, "WebAppService.SetShortcut");
+            errors.Add(ex.Message);
+            return false;
+        }
+    }
+
     public static bool RecreateShortcuts(string id, bool desktop, bool startMenu, List<string> errors)
     {
         try
@@ -347,6 +462,7 @@ public static class WebAppService
         string tmp = path + ".tmp";
         File.WriteAllText(tmp, JsonSerializer.Serialize(m, JsonOpts), new UTF8Encoding(false));
         File.Move(tmp, path, true);
+        RaiseChanged();
     }
 
     private static void DeleteShortcutFile(string? path, List<string> errors)

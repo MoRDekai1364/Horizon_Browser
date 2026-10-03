@@ -959,6 +959,7 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
         ChkWebAppDesktop.IsChecked  = s.WebAppShortcutDesktop;
         ChkWebAppStartMenu.IsChecked = s.WebAppShortcutStartMenu;
         ChkWebAppOffer.IsChecked = s.WebAppOfferOnLeave;
+        ChkDebugLogging.IsChecked = s.DebugLogging;
         RefreshWebApps();
         ChkSessionRestore.IsChecked      = s.ShowSessionRestore;
         ChkAutoRestoreSession.IsChecked  = s.AutoRestoreSession;
@@ -1058,6 +1059,7 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
         s.WebAppShortcutDesktop   = ChkWebAppDesktop.IsChecked   == true;
         s.WebAppShortcutStartMenu = ChkWebAppStartMenu.IsChecked == true;
         s.WebAppOfferOnLeave = ChkWebAppOffer.IsChecked == true;
+        s.DebugLogging = ChkDebugLogging.IsChecked == true;
         s.ShowSessionRestore  = ChkSessionRestore.IsChecked     == true;
         s.AutoRestoreSession        = ChkAutoRestoreSession.IsChecked  == true;
         s.BackgroundKeepAliveEnabled = ChkBackgroundKeepAlive.IsChecked == true;
@@ -2053,6 +2055,33 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
 
     private void BtnNuclear_Click(object sender, RoutedEventArgs e)
     { HealthService.NuclearPurge(); MessageBox.Show("Memory Purge Executed.", "System Health", MessageBoxButton.OK, MessageBoxImage.Exclamation); }
+
+    private void ChkDebugLogging_Click(object sender, RoutedEventArgs e)
+    {
+        bool on = ChkDebugLogging.IsChecked == true;
+        SettingsService.Current.DebugLogging = on;
+        LogService.DebugEnabled = on;
+        LogService.Write("SYSTEM", "Debug logging " + (on ? "enabled" : "disabled"));
+    }
+
+    private void BtnOpenLog_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            string path = LogService.CurrentLogPath;
+            if (!File.Exists(path))
+            {
+                MessageBox.Show("Log file not found:\n" + path, "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+            Process.Start("notepad.exe", "\"" + path + "\"");
+        }
+        catch (Exception ex)
+        {
+            LogService.RecordCrash(ex, "OpenLog");
+            MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
 
     private void BtnOpenMap_Click(object sender, RoutedEventArgs e)
     {

@@ -103,6 +103,7 @@ public static class SettingsService
         }
 
         Migrate(Current);
+        LogService.DebugEnabled = Current.DebugLogging;
 
         // v2 migration: old default (1270) was nearly identical to the default window width
         // (1280). Any saved value ≥ 1000 was the broken value — reset to the correct default.
@@ -173,6 +174,7 @@ public static class SettingsService
 
     public static void Save()
     {
+        LogService.DebugEnabled = Current.DebugLogging;
         try
         {
             var options = new JsonSerializerOptions { WriteIndented = true };
@@ -270,6 +272,7 @@ public class SettingsData
     public string       HomeVisualizerScope     { get; set; } = "Everywhere"; // "Everywhere" | "MediaTabOnly" | "SelectedWebsites"
     public List<string> HomeVisualizerWebsites  { get; set; } = new(); 
 
+    public bool DebugLogging { get; set; } = false;
     public bool AutoHideHeader { get; set; } = false;
     public bool AutoHideSidebar { get; set; } = false;
     public bool WebAppShortcutDesktop { get; set; } = true;

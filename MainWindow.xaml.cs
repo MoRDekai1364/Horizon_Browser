@@ -590,6 +590,8 @@ public partial class MainWindow : Window
         base.OnSourceInitialized(e);
         var hwnd = new WindowInteropHelper(this).Handle;
         HwndSource.FromHwnd(hwnd)?.AddHook(TaskbarWndProc);
+        ApplyMainWindowIcon(hwnd);
+        WebAppService.Changed += () => Dispatcher.BeginInvoke(new Action(() => UpdateInstallButtonVisibility(_lastWebAppUrl)));
 
         // Windows 11 rounded corners — no-op on Windows 10 and below
         try
@@ -598,6 +600,51 @@ public partial class MainWindow : Window
             DwmSetWindowAttribute(hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, ref pref, sizeof(int));
         }
         catch { }
+    }
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode, EntryPoint = "PrivateExtractIconsW")]
+    private static extern uint PrivateExtractIconsW(string file, int index, int cx, int cy, IntPtr[] phicon, int[] piconid, uint nIcons, uint flags);
+
+    private static IntPtr _mainIconSmall = IntPtr.Zero;
+    private static IntPtr _mainIconBig = IntPtr.Zero;
+
+    private void ApplyMainWindowIcon(IntPtr hwnd)
+    {
+        try
+        {
+            string exe = Environment.ProcessPath ?? "";
+            if (string.IsNullOrEmpty(exe) || !System.IO.File.Exists(exe))
+            {
+                LogService.Write("ICON", "Process path unavailable");
+                return;
+            }
+
+            double scale = VisualTreeHelper.GetDpi(this).DpiScaleX;
+            int small = (int)Math.Round(16 * scale);
+            int big = (int)Math.Round(32 * scale);
+
+            var hs = new IntPtr[1];
+            var hb = new IntPtr[1];
+            var ids = new int[1];
+            uint ns = PrivateExtractIconsW(exe, 0, small, small, hs, ids, 1, 0);
+            uint nb = PrivateExtractIconsW(exe, 0, big, big, hb, ids, 1, 0);
+
+            if (ns > 0 && hs[0] != IntPtr.Zero)
+            {
+                _mainIconSmall = hs[0];
+                SendMessage(hwnd, 0x0080, (IntPtr)0, _mainIconSmall);
+            }
+            if (nb > 0 && hb[0] != IntPtr.Zero)
+            {
+                _mainIconBig = hb[0];
+                SendMessage(hwnd, 0x0080, (IntPtr)1, _mainIconBig);
+            }
+            LogService.Write("ICON", $"Applied small={ns} big={nb} sizes={small}/{big} exe={exe}");
+        }
+        catch (Exception ex)
+        {
+            LogService.RecordCrash(ex, "ApplyMainWindowIcon");
+        }
     }
 
     private IntPtr TaskbarWndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
@@ -1339,7 +1386,6 @@ public partial class MainWindow : Window
         this.SizeChanged += (s, e) =>
         {
             if (ActualWidth < 100) return;
-            if (_isFullscreen) LogService.Write("FSDIAG", $"SizeChanged fs size={ActualWidth}x{ActualHeight} state={WindowState}");
             ScheduleReflow();
             ApplyNarrowWindowMode();
         };
@@ -1497,7 +1543,11 @@ public partial class MainWindow : Window
 
         SensorTop.MouseEnter += (s, e) =>
         {
-            if (_isWebAppMode) { ShowWebAppBar(); return; }
+            if (_isWebAppMode)
+            {
+                if (IsCursorInWebAppBarZone()) ShowWebAppBar("SensorTop.MouseEnter");
+                return;
+            }
             _headerHideTimer.Stop();
             if (SettingsService.Current.AutoHideHeader && !_isFullscreen && HeaderContainer.Height == 0)
                 _headerTimer.Start();
@@ -1512,7 +1562,7 @@ public partial class MainWindow : Window
 
         SensorPillLeft.MouseEnter += (s, e) =>
         {
-            if (_isWebAppMode) { ShowWebAppBar(); return; }
+            if (_isWebAppMode) return;
             if (SettingsService.Current.AutoHideHeader && !_isFullscreen && HeaderContainer.Height == 0)
                 _headerTimer.Start();
         };
@@ -1520,6 +1570,11 @@ public partial class MainWindow : Window
         {
             if (_isWebAppMode) return;
             _headerTimer.Stop();
+        };
+
+        SensorTop.MouseMove += (s, e) =>
+        {
+            if (_isWebAppMode && IsCursorInWebAppBarZone()) ShowWebAppBar("SensorTop.MouseMove");
         };
 
         WebAppBar.MouseEnter += (s, e) => _webAppBarTimer.Stop();
@@ -1744,10 +1799,7 @@ public partial class MainWindow : Window
         var reflowSel = ListTabs.SelectedItem as TabViewModel
                      ?? ListOverflowTabs.SelectedItem as TabViewModel;
         if (reflowSel != null && _tabViews.TryGetValue(reflowSel, out var reflowView))
-        {
-            LogService.Write("FSDIAG", $"ReflowTabs forces visible '{reflowSel.DisplayTitle}' fs={_isFullscreen}");
             reflowView.Visibility = Visibility.Visible;
-        }
 
         
 
@@ -2366,7 +2418,6 @@ return colors.length > 0 ? colors : null;
 
         if (selectedTab != null && _tabViews.ContainsKey(selectedTab))
         {
-            LogService.Write("FSDIAG", $"Tabs_SelectionChanged selected='{selectedTab.DisplayTitle}' fs={_isFullscreen} fsTab='{_fullscreenTab?.DisplayTitle}'\n{Environment.StackTrace}");
             if (_fullscreenTab != null && !ReferenceEquals(_fullscreenTab, selectedTab))
             {
                 var fsView = _tabViews.TryGetValue(_fullscreenTab, out var fv) ? fv : null;
@@ -2581,7 +2632,6 @@ return colors.length > 0 ? colors : null;
             SensorRight.Visibility = Visibility.Collapsed;
             // Re-enable sensor top as a thin invisible strip for bar reveal
             SensorTop.Visibility = Visibility.Visible;
-            SensorPillLeft.Visibility = Visibility.Visible;
             WebAppBar.Visibility = Visibility.Visible;
             return;
         }
@@ -2619,8 +2669,16 @@ return colors.length > 0 ? colors : null;
     // ── WebApp bar helpers ────────────────────────────────────────────────────
     private readonly Dictionary<string, List<(string Url, string Title)>> _navHistories = new();
     private readonly Dictionary<string, int> _navHistoryIndex = new();
-    private void ShowWebAppBar()
+    private bool IsCursorInWebAppBarZone()
     {
+        var p = Mouse.GetPosition(this);
+        return p.X >= ActualWidth * 0.75 && p.X <= ActualWidth;
+    }
+
+    private void ShowWebAppBar(string source = "unknown")
+    {
+        if (WebAppBar.Opacity < 0.5)
+            LogService.Write("WEBAPPBAR", $"MainWindow bar shown via {source} cursorX={Mouse.GetPosition(this).X:F0} width={ActualWidth:F0}");
         _webAppBarTimer.Stop();
         WebAppBar.IsHitTestVisible = true;
         FadeWebAppBar(true);
@@ -5365,7 +5423,6 @@ return colors.length > 0 ? colors : null;
 
     private void ApplyFullscreenState(bool on)
     {
-        LogService.Write("FSDIAG", $"ApplyFullscreenState on={on} current={_isFullscreen} win={WindowState} size={ActualWidth}x{ActualHeight} active='{_activeTabView?.IsHomeActive}'");
         if (on == _isFullscreen) return;
 
         if (on)
@@ -5429,7 +5486,6 @@ return colors.length > 0 ? colors : null;
 
     private void OnTabFullscreenChanged(TabViewModel tab, Controls.BrowserView view, bool on)
     {
-        LogService.Write("FSDIAG", $"OnTabFullscreenChanged tab='{tab.DisplayTitle}' on={on} isActive={ReferenceEquals(_activeTabView, view)} home={view.IsHomeActive}");
         try
         {
             if (on)
@@ -6400,23 +6456,389 @@ return colors.length > 0 ? colors : null;
     }
     // Web App Install
     private bool _canInstallWebApp;
+    private string _lastWebAppUrl = "";
+    private WebAppManifest? _matchedWebApp;
 
     private void UpdateInstallButtonVisibility(string url)
     {
+        _lastWebAppUrl = url ?? "";
         _canInstallWebApp =
             !string.IsNullOrEmpty(url) &&
             (url.StartsWith("https://", StringComparison.OrdinalIgnoreCase) ||
              url.StartsWith("http://",  StringComparison.OrdinalIgnoreCase));
 
+        _matchedWebApp = _canInstallWebApp ? WebAppService.FindForUrl(url) : null;
+
         if (BtnCreateWebApp != null)
         {
             BtnCreateWebApp.IsEnabled = _canInstallWebApp;
             BtnCreateWebApp.Opacity   = _canInstallWebApp ? 1.0 : 0.4;
+
+            if (BtnCreateWebApp.Content is TextBlock glyph)
+            {
+                if (_matchedWebApp != null)
+                {
+                    glyph.Text = "\uE73E";
+                    glyph.Foreground = new SolidColorBrush(Color.FromRgb(0x00, 0xD9, 0xFF));
+                    BtnCreateWebApp.ToolTip = "Manage Web App: " + _matchedWebApp.Name;
+                }
+                else
+                {
+                    glyph.Text = "\uE71D";
+                    glyph.ClearValue(TextBlock.ForegroundProperty);
+                    BtnCreateWebApp.ToolTip = "Install this page as a Web App";
+                }
+            }
         }
+    }
+
+    private static bool IsShortcutPresent(string? path)
+    {
+        return !string.IsNullOrEmpty(path) && File.Exists(path);
+    }
+
+    private void ReportWebAppResult(string action, bool ok, List<string> errors)
+    {
+        LogService.Write("WEBAPP", $"Manage '{action}' ok={ok} errors={errors.Count}" + (errors.Count > 0 ? " :: " + string.Join(" | ", errors) : ""));
+        if (ok && errors.Count == 0) return;
+        MessageBox.Show(action + (ok ? " finished with warnings:\n" : " failed:\n") + string.Join("\n", errors),
+            "Web App", MessageBoxButton.OK, ok ? MessageBoxImage.Warning : MessageBoxImage.Error);
+    }
+
+    private async Task ResetWebAppDataAsync(WebAppManifest m)
+    {
+        try
+        {
+            var browser = CurrentBrowser;
+            var core = browser?.MainWebView?.CoreWebView2;
+            string currentUrl = browser?.MainWebView?.Source?.ToString() ?? "";
+            if (core == null || WebAppService.FindForUrl(currentUrl)?.Id != m.Id)
+            {
+                LogService.Write("WEBAPP", $"Reset data blocked: current tab not on app site. id={m.Id} url={currentUrl}");
+                MessageBox.Show("Open this Web App's site in the current tab first, then run Reset data.", "Web App",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            if (MessageBox.Show(
+                    "Reset data for '" + m.Name + "'?\n\nCookies, local storage, IndexedDB, cache and service workers for this site are deleted. " +
+                    "You will be signed out of this site everywhere in Horizon, and cookies shared with other sites on the same domain are removed too.\n\nThe Web App itself stays installed.",
+                    "Horizon", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No) != MessageBoxResult.Yes)
+                return;
+
+            WebAppHostService.CloseById(m.Id);
+
+            var scopeUri = new Uri(string.IsNullOrEmpty(m.Scope) ? m.StartUrl : m.Scope);
+            string origin = scopeUri.GetLeftPart(UriPartial.Authority);
+
+            int cookiesDeleted = 0;
+            var cookies = await core.CookieManager.GetCookiesAsync(origin + "/");
+            foreach (var c in cookies)
+            {
+                core.CookieManager.DeleteCookie(c);
+                cookiesDeleted++;
+            }
+
+            string cdpParams = JsonSerializer.Serialize(new { origin, storageTypes = "all" });
+            await core.CallDevToolsProtocolMethodAsync("Storage.clearDataForOrigin", cdpParams);
+
+            LogService.Write("WEBAPP", $"Reset data done. id={m.Id} origin={origin} cookies={cookiesDeleted}");
+            core.Reload();
+
+            MessageBox.Show("Data cleared for " + origin + "\nCookies deleted: " + cookiesDeleted, "Web App",
+                MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        catch (Exception ex)
+        {
+            LogService.RecordCrash(ex, "WebAppManage.ResetData");
+            MessageBox.Show("Reset data failed: " + ex.Message, "Web App", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private static string TaskbarPinnedDir => Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+        "Microsoft", "Internet Explorer", "Quick Launch", "User Pinned", "TaskBar");
+
+    private static string? ResolveWebAppShortcut(WebAppManifest m)
+    {
+        if (IsShortcutPresent(m.StartMenuShortcutPath)) return m.StartMenuShortcutPath;
+        if (IsShortcutPresent(m.DesktopShortcutPath)) return m.DesktopShortcutPath;
+        return null;
+    }
+
+    private static string? FindPinnedTaskbarShortcut(WebAppManifest m)
+    {
+        try
+        {
+            string dir = TaskbarPinnedDir;
+            if (!Directory.Exists(dir)) return null;
+            Type? wsh = Type.GetTypeFromProgID("WScript.Shell");
+            if (wsh == null) return null;
+            dynamic shell = Activator.CreateInstance(wsh)!;
+            string needle = "--webapp-id=" + m.Id;
+            foreach (string lnk in Directory.GetFiles(dir, "*.lnk"))
+            {
+                try
+                {
+                    dynamic sc = shell.CreateShortcut(lnk);
+                    string args = (string)(sc.Arguments ?? "");
+                    if (args.Contains(needle, StringComparison.OrdinalIgnoreCase)) return lnk;
+                }
+                catch (Exception ex)
+                {
+                    LogService.Write("WEBAPP", "Pinned lnk read failed: " + lnk + " :: " + ex.Message);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            LogService.RecordCrash(ex, "WebAppManage.FindPinned");
+        }
+        return null;
+    }
+
+    private static bool TryInvokeTaskbarVerb(string lnkPath, bool pin)
+    {
+        try
+        {
+            Type? t = Type.GetTypeFromProgID("Shell.Application");
+            if (t == null) return false;
+            dynamic shell = Activator.CreateInstance(t)!;
+            dynamic folder = shell.NameSpace(Path.GetDirectoryName(lnkPath));
+            dynamic item = folder.ParseName(Path.GetFileName(lnkPath));
+            item.InvokeVerb(pin ? "taskbarpin" : "taskbarunpin");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            LogService.Write("WEBAPP", "Taskbar verb threw: " + ex.Message);
+            return false;
+        }
+    }
+
+    private async Task ToggleWebAppTaskbarPinAsync(WebAppManifest m)
+    {
+        try
+        {
+            bool wasPinned = FindPinnedTaskbarShortcut(m) != null;
+            bool wantPin = !wasPinned;
+            string? lnk = ResolveWebAppShortcut(m);
+            bool verbWorked = false;
+
+            if (lnk != null)
+            {
+                bool invoked = TryInvokeTaskbarVerb(lnk, wantPin);
+                await Task.Delay(900);
+                verbWorked = invoked && (FindPinnedTaskbarShortcut(m) != null) == wantPin;
+                LogService.Write("WEBAPP", $"Taskbar {(wantPin ? "pin" : "unpin")} verb invoked={invoked} effective={verbWorked} id={m.Id} lnk={lnk}");
+            }
+            else
+            {
+                LogService.Write("WEBAPP", $"Taskbar {(wantPin ? "pin" : "unpin")}: no shortcut available, using guide. id={m.Id}");
+            }
+
+            if (verbWorked) return;
+
+            if (wantPin)
+            {
+                WebAppHostService.OpenOrActivate(m);
+                MessageBox.Show(
+                    "Windows does not let apps pin themselves to the taskbar.\n\n" +
+                    "'" + m.Name + "' was opened. Right-click its icon on the taskbar and choose 'Pin to taskbar'.",
+                    "Pin to taskbar", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            else
+            {
+                MessageBox.Show(
+                    "Windows does not let apps unpin themselves.\n\n" +
+                    "Right-click the pinned '" + m.Name + "' icon on the taskbar and choose 'Unpin from taskbar'.",
+                    "Unpin from taskbar", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+        catch (Exception ex)
+        {
+            LogService.RecordCrash(ex, "WebAppManage.TaskbarPin");
+            MessageBox.Show("Taskbar pin failed: " + ex.Message, "Web App", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private void ShowWebAppManageMenu(WebAppManifest m)
+    {
+        var cm = new ContextMenu
+        {
+            StaysOpen = false,
+            PlacementTarget = BtnCreateWebApp,
+            Placement = PlacementMode.Bottom
+        };
+
+        bool hasDesktop = IsShortcutPresent(m.DesktopShortcutPath);
+        bool hasMenu = IsShortcutPresent(m.StartMenuShortcutPath);
+
+        var miOpen = new MenuItem { Header = "🚀  Open app" };
+        miOpen.Click += (_, _) =>
+        {
+            try { WebAppHostService.OpenOrActivate(m); }
+            catch (Exception ex)
+            {
+                LogService.RecordCrash(ex, "WebAppManage.Open");
+                MessageBox.Show("Open failed: " + ex.Message, "Web App", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        };
+        cm.Items.Add(miOpen);
+
+        var miRename = new MenuItem { Header = "✏  Rename…" };
+        miRename.Click += (_, _) => Dispatcher.InvokeAsync(() =>
+        {
+            try
+            {
+                string? n = ShowInputDialog("Rename Web App", "Enter new name:", m.Name);
+                if (string.IsNullOrWhiteSpace(n) || n == m.Name) return;
+                var errors = new List<string>();
+                bool ok = WebAppService.Rename(m.Id, n, errors);
+                ReportWebAppResult("Rename", ok, errors);
+            }
+            catch (Exception ex)
+            {
+                LogService.RecordCrash(ex, "WebAppManage.Rename");
+                MessageBox.Show("Rename failed: " + ex.Message, "Web App", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }, DispatcherPriority.ContextIdle);
+        cm.Items.Add(miRename);
+
+        cm.Items.Add(new Separator());
+
+        var miDesktop = new MenuItem { Header = "🖥  Desktop shortcut", IsCheckable = true, IsChecked = hasDesktop, StaysOpenOnClick = false };
+        miDesktop.Click += (_, _) =>
+        {
+            try
+            {
+                var errors = new List<string>();
+                bool ok = WebAppService.SetShortcut(m.Id, true, !hasDesktop, errors);
+                ReportWebAppResult("Desktop shortcut " + (!hasDesktop ? "create" : "remove"), ok, errors);
+            }
+            catch (Exception ex)
+            {
+                LogService.RecordCrash(ex, "WebAppManage.DesktopShortcut");
+                MessageBox.Show("Shortcut change failed: " + ex.Message, "Web App", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        };
+        cm.Items.Add(miDesktop);
+
+        var miStart = new MenuItem { Header = "📋  Start Menu shortcut", IsCheckable = true, IsChecked = hasMenu, StaysOpenOnClick = false };
+        miStart.Click += (_, _) =>
+        {
+            try
+            {
+                var errors = new List<string>();
+                bool ok = WebAppService.SetShortcut(m.Id, false, !hasMenu, errors);
+                ReportWebAppResult("Start Menu shortcut " + (!hasMenu ? "create" : "remove"), ok, errors);
+            }
+            catch (Exception ex)
+            {
+                LogService.RecordCrash(ex, "WebAppManage.StartMenuShortcut");
+                MessageBox.Show("Shortcut change failed: " + ex.Message, "Web App", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        };
+        cm.Items.Add(miStart);
+
+        bool isPinned = FindPinnedTaskbarShortcut(m) != null;
+        var miPin = new MenuItem { Header = isPinned ? "📌  Unpin from taskbar" : "📌  Pin to taskbar" };
+        miPin.Click += (_, _) => Dispatcher.InvokeAsync(
+            async () => await ToggleWebAppTaskbarPinAsync(m),
+            DispatcherPriority.ContextIdle);
+        cm.Items.Add(miPin);
+
+        cm.Items.Add(new Separator());
+
+        var miIcon = new MenuItem { Header = "🖼  Update icon from this page" };
+        miIcon.Click += async (_, _) =>
+        {
+            var core = CurrentBrowser?.MainWebView?.CoreWebView2;
+            if (core == null) return;
+            try
+            {
+                var r = await WebAppService.InstallAsync(
+                    m.StartUrl,
+                    m.Name,
+                    async () => await core.GetFaviconAsync(Microsoft.Web.WebView2.Core.CoreWebView2FaviconImageFormat.Png),
+                    hasDesktop,
+                    hasMenu);
+
+                var errors = new List<string>(r.Errors);
+                if (r.Manifest != null && r.Manifest.Name != m.Name)
+                    WebAppService.Rename(m.Id, m.Name, errors);
+                if (!r.IconOk) errors.Add("No icon could be read from this page.");
+                ReportWebAppResult("Update icon", r.Manifest != null && r.IconOk, errors);
+            }
+            catch (Exception ex)
+            {
+                LogService.RecordCrash(ex, "WebAppManage.UpdateIcon");
+                MessageBox.Show("Icon update failed: " + ex.Message, "Web App", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        };
+        cm.Items.Add(miIcon);
+
+        var miReset = new MenuItem { Header = "🧹  Reset data…" };
+        miReset.Click += (_, _) => Dispatcher.InvokeAsync(
+            async () => await ResetWebAppDataAsync(m),
+            DispatcherPriority.ContextIdle);
+        cm.Items.Add(miReset);
+
+        var miFolder = new MenuItem { Header = "📂  Open folder" };
+        miFolder.Click += (_, _) =>
+        {
+            try
+            {
+                string dir = WebAppService.GetAppDir(m.Id);
+                if (!Directory.Exists(dir))
+                {
+                    LogService.Write("WEBAPP", "Open folder: missing " + dir);
+                    MessageBox.Show("Folder not found:\n" + dir, "Web App", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+                Process.Start(new ProcessStartInfo("explorer.exe", "\"" + dir + "\"") { UseShellExecute = true });
+            }
+            catch (Exception ex)
+            {
+                LogService.RecordCrash(ex, "WebAppManage.OpenFolder");
+                MessageBox.Show("Open folder failed: " + ex.Message, "Web App", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        };
+        cm.Items.Add(miFolder);
+
+        cm.Items.Add(new Separator());
+
+        var miUninstall = new MenuItem { Header = "🗑  Uninstall" };
+        miUninstall.Click += (_, _) => Dispatcher.InvokeAsync(() =>
+        {
+            try
+            {
+                if (MessageBox.Show("Uninstall '" + m.Name + "'?\n\nIts shortcuts and saved files will be deleted.",
+                        "Horizon", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No) != MessageBoxResult.Yes)
+                    return;
+                var errors = new List<string>();
+                bool ok = WebAppService.Uninstall(m.Id, errors);
+                ReportWebAppResult("Uninstall", ok, errors);
+            }
+            catch (Exception ex)
+            {
+                LogService.RecordCrash(ex, "WebAppManage.Uninstall");
+                MessageBox.Show("Uninstall failed: " + ex.Message, "Web App", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }, DispatcherPriority.ContextIdle);
+        cm.Items.Add(miUninstall);
+
+        cm.IsOpen = true;
     }
 
     private async void BtnInstallWebApp_Click(object sender, RoutedEventArgs e)
     {
+        if (_matchedWebApp != null)
+        {
+            ShowWebAppManageMenu(_matchedWebApp);
+            return;
+        }
+
         var browser = CurrentBrowser;
         var core = browser?.MainWebView?.CoreWebView2;
         if (browser == null || core == null) return;
