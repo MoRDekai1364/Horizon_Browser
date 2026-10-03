@@ -943,6 +943,24 @@ public partial class MainWindow : Window
         var savedUrls = SettingsService.Current.LastSessionUrls;
         if (savedUrls == null || savedUrls.Count == 0) return;
 
+        bool onlyHome = savedUrls
+            .Where(u => !string.IsNullOrWhiteSpace(u))
+            .All(u => string.Equals(u.Trim().TrimEnd('/'), Controls.BrowserView.HomeSentinel, StringComparison.OrdinalIgnoreCase));
+        if (onlyHome)
+        {
+            try
+            {
+                SettingsService.Current.LastSessionUrls = new List<string>();
+                SettingsService.Save();
+                LogService.Write("SESSION", "Skipped session restore: previous session was only the homepage.");
+            }
+            catch (Exception ex)
+            {
+                LogService.Write("SESSION", $"Failed to clear homepage-only session: {ex.Message}");
+            }
+            return;
+        }
+
         if (SettingsService.Current.AutoRestoreSession)
         {
             OpenSessionRestorePicker();
@@ -5547,18 +5565,19 @@ return colors.length > 0 ? colors : null;
 
     private void ApplyFullscreenState(bool on)
     {
-        if (on)
-        {
-            if (_isFullscreen || _fsEnterPending) return;
-            FsBeginEnter();
-            return;
-        }
+        RequestFullscreen(on);
+    }
 
-        FsCancelChrome("exit requested");
-        FsCoverAbortPending();
-        if (!_isFullscreen) return;
-        ApplyFullscreenStateCore(false);
-        FsBeginExitFade();
+    private void ApplyFullscreenToggle()
+    {
+        bool enter = !_isFullscreen;
+        if (!enter && _fullscreenTab != null)
+        {
+            var tab = _fullscreenTab;
+            _fullscreenTab = null;
+            if (_tabViews.TryGetValue(tab, out var view)) _ = ExitTabFullscreenAsync(view);
+        }
+        ApplyFullscreenStateRaw(enter);
     }
 
     private void FsBeginEnter()

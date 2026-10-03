@@ -9,11 +9,15 @@ namespace Horizon.Stealth;
 
 public partial class MainWindow
 {
-    private const int FsPreDarkenMs = 80;
-    private const int FsStableMinMs = 40;
-    private const int FsStableMaxMs = 700;
-    private const int FsWebViewSettleMs = 110;
-    private const int FsFadeOutMs = 220;
+    private const int FsPreDarkenMs = 160;
+    private const int FsStableMinMs = 60;
+    private const int FsStableMaxMs = 1500;
+    private const int FsWebViewSettleMs = 200;
+    private const int FsFadeOutMs = 450;
+    private const int FsPageMinMs = 350;
+    private const int FsPageStableMs = 300;
+    private const int FsPageMaxMs = 4000;
+    private const int FsFallbackHoldMs = 600;
     private const int DWMWA_TRANSITIONS_FORCEDISABLED = 3;
 
     private bool _fsDesired;
@@ -74,6 +78,49 @@ public partial class MainWindow
         }
     }
 
+    private async Task WaitForPageSettledAsync(bool enter, FullscreenGlassCurtain curtain)
+    {
+        var core = _activeTabView?.MainWebView?.CoreWebView2;
+        if (core == null)
+        {
+            await Task.Delay(FsFallbackHoldMs);
+            return;
+        }
+
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        string? lastSig = null;
+        long sigSince = 0;
+
+        while (curtain.OwnerAlive && sw.ElapsedMilliseconds < FsPageMaxMs)
+        {
+            string raw;
+            try
+            {
+                var probe = core.ExecuteScriptAsync(FsProbeScript);
+                int remaining = (int)Math.Max(50, FsPageMaxMs - sw.ElapsedMilliseconds);
+                if (await Task.WhenAny(probe, Task.Delay(remaining)) != probe) break;
+                raw = await probe;
+            }
+            catch
+            {
+                await Task.Delay(FsFallbackHoldMs);
+                return;
+            }
+
+            long now = sw.ElapsedMilliseconds;
+            if (raw != lastSig)
+            {
+                lastSig = raw;
+                sigSince = now;
+            }
+
+            if (now >= FsPageMinMs && now - sigSince >= FsPageStableMs && FsProbeFilled(raw, enter)) break;
+            await Task.Delay(FsProbeIntervalMs);
+        }
+
+        await Task.Delay(FsWebViewSettleMs);
+    }
+
     private async Task RunFullscreenTransitionAsync(bool enter)
     {
         var hwnd = new WindowInteropHelper(this).Handle;
@@ -83,16 +130,14 @@ public partial class MainWindow
         {
             _fsAnimating = false;
             ApplyFullscreenImmediate();
-            if (enter && _isFullscreen) PlayFullscreenNotify();
             return;
         }
 
-        using var curtain = FullscreenCurtain.TryCreate(hwnd);
+        using var curtain = FullscreenGlassCurtain.TryCreate(hwnd, enter ? "Entering fullscreen..." : "Exiting fullscreen...");
         if (curtain == null)
         {
             _fsAnimating = false;
             ApplyFullscreenImmediate();
-            if (enter && _isFullscreen) PlayFullscreenNotify();
             return;
         }
 
@@ -121,7 +166,7 @@ public partial class MainWindow
             UpdateLayout();
             ReflowTabs();
             await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Render);
-            await Task.Delay(FsWebViewSettleMs);
+            await WaitForPageSettledAsync(enter, curtain);
             if (!curtain.OwnerAlive) return;
 
             curtain.FitToOwner();
@@ -134,7 +179,5 @@ public partial class MainWindow
             if (curtain.OwnerAlive) SetOsWindowTransitions(hwnd, false);
             _fsAnimating = false;
         }
-
-        if (enter && _isFullscreen && _fsDesired) PlayFullscreenNotify();
     }
 }
