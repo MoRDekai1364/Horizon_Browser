@@ -382,6 +382,9 @@
                                                                         <DataTrigger Binding="{Binding HasEverDownloaded}" Value="True">
                                                                             <Setter Property="Visibility" Value="Collapsed"/>
                                                                         </DataTrigger>
+                                                                        <DataTrigger Binding="{Binding HasEverPlayedAudio}" Value="True">
+                                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                                        </DataTrigger>
                                                                     </Style.Triggers>
                                                                 </Style>
                                                             </StackPanel.Style>
