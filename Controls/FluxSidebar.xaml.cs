@@ -404,12 +404,16 @@ public class FaviconConverter : IValueConverter
 
 public class PinIconConverter : IValueConverter
 {
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, object> _iconCache = new();
+
     public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
         if (value is not PinItem pin) return null;
 
         if (!string.IsNullOrWhiteSpace(pin.IconPath) && File.Exists(pin.IconPath))
         {
+            string cacheKey = pin.IconPath + "|" + File.GetLastWriteTimeUtc(pin.IconPath).Ticks;
+            if (_iconCache.TryGetValue(cacheKey, out var cachedIcon)) return cachedIcon;
             try
             {
                 var bmp = new System.Windows.Media.Imaging.BitmapImage();
@@ -419,6 +423,7 @@ public class PinIconConverter : IValueConverter
                 bmp.DecodePixelWidth = 64;
                 bmp.EndInit();
                 bmp.Freeze();
+                _iconCache[cacheKey] = bmp;
                 return bmp;
             }
             catch { /* fall through to favicon */ }

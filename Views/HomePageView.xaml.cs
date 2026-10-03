@@ -32,6 +32,8 @@ public partial class HomePageView : UserControl
     private bool _bookmarksExpanded = false;
     private bool _favoritesAnimating = false;
     private bool _bookmarksAnimating = false;
+    private string _favoritesSig = "";
+    private string _bookmarksSig = "";
     private DispatcherTimer? _inactivityTimer;
     private Color _lastPillBg = Color.FromArgb(0x80, 0x00, 0x00, 0x00);
     private Color? _lastAdaptiveAvgColor = null;
@@ -1680,7 +1682,9 @@ public partial class HomePageView : UserControl
             }
 
             var displayList = (hasEnoughItems && !_bookmarksExpanded) ? list.Take(6).ToList() : list;
-            IcnBookmarks.ItemsSource = null;
+            string bookmarksSig = string.Join("\u0001", displayList.Select(b => b.Name + "\u0002" + b.Url + "\u0002" + b.IconPath));
+            if (bookmarksSig == _bookmarksSig && IcnBookmarks.ItemsSource != null) return;
+            _bookmarksSig = bookmarksSig;
             IcnBookmarks.ItemsSource = displayList;
         });
     }
@@ -1718,6 +1722,9 @@ public partial class HomePageView : UserControl
             }
 
             var displayList = (hasEnoughItems && !_favoritesExpanded) ? list.Take(6).ToList() : list;
+            string favoritesSig = string.Join("\u0001", displayList.Select(p => p.Name + "\u0002" + p.Url + "\u0002" + p.Category + "\u0002" + p.IconPath + "\u0002" + p.IconEmoji));
+            if (favoritesSig == _favoritesSig && IcnColumns.ItemsSource != null) return;
+            _favoritesSig = favoritesSig;
             var view = new CollectionViewSource { Source = displayList }.View;
             view.SortDescriptions.Clear();
             view.SortDescriptions.Add(new SortDescription(nameof(PinItem.Category), ListSortDirection.Ascending));
