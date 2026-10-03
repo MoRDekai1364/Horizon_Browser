@@ -263,6 +263,8 @@ public class SettingsData
     public bool HomeShowBatteryWidget   { get; set; } = true; 
     public bool HomeShowVpnAdBlockWidget { get; set; } = true; 
 
+    public string HomeGroupStyle { get; set; } = "HeaderOnly";
+
     public bool   HomeAdaptiveColorsEnabled { get; set; } = true;
     public double HomeTintStrength           { get; set; } = 30.0;
     public string HomeFontFamily            { get; set; } = "Segoe UI"; 

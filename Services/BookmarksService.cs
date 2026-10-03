@@ -16,6 +16,9 @@ public class BookmarkItem
     public string IconPath { get; set; } = "";
 
     [System.Text.Json.Serialization.JsonIgnore]
+    public string GroupKey { get; set; } = "";
+
+    [System.Text.Json.Serialization.JsonIgnore]
     public PinItem AsPin => new PinItem { Name = this.Name, Url = this.Url, IconEmoji = "" };
 }
 

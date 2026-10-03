@@ -34,6 +34,9 @@ public partial class HomePageView : UserControl
     private bool _bookmarksAnimating = false;
     private string _favoritesSig = "";
     private string _bookmarksSig = "";
+    private readonly HashSet<string> _collapsedFavoriteGroups = new();
+    private readonly HashSet<string> _collapsedBookmarkGroups = new();
+    private readonly HashSet<GroupItem> _animatingGroups = new();
     private DispatcherTimer? _inactivityTimer;
     private Color _lastPillBg = Color.FromArgb(0x80, 0x00, 0x00, 0x00);
     private Color? _lastAdaptiveAvgColor = null;
@@ -316,8 +319,7 @@ public partial class HomePageView : UserControl
 
         _favoritesExpanded = false;
         _bookmarksExpanded = false;
-        if (ScvFavorites != null) ScvFavorites.MaxHeight = 320;
-        if (ScvBookmarks != null) ScvBookmarks.MaxHeight = 220;
+        ApplyScrollCap();
         if (TxtToggleFavorites != null) TxtToggleFavorites.Text = "▼ Show more";
         if (TxtToggleBookmarks != null) TxtToggleBookmarks.Text = "▼ Show more";
 
@@ -358,7 +360,7 @@ public partial class HomePageView : UserControl
 
     private void WidgetContainer_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
     {
-        if (_inFocusMode || e.Delta >= 0) return;
+        if (_inFocusMode || FullStyle || e.Delta >= 0) return;
         if (sender == PnlFavoritesContainer && SettingsService.Current.PinnedUrls.Count > 6)
         {
             EnterWidgetFocusMode("Favorites");
@@ -1671,7 +1673,8 @@ public partial class HomePageView : UserControl
 
             var list = all.ToList();
             bool hasEnoughItems = BookmarkService.Items.Count > 6;
-            if (hasEnoughItems || (_inFocusMode && _focusWidgetName == "Bookmarks"))
+            ApplyScrollCap();
+            if ((hasEnoughItems && !FullStyle) || (_inFocusMode && _focusWidgetName == "Bookmarks"))
             {
                 BtnToggleBookmarks.Visibility = Visibility.Visible;
                 TxtToggleBookmarks.Text = _bookmarksExpanded ? "▲ Show less" : "▼ Show more";
@@ -1681,12 +1684,202 @@ public partial class HomePageView : UserControl
                 BtnToggleBookmarks.Visibility = Visibility.Collapsed;
             }
 
-            var displayList = (hasEnoughItems && !_bookmarksExpanded) ? list.Take(6).ToList() : list;
-            string bookmarksSig = string.Join("\u0001", displayList.Select(b => b.Name + "\u0002" + b.Url + "\u0002" + b.IconPath));
+            var displayList = list;
+            var domainCounts = BookmarkService.Items
+                .GroupBy(b => DomainOf(b.Url))
+                .ToDictionary(g => g.Key, g => g.Count());
+            foreach (var b in displayList)
+            {
+                string domain = DomainOf(b.Url);
+                b.GroupKey = domainCounts.TryGetValue(domain, out int domainCount) && domainCount > 1 ? domain : "Other";
+            }
+
+            var ordered = displayList
+                .GroupBy(b => b.GroupKey)
+                .OrderBy(g => g.Key == "Other" ? 1 : 0)
+                .ThenByDescending(g => g.Count())
+                .ThenBy(g => g.Key, StringComparer.OrdinalIgnoreCase)
+                .SelectMany(g => g)
+                .ToList();
+
+            string bookmarksSig = string.Join("\u0001", ordered.Select(b => b.GroupKey + "\u0002" + b.Name + "\u0002" + b.Url + "\u0002" + b.IconPath));
             if (bookmarksSig == _bookmarksSig && IcnBookmarks.ItemsSource != null) return;
             _bookmarksSig = bookmarksSig;
-            IcnBookmarks.ItemsSource = displayList;
+
+            var bookmarksView = new CollectionViewSource { Source = ordered }.View;
+            bookmarksView.GroupDescriptions.Clear();
+            bookmarksView.GroupDescriptions.Add(new PropertyGroupDescription(nameof(BookmarkItem.GroupKey)));
+            IcnBookmarks.ItemsSource = bookmarksView;
         });
+    }
+
+    private static string GroupKeyOf(GroupItem group)
+    {
+        return (group.Content as CollectionViewGroup)?.Name?.ToString() ?? "";
+    }
+
+    private ItemsControl? OwnerItemsControl(DependencyObject? node)
+    {
+        while (node != null)
+        {
+            if (node is ItemsControl ic && (ic == IcnColumns || ic == IcnBookmarks)) return ic;
+            node = VisualTreeHelper.GetParent(node);
+        }
+        return null;
+    }
+
+    private void GroupItem_Loaded(object sender, RoutedEventArgs e)
+    {
+        if (sender is not GroupItem group) return;
+        var owner = OwnerItemsControl(group);
+        if (owner == null) return;
+        var collapsed = owner == IcnColumns ? _collapsedFavoriteGroups : _collapsedBookmarkGroups;
+        if (SettingsService.Current.HomeGroupStyle != "Full" && collapsed.Contains(GroupKeyOf(group)))
+            ApplyGroupVisual(group, true);
+    }
+
+    private static DoubleAnimation GroupHeightAnimation(double to)
+    {
+        return new DoubleAnimation(to, new Duration(TimeSpan.FromMilliseconds(300)))
+        {
+            EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut }
+        };
+    }
+
+    private static bool FullStyle => SettingsService.Current.HomeGroupStyle == "Full";
+
+    private void ApplyScrollCap()
+    {
+        if (_inFocusMode || ScvFavorites == null || ScvBookmarks == null) return;
+        if (FullStyle)
+        {
+            double cap = Math.Max(160, ComputeExpandedScrollMaxHeight() / 2);
+            ScvFavorites.MaxHeight = cap;
+            ScvBookmarks.MaxHeight = cap;
+        }
+        else
+        {
+            ScvFavorites.MaxHeight = 320;
+            ScvBookmarks.MaxHeight = 220;
+        }
+    }
+
+    private static GroupCollapseMode? CollapseModeFromSetting()
+    {
+        return SettingsService.Current.HomeGroupStyle switch
+        {
+            "FirstRow" => GroupCollapseMode.FirstRow,
+            "Stack" => GroupCollapseMode.Stack,
+            "Mini" => GroupCollapseMode.Mini,
+            _ => null
+        };
+    }
+
+    private static AutoGridPanel? FindAutoGrid(DependencyObject node)
+    {
+        if (node is AutoGridPanel panel) return panel;
+        int count = VisualTreeHelper.GetChildrenCount(node);
+        for (int i = 0; i < count; i++)
+        {
+            var found = FindAutoGrid(VisualTreeHelper.GetChild(node, i));
+            if (found != null) return found;
+        }
+        return null;
+    }
+
+    private void ApplyGroupVisual(GroupItem group, bool collapsed)
+    {
+        GroupState.SetIsCollapsed(group, collapsed);
+        if (group.Template?.FindName("GroupItemsClip", group) is not Border clip) return;
+        var mode = collapsed ? CollapseModeFromSetting() : null;
+        var panel = FindAutoGrid(clip);
+        if (panel != null) panel.Mode = mode ?? GroupCollapseMode.Full;
+        clip.Visibility = collapsed && mode == null ? Visibility.Collapsed : Visibility.Visible;
+    }
+
+    private void AnimateGroup(GroupItem group, bool collapse)
+    {
+        if (group.Template?.FindName("GroupItemsClip", group) is not Border clip || clip.Child is not FrameworkElement content)
+        {
+            ApplyGroupVisual(group, collapse);
+            return;
+        }
+
+        void Finish()
+        {
+            clip.BeginAnimation(FrameworkElement.HeightProperty, null);
+            clip.ClearValue(FrameworkElement.HeightProperty);
+            _animatingGroups.Remove(group);
+        }
+
+        var panel = FindAutoGrid(content);
+
+        if (collapse)
+        {
+            var mode = CollapseModeFromSetting();
+            double from = clip.ActualHeight;
+            double to = mode != null && panel != null ? panel.HeightFor(mode.Value) : 0;
+            if (from < 1 || to >= from - 1)
+            {
+                ApplyGroupVisual(group, true);
+                return;
+            }
+            _animatingGroups.Add(group);
+            clip.Height = from;
+            var anim = GroupHeightAnimation(to);
+            anim.Completed += (_, _) =>
+            {
+                ApplyGroupVisual(group, true);
+                Finish();
+            };
+            clip.BeginAnimation(FrameworkElement.HeightProperty, anim);
+        }
+        else
+        {
+            _animatingGroups.Add(group);
+            double from = clip.Visibility == Visibility.Visible ? clip.ActualHeight : 0;
+            clip.Height = from;
+            ApplyGroupVisual(group, false);
+            content.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+            double target = content.DesiredSize.Height;
+            if (target <= from + 1)
+            {
+                Finish();
+                return;
+            }
+            var anim = GroupHeightAnimation(target);
+            anim.Completed += (_, _) => Finish();
+            clip.BeginAnimation(FrameworkElement.HeightProperty, anim);
+        }
+    }
+
+    private void GroupHeader_Click(object sender, MouseButtonEventArgs e)
+    {
+        if (_inEditMode || SettingsService.Current.HomeGroupStyle == "Full" || sender is not DependencyObject header) return;
+        DependencyObject? node = header;
+        GroupItem? group = null;
+        while (node != null && group == null)
+        {
+            group = node as GroupItem;
+            node = VisualTreeHelper.GetParent(node);
+        }
+        if (group == null) return;
+        var owner = OwnerItemsControl(group);
+        if (owner == null) return;
+        var collapsedSet = owner == IcnColumns ? _collapsedFavoriteGroups : _collapsedBookmarkGroups;
+        e.Handled = true;
+        if (_animatingGroups.Contains(group)) return;
+        string key = GroupKeyOf(group);
+        bool collapse = !collapsedSet.Contains(key);
+        if (collapse) collapsedSet.Add(key); else collapsedSet.Remove(key);
+        AnimateGroup(group, collapse);
+    }
+
+    private static string DomainOf(string url)
+    {
+        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri) || string.IsNullOrEmpty(uri.Host)) return "Other";
+        string host = uri.Host.ToLowerInvariant();
+        return host.StartsWith("www.") ? host.Substring(4) : host;
     }
 
     private void RefreshFavorites()
@@ -1711,7 +1904,8 @@ public partial class HomePageView : UserControl
 
             var list = all.ToList();
             bool hasEnoughItems = SettingsService.Current.PinnedUrls.Count > 6;
-            if (hasEnoughItems || (_inFocusMode && _focusWidgetName == "Favorites"))
+            ApplyScrollCap();
+            if ((hasEnoughItems && !FullStyle) || (_inFocusMode && _focusWidgetName == "Favorites"))
             {
                 BtnToggleFavorites.Visibility = Visibility.Visible;
                 TxtToggleFavorites.Text = _favoritesExpanded ? "▲ Show less" : "▼ Show more";
@@ -1721,7 +1915,7 @@ public partial class HomePageView : UserControl
                 BtnToggleFavorites.Visibility = Visibility.Collapsed;
             }
 
-            var displayList = (hasEnoughItems && !_favoritesExpanded) ? list.Take(6).ToList() : list;
+            var displayList = list;
             string favoritesSig = string.Join("\u0001", displayList.Select(p => p.Name + "\u0002" + p.Url + "\u0002" + p.Category + "\u0002" + p.IconPath + "\u0002" + p.IconEmoji));
             if (favoritesSig == _favoritesSig && IcnColumns.ItemsSource != null) return;
             _favoritesSig = favoritesSig;

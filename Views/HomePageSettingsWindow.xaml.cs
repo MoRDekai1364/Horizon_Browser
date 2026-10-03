@@ -98,6 +98,9 @@ public partial class HomePageSettingsWindow : Window
         "Calibri", "Cambria", "Arial", "Georgia", "Consolas", "Trebuchet MS"
     };
 
+    private static readonly string[] GroupStyleChoices = { "Header only", "First row", "Stacked preview", "Mini folder", "Full (all icons, no collapsing)" };
+    private static readonly string[] GroupStyleValues  = { "HeaderOnly", "FirstRow", "Stack", "Mini", "Full" };
+
     private static readonly string[] VisualizerScopeChoices = { "Everywhere", "Media Tab Only", "Selected Websites" };
     private static readonly string[] VisualizerScopeValues  = { "Everywhere", "MediaTabOnly", "SelectedWebsites" };
 
@@ -239,6 +242,10 @@ public partial class HomePageSettingsWindow : Window
         ChkWidgetBookmarks.IsChecked = s.HomeShowBookmarksWidget;
         ChkWidgetBattery.IsChecked   = s.HomeShowBatteryWidget;
 
+        CmbGroupStyle.ItemsSource = GroupStyleChoices;
+        int groupStyleIdx = Array.IndexOf(GroupStyleValues, s.HomeGroupStyle);
+        CmbGroupStyle.SelectedIndex = groupStyleIdx >= 0 ? groupStyleIdx : 0;
+
         _loadingToggles = false;
     }
 
@@ -261,6 +268,15 @@ public partial class HomePageSettingsWindow : Window
         SettingsService.Current.HomeShowFavoritesWidget = ChkWidgetFavorites.IsChecked == true;
         SettingsService.Current.HomeShowBookmarksWidget = ChkWidgetBookmarks.IsChecked == true;
         SettingsService.Current.HomeShowBatteryWidget   = ChkWidgetBattery.IsChecked == true;
+        SettingsService.Save();
+    }
+
+    private void CmbGroupStyle_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_loadingToggles) return;
+        int idx = CmbGroupStyle.SelectedIndex;
+        if (idx < 0 || idx >= GroupStyleValues.Length) return;
+        SettingsService.Current.HomeGroupStyle = GroupStyleValues[idx];
         SettingsService.Save();
     }
 

@@ -11,6 +11,47 @@
         <controls:BookmarkIconConverter x:Key="BookmarkIconConverter"/>
         <controls:FirstLetterConverter x:Key="BookmarkInitialConverter"/>
 
+        <ItemsPanelTemplate x:Key="PuzzleItemsPanel">
+            <controls:PuzzlePanel Gap="14" HorizontalAlignment="Center"/>
+        </ItemsPanelTemplate>
+
+        <ItemsPanelTemplate x:Key="BlockItemsPanel">
+            <controls:AutoGridPanel/>
+        </ItemsPanelTemplate>
+
+        <Style x:Key="PuzzleGroupItemStyle" TargetType="GroupItem">
+            <EventSetter Event="Loaded" Handler="GroupItem_Loaded"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="GroupItem">
+                        <Border CornerRadius="18" Background="#14FFFFFF" BorderBrush="#1FFFFFFF" BorderThickness="1"
+                                Padding="6,2,6,8" services:HomeGlass.Exclude="True">
+                            <StackPanel>
+                                <ContentPresenter HorizontalAlignment="Center"/>
+                                <TextBlock x:Name="GroupCount" Visibility="Collapsed" FontSize="12" HorizontalAlignment="Center"
+                                           Foreground="{DynamicResource HomeTextBrush}" Opacity="0.4" Margin="0,0,0,4"
+                                           Text="{Binding Content.ItemCount, RelativeSource={RelativeSource TemplatedParent}, StringFormat={}{0} items}"/>
+                                <Border x:Name="GroupItemsClip" ClipToBounds="True">
+                                    <ItemsPresenter x:Name="GroupItemsHost"/>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="controls:GroupState.IsCollapsed" Value="True">
+                                <Setter TargetName="GroupCount" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <DataTemplate x:Key="PuzzleHeaderTemplate">
+            <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource HomeTextBrush}"
+                       Opacity="0.55" HorizontalAlignment="Center" Margin="0,10,0,2"
+                       Cursor="Hand" Background="Transparent" MouseLeftButtonUp="GroupHeader_Click"/>
+        </DataTemplate>
+
         <!-- Shared text brush: keeps favorites text color in sync with the search bar text color -->
         <SolidColorBrush x:Key="HomeTextBrush" Color="White"/>
         <!-- Shared accent brush: updated every time the wallpaper-derived pill color changes,
@@ -765,18 +806,14 @@
 
                 <StackPanel x:Name="PnlFavoritesContainer" Tag="Favorites" Grid.Row="0" Margin="0,14,0,0" HorizontalAlignment="Center" PreviewMouseWheel="WidgetContainer_PreviewMouseWheel" PreviewMouseLeftButtonDown="Widget_PreviewMouseLeftButtonDown" MouseMove="Widget_MouseMove">
                     <ScrollViewer x:Name="ScvFavorites" MaxHeight="320" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" HorizontalAlignment="Center" Style="{StaticResource HomeScrollViewerStyle}">
-                    <ItemsControl x:Name="IcnColumns" HorizontalAlignment="Center">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center"/>
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
+                    <ItemsControl x:Name="IcnColumns" HorizontalAlignment="Center" ItemsPanel="{StaticResource PuzzleItemsPanel}">
                         <ItemsControl.GroupStyle>
-                            <GroupStyle>
+                            <GroupStyle ContainerStyle="{StaticResource PuzzleGroupItemStyle}" Panel="{StaticResource BlockItemsPanel}">
                                 <GroupStyle.HeaderTemplate>
                                     <DataTemplate>
                                         <TextBlock FontSize="14" FontWeight="Bold" Foreground="{DynamicResource HomeTextBrush}"
-                                                   Opacity="0.55" HorizontalAlignment="Center" Margin="0,10,0,2">
+                                                   Opacity="0.55" HorizontalAlignment="Center" Margin="0,10,0,2"
+                                                   Cursor="Hand" Background="Transparent" MouseLeftButtonUp="GroupHeader_Click">
                                             <TextBlock.Style>
                                                 <Style TargetType="TextBlock">
                                                     <Setter Property="Text" Value="{Binding Name}"/>
@@ -840,12 +877,11 @@
 
                 <StackPanel x:Name="PnlBookmarksContainer" Tag="Bookmarks" Grid.Row="1" Margin="0,14,0,0" HorizontalAlignment="Center" PreviewMouseWheel="WidgetContainer_PreviewMouseWheel" PreviewMouseLeftButtonDown="Widget_PreviewMouseLeftButtonDown" MouseMove="Widget_MouseMove">
                     <ScrollViewer x:Name="ScvBookmarks" MaxHeight="220" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" HorizontalAlignment="Center" Style="{StaticResource HomeScrollViewerStyle}">
-                    <ItemsControl x:Name="IcnBookmarks" HorizontalAlignment="Center">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center"/>
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
+                    <ItemsControl x:Name="IcnBookmarks" HorizontalAlignment="Center" ItemsPanel="{StaticResource PuzzleItemsPanel}">
+                        <ItemsControl.GroupStyle>
+                            <GroupStyle ContainerStyle="{StaticResource PuzzleGroupItemStyle}" Panel="{StaticResource BlockItemsPanel}"
+                                        HeaderTemplate="{StaticResource PuzzleHeaderTemplate}"/>
+                        </ItemsControl.GroupStyle>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel Style="{StaticResource InteractiveItemStyle}" MouseLeftButtonUp="Bookmark_Click">

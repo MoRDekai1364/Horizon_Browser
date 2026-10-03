@@ -361,6 +361,10 @@ WeatherRightPaneDefaultOpen=true
 #   type: bool | values: true|false | default: false
 WeatherLeftPaneDefaultOpen=false
 
+# [S05.22] How a collapsed favorites or bookmarks group looks
+#   type: string | values: HeaderOnly|FirstRow|Stack|Mini|Full | default: HeaderOnly
+HomeGroupStyle=HeaderOnly
+
 #==============================================================================
 # [S06] WALLPAPER AND BACKGROUND
 #==============================================================================
