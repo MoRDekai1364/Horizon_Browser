@@ -5554,6 +5554,7 @@ return colors.length > 0 ? colors : null;
         }
 
         FsCancelChrome("exit requested");
+        FsCoverAbortPending();
         if (!_isFullscreen) return;
         ApplyFullscreenStateCore(false);
         FsBeginExitFade();
@@ -5586,6 +5587,12 @@ return colors.length > 0 ? colors : null;
 
     private void FsBeginExitFade()
     {
+        if (_fsCoverActive) return;
+        FsBeginExitFadeNow();
+    }
+
+    private void FsBeginExitFadeNow()
+    {
         if (!FsAnimationAllowed() || !FsHasAnimatableChrome())
         {
             LogService.Debug("fullscreen", () => "Chrome fade skipped on exit");
@@ -5595,7 +5602,319 @@ return colors.length > 0 ? colors : null;
         FsRunChrome(false, FsResetChrome);
     }
 
+    [DllImport("user32.dll", EntryPoint = "SetWindowPos")]
+    private static extern bool FsSetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int x, int y, int cx, int cy, uint flags);
+    [DllImport("user32.dll", EntryPoint = "GetWindowLongW")]
+    private static extern int FsGetWindowLong(IntPtr hWnd, int nIndex);
+    [DllImport("user32.dll", EntryPoint = "SetWindowLongW")]
+    private static extern int FsSetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
+
+    private Window? _fsCover;
+    private int _fsCoverToken;
+    private bool _fsCoverEnterWait;
+    private bool _fsCoverActive;
+    private DateTime _fsLastResizeUtc = DateTime.MinValue;
+    private DispatcherTimer? _fsSettleTimer;
+    private const int FsCoverInMs = 95;
+    private const int FsCoverOutMs = 163;
+    private const int FsSettleMinMs = 475;
+    private const int FsSettleQuietMs = 135;
+    private const int FsSettleMaxMs = 2024;
+
+    private bool FsHoldAllowed()
+    {
+        return !_isWebAppMode
+            && IsVisible
+            && WindowState != WindowState.Minimized
+            && _activeTabView != null;
+    }
+
+    private Window FsEnsureCover()
+    {
+        if (_fsCover != null) return _fsCover;
+
+        var w = new Window
+        {
+            WindowStyle = WindowStyle.None,
+            ResizeMode = ResizeMode.NoResize,
+            AllowsTransparency = true,
+            Background = Brushes.Black,
+            ShowInTaskbar = false,
+            ShowActivated = false,
+            Focusable = false,
+            Owner = this,
+            Opacity = 0.0,
+            WindowStartupLocation = WindowStartupLocation.Manual,
+            Left = 0,
+            Top = 0,
+            Width = 1,
+            Height = 1
+        };
+        w.SourceInitialized += (_, _) =>
+        {
+            var h = new WindowInteropHelper(w).Handle;
+            int ex = FsGetWindowLong(h, -20);
+            FsSetWindowLong(h, -20, ex | 0x00000020 | 0x00000080 | 0x08000000);
+        };
+        ViewContainer.SizeChanged += (_, _) => _fsLastResizeUtc = DateTime.UtcNow;
+        _fsCover = w;
+        return w;
+    }
+
+    private void FsPlaceCover(Window cover, int left, int top, int right, int bottom)
+    {
+        var h = new WindowInteropHelper(cover).Handle;
+        if (h == IntPtr.Zero) return;
+        FsSetWindowPos(h, IntPtr.Zero, left, top, right - left, bottom - top, 0x0004 | 0x0010);
+    }
+
+    private bool FsMonitorRect(out WRC rc)
+    {
+        rc = default;
+        var hwnd = new WindowInteropHelper(this).Handle;
+        var monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
+        if (monitor == IntPtr.Zero) return false;
+        var mi = new WMI { cbSize = Marshal.SizeOf(typeof(WMI)) };
+        if (!GetMonitorInfo(monitor, ref mi)) return false;
+        rc = mi.rcMonitor;
+        return true;
+    }
+
+    private void FsFadeOutCover(Window cover, int token)
+    {
+        var anim = new DoubleAnimation(cover.Opacity, 0.0, new Duration(TimeSpan.FromMilliseconds(FsCoverOutMs)))
+        {
+            EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut }
+        };
+        anim.Completed += (_, _) =>
+        {
+            if (token != _fsCoverToken) return;
+            cover.BeginAnimation(UIElement.OpacityProperty, null);
+            cover.Opacity = 0.0;
+            cover.Hide();
+        };
+        cover.BeginAnimation(UIElement.OpacityProperty, anim);
+    }
+
+    private void FsCoverAbortPending()
+    {
+        if (!_fsCoverEnterWait) return;
+        _fsCoverEnterWait = false;
+        _fsCoverActive = false;
+        int token = ++_fsCoverToken;
+        var cover = _fsCover;
+        if (cover == null) return;
+        LogService.Debug("fullscreen", () => "Cover enter aborted by exit request");
+        FsFadeOutCover(cover, token);
+    }
+
+    private const int FsProbeIntervalMs = 50;
+    private const int FsProbeStableMs = 269;
+    private const string FsProbeScript = "(function(){var d=document,f=d.fullscreenElement,p=f||d.getElementById('movie_player'),v=d.querySelector('video');function g(e){if(!e)return[0,0,0,0];var r=e.getBoundingClientRect();return[Math.round(r.left),Math.round(r.top),Math.round(r.width),Math.round(r.height)];}return [innerWidth,innerHeight].concat(g(p),g(v),[f?1:0]).join(',');})()";
+
+    private static bool FsProbeFilled(string raw, bool on)
+    {
+        if (!on) return true;
+        try
+        {
+            var parts = raw.Trim('"').Split(',');
+            if (parts.Length < 11) return true;
+            double iw = double.Parse(parts[0], CultureInfo.InvariantCulture);
+            double ih = double.Parse(parts[1], CultureInfo.InvariantCulture);
+            double ew = double.Parse(parts[4], CultureInfo.InvariantCulture);
+            double eh = double.Parse(parts[5], CultureInfo.InvariantCulture);
+            if (parts[10] != "1") return false;
+            return ew >= iw - 2 && eh >= ih - 2;
+        }
+        catch
+        {
+            return true;
+        }
+    }
+
+    private void FsStartSettle(int token, bool on)
+    {
+        var core = _activeTabView?.MainWebView?.CoreWebView2;
+        if (core == null)
+        {
+            FsStartSettleTimed(token, on);
+            return;
+        }
+
+        var started = DateTime.UtcNow;
+        _fsLastResizeUtc = started;
+        string? lastSig = null;
+        DateTime sigSince = started;
+        bool busy = false;
+
+        _fsSettleTimer?.Stop();
+        var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(FsProbeIntervalMs) };
+        _fsSettleTimer = timer;
+        timer.Tick += async (_, _) =>
+        {
+            if (token != _fsCoverToken)
+            {
+                timer.Stop();
+                return;
+            }
+            if (busy) return;
+            busy = true;
+            try
+            {
+                string raw = await core.ExecuteScriptAsync(FsProbeScript);
+                if (token != _fsCoverToken)
+                {
+                    timer.Stop();
+                    return;
+                }
+
+                var now = DateTime.UtcNow;
+                if (raw != lastSig)
+                {
+                    lastSig = raw;
+                    sigSince = now;
+                }
+
+                double total = (now - started).TotalMilliseconds;
+                double stable = (now - sigSince).TotalMilliseconds;
+                double quiet = (now - _fsLastResizeUtc).TotalMilliseconds;
+                bool filled = FsProbeFilled(raw, on);
+                bool done = total >= FsSettleMinMs && stable >= FsProbeStableMs && quiet >= FsSettleQuietMs && filled;
+
+                if (done || total >= FsSettleMaxMs)
+                {
+                    timer.Stop();
+                    LogService.Debug("fullscreen", () => $"Probe settled done={done} sig={raw} stableMs={stable:F0} quietMs={quiet:F0} filled={filled}");
+                    FsCoverRelease(token, on, total);
+                }
+            }
+            catch (Exception ex)
+            {
+                timer.Stop();
+                LogService.Debug("fullscreen", () => "Probe failed, using timed settle: " + ex.Message);
+                FsStartSettleTimed(token, on);
+            }
+            finally
+            {
+                busy = false;
+            }
+        };
+        timer.Start();
+    }
+
+    private void FsStartSettleTimed(int token, bool on)
+    {
+        var started = DateTime.UtcNow;
+        _fsLastResizeUtc = started;
+        _fsSettleTimer?.Stop();
+        var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(40) };
+        _fsSettleTimer = timer;
+        timer.Tick += (_, _) =>
+        {
+            if (token != _fsCoverToken)
+            {
+                timer.Stop();
+                return;
+            }
+            var now = DateTime.UtcNow;
+            double total = (now - started).TotalMilliseconds;
+            double quiet = (now - _fsLastResizeUtc).TotalMilliseconds;
+            if (total < FsSettleMinMs) return;
+            if (quiet < FsSettleQuietMs && total < FsSettleMaxMs) return;
+            timer.Stop();
+            FsCoverRelease(token, on, total);
+        };
+        timer.Start();
+    }
+
+    private void FsCoverRelease(int token, bool on, double heldMs)
+    {
+        var cover = _fsCover;
+        if (cover == null || token != _fsCoverToken) return;
+        _fsCoverActive = false;
+        LogService.Debug("fullscreen", () => $"Cover release on={on} heldMs={heldMs:F0}");
+        if (!on) FsBeginExitFadeNow();
+        FsFadeOutCover(cover, token);
+    }
+
+    private void FsCoverRunRaw(bool on, int token)
+    {
+        var cover = _fsCover;
+        if (cover == null) return;
+
+        _fsEnterPending = false;
+        _fsCoverEnterWait = false;
+
+        if (on && _fullscreenTab == null)
+        {
+            FsResetChrome();
+            _fsCoverActive = false;
+            LogService.Debug("fullscreen", () => "Cover enter aborted: fullscreen tab cleared");
+            FsFadeOutCover(cover, token);
+            return;
+        }
+
+        if (FsMonitorRect(out var mon))
+            FsPlaceCover(cover, mon.left, mon.top, mon.right, mon.bottom);
+
+        var sw = Stopwatch.StartNew();
+        ApplyFullscreenStateRaw(on);
+        FsResetChrome();
+
+        var hwnd = new WindowInteropHelper(this).Handle;
+        if (GetWindowRect(hwnd, out var end))
+            FsPlaceCover(cover, end.left, end.top, end.right, end.bottom);
+
+        LogService.Debug("fullscreen", () => $"Cover raw on={on} ms={sw.ElapsedMilliseconds}");
+        FsStartSettle(token, on);
+    }
+
     private void ApplyFullscreenStateCore(bool on)
+    {
+        if (on == _isFullscreen) return;
+
+        if (!FsHoldAllowed())
+        {
+            ApplyFullscreenStateRaw(on);
+            return;
+        }
+
+        int token = ++_fsCoverToken;
+        _fsEnterPending = on;
+        _fsCoverEnterWait = on;
+        _fsCoverActive = true;
+
+        if (on)
+        {
+            HeaderContainer.Opacity = 0.0;
+            SidebarContainer.Opacity = 0.0;
+        }
+
+        var cover = FsEnsureCover();
+        var hwnd = new WindowInteropHelper(this).Handle;
+
+        double from = cover.IsVisible ? cover.Opacity : 0.0;
+        cover.BeginAnimation(UIElement.OpacityProperty, null);
+        cover.Opacity = from;
+        if (!cover.IsVisible) cover.Show();
+        if (GetWindowRect(hwnd, out var start))
+            FsPlaceCover(cover, start.left, start.top, start.right, start.bottom);
+
+        var fadeIn = new DoubleAnimation(from, 1.0, new Duration(TimeSpan.FromMilliseconds(FsCoverInMs)))
+        {
+            EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut }
+        };
+        fadeIn.Completed += (_, _) =>
+        {
+            if (token != _fsCoverToken) return;
+            FsCoverRunRaw(on, token);
+        };
+
+        LogService.Debug("fullscreen", () => $"Cover fade-in start on={on} from={from:F2}");
+        cover.BeginAnimation(UIElement.OpacityProperty, fadeIn);
+    }
+
+    private void ApplyFullscreenStateRaw(bool on)
     {
         if (on == _isFullscreen) return;
 

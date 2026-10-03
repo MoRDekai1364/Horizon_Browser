@@ -39,7 +39,8 @@ public partial class HomePageView : UserControl
 
     public Color SearchBarTextColor => _lastSearchTextColor;
     private double _homeVizFade = 0.0;
-    private LinearGradientBrush? _vizBrushTop, _vizBrushBottom, _vizBrushLeft, _vizBrushRight;
+    private RadialGradientBrush? _vizBrushTL, _vizBrushTR, _vizBrushBL, _vizBrushBR;
+    private bool _vizPulseRunning;
 
     private readonly HomeGlassInlineLayer _homeGlass;
 
@@ -1763,26 +1764,94 @@ public partial class HomePageView : UserControl
         }
     }
 
-    private LinearGradientBrush MakeVizBrush(Point start, Point end)
+    private RadialGradientBrush MakeVizBrush(Point corner)
     {
-        var b = new LinearGradientBrush { StartPoint = start, EndPoint = end };
+        var b = new RadialGradientBrush { Center = corner, GradientOrigin = corner, RadiusX = 1.0, RadiusY = 1.0 };
         b.GradientStops.Add(new GradientStop(Colors.Transparent, 0.0));
         b.GradientStops.Add(new GradientStop(Colors.Transparent, 0.5));
+        b.GradientStops.Add(new GradientStop(Colors.Transparent, 0.75));
         b.GradientStops.Add(new GradientStop(Colors.Transparent, 1.0));
         return b;
     }
 
     private void InitVizBrushes()
     {
-        if (_vizBrushTop != null) return;
-        _vizBrushTop    = MakeVizBrush(new Point(0, 0), new Point(0, 1));
-        _vizBrushBottom = MakeVizBrush(new Point(0, 1), new Point(0, 0));
-        _vizBrushLeft   = MakeVizBrush(new Point(0, 0), new Point(1, 0));
-        _vizBrushRight  = MakeVizBrush(new Point(1, 0), new Point(0, 0));
-        VizEdgeTop.Fill    = _vizBrushTop;
-        VizEdgeBottom.Fill = _vizBrushBottom;
-        VizEdgeLeft.Fill   = _vizBrushLeft;
-        VizEdgeRight.Fill  = _vizBrushRight;
+        if (_vizBrushTL != null) return;
+        _vizBrushTL = MakeVizBrush(new Point(0, 0));
+        _vizBrushBL = MakeVizBrush(new Point(0, 1));
+        _vizBrushTR = MakeVizBrush(new Point(1, 0));
+        _vizBrushBR = MakeVizBrush(new Point(1, 1));
+        VizCornerTL.Fill = _vizBrushTL;
+        VizCornerBL.Fill = _vizBrushBL;
+        VizCornerTR.Fill = _vizBrushTR;
+        VizCornerBR.Fill = _vizBrushBR;
+        VizCornerTL.RenderTransform = new ScaleTransform(1.0, 1.0);
+        VizCornerTR.RenderTransform = new ScaleTransform(1.0, 1.0);
+        VizCornerBL.RenderTransform = new ScaleTransform(1.0, 1.0);
+        VizCornerBR.RenderTransform = new ScaleTransform(1.0, 1.0);
+        HomeVizCanvas.SizeChanged += (_, _) => SizeVizArcs();
+        HomeVizCanvas.IsVisibleChanged += (_, e) => SetVizPulse((bool)e.NewValue);
+        SizeVizArcs();
+    }
+
+    private void SizeVizArcs()
+    {
+        double w = HomeVizCanvas.ActualWidth;
+        double h = HomeVizCanvas.ActualHeight;
+        if (w <= 0 || h <= 0) return;
+
+        double s = Math.Min(420.0, Math.Min(w, h) * 0.35);
+        foreach (var r in new[] { VizCornerTL, VizCornerTR, VizCornerBL, VizCornerBR })
+        {
+            r.Width = s;
+            r.Height = s;
+        }
+        LogService.Debug("viz", () => $"Arcs sized size={s:F0} canvas={w:F0}x{h:F0}");
+    }
+
+    private void SetVizPulse(bool on)
+    {
+        if (on == _vizPulseRunning) return;
+        _vizPulseRunning = on;
+
+        var corners = new (FrameworkElement El, double Seconds, double Phase)[]
+        {
+            (VizCornerTL, 2.4, 0.0),
+            (VizCornerTR, 3.0, 0.8),
+            (VizCornerBL, 3.6, 1.6),
+            (VizCornerBR, 2.8, 2.2)
+        };
+
+        foreach (var c in corners)
+        {
+            if (c.El.RenderTransform is not ScaleTransform st) continue;
+
+            if (!on)
+            {
+                st.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+                st.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+                c.El.BeginAnimation(UIElement.OpacityProperty, null);
+                continue;
+            }
+
+            var duration = new Duration(TimeSpan.FromSeconds(c.Seconds));
+            var begin = TimeSpan.FromSeconds(-c.Phase);
+            var ease = new SineEase { EasingMode = EasingMode.EaseInOut };
+
+            DoubleAnimation Breathe(double from, double to) => new DoubleAnimation(from, to, duration)
+            {
+                AutoReverse = true,
+                RepeatBehavior = RepeatBehavior.Forever,
+                EasingFunction = ease,
+                BeginTime = begin
+            };
+
+            st.BeginAnimation(ScaleTransform.ScaleXProperty, Breathe(0.92, 1.06));
+            st.BeginAnimation(ScaleTransform.ScaleYProperty, Breathe(0.92, 1.06));
+            c.El.BeginAnimation(UIElement.OpacityProperty, Breathe(0.75, 1.0));
+        }
+
+        LogService.Debug("viz", () => $"Pulse {(on ? "started" : "stopped")}");
     }
 
     private void DrawHomeVisualizer()
@@ -1804,19 +1873,21 @@ public partial class HomePageView : UserControl
         byte a0 = (byte)(255 * _homeVizFade);
         byte a1 = (byte)(150 * _homeVizFade);
 
-        UpdateVizBrush(_vizBrushTop,    c0, c1, c2, mid, a0, a1);
-        UpdateVizBrush(_vizBrushBottom, c0, c1, c2, mid, a0, a1);
-        UpdateVizBrush(_vizBrushLeft,   c0, c1, c2, mid, a0, a1);
-        UpdateVizBrush(_vizBrushRight,  c0, c1, c2, mid, a0, a1);
+        UpdateVizBrush(_vizBrushTL, c0, c1, c2, mid, a0, a1);
+        UpdateVizBrush(_vizBrushBL, c0, c1, c2, mid, a0, a1);
+        UpdateVizBrush(_vizBrushTR, c0, c1, c2, mid, a0, a1);
+        UpdateVizBrush(_vizBrushBR, c0, c1, c2, mid, a0, a1);
     }
 
-    private static void UpdateVizBrush(LinearGradientBrush? brush, Color c0, Color c1, Color c2, double mid, byte a0, byte a1)
+    private static void UpdateVizBrush(RadialGradientBrush? brush, Color c0, Color c1, Color c2, double mid, byte a0, byte a1)
     {
         if (brush == null) return;
         brush.GradientStops[0].Color  = Color.FromArgb(a0, c0.R, c0.G, c0.B);
         brush.GradientStops[1].Color  = Color.FromArgb(a1, c1.R, c1.G, c1.B);
         brush.GradientStops[1].Offset = mid;
-        brush.GradientStops[2].Color  = Color.FromArgb(0, c2.R, c2.G, c2.B);
+        brush.GradientStops[2].Offset = mid + (1.0 - mid) * 0.5;
+        brush.GradientStops[2].Color  = Color.FromArgb((byte)(a1 * 0.35), (byte)((c1.R + c2.R) / 2), (byte)((c1.G + c2.G) / 2), (byte)((c1.B + c2.B) / 2));
+        brush.GradientStops[3].Color  = Color.FromArgb(0, c2.R, c2.G, c2.B);
     }
 
     private void BtnMediaPlayPause_Click(object sender, RoutedEventArgs e) => MediaBridge.SendCommand("PLAYPAUSE");

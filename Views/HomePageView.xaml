@@ -890,18 +890,18 @@
         </Border>
 
         <!-- Audio visualizer: glow bleeding in from all four edges, colors cross-fading -->
-        <Grid x:Name="HomeVizCanvas" IsHitTestVisible="False" Visibility="Collapsed">
-            <Rectangle x:Name="VizEdgeTop" Height="220" VerticalAlignment="Top">
-                <Rectangle.Effect><BlurEffect Radius="60" RenderingBias="Performance"/></Rectangle.Effect>
+        <Grid x:Name="HomeVizCanvas" IsHitTestVisible="False" Visibility="Collapsed" ClipToBounds="True">
+            <Rectangle x:Name="VizCornerTL" Width="0" Height="0" HorizontalAlignment="Left" VerticalAlignment="Top" RenderTransformOrigin="0,0" IsHitTestVisible="False">
+                
             </Rectangle>
-            <Rectangle x:Name="VizEdgeBottom" Height="220" VerticalAlignment="Bottom">
-                <Rectangle.Effect><BlurEffect Radius="60" RenderingBias="Performance"/></Rectangle.Effect>
+            <Rectangle x:Name="VizCornerBL" Width="0" Height="0" HorizontalAlignment="Left" VerticalAlignment="Bottom" RenderTransformOrigin="0,1" IsHitTestVisible="False">
+                
             </Rectangle>
-            <Rectangle x:Name="VizEdgeLeft" Width="220" HorizontalAlignment="Left">
-                <Rectangle.Effect><BlurEffect Radius="60" RenderingBias="Performance"/></Rectangle.Effect>
+            <Rectangle x:Name="VizCornerTR" Width="0" Height="0" HorizontalAlignment="Right" VerticalAlignment="Top" RenderTransformOrigin="1,0" IsHitTestVisible="False">
+                
             </Rectangle>
-            <Rectangle x:Name="VizEdgeRight" Width="220" HorizontalAlignment="Right">
-                <Rectangle.Effect><BlurEffect Radius="60" RenderingBias="Performance"/></Rectangle.Effect>
+            <Rectangle x:Name="VizCornerBR" Width="0" Height="0" HorizontalAlignment="Right" VerticalAlignment="Bottom" RenderTransformOrigin="1,1" IsHitTestVisible="False">
+                
             </Rectangle>
         </Grid>
 
