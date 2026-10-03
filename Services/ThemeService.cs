@@ -31,6 +31,7 @@ public static class ThemeService
                 app.Resources.MergedDictionaries.Add(dict);
                 
                 LogService.Write("THEME", $"Applied visual style: {themeName}");
+                    ContrastGuard.RequestRefresh();
             }
             catch 
             {

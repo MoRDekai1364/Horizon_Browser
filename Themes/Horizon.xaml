@@ -12,6 +12,9 @@
     
     <SolidColorBrush x:Key="Brush_Text" Color="#FFFFFF" po:Freeze="False"/> 
     <SolidColorBrush x:Key="Brush_SoftText" Color="#EAEAEA" po:Freeze="False"/>
+    <SolidColorBrush x:Key="Brush_MutedText" Color="#B0B0B0" po:Freeze="False"/>
+    <SolidColorBrush x:Key="Brush_DisabledText" Color="#777777" po:Freeze="False"/>
+    <SolidColorBrush x:Key="Brush_OnAccent" Color="#FFFFFF" po:Freeze="False"/>
     <SolidColorBrush x:Key="Brush_Alert" Color="#FF453A" po:Freeze="False"/> 
 
     <SolidColorBrush x:Key="Brush_TabStripBg" Color="#111111" po:Freeze="False"/>

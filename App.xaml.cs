@@ -138,6 +138,7 @@ public partial class App : Application
             return;
         }
 
+        ContrastGuard.Initialize();
         base.OnStartup(e);
 
         if (maintenanceMode)

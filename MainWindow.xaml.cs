@@ -3828,6 +3828,7 @@ return colors.length > 0 ? colors : null;
             existing.Color = fg;
         else
             Application.Current.Resources["Brush_HeaderButtonForeground"] = new SolidColorBrush(fg);
+                ContrastGuard.RequestRefresh();
     }
 
     private void HeaderGlowTab_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
