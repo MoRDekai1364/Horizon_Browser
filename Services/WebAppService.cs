@@ -266,6 +266,7 @@ public static class WebAppService
             foreach (var m in LoadAllCached())
             {
                 string scopeText = string.IsNullOrEmpty(m.Scope) ? m.StartUrl : m.Scope;
+                LogService.Debug("webapp", () => $"FindForUrl candidate id={m.Id} scope={scopeText} target={url}");
                 if (!Uri.TryCreate(scopeText, UriKind.Absolute, out var scope)) continue;
                 if (!string.Equals(scope.Scheme, target.Scheme, StringComparison.OrdinalIgnoreCase)) continue;
                 if (scope.Port != target.Port) continue;
@@ -284,6 +285,7 @@ public static class WebAppService
                 }
             }
 
+            LogService.Debug("webapp", () => $"FindForUrl result url={url} match={(best == null ? "none" : best.Id)} scopeLen={bestLen}");
             return best;
         }
         catch (Exception ex)

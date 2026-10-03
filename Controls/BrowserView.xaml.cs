@@ -610,16 +610,20 @@ public partial class BrowserView : UserControl
         InitializeAsync();
     }
 
+    private int _initCallCount;
+
     private async void InitializeAsync()
     {
         if (!IsVisible)
         {
+            LogService.Debug("webview", () => $"InitializeAsync deferred: not visible core={(MainWebView.CoreWebView2 != null)}");
             IsVisibleChanged += OnBecameVisible;
             return;
         }
 
         try
         {
+            LogService.Debug("webview", () => $"InitializeAsync proceeding call#{++_initCallCount} core={(MainWebView.CoreWebView2 != null)} visible={IsVisible} processCrashed={_processCrashed}");
             await StealthEnvironment.InitializeAsync();
 
             if (StealthEnvironment.Instance != null)
@@ -2395,6 +2399,7 @@ public partial class BrowserView : UserControl
     {
         if (url == HomeSentinel)
         {
+            LogService.Debug("nav", () => "Navigate(HomeSentinel) stack:\n" + Environment.StackTrace);
             _cameFromHome = false;
             _forwardToSite = false;
             MainWebView.Visibility = Visibility.Collapsed;

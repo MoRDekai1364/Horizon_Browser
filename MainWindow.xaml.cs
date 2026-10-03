@@ -2677,6 +2677,7 @@ return colors.length > 0 ? colors : null;
 
     private void ShowWebAppBar(string source = "unknown")
     {
+        LogService.Debug("webappbar", () => $"ShowWebAppBar source={source} opacity={WebAppBar.Opacity:F2} hitTest={WebAppBar.IsHitTestVisible} cursorX={Mouse.GetPosition(this).X:F0}");
         if (WebAppBar.Opacity < 0.5)
             LogService.Write("WEBAPPBAR", $"MainWindow bar shown via {source} cursorX={Mouse.GetPosition(this).X:F0} width={ActualWidth:F0}");
         _webAppBarTimer.Stop();
@@ -2695,6 +2696,7 @@ return colors.length > 0 ? colors : null;
         };
         if (!fadeIn)
             anim.Completed += (s, e) => WebAppBar.IsHitTestVisible = false;
+        LogService.Debug("webappbar", () => $"FadeWebAppBar fadeIn={fadeIn} from={WebAppBar.Opacity:F2} webAppMode={_isWebAppMode}");
         WebAppBar.BeginAnimation(UIElement.OpacityProperty, anim);
     }
 
@@ -5421,9 +5423,183 @@ return colors.length > 0 ? colors : null;
         }
     }
 
+    private int _fsChromeToken;
+    private bool _fsEnterPending;
+    private Stopwatch? _fsChromeSw;
+    private static readonly TimeSpan FsChromeDuration = TimeSpan.FromMilliseconds(300);
+    private const double FsHeaderSlide = 14.0;
+    private const double FsSidebarSlide = 24.0;
+
+    private bool FsAnimationAllowed()
+    {
+        return !_isWebAppMode
+            && IsVisible
+            && WindowState != WindowState.Minimized
+            && SystemParameters.ClientAreaAnimation;
+    }
+
+    private bool FsHasAnimatableChrome()
+    {
+        return HeaderContainer.Height > 0 || SidebarContainer.Width > 0;
+    }
+
+    private static DoubleAnimation FsAnim(double from, double to)
+    {
+        return new DoubleAnimation(from, to, new Duration(FsChromeDuration))
+        {
+            EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut },
+            FillBehavior = FillBehavior.HoldEnd
+        };
+    }
+
+    private static TranslateTransform FsTranslate(UIElement el)
+    {
+        if (el.RenderTransform is TranslateTransform existing && !existing.IsFrozen) return existing;
+        var created = new TranslateTransform();
+        el.RenderTransform = created;
+        return created;
+    }
+
+    private void FsResetChrome()
+    {
+        foreach (var el in new UIElement[] { HeaderContainer, SidebarContainer })
+        {
+            el.BeginAnimation(UIElement.OpacityProperty, null);
+            el.Opacity = 1.0;
+            if (el.RenderTransform is TranslateTransform t && !t.IsFrozen)
+            {
+                t.BeginAnimation(TranslateTransform.XProperty, null);
+                t.BeginAnimation(TranslateTransform.YProperty, null);
+                t.X = 0;
+                t.Y = 0;
+            }
+        }
+    }
+
+    private void FsCancelChrome(string reason)
+    {
+        _fsChromeToken++;
+        bool wasPending = _fsEnterPending;
+        var sw = _fsChromeSw;
+        if (!wasPending && sw == null) return;
+        _fsEnterPending = false;
+        _fsChromeSw = null;
+        FsResetChrome();
+        LogService.Debug("fullscreen", () => $"Chrome cancel reason={reason} wasPendingEnter={wasPending} ms={sw?.ElapsedMilliseconds}");
+    }
+
+    private void FsRunChrome(bool hide, Action onDone)
+    {
+        int token = ++_fsChromeToken;
+        bool doHeader = HeaderContainer.Height > 0;
+        bool doSidebar = SidebarContainer.Width > 0;
+        var sw = Stopwatch.StartNew();
+        _fsChromeSw = sw;
+        string dir = hide ? "out" : "in";
+        LogService.Debug("fullscreen", () => $"Chrome fade-{dir} start header={doHeader} sidebar={doSidebar}");
+
+        DoubleAnimation? headerOp = doHeader ? FsAnim(hide ? 1.0 : 0.0, hide ? 0.0 : 1.0) : null;
+        DoubleAnimation? sidebarOp = doSidebar ? FsAnim(hide ? 1.0 : 0.0, hide ? 0.0 : 1.0) : null;
+        var clock = headerOp ?? sidebarOp;
+
+        if (clock == null)
+        {
+            _fsChromeSw = null;
+            onDone();
+            return;
+        }
+
+        clock.Completed += (_, _) =>
+        {
+            if (token != _fsChromeToken) return;
+            _fsChromeSw = null;
+            LogService.Debug("fullscreen", () => $"Chrome fade-{dir} end ms={sw.ElapsedMilliseconds}");
+            onDone();
+        };
+
+        if (headerOp != null)
+        {
+            var t = FsTranslate(HeaderContainer);
+            if (!hide)
+            {
+                HeaderContainer.Opacity = 0.0;
+                t.Y = -FsHeaderSlide;
+            }
+            HeaderContainer.BeginAnimation(UIElement.OpacityProperty, headerOp);
+            t.BeginAnimation(TranslateTransform.YProperty,
+                FsAnim(hide ? 0.0 : -FsHeaderSlide, hide ? -FsHeaderSlide : 0.0));
+        }
+
+        if (sidebarOp != null)
+        {
+            var t = FsTranslate(SidebarContainer);
+            if (!hide)
+            {
+                SidebarContainer.Opacity = 0.0;
+                t.X = FsSidebarSlide;
+            }
+            SidebarContainer.BeginAnimation(UIElement.OpacityProperty, sidebarOp);
+            t.BeginAnimation(TranslateTransform.XProperty,
+                FsAnim(hide ? 0.0 : FsSidebarSlide, hide ? FsSidebarSlide : 0.0));
+        }
+    }
+
     private void ApplyFullscreenState(bool on)
     {
+        if (on)
+        {
+            if (_isFullscreen || _fsEnterPending) return;
+            FsBeginEnter();
+            return;
+        }
+
+        FsCancelChrome("exit requested");
+        if (!_isFullscreen) return;
+        ApplyFullscreenStateCore(false);
+        FsBeginExitFade();
+    }
+
+    private void FsBeginEnter()
+    {
+        FsCancelChrome("enter restart");
+
+        if (!FsAnimationAllowed() || !FsHasAnimatableChrome())
+        {
+            LogService.Debug("fullscreen", () => "Chrome fade skipped on enter");
+            ApplyFullscreenStateCore(true);
+            return;
+        }
+
+        _fsEnterPending = true;
+        FsRunChrome(true, () =>
+        {
+            _fsEnterPending = false;
+            FsResetChrome();
+            if (_fullscreenTab == null)
+            {
+                LogService.Debug("fullscreen", () => "Enter aborted: fullscreen tab cleared during fade");
+                return;
+            }
+            ApplyFullscreenStateCore(true);
+        });
+    }
+
+    private void FsBeginExitFade()
+    {
+        if (!FsAnimationAllowed() || !FsHasAnimatableChrome())
+        {
+            LogService.Debug("fullscreen", () => "Chrome fade skipped on exit");
+            return;
+        }
+
+        FsRunChrome(false, FsResetChrome);
+    }
+
+    private void ApplyFullscreenStateCore(bool on)
+    {
         if (on == _isFullscreen) return;
+
+        LogService.Debug("fullscreen", () => $"ApplyFullscreenState on={on} state={WindowState} L={Left:F0} T={Top:F0} W={Width:F0} H={Height:F0} actualW={ActualWidth:F0} actualH={ActualHeight:F0} rowHeader={RowHeader.Height} sidebarW={SidebarContainer.Width} headerH={HeaderContainer.Height}");
 
         if (on)
         {
@@ -5481,6 +5657,8 @@ return colors.length > 0 ? colors : null;
             }
             if (_previousWindowState != WindowState.Normal) WindowState = _previousWindowState;
             else BorderThickness = new Thickness(1);
+
+            LogService.Debug("fullscreen", () => $"Exit restored state={WindowState} L={Left:F0} T={Top:F0} W={Width:F0} H={Height:F0} prevBounds={_fsPrevBounds} prevState={_previousWindowState}");
         }
     }
 
@@ -6469,6 +6647,8 @@ return colors.length > 0 ? colors : null;
 
         _matchedWebApp = _canInstallWebApp ? WebAppService.FindForUrl(url) : null;
 
+        LogService.Debug("webapp", () => $"InstallButton url={url} canInstall={_canInstallWebApp} matched={(_matchedWebApp == null ? "none" : _matchedWebApp.Id)} buttonPresent={BtnCreateWebApp != null} glyph={(_matchedWebApp != null ? "manage" : "install")}");
+
         if (BtnCreateWebApp != null)
         {
             BtnCreateWebApp.IsEnabled = _canInstallWebApp;
@@ -6526,6 +6706,7 @@ return colors.length > 0 ? colors : null;
                     "Horizon", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No) != MessageBoxResult.Yes)
                 return;
 
+            var swReset = Stopwatch.StartNew();
             WebAppHostService.CloseById(m.Id);
 
             var scopeUri = new Uri(string.IsNullOrEmpty(m.Scope) ? m.StartUrl : m.Scope);
@@ -6543,6 +6724,7 @@ return colors.length > 0 ? colors : null;
             await core.CallDevToolsProtocolMethodAsync("Storage.clearDataForOrigin", cdpParams);
 
             LogService.Write("WEBAPP", $"Reset data done. id={m.Id} origin={origin} cookies={cookiesDeleted}");
+            LogService.Debug("webapp", () => $"ResetData id={m.Id} origin={origin} cookies={cookiesDeleted} ms={swReset.ElapsedMilliseconds}");
             core.Reload();
 
             MessageBox.Show("Data cleared for " + origin + "\nCookies deleted: " + cookiesDeleted, "Web App",
@@ -6621,6 +6803,7 @@ return colors.length > 0 ? colors : null;
         try
         {
             bool wasPinned = FindPinnedTaskbarShortcut(m) != null;
+            LogService.Debug("webapp", () => $"TaskbarPin start id={m.Id} wasPinned={wasPinned}");
             bool wantPin = !wasPinned;
             string? lnk = ResolveWebAppShortcut(m);
             bool verbWorked = false;
@@ -6671,13 +6854,14 @@ return colors.length > 0 ? colors : null;
             Placement = PlacementMode.Bottom
         };
 
+        LogService.Debug("webapp", () => $"ManageMenu open id={m.Id} name={m.Name} desktop={IsShortcutPresent(m.DesktopShortcutPath)} startMenu={IsShortcutPresent(m.StartMenuShortcutPath)}");
         bool hasDesktop = IsShortcutPresent(m.DesktopShortcutPath);
         bool hasMenu = IsShortcutPresent(m.StartMenuShortcutPath);
 
         var miOpen = new MenuItem { Header = "🚀  Open app" };
         miOpen.Click += (_, _) =>
         {
-            try { WebAppHostService.OpenOrActivate(m); }
+            try { var swOpen = Stopwatch.StartNew(); WebAppHostService.OpenOrActivate(m); LogService.Debug("webapp", () => $"Open id={m.Id} ms={swOpen.ElapsedMilliseconds}"); }
             catch (Exception ex)
             {
                 LogService.RecordCrash(ex, "WebAppManage.Open");
