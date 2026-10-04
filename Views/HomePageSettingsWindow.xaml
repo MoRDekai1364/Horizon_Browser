@@ -176,6 +176,10 @@
                     <TextBlock Text="Collapsed group style" Foreground="{DynamicResource Brush_Accent}" FontSize="13" Margin="0,14,0,6"/>
                     <ComboBox x:Name="CmbGroupStyle" Height="28" Margin="0,0,0,8"
                               SelectionChanged="CmbGroupStyle_SelectionChanged"/>
+
+                    <TextBlock Text="Bookmark grouping" Foreground="{DynamicResource Brush_Accent}" FontSize="13" Margin="0,14,0,6"/>
+                    <ComboBox x:Name="CmbBookmarkGrouping" Height="28" Margin="0,0,0,8"
+                              SelectionChanged="CmbBookmarkGrouping_SelectionChanged"/>
                 </StackPanel>
             </TabItem>
             <TabItem Header="SHORTCUTS">

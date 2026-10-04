@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace Horizon.Stealth.Controls;
 
@@ -26,15 +27,172 @@ public class PuzzlePanel : Panel
         set => SetValue(MaxRowWidthProperty, value);
     }
 
+    private const int MaxColumns = 6;
+    private const int MinRows = 2;
+    private const int MaxRows = 6;
+    private const double MaxCardWidth = 260;
+
+    public static readonly DependencyProperty ViewportBudgetProperty = DependencyProperty.RegisterAttached(
+        "ViewportBudget", typeof(double), typeof(PuzzlePanel), new PropertyMetadata(0.0, OnViewportBudgetChanged));
+
+    private static readonly DependencyProperty HostPanelProperty = DependencyProperty.RegisterAttached(
+        "HostPanel", typeof(PuzzlePanel), typeof(PuzzlePanel), new PropertyMetadata(null));
+
+    public static double GetViewportBudget(DependencyObject d) => (double)d.GetValue(ViewportBudgetProperty);
+    public static void SetViewportBudget(DependencyObject d, double value) => d.SetValue(ViewportBudgetProperty, value);
+
+    private static void OnViewportBudgetChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        Resnap(d as ScrollViewer);
+    }
+
+    public static void Resnap(ScrollViewer? host)
+    {
+        if (host?.GetValue(HostPanelProperty) is PuzzlePanel panel) panel.Snap();
+    }
+
     private readonly List<Rect> _slots = new();
     private double _packedWidth = -1;
     private double _packedUsedWidth = -1;
+    private bool _uniform;
+    private double _cellW;
+    private double _cellH;
+    private int _cols = 1;
+    private double _snapPitch = -1;
+    private ScrollViewer? _host;
+
+    public PuzzlePanel()
+    {
+        Loaded += (_, _) => AttachHost();
+    }
+
+    private void AttachHost()
+    {
+        DependencyObject? node = VisualTreeHelper.GetParent(this);
+        while (node != null && node is not ScrollViewer) node = VisualTreeHelper.GetParent(node);
+        if (node is not ScrollViewer host) return;
+        _host = host;
+        host.SetValue(HostPanelProperty, this);
+        Snap();
+    }
+
+    private void Snap()
+    {
+        if (_host == null || !_uniform || _cellH <= 0) return;
+        double budget = GetViewportBudget(_host);
+        if (budget <= 0) return;
+        double pitch = _cellH + Gap;
+        int rows = Math.Max(MinRows, Math.Min(MaxRows, (int)Math.Floor((budget + Gap) / pitch)));
+        double target = rows * pitch - Gap + 4;
+        if (Math.Abs(_host.MaxHeight - target) > 0.5) _host.MaxHeight = target;
+    }
+
+    private bool IsUniform()
+    {
+        return ItemsControl.GetItemsOwner(this) is ItemsControl owner && GroupState.GetIsFolder(owner);
+    }
+
+    private Size MeasureUniform(double width)
+    {
+        double gap = Gap;
+        double cellW = 0;
+        double cellH = 0;
+        int collapsedCount = 0;
+        var cardConstraint = new Size(MaxCardWidth, double.PositiveInfinity);
+
+        foreach (UIElement child in InternalChildren)
+        {
+            if (!GroupState.GetIsCollapsed(child)) continue;
+            child.Measure(cardConstraint);
+            cellW = Math.Max(cellW, child.DesiredSize.Width);
+            cellH = Math.Max(cellH, child.DesiredSize.Height);
+            collapsedCount++;
+        }
+
+        int cols = 1;
+        if (collapsedCount > 0 && cellW > 0)
+        {
+            int fit = (int)Math.Floor((width + gap) / (cellW + gap));
+            cols = Math.Max(1, Math.Min(Math.Min(fit, MaxColumns), collapsedCount));
+        }
+
+        var expandedConstraint = new Size(width, double.PositiveInfinity);
+        foreach (UIElement child in InternalChildren)
+            if (!GroupState.GetIsCollapsed(child)) child.Measure(expandedConstraint);
+
+        _cellW = cellW;
+        _cellH = cellH;
+        _cols = cols;
+        Size size = PackUniform(width);
+
+        if (cellH > 0 && Math.Abs(_snapPitch - (cellH + gap)) > 0.5)
+        {
+            _snapPitch = cellH + gap;
+            Dispatcher.BeginInvoke(new Action(Snap), DispatcherPriority.Loaded);
+        }
+
+        return size;
+    }
+
+    private Size PackUniform(double width)
+    {
+        _slots.Clear();
+        double gap = Gap;
+        double y = 0;
+        int c = 0;
+        double used = _cellW > 0 ? _cols * _cellW + (_cols - 1) * gap : 0;
+        var expanded = new List<int>();
+
+        for (int i = 0; i < InternalChildren.Count; i++)
+        {
+            UIElement child = InternalChildren[i];
+            Size desired = child.DesiredSize;
+            if (GroupState.GetIsCollapsed(child))
+            {
+                _slots.Add(new Rect(c * (_cellW + gap), y, _cellW, _cellH));
+                c++;
+                if (c >= _cols)
+                {
+                    c = 0;
+                    y += _cellH + gap;
+                }
+            }
+            else
+            {
+                if (c > 0)
+                {
+                    c = 0;
+                    y += _cellH + gap;
+                }
+                _slots.Add(new Rect(0, y, desired.Width, desired.Height));
+                expanded.Add(i);
+                used = Math.Max(used, desired.Width);
+                y += desired.Height + gap;
+            }
+        }
+
+        foreach (int i in expanded)
+        {
+            Rect slot = _slots[i];
+            _slots[i] = new Rect((used - slot.Width) / 2.0, slot.Y, slot.Width, slot.Height);
+        }
+
+        double height = 0;
+        foreach (Rect slot in _slots) height = Math.Max(height, slot.Bottom);
+
+        _packedWidth = width;
+        _packedUsedWidth = used;
+        return new Size(used, height);
+    }
 
     protected override Size MeasureOverride(Size availableSize)
     {
         double width = double.IsInfinity(availableSize.Width)
             ? MaxRowWidth
             : Math.Min(availableSize.Width, MaxRowWidth);
+
+        _uniform = IsUniform();
+        if (_uniform) return MeasureUniform(width);
 
         var constraint = new Size(width, double.PositiveInfinity);
         foreach (UIElement child in InternalChildren)
@@ -48,7 +206,10 @@ public class PuzzlePanel : Panel
         double width = Math.Min(Math.Max(finalSize.Width, 1), MaxRowWidth);
         bool reusable = _slots.Count == InternalChildren.Count
             && (Math.Abs(width - _packedWidth) <= 0.5 || Math.Abs(width - _packedUsedWidth) <= 0.5);
-        if (!reusable) Pack(width);
+        if (!reusable)
+        {
+            if (_uniform) PackUniform(width); else Pack(width);
+        }
 
         for (int i = 0; i < InternalChildren.Count && i < _slots.Count; i++)
             InternalChildren[i].Arrange(_slots[i]);
@@ -109,10 +270,17 @@ public class PuzzlePanel : Panel
 public static class GroupState
 {
     public static readonly DependencyProperty IsCollapsedProperty =
-        DependencyProperty.RegisterAttached("IsCollapsed", typeof(bool), typeof(GroupState), new PropertyMetadata(false));
+        DependencyProperty.RegisterAttached("IsCollapsed", typeof(bool), typeof(GroupState),
+            new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.AffectsParentMeasure | FrameworkPropertyMetadataOptions.AffectsParentArrange));
 
     public static bool GetIsCollapsed(DependencyObject d) => (bool)d.GetValue(IsCollapsedProperty);
     public static void SetIsCollapsed(DependencyObject d, bool value) => d.SetValue(IsCollapsedProperty, value);
+
+    public static readonly DependencyProperty IsFolderProperty =
+        DependencyProperty.RegisterAttached("IsFolder", typeof(bool), typeof(GroupState), new PropertyMetadata(false));
+
+    public static bool GetIsFolder(DependencyObject d) => (bool)d.GetValue(IsFolderProperty);
+    public static void SetIsFolder(DependencyObject d, bool value) => d.SetValue(IsFolderProperty, value);
 }
 
 public enum GroupCollapseMode
@@ -120,7 +288,8 @@ public enum GroupCollapseMode
     Full,
     FirstRow,
     Stack,
-    Mini
+    Mini,
+    Folder
 }
 
 public class AutoGridPanel : Panel
@@ -131,6 +300,10 @@ public class AutoGridPanel : Panel
     private const int MiniThreshold = 9;
     private const int MiniFullTiles = 8;
     private const int MiniClusterMax = 9;
+    private const double FolderCellWidth = 100;
+    private const int FolderFullTiles = 3;
+    private const int FolderClusterMax = 4;
+    private static readonly ScaleTransform FolderScale = CreateScale(0.46);
     private static readonly ScaleTransform MiniScale2 = CreateScale(0.46);
     private static readonly ScaleTransform MiniScale3 = CreateScale(0.3);
 
@@ -158,6 +331,61 @@ public class AutoGridPanel : Panel
 
     private int _columns = 1;
     private Size _cell;
+
+    private static void SetHit(UIElement child, bool value)
+    {
+        if (child.IsHitTestVisible != value) child.IsHitTestVisible = value;
+    }
+
+    private Size FolderSize(int count)
+    {
+        return count <= FolderFullTiles
+            ? new Size(count * _cell.Width, _cell.Height)
+            : new Size(2 * _cell.Width, 2 * _cell.Height);
+    }
+
+    private void ArrangeFolder(Size finalSize)
+    {
+        int count = InternalChildren.Count;
+        Size size = FolderSize(count);
+        double offsetX = Math.Max(0, (finalSize.Width - size.Width) / 2.0);
+        bool cluster = count > FolderFullTiles + 1;
+        int fullTiles = cluster ? FolderFullTiles : count;
+        int shown = cluster ? Math.Min(FolderClusterMax, count - FolderFullTiles) : 0;
+        double clusterX = offsetX + _cell.Width;
+        double clusterY = _cell.Height;
+        double slotWidth = _cell.Width / 2.0;
+        double slotHeight = _cell.Height / 2.0;
+
+        for (int i = 0; i < count; i++)
+        {
+            UIElement child = InternalChildren[i];
+            Panel.SetZIndex(child, 0);
+
+            if (i < fullTiles)
+            {
+                ResetTransform(child);
+                SetHit(child, true);
+                double x = count <= FolderFullTiles ? i * _cell.Width : (i % 2) * _cell.Width;
+                double y = count <= FolderFullTiles ? 0 : (i / 2) * _cell.Height;
+                child.Arrange(new Rect(offsetX + x, y, _cell.Width, _cell.Height));
+                continue;
+            }
+
+            int k = i - fullTiles;
+            SetHit(child, false);
+            if (k < shown)
+            {
+                if (!ReferenceEquals(child.RenderTransform, FolderScale)) child.RenderTransform = FolderScale;
+                child.Arrange(new Rect(clusterX + (k % 2) * slotWidth, clusterY + (k / 2) * slotHeight, _cell.Width, _cell.Height));
+            }
+            else
+            {
+                ResetTransform(child);
+                child.Arrange(new Rect(HiddenOffset, HiddenOffset, _cell.Width, _cell.Height));
+            }
+        }
+    }
 
     private void ArrangeMini(Size finalSize)
     {
@@ -203,6 +431,7 @@ public class AutoGridPanel : Panel
         return mode switch
         {
             GroupCollapseMode.FirstRow => _cell.Height,
+            GroupCollapseMode.Folder => count <= FolderFullTiles ? _cell.Height : 2 * _cell.Height,
             GroupCollapseMode.Stack => _cell.Height + (Math.Min(StackDepth, count) - 1) * StackOffset,
             GroupCollapseMode.Mini => count > MiniThreshold
                 ? 3 * _cell.Height
@@ -225,6 +454,20 @@ public class AutoGridPanel : Panel
     {
         int count = InternalChildren.Count;
         if (count == 0) return new Size(0, 0);
+
+        if (Mode == GroupCollapseMode.Folder)
+        {
+            double folderHeight = 0;
+            var folderConstraint = new Size(FolderCellWidth, double.PositiveInfinity);
+            foreach (UIElement child in InternalChildren)
+            {
+                child.Measure(folderConstraint);
+                folderHeight = Math.Max(folderHeight, child.DesiredSize.Height);
+            }
+
+            _cell = new Size(FolderCellWidth, folderHeight);
+            return FolderSize(count);
+        }
 
         double cellWidth = 0;
         double cellHeight = 0;
@@ -261,6 +504,14 @@ public class AutoGridPanel : Panel
 
     protected override Size ArrangeOverride(Size finalSize)
     {
+        if (Mode == GroupCollapseMode.Folder)
+        {
+            ArrangeFolder(finalSize);
+            return finalSize;
+        }
+
+        foreach (UIElement child in InternalChildren) SetHit(child, true);
+
         if (Mode == GroupCollapseMode.Stack)
         {
             int shown = Math.Min(StackDepth, InternalChildren.Count);

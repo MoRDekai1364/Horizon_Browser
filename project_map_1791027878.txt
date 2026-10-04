@@ -1,0 +1,951 @@
+Project Map Generated: 2026-10-03 14:44:38.938483
+Root: E:\Programming\Personal_projects\Horizon_Browser\development_version_beta
+
+LEGEND & ICONS:
+📁 Folder  | 💻 Code   | 📝 Text
+🖼️ Image   | 🎵 Audio  | 🎬 Video
+📦 Archive | ⚙️ Exec   | 📄 Doc/File
+---------------------------------------------------
+Report Mode: TREE
+============================================================
+    |-- 📁 .git
+        |-- 📁 hooks
+            |-- 📄 applypatch-msg.sample (478.00 B)
+            |-- 📄 commit-msg.sample (1.93 KB)
+            |-- 📄 fsmonitor-watchman.sample (4.50 KB)
+            |-- 📄 post-update.sample (189.00 B)
+            |-- 📄 pre-applypatch.sample (424.00 B)
+            |-- 📄 pre-commit.sample (1.61 KB)
+            |-- 📄 pre-merge-commit.sample (416.00 B)
+            |-- 📄 pre-push.sample (1.34 KB)
+            |-- 📄 pre-rebase.sample (4.78 KB)
+            |-- 📄 pre-receive.sample (544.00 B)
+            |-- 📄 prepare-commit-msg.sample (1.46 KB)
+            |-- 📄 push-to-checkout.sample (2.72 KB)
+            |-- 📄 sendemail-validate.sample (2.25 KB)
+            |-- 📄 update.sample (3.56 KB)
+        |-- 📁 info
+            |-- 📄 exclude (240.00 B)
+            |-- 📄 refs (2.11 KB)
+        |-- 📁 logs
+            |-- 📁 refs
+                |-- 📁 heads
+                    |-- 📄 new_changes (9.16 KB)
+                    |-- 📄 official_release (1.02 KB)
+                    |-- 📄 Stable_pre-release (822.00 B)
+                |-- 📁 remotes
+                    |-- 📁 origin
+                        |-- 📄 HEAD (168.00 B)
+                        |-- 📄 new_changes (6.93 KB)
+                        |-- 📄 official_release (720.00 B)
+                        |-- 📄 Stable_pre-release (543.00 B)
+            |-- 📄 HEAD (11.18 KB)
+        |-- 📁 objects
+            |-- 📁 00
+                |-- 📄 1d0df3687f273aeea4fdde742ff829e2bec24e (2.03 KB)
+                |-- 📄 1eb821e0e00d2a41cb0ffc1e1157b384492c95 (1.29 KB)
+                |-- 📄 68bc9c90dd1913c7127669f7980e3e8d6d598a (2.86 KB)
+            |-- 📁 03
+                |-- 📄 3d73534b65fab3c5de3c650aefb360de0085d8 (858.00 B)
+            |-- 📁 04
+                |-- 📄 6d2c49494b7fd07538116d52e8df295a671c9e (26.21 KB)
+            |-- 📁 06
+                |-- 📄 42abc321aee8849700edb8486242c35568c085 (5.74 KB)
+            |-- 📁 0b
+                |-- 📄 cd813611655e03abb821c811eb944fd689b638 (653.00 B)
+            |-- 📁 0d
+                |-- 📄 177e1a89d70f3be96504f121612cf1f1c0b018 (104.00 B)
+            |-- 📁 0e
+                |-- 📄 5797e357e9e470bd6aa66e0bb02603b5da3ac7 (2.51 KB)
+                |-- 📄 bf01a44cfdeb414baced17c1b53b1750328a96 (17.47 KB)
+            |-- 📁 0f
+                |-- 📄 4fc0b6c0c65239321544ec28257bc982c33c6c (23.38 KB)
+                |-- 📄 8262b34ce619d932151ee1fe28b29bbeaf9e6f (13.59 MB)
+            |-- 📁 11
+                |-- 📄 061d39c3c8dfa794b0ea40b903019c709e148d (23.61 KB)
+            |-- 📁 13
+                |-- 📄 5938236f9f9e6918724f402a7ebeeb2d2a195a (1.99 KB)
+            |-- 📁 14
+                |-- 📄 6b2635c55d29c41b2013a8fabba4bc4389e8ae (2.00 KB)
+            |-- 📁 15
+                |-- 📄 44da71e87e3dfaebefe48b8a28aba43d3b571f (6.77 KB)
+            |-- 📁 18
+                |-- 📄 4cf1a904ae644e3d590eda4d67f9b1b118cf92 (409.00 B)
+                |-- 📄 601e7f8e51484b3b87ea1fec4e4a27ab6298b4 (7.50 KB)
+                |-- 📄 cca13074f515114a49c2e8dfb3a13845b3ed18 (431.00 B)
+            |-- 📁 19
+                |-- 📄 2ae110a0ed59036537c6415e937145a756f0d3 (1.36 KB)
+            |-- 📁 1b
+                |-- 📄 c9174376afc5e99f4435091fca3b0fe284eb85 (2.73 KB)
+            |-- 📁 20
+                |-- 📄 35eff69b3b5c6f3ac3f884d8019fe988f7cbaf (4.77 KB)
+            |-- 📁 22
+                |-- 📄 ec3bcd370755335750dd25d7f93d336f72f1c2 (1.21 KB)
+            |-- 📁 23
+                |-- 📄 0862cbd1dcf34db77c11493d57e2eefc2af9c3 (922.00 B)
+                |-- 📄 26f186468015afb20b3fc9b055ef1931b8edc9 (134.27 KB)
+            |-- 📁 29
+                |-- 📄 667b1be513b33cce850d6d87ca0a81d1e46048 (2.58 KB)
+                |-- 📄 c1eab1f1a7576c6fe504eee47720c5b2322508 (654.00 B)
+            |-- 📁 2a
+                |-- 📄 6d8640a64b2dde18c4cd6ee9be79b1e38245b4 (348.00 B)
+            |-- 📁 2b
+                |-- 📄 ba044c76a341d256a4b14be0656bd75ccb93cb (30.79 KB)
+            |-- 📁 2c
+                |-- 📄 95c52c587e6281c58d5fc13a0ba5195d2bd094 (28.35 KB)
+            |-- 📁 2d
+                |-- 📄 812852c99661cbbba4669ea4c31d34013457ba (757.00 B)
+                |-- 📄 ea02ffa00284e3667beb50d3431bf366240f50 (328.00 B)
+                |-- 📄 f2c182d48ad5a45b27bcb205ec3a2da7e5931c (6.49 KB)
+            |-- 📁 30
+                |-- 📄 467c8aa911cb6b34ca330c6fb55bfbcc839cf5 (410.00 B)
+            |-- 📁 31
+                |-- 📄 6258c1fcb5061f4c7cefc8c7f144fff91aef0b (30.60 KB)
+            |-- 📁 32
+                |-- 📄 392e5a20504f9249bd0bca92dc5381234f246c (2.56 KB)
+                |-- 📄 6839aa52c3b0520eb6456d316a1c452d60f3cc (306.00 B)
+                |-- 📄 fccbb6464ba02808ee17a8e85d9ac30f351328 (1.07 KB)
+            |-- 📁 33
+                |-- 📄 e311e2fe919c17e56cadc283770de781d75104 (2.50 KB)
+            |-- 📁 35
+                |-- 📄 12b1ccfdf1e98533b69b5e810c0379b36d3ac4 (1.59 KB)
+                |-- 📄 2e10bb8d3dc2eac5f53b859dfd643123e3b454 (2.07 KB)
+                |-- 📄 b29e97ac2d2ca962df8493f3ced66f5af64f54 (324.00 B)
+            |-- 📁 36
+                |-- 📄 bddd57b29f7530f2cecd71f526b7a7647d7394 (1.39 KB)
+            |-- 📁 3a
+                |-- 📄 857e38aff29b201cf58d6555cf7bae9e099550 (1.24 KB)
+                |-- 📄 f059c4c25faec040e7d01d43500c5e5be1b5cd (1.12 KB)
+            |-- 📁 3e
+                |-- 📄 66c06866d92074ed725ace9f723cf3b2818c31 (1.32 KB)
+            |-- 📁 42
+                |-- 📄 28297c69b8ae356be692d4e36c4f0b7630a86b (10.70 KB)
+            |-- 📁 44
+                |-- 📄 9f753738f61ae939c27eb8c3eb895e8e002f9a (55.00 B)
+            |-- 📁 45
+                |-- 📄 2f754539ff2b4b9547a61b211e9d9892ec680e (338.00 B)
+            |-- 📁 46
+                |-- 📄 7dac43e365dcc894956d8f2089a3ccb11a34d0 (2.75 KB)
+            |-- 📁 47
+                |-- 📄 5791b03b55c3391a9da69943ee3eb4dd6af587 (134.77 KB)
+                |-- 📄 8270a847d9e46e887d2dc038156e8c20447eb4 (17.88 KB)
+            |-- 📁 48
+                |-- 📄 865699ca819e47942ac906a47270e7c23dbc2c (2.08 KB)
+                |-- 📄 e46c5674653f2953770f99056f4953425af4a5 (653.00 B)
+            |-- 📁 4b
+                |-- 📄 4d7ed14b148482868f524dedf04831ddd89844 (5.86 KB)
+            |-- 📁 4d
+                |-- 📄 2bfbf2b3037d2ad8153bf696d696204770b9f5 (652.00 B)
+                |-- 📄 3c0c6d4869eb971ba015e1b0d4842901dcfd7d (26.41 KB)
+            |-- 📁 4e
+                |-- 📄 73fb72297a3b7ab5f517d5e913d0cbacfb4f9c (1.21 KB)
+            |-- 📁 4f
+                |-- 📄 3a1366c9738e0fcd673f2fc0a17db98c39bf1b (1012.00 B)
+                |-- 📄 4890f3a58556e371e6b707a8130dcb84ad3496 (22.73 KB)
+            |-- 📁 50
+                |-- 📄 bfb20cdb5d80290b09fee4faf27406d75cfd02 (2.03 KB)
+            |-- 📁 51
+                |-- 📄 20244d4ed309be266c4e789c31bfc3c2a058c6 (406.00 B)
+                |-- 📄 3c82c01cf2c3797479840546845c8202d2e3eb (711.00 B)
+            |-- 📁 53
+                |-- 📄 1c8569d3002e1a74d1ca478ba83d772d0c100d (2.08 KB)
+            |-- 📁 55
+                |-- 📄 4069b60e6db4d684ce4189d9eb3bed2426bedf (981.00 B)
+            |-- 📁 56
+                |-- 📄 8721061ecc6fb4044dc5aca635852055480741 (3.67 KB)
+            |-- 📁 59
+                |-- 📄 2c6a12d0fe2099fc709c7938801ac8045cbed1 (3.11 KB)
+                |-- 📄 f09c554e881c3f30e0a8c48919632f46054998 (134.80 KB)
+            |-- 📁 5a
+                |-- 📄 4dc7e1a7432c8a9af3c0b29494b5a21e87e262 (2.51 KB)
+            |-- 📁 5b
+                |-- 📄 9c846ae34c326e91520f7d960662fd29556879 (367.00 B)
+            |-- 📁 5c
+                |-- 📄 9728bbf18c32604163a4c04b815bfa971b9c8a (134.27 KB)
+                |-- 📄 e18a5a153e737677ea79b1a38c2f664d6e659d (30.67 KB)
+            |-- 📁 5d
+                |-- 📄 100c77f12448116ce450471fc3c6737bba4d8f (1.99 KB)
+                |-- 📄 4be7e3d65ff9cd47f215158806add0a9c5d3d9 (597.00 B)
+                |-- 📄 b33e11859ca0a3c09502c458b44edb3447a43a (1.77 KB)
+            |-- 📁 5f
+                |-- 📄 03344d7d82df576b54a5476b9615b821965460 (393.00 B)
+                |-- 📄 84fb9d3e7dabdeb4bcabce87675b5ff9153f1a (357.00 B)
+            |-- 📁 61
+                |-- 📄 78b547fe9c4575250a152395ff5f2c19e4a9f3 (5.28 KB)
+                |-- 📄 7b239cf6fd3c5c5be238b0c5db091a75a35fc3 (143.73 KB)
+                |-- 📄 927101c28b89541fe89cd2fa873692a9ee5613 (652.00 B)
+            |-- 📁 64
+                |-- 📄 041a62293cded1087e01aa4027731080077cee (1.73 KB)
+            |-- 📁 66
+                |-- 📄 f77188e709fb45398359d19ce7a5e6d2851891 (1.34 KB)
+            |-- 📁 6a
+                |-- 📄 7690c6f52f1228437c48e144ad4b052f1bed2e (4.82 KB)
+            |-- 📁 6b
+                |-- 📄 2be5f572360af95c3cecf6d16787713b4d8e51 (143.77 KB)
+            |-- 📁 6c
+                |-- 📄 e11c5f68a37ca9e7a620a5618e3b6967496117 (1.76 KB)
+            |-- 📁 6d
+                |-- 📄 c9bf0d6f18ba8f08a49155ef092ca9e4df6ff2 (30.66 KB)
+                |-- 📄 de8b6ba300de1dfe8af7bc57aadb81183d360a (2.78 KB)
+            |-- 📁 6e
+                |-- 📄 8cd1bb39f17a7a5f58c4e39353d77cdb71cfa4 (334.00 B)
+            |-- 📁 6f
+                |-- 📄 2127c0288856a659d7a9e5b31443a6754d866f (5.84 KB)
+                |-- 📄 67a2b0f9491ff639d9e0e7be99fdc0c54e1582 (1.26 KB)
+            |-- 📁 70
+                |-- 📄 3425d56a77d4bb8e366963630172f0f8fce04a (10.61 KB)
+            |-- 📁 71
+                |-- 📄 a630724af3f1f4b7c30cef008565d595a30ee7 (21.98 KB)
+                |-- 📄 fb13129640a7505c0934b4dccd140c433f4872 (21.59 KB)
+            |-- 📁 72
+                |-- 📄 15beac8dfc8e55d6e5cffd17850ae07acd8990 (710.00 B)
+                |-- 📄 9f3d5f5a3c909b2c1df3826bcf6b5cbb7c378e (2.00 KB)
+            |-- 📁 73
+                |-- 📄 59ee3f042d744bdef9a56ece89c9346756dcfc (1.29 KB)
+            |-- 📁 74
+                |-- 📄 fabf62963df8d0e1e141bc50b9b74e11c03018 (2.03 KB)
+            |-- 📁 75
+                |-- 📄 14e8a41500274fb555089ce29af2891b7f71f9 (359.00 B)
+                |-- 📄 2d5912985833e26fbc828195d19880a502f237 (556.00 B)
+            |-- 📁 76
+                |-- 📄 8c65549cf6bdcfcefc7c53996e1ed8a59e7cb2 (139.03 KB)
+            |-- 📁 78
+                |-- 📄 6a1efa81caaafcacbfd985691e49d27d79edbc (1.04 KB)
+            |-- 📁 79
+                |-- 📄 de860a2d3f778287525433c2ac776cd52b4b22 (3.48 KB)
+            |-- 📁 7a
+                |-- 📄 d94cea72e877c8eeb4d0733501b58b62b85a91 (36.74 KB)
+            |-- 📁 7b
+                |-- 📄 08aae0bf3996ce7b0756ccd229434fd9b8b4d3 (5.38 MB)
+            |-- 📁 7c
+                |-- 📄 482b50def48660d6ad74c6b383f945868145ca (17.83 KB)
+                |-- 📄 dc1bfb770c1d1794c8267e81f459ce8c368015 (2.08 KB)
+            |-- 📁 7d
+                |-- 📄 bc4fac153c942cb3897dd2c13c7b0b93d4e4c7 (7.60 KB)
+            |-- 📁 7e
+                |-- 📄 b136af0a98b2a0e880dde469ae1c12a39f4bec (410.00 B)
+            |-- 📁 80
+                |-- 📄 89aca73d616a87fa6e90427829cb6b48906cee (134.47 KB)
+            |-- 📁 83
+                |-- 📄 b8904ffb5029942d46693a180a7c7f6165affb (1.31 KB)
+            |-- 📁 84
+                |-- 📄 8cf0d521ec68e05ef03ccb59d323aaa2a17fa2 (653.00 B)
+                |-- 📄 ee951471a8c27b5bdfb189e27507535dca900a (1.99 KB)
+            |-- 📁 85
+                |-- 📄 ef43d8ee68fc28c06431d757958ef0db826771 (1.67 KB)
+            |-- 📁 87
+                |-- 📄 f516de3b1179c1f59f54a71d62045f05ef801f (21.59 KB)
+                |-- 📄 f661452b2f81fc923bae9abf0e9d83f03f5bc1 (445.00 B)
+            |-- 📁 88
+                |-- 📄 ff40666eb0d4626583698f6700c91369be1b96 (1.99 KB)
+            |-- 📁 89
+                |-- 📄 74075cb4453a0e0d26608171cc72dbec9bcdc3 (1.37 KB)
+            |-- 📁 8a
+                |-- 📄 9b7f77be4964551056dffcac7a7de763b56b8e (1.29 KB)
+                |-- 📄 c4ab0a5c8b170c2159f05b4d4e875776004c42 (2.95 KB)
+            |-- 📁 8b
+                |-- 📄 d3cf511d1392edab1118cf54f1a4f746856e1d (5.20 KB)
+            |-- 📁 8e
+                |-- 📄 84e2db8e519a31ca6ddb31e3cd57969c551d63 (10.03 KB)
+            |-- 📁 8f
+                |-- 📄 de6a724504089bd76f30b048133d5a288462ce (1.99 KB)
+            |-- 📁 95
+                |-- 📄 08a5c155c64308611b9194c39afbd1ccb1c343 (120.00 B)
+                |-- 📄 74ed0d7292490dc164e35dc250b2d0f9880dc3 (307.00 B)
+                |-- 📄 8755de9624f85c02836f004e51d4fcb70135f9 (2.03 KB)
+            |-- 📁 97
+                |-- 📄 2d37b830811c94f480206aeecc8a56666d7d42 (30.62 KB)
+                |-- 📄 ebe317134ca169d17d96d492c41f7b8cf1e46a (134.08 KB)
+            |-- 📁 9a
+                |-- 📄 1179219a7ffda4e934f90cec0510c038753072 (2.79 KB)
+                |-- 📄 6fbd62435e832346bcd9d12228da1e5a037481 (1.18 KB)
+            |-- 📁 9c
+                |-- 📄 68926c4fa483e13139b6786f06404134295781 (2.08 KB)
+            |-- 📁 9d
+                |-- 📄 1ea27612a2e6e3b409ca07635f4a7d12758056 (2.53 KB)
+                |-- 📄 ceaedc879b9e573f97168c36ce0b7b745c5183 (1.99 KB)
+            |-- 📁 9f
+                |-- 📄 b4ae8c7ce8d489f4d5e4609ffeb8170634f7c0 (1.29 KB)
+            |-- 📁 a1
+                |-- 📄 733c656043c5aa3154eb3331d985edfc02368a (653.00 B)
+                |-- 📄 8db04e287d4a20789d11b949ca2dbe3acbf9a0 (5.14 KB)
+                |-- 📄 eb8d4a9dde8dd2542de1669f48eba9224f0de4 (2.63 KB)
+            |-- 📁 a2
+                |-- 📄 7d0f4efa6ea1fc522c5b614f05434c0e9078ad (316.00 B)
+            |-- 📁 a3
+                |-- 📄 4330c65abb0540a1bc48fc8036be360c99ce52 (2.95 MB)
+                |-- 📄 5c7ff8ab4c61fdb05b17372eb3f4d02a631e59 (3.07 KB)
+                |-- 📄 9df8acdb5ef131e8eeab6c88df15456c7d0bfd (1.99 KB)
+                |-- 📄 b38388879286fd0ae2d71cef0c0d07c8218eb1 (1.99 KB)
+                |-- 📄 d97a8be42cd4868958e1a575c6b330b5656654 (540.00 B)
+            |-- 📁 a4
+                |-- 📄 d734bc9b5eefb5c1b1041fe5ecb6f5e912f4d0 (1.29 KB)
+            |-- 📁 a5
+                |-- 📄 9464451e4dc5ce0f433f242c39d263c3b9ac1a (1.02 KB)
+            |-- 📁 a6
+                |-- 📄 fbb1905104cfe3c7ff54b07b3ee092312c15bb (3.15 KB)
+            |-- 📁 a9
+                |-- 📄 2657a14d3a74cd55e36d803a27998be52c0bdd (134.33 KB)
+            |-- 📁 aa
+                |-- 📄 557364c04658cb98ab1b3d8b8a18908894dc17 (65.00 B)
+            |-- 📁 ab
+                |-- 📄 6a0365f344dc137422ce69d29030afe3f059a8 (474.00 B)
+            |-- 📁 ac
+                |-- 📄 b8677a5617c42e8de34cde7af395f1c93c9938 (2.08 KB)
+            |-- 📁 ad
+                |-- 📄 0fe4236ac62dd4f6558beac0471789ae876a80 (8.90 KB)
+            |-- 📁 af
+                |-- 📄 fd38470bc59de25ed4bafbf9a65bd56f1131b1 (330.00 B)
+            |-- 📁 b0
+                |-- 📄 0cb80631f769e4e0bfc137a1d95c3845587b40 (304.00 B)
+                |-- 📄 e79044e11d3699fe6e2a40ad99607b8816c237 (7.50 KB)
+            |-- 📁 b1
+                |-- 📄 c897bd1f8ac73628f363630b4b885ccc40c3e3 (17.35 KB)
+            |-- 📁 b2
+                |-- 📄 1a70082c7e7cdd77afbcaecf166ba2c7f0953e (2.08 KB)
+            |-- 📁 b4
+                |-- 📄 b6881a5b00e5dba305f9a080d3a83b47fe7542 (652.00 B)
+            |-- 📁 b6
+                |-- 📄 25c83db5780d852180b8631ebcc36998ce0b0c (342.00 B)
+                |-- 📄 5af71cb4d716107741073e39d9c41f1c794eaa (2.98 KB)
+                |-- 📄 79b29dddf4bfea81a58612e419b1d389d20f06 (372.00 B)
+            |-- 📁 b9
+                |-- 📄 72e89fc39e474ea9400d8855284dbbdb2243a3 (311.00 B)
+                |-- 📄 d4a57a9b87968819bc57ca1b7fbc9249bded49 (3.90 KB)
+            |-- 📁 ba
+                |-- 📄 ce632870f7f45f23040bc8f6198ab68f857c6c (1.97 KB)
+            |-- 📁 bb
+                |-- 📄 29239319d9169da8d9c4d21ff0a039bed98fb7 (10.88 MB)
+                |-- 📄 972fa4f00314417fab668fbfa609c62d55ff7f (22.66 KB)
+            |-- 📁 bc
+                |-- 📄 3e44454d042c39bbed805ace4d8a7eac4dac3c (1.36 KB)
+            |-- 📁 bd
+                |-- 📄 cf0ca9a5480dd23bab0380278eb4875e9a4d03 (1.24 KB)
+                |-- 📄 e95572021a74950ac34c09501ca069b973f7ac (2.88 KB)
+            |-- 📁 be
+                |-- 📄 5f4ae4728f45edfd7d0dd74c086e36f48e69b4 (595.00 B)
+                |-- 📄 c3918baebfd3039a20210b21b3a6addadbaa25 (2.51 KB)
+            |-- 📁 bf
+                |-- 📄 9c7752550920ee7cd7f9e9de1c7b08f96cae08 (5.49 KB)
+                |-- 📄 bfc079c441f3314ec68139009751b768973c63 (10.67 KB)
+            |-- 📁 c0
+                |-- 📄 54f33d436c46b059e9120819abf7146e4a412b (2.94 KB)
+            |-- 📁 c1
+                |-- 📄 9f98bb7fcc6933b1564fe092a97f673b0c4f6e (7.49 KB)
+            |-- 📁 c2
+                |-- 📄 7119122683edd5e4fa529960b5e41f5d10cd5f (410.00 B)
+            |-- 📁 c3
+                |-- 📄 1a28ce00d7ae26b0db76ae95e2cd39e8bb4276 (1.09 KB)
+                |-- 📄 a3e405fdf5c25793c44922a99425e4aacf80f2 (2.70 KB)
+            |-- 📁 c6
+                |-- 📄 4572f5fbf0be6841c1ad751ecb241c5c652307 (888.00 B)
+                |-- 📄 7189d33342b6e3242eb27d0129b24b3bfd4628 (3.99 KB)
+                |-- 📄 da1f690e595eee8c141009a0c818ef4610dfee (3.32 KB)
+            |-- 📁 ca
+                |-- 📄 b606a6d329ffa7c4b8491de13acfc1c2a133f2 (3.78 KB)
+            |-- 📁 cb
+                |-- 📄 84899b9cce3edc96e220a099a3942729b1f4a7 (5.11 KB)
+            |-- 📁 cc
+                |-- 📄 3b3d3f853d335e4c859eec60640da8d07df52c (72.00 B)
+                |-- 📄 e81a3112fdc819366e8b4503926e414c76866a (5.10 KB)
+            |-- 📁 ce
+                |-- 📄 a597da68a5948dc67f69cb3758babfe8ddc517 (953.00 B)
+            |-- 📁 cf
+                |-- 📄 751947d3eb0fd8069447ab26cd54f2bd3b9bba (2.42 KB)
+                |-- 📄 c6f47fa624f6a44e45e0fbcf0d3f4355f656e7 (5.21 KB)
+            |-- 📁 d0
+                |-- 📄 0b602bf262bf7b90219a5b5ac67f01aec27310 (656.00 B)
+            |-- 📁 d1
+                |-- 📄 d96c6dea689a845ceffd3c741fd6f85ee679c7 (1.15 KB)
+                |-- 📄 e67d8fd96a465cac95366c1fb0c420c22bb8d6 (5.80 KB)
+            |-- 📁 d4
+                |-- 📄 d2f035894c9dc0cb92c722ed62fdd7936003ac (2.55 MB)
+                |-- 📄 d36bcb6c124781a273515f71d976d51ca54d37 (1.23 KB)
+                |-- 📄 d8b014937053293f8c474d1035f4e5020f472f (410.00 B)
+            |-- 📁 d8
+                |-- 📄 b271ac883fc56ca893dbf73f309629fd9b54c0 (3.52 MB)
+                |-- 📄 b2eb0cd5d176bc47a034ca49c267b5e5fc74a4 (4.59 KB)
+            |-- 📁 da
+                |-- 📄 1bd6725b93dec7eb06c3b5f659d1d252ff3f90 (18.02 KB)
+            |-- 📁 dd
+                |-- 📄 e82389f2ba208945d57c681f0c6c30c89bc04d (484.00 B)
+            |-- 📁 e1
+                |-- 📄 32bbfbbb8c3e3517800e28e0597a80a298da63 (2.98 KB)
+                |-- 📄 cae9da8cb62fef8070a4a5fd938a8054b3978a (22.76 KB)
+            |-- 📁 e7
+                |-- 📄 5bfed11195196f9df58da8eb321f547a1db12f (396.00 B)
+                |-- 📄 65acbb039a6d41e69eb02f7bbf0a402cdfa8b9 (54.00 B)
+            |-- 📁 e8
+                |-- 📄 ce6ea6ca63d9d65d0a28c56b7032f0a1fbb319 (652.00 B)
+                |-- 📄 d3d0cf9f270bbd2317e575456f1aed82cc3907 (1.27 KB)
+            |-- 📁 e9
+                |-- 📄 10611a5e698c984c8e11dfc27da8940dd91afa (2.86 KB)
+            |-- 📁 eb
+                |-- 📄 aeaea0821834d754de7dd9eaf47e399e747d42 (7.70 KB)
+            |-- 📁 ec
+                |-- 📄 f2c03361ea2d6754c8813bf1d7ed65892d21ea (1.36 KB)
+            |-- 📁 ed
+                |-- 📄 b206f83ef80765dd80833c4840c39304b7d4c6 (653.00 B)
+            |-- 📁 ef
+                |-- 📄 0d6a8d747ffaa94ec785b97fb0bf8907478ea2 (134.04 KB)
+                |-- 📄 9f0fcdb53eb12ade86f5f65971b36a739888c0 (1.79 KB)
+            |-- 📁 f1
+                |-- 📄 3f33af3c387a8b1e5feee35ec953a54bd3b632 (17.24 KB)
+                |-- 📄 d55e21ed363927969f2519a327b579de3407ae (5.77 KB)
+            |-- 📁 f2
+                |-- 📄 880defd4f35eab94344251934c3a523eb5f7d9 (409.00 B)
+            |-- 📁 f3
+                |-- 📄 5ba5e32eaf559285c8e151f1f7ba4b33c312d9 (141.04 KB)
+                |-- 📄 6e0c7ca2de0f85969be300fa37dbec77aee383 (21.60 KB)
+            |-- 📁 f9
+                |-- 📄 3ad7c531e57e26c4b954392bcbddd5360b4d7b (1.21 KB)
+            |-- 📁 fb
+                |-- 📄 21a9a5fb5db3b7ed0db55d8a18d319883ffe32 (194.00 B)
+            |-- 📁 fd
+                |-- 📄 3fd512faa76ebd8e3ff4d85d2bf3938df2642f (11.06 KB)
+            |-- 📁 ff
+                |-- 📄 05c7d809dfa9d3efb01c10b0fd1503c60633c0 (143.99 KB)
+            |-- 📁 info
+                |-- 📁 commit-graphs
+                    |-- 📄 commit-graph-chain (41.00 B)
+                    |-- 📄 graph-75523851a205e51ffe5d843c1997b82536c7e8df.graph (10.34 KB)
+                |-- 📄 packs (107.00 B)
+            |-- 📁 pack
+                |-- 📄 multi-pack-index (102.52 KB)
+                |-- 📄 pack-a3ebd4acb5c8252d76b6358a0cca6d0292b36183.idx (8.68 KB)
+                |-- 📄 pack-a3ebd4acb5c8252d76b6358a0cca6d0292b36183.pack (264.72 MB)
+                |-- 📄 pack-a3ebd4acb5c8252d76b6358a0cca6d0292b36183.rev (1.14 KB)
+                |-- 📄 pack-e16d50097a91e40b63980e9393d5954b51e77402.idx (94.75 KB)
+                |-- 📄 pack-e16d50097a91e40b63980e9393d5954b51e77402.pack (629.71 MB)
+                |-- 📄 pack-e16d50097a91e40b63980e9393d5954b51e77402.rev (13.44 KB)
+                |-- 📄 tmp_pack_yazvcd (111.74 MB)
+        |-- 📁 refs
+            |-- 📁 heads
+                |-- 📄 new_changes (41.00 B)
+                |-- 📄 official_release (41.00 B)
+                |-- 📄 Stable_pre-release (41.00 B)
+            |-- 📁 remotes
+                |-- 📁 origin
+                    |-- 📄 HEAD (42.00 B)
+                    |-- 📄 new_changes (41.00 B)
+                    |-- 📄 official_release (41.00 B)
+                    |-- 📄 Stable_pre-release (41.00 B)
+            |-- 📁 tags
+                |-- 📄 Horizon_Browser_2.7.6 (41.00 B)
+        |-- 📄 COMMIT_EDITMSG (518.00 B)
+        |-- 📄 config (492.00 B)
+        |-- 📄 description (73.00 B)
+        |-- 📄 FETCH_HEAD (380.00 B)
+        |-- 📄 HEAD (28.00 B)
+        |-- 📄 index (156.54 KB)
+        |-- 📄 packed-refs (1.88 KB)
+    |-- 📁 Controls
+        |-- 📄 BookmarkIconConverter.cs (1.47 KB)
+        |-- 📄 BrowserView.xaml (3.68 KB)
+        |-- 📄 BrowserView.xaml.cs (107.77 KB)
+        |-- 📄 FluxSidebar.xaml (81.54 KB)
+        |-- 📄 FluxSidebar.xaml.cs (152.78 KB)
+        |-- 📄 MarqueeText.cs (2.32 KB)
+        |-- 📄 Omnibox.xaml (1.55 KB)
+        |-- 📄 Omnibox.xaml.cs (2.03 KB)
+        |-- 📄 PdfOpenDialog.xaml (994.00 B)
+        |-- 📄 PdfOpenDialog.xaml.cs (668.00 B)
+        |-- 📄 PuzzlePanel.cs (10.75 KB)
+        |-- 📄 VaultSidebar.xaml (11.19 KB)
+        |-- 📄 VaultSidebar.xaml.cs (8.03 KB)
+    |-- 📁 Core
+        |-- 📄 ExtensionInstaller.cs (14.19 KB)
+        |-- 📄 MusicSites.cs (2.27 KB)
+        |-- 📄 StealthEnvironment.cs (13.53 KB)
+        |-- 📄 TabColorPaletteExtractor.cs (7.98 KB)
+    |-- 📁 docs
+        |-- 📝 horizon-blur-tint-style-guide.md (9.30 KB)
+        |-- 📝 horizon-widget-animation-pattern.md (13.27 KB)
+        |-- 📝 horizon-widget-style-guide.md (14.95 KB)
+        |-- 📄 LICENSE.rtf (63.28 KB)
+        |-- 📝 LICENSE.txt (18.00 KB)
+        |-- 📝 PRIVACY_POLICY.md (2.66 KB)
+        |-- 💻 project_mapper.py (20.83 KB)
+        |-- 💻 push_to_github.py (17.63 KB)
+        |-- 📝 README.md (2.63 KB)
+        |-- 📝 TERMS_OF SERVICE.txt (4.06 KB)
+        |-- 📝 UI_COLOR_RULES.md (910.00 B)
+        |-- 📝 version.txt (26.00 B)
+    |-- 📁 logs
+        |-- 📝 push_to_github_20260928_155607.log (42.44 KB)
+        |-- 📝 push_to_github_20260928_160120.log (9.87 KB)
+        |-- 📝 push_to_github_20260929_093555.log (13.74 KB)
+        |-- 📝 push_to_github_20260929_094318.log (12.07 KB)
+        |-- 📝 push_to_github_20260929_094856.log (13.94 KB)
+        |-- 📝 push_to_github_20260929_095250.log (12.30 KB)
+        |-- 📝 push_to_github_20260929_211219.log (30.11 KB)
+        |-- 📝 push_to_github_20260929_211331.log (10.12 KB)
+        |-- 📝 push_to_github_20260929_211543.log (10.72 KB)
+        |-- 📝 push_to_github_20260929_213804.log (13.46 KB)
+        |-- 📝 push_to_github_20260929_220921.log (16.44 KB)
+        |-- 📝 push_to_github_20260929_221648.log (12.20 KB)
+        |-- 📝 push_to_github_20260929_222433.log (12.11 KB)
+        |-- 📝 push_to_github_20260929_223729.log (10.56 KB)
+        |-- 📝 push_to_github_20260929_224800.log (10.70 KB)
+        |-- 📝 push_to_github_20260930_000542.log (11.77 KB)
+        |-- 📝 push_to_github_20260930_000823.log (9.83 KB)
+        |-- 📝 push_to_github_20260930_000903.log (9.70 KB)
+        |-- 📝 push_to_github_20260930_000917.log (10.30 KB)
+        |-- 📝 push_to_github_20260930_005623.log (10.31 KB)
+        |-- 📝 push_to_github_20260930_172259.log (19.62 KB)
+        |-- 📝 push_to_github_20260930_173055.log (11.19 KB)
+        |-- 📝 push_to_github_20260930_181408.log (15.50 KB)
+        |-- 📝 push_to_github_20260930_200402.log (15.76 KB)
+        |-- 📝 push_to_github_20261002_001928.log (12.95 KB)
+        |-- 📝 push_to_github_20261002_132916.log (18.40 KB)
+        |-- 📝 push_to_github_20261002_135646.log (13.26 KB)
+        |-- 📝 push_to_github_20261002_140154.log (9.81 KB)
+        |-- 📝 push_to_github_20261002_222009.log (12.49 KB)
+        |-- 📝 push_to_github_20261002_222928.log (10.53 KB)
+        |-- 📝 push_to_github_20261002_233105.log (11.19 KB)
+        |-- 📝 push_to_github_20261003_001142.log (12.10 KB)
+        |-- 📝 push_to_github_20261003_003800.log (9.82 KB)
+        |-- 📝 push_to_github_20261003_004252.log (10.73 KB)
+        |-- 📝 push_to_github_20261003_004812.log (10.19 KB)
+        |-- 📝 push_to_github_20261003_094946.log (9.78 KB)
+        |-- 📝 push_to_github_20261003_102738.log (14.58 KB)
+        |-- 📝 push_to_github_20261003_103946.log (11.53 KB)
+        |-- 📝 push_to_github_20261003_121107.log (11.31 KB)
+        |-- 📝 push_to_github_20261003_122429.log (14.27 KB)
+        |-- 📝 push_to_github_20261003_124025.log (10.40 KB)
+        |-- 📝 push_to_github_20261003_132111.log (13.03 KB)
+        |-- 📝 push_to_github_20261003_133058.log (11.68 KB)
+        |-- 📝 push_to_github_20261003_142057.log (15.33 KB)
+        |-- 📝 scan_debug_1790595251.log (67.00 B)
+        |-- 📝 scan_debug_1790595318.log (67.00 B)
+        |-- 📝 scan_debug_1790663750.log (67.00 B)
+        |-- 📝 scan_debug_1790709506.log (67.00 B)
+    |-- 📁 Output
+        |-- ⚙️ Setup_Horizon_Browser_Beta.exe (46.70 MB)
+    |-- 📁 Services
+        |-- 📄 AccountSyncService.cs (30.21 KB)
+        |-- 📄 BackgroundKeepAliveService.cs (9.31 KB)
+        |-- 📄 BatteryBridge.cs (1.30 KB)
+        |-- 📄 BookmarksService.cs (7.57 KB)
+        |-- 📄 BrowserDetectionService.cs (3.08 KB)
+        |-- 📄 CacheJanitorService.cs (2.67 KB)
+        |-- 📄 CalendarBridge.cs (761.00 B)
+        |-- 📄 ChromiumHarvester.cs (6.63 KB)
+        |-- 📄 CompatJson.cs (8.06 KB)
+        |-- 📄 ConfigService.cs (1.40 KB)
+        |-- 📄 ContrastGuard.cs (22.63 KB)
+        |-- 📄 DefaultSettingsService.cs (6.51 KB)
+        |-- 📄 DownloadBridge.cs (2.19 KB)
+        |-- 📄 ExtensionRecord.cs (981.00 B)
+        |-- 📄 ExtensionService.cs (11.98 KB)
+        |-- 📄 FluxJanitorService.cs (3.41 KB)
+        |-- 📄 FullscreenCurtain.cs (12.86 KB)
+        |-- 📄 GeoIpService.cs (8.50 KB)
+        |-- 📄 GithubUpdateService.cs (10.61 KB)
+        |-- 📄 HealthService.cs (1.18 KB)
+        |-- 📄 HistoryService.cs (2.97 KB)
+        |-- 📄 HomeGlassService.cs (31.90 KB)
+        |-- 📄 HomePageService.cs (16.15 KB)
+        |-- 📄 LogService.cs (5.00 KB)
+        |-- 📄 MediaBridge.cs (2.57 KB)
+        |-- 📄 MediaDownloadService.cs (17.25 KB)
+        |-- 📄 NotificationCenterService.cs (1.67 KB)
+        |-- 📄 SettingsService.cs (21.84 KB)
+        |-- 📄 SiteNotificationPermissionService.cs (2.36 KB)
+        |-- 📄 Startupservice.cs (1.73 KB)
+        |-- 📄 TabSleepRulesService.cs (2.83 KB)
+        |-- 📄 ThemeService.cs (1.20 KB)
+        |-- 📄 TintService.cs (492.00 B)
+        |-- 📄 VaultService.cs (9.13 KB)
+        |-- 📄 VpnProfileStore.cs (7.64 KB)
+        |-- 📄 VpnRelayService.cs (37.42 KB)
+        |-- 📄 VpnThroughputHistoryService.cs (3.75 KB)
+        |-- 📄 WeatherBridge.cs (3.50 KB)
+        |-- 📄 WebAppHostService.cs (13.86 KB)
+        |-- 📄 WebAppService.cs (30.17 KB)
+        |-- 📄 WidgetBackdropService.cs (10.21 KB)
+    |-- 📁 src
+        |-- 📁 animated_icons
+            |-- 🖼️ cloudy.gif (700.93 KB)
+            |-- 🖼️ drizzle.gif (68.35 KB)
+            |-- 🖼️ foggy.gif (535.48 KB)
+            |-- 🖼️ hail.gif (304.09 KB)
+            |-- 🖼️ heavy_rain.gif (408.13 KB)
+            |-- 🖼️ mostly_sunny_author_jason_dwayne.gif (3.42 MB)
+            |-- 🖼️ rain_snow_author_jason_dwayne.gif (1.88 MB)
+            |-- 🖼️ rainy_author_jason_dwayne.gif (349.07 KB)
+            |-- 🖼️ sandstorm.gif (1.00 MB)
+            |-- 🖼️ snowy_author_jason_dwayne.gif (2.81 MB)
+            |-- 🖼️ sunny.gif (679.45 KB)
+            |-- 🖼️ thunderstorm_author_jason_dwayne.gif (523.20 KB)
+            |-- 🖼️ windy.gif (1.87 MB)
+        |-- 📁 concepts
+            |-- 🖼️ battery_widget (1).jpg (35.45 KB)
+            |-- 🖼️ battery_widget (2).jpg (138.61 KB)
+            |-- 🖼️ calculator_widget (1).jpg (95.69 KB)
+            |-- 🖼️ calculator_widget (2).jpg (105.66 KB)
+            |-- 🖼️ calculator_widget (3).jpg (107.80 KB)
+            |-- 🖼️ calendar_widget.jpg (105.27 KB)
+            |-- 🖼️ clock_widget.jpg (124.11 KB)
+            |-- 🖼️ converter_widget.jpg (79.11 KB)
+            |-- 🖼️ media_player_widget.jpg (67.48 KB)
+            |-- 🖼️ notes_widget.jpg (71.05 KB)
+            |-- 🖼️ notification_widget.jpg (132.24 KB)
+            |-- 🖼️ system_info_widget.jpg (81.51 KB)
+        |-- 📁 icons
+            |-- 🖼️ Gemini_Generated_Image_53kxcj53kxcj53kx.ico (3.28 KB)
+            |-- 🖼️ Gemini_Generated_Image_53kxcj53kxcj53kx_v2.ico (686.00 B)
+            |-- 🖼️ Gemini_Generated_Image_7395cs7395cs7395.ico (834.00 B)
+            |-- 🖼️ IMG_20260930_110456.ico (251.06 KB)
+        |-- 🖼️ Gemini_Generated_Image_53kxcj53kxcj53kx - Copy.ico (686.00 B)
+        |-- 🖼️ Gemini_Generated_Image_53kxcj53kxcj53kx.png (4.65 MB)
+        |-- 🖼️ Gemini_Generated_Image_7395cs7395cs7395.ico (834.00 B)
+        |-- 🖼️ Gemini_Generated_Image_7395cs7395cs7395.png (6.99 MB)
+        |-- 🖼️ Gemini_Generated_Image_v3.jpg (1.31 MB)
+        |-- 🖼️ mechanical.jpg (936.22 KB)
+        |-- 🖼️ Screenshot 2026-09-30 110316.png (645.10 KB)
+    |-- 📁 start_videos
+        |-- 📁 Book
+            |-- 🎬 Book-1.mp4 (10.89 MB)
+        |-- 📁 Entangle
+            |-- 🎬 Entangle-1.mp4 (3.75 MB)
+            |-- 🎬 Entangle-2.mp4 (47.90 KB)
+        |-- 📁 Entangle(long)
+            |-- 🎬 Entangle(long)-1.mp4 (13.59 MB)
+        |-- 📁 Pulse
+            |-- 🎬 Pulse.mp4 (5.39 MB)
+        |-- 🎬 Animate_this_image (1) - Copy.mp4 (10.65 MB)
+        |-- 🎬 Animate_this_image (1).mp4 (10.65 MB)
+        |-- 🎬 Animate_this_image (2).mp4 (6.04 MB)
+        |-- 🎬 Animate_this_image (3).mp4 (2.78 MB)
+        |-- 🎬 Animate_this_image.mp4 (15.58 MB)
+        |-- 🎬 Animate_this_image_1.mp4 (10.65 MB)
+        |-- 🎬 Animate_this_image_2.mp4 (2.78 MB)
+        |-- 🎬 Animate_this_image_slow.mp4 (2.62 MB)
+        |-- 🎬 Animate_this_image_v2.mp4 (15.58 MB)
+        |-- 🎬 gemini_generated_video_b35d142c.mp4 (2.96 MB)
+        |-- 🎬 gemini_generated_video_b3a21ef3.mp4 (2.55 MB)
+        |-- 🎬 gemini_generated_video_db3af1d3.mp4 (3.52 MB)
+        |-- 🎬 gemini_generated_video_MULTI.mp4 (5.79 MB)
+        |-- 🎬 gemini_generated_video_MULTI_1.mp4 (9.32 MB)
+        |-- 🎬 Jet.mp4 (3.41 MB)
+        |-- 🎬 make_a_very_short_and_very_smo.mp4 (2.37 MB)
+        |-- 🎬 Mechanical.mp4 (14.81 MB)
+        |-- 🎬 Multi.mp4 (12.89 MB)
+        |-- 🎬 Multi_Mechanica;_28322dc1.mp4 (14.10 MB)
+        |-- 🎬 plane.mp4 (3.39 MB)
+        |-- 📝 README.txt (70.00 B)
+    |-- 📁 Themes
+        |-- 📄 Horizon.xaml (6.01 KB)
+        |-- 📄 Light.xaml (5.88 KB)
+        |-- 📄 Redmond.xaml (2.38 KB)
+    |-- 📁 Uninstall
+        |-- ⚙️ uninstall.bat (207.00 B)
+    |-- 📁 ViewModels
+        |-- 📄 TabViewModel.cs (13.29 KB)
+    |-- 📁 Views
+        |-- 📄 HomePageSettingsWindow.xaml (15.31 KB)
+        |-- 📄 HomePageSettingsWindow.xaml.cs (20.88 KB)
+        |-- 📄 HomePageView.xaml (64.60 KB)
+        |-- 📄 HomePageView.xaml.cs (115.98 KB)
+        |-- 📄 LoginRecoveryDialog.xaml (3.58 KB)
+        |-- 📄 LoginRecoveryDialog.xaml.cs (1.69 KB)
+        |-- 📄 MaintenanceWindow.xaml (4.36 KB)
+        |-- 📄 MaintenanceWindow.xaml.cs (6.16 KB)
+        |-- 📄 NotificationToast.xaml (2.35 KB)
+        |-- 📄 NotificationToast.xaml.cs (1.13 KB)
+        |-- 📄 SettingsWindow.xaml (100.40 KB)
+        |-- 📄 SettingsWindow.xaml.cs (93.47 KB)
+        |-- 📄 StartupVideoWindow.xaml (1.06 KB)
+        |-- 📄 StartupVideoWindow.xaml.cs (9.99 KB)
+        |-- 📄 TabSwitcherWindow.xaml (8.53 KB)
+        |-- 📄 TabSwitcherWindow.xaml.cs (31.76 KB)
+        |-- 📄 VpnControlCenterWindow.xaml (10.15 KB)
+        |-- 📄 VpnControlCenterWindow.xaml.cs (15.24 KB)
+        |-- 📄 WebAppWindow.xaml (6.88 KB)
+        |-- 📄 WebAppWindow.xaml.cs (26.43 KB)
+    |-- 📁 wallpapers
+        |-- 🖼️ 103593.jpg (1.41 MB)
+        |-- 🖼️ 103739-3840x2160-desktop-4k-spider-man-into-the-spider-verse-background-photo.jpg (1.07 MB)
+        |-- 🖼️ 1125856.jpg (5.45 MB)
+        |-- 🖼️ 1170016.jpg (759.81 KB)
+        |-- 🖼️ 126180-3840x2160-desktop-4k-italy-wallpaper-image.jpg (1.90 MB)
+        |-- 🖼️ 127583-3840x2160-desktop-4k-the-elder-scrolls-wallpaper.jpg (1022.37 KB)
+        |-- 🖼️ 132014.jpg (1.03 MB)
+        |-- 🖼️ 1330521.png (1.17 MB)
+        |-- 🖼️ 1330526.png (1.35 MB)
+        |-- 🖼️ 1331867.jpeg (2.49 MB)
+        |-- 🖼️ 1337137.png (2.77 MB)
+        |-- 🖼️ 1337139 (1).png (2.68 MB)
+        |-- 🖼️ 1337141.png (4.01 MB)
+        |-- 🖼️ 1338865.png (4.79 MB)
+        |-- 🖼️ 1344447.png (5.95 MB)
+        |-- 🖼️ 1346366.png (8.74 MB)
+        |-- 🖼️ 1347179.png (8.38 MB)
+        |-- 🖼️ 1350188.png (13.04 MB)
+        |-- 🖼️ 1351306.png (8.21 MB)
+        |-- 🖼️ 1354417.png (4.96 MB)
+        |-- 🖼️ 1354419.png (6.75 MB)
+        |-- 🖼️ 1354420.png (7.72 MB)
+        |-- 🖼️ 1356747.jpeg (6.08 MB)
+        |-- 🖼️ 1357279.jpeg (2.27 MB)
+        |-- 🖼️ 1360352.png (7.49 MB)
+        |-- 🖼️ 1374256.png (6.59 MB)
+        |-- 🖼️ 1380532.png (13.12 MB)
+        |-- 🖼️ 144443-1920x1080-desktop-full-hd-korea-wallpaper-image.jpg (597.14 KB)
+        |-- 🖼️ 14561.jpg (584.16 KB)
+        |-- 🖼️ 1547194-3840x2160-desktop-4k-ubisoft-background-photo.jpg (1.77 MB)
+        |-- 🖼️ 187459-2560x1600-desktop-hd-ferrari-background-image.jpg (922.41 KB)
+        |-- 🖼️ 2112444-3840x2160-desktop-4k-night-sky-background-image.jpg (1.60 MB)
+        |-- 🖼️ 2217488-2048x1099-desktop-hd-dassault-aviation-background-image.jpg (128.30 KB)
+        |-- 🖼️ 24529-3840x2160-desktop-4k-comet-wallpaper-image.jpg (2.01 MB)
+        |-- 🖼️ 245861.jpg (127.93 KB)
+        |-- 🖼️ 247988.jpg (392.81 KB)
+        |-- 🖼️ 256100.jpg (1.40 MB)
+        |-- 🖼️ 265170-1920x1276-desktop-hd-florence-background.jpg (915.28 KB)
+        |-- 🖼️ 265225-2560x1440-desktop-hd-florence-wallpaper-photo.jpg (1.25 MB)
+        |-- 🖼️ 295208-2048x1365-desktop-hd-sydney-background-photo.jpg (914.39 KB)
+        |-- 🖼️ 320248-1920x1080-desktop-1080p-iron-man-background.jpg (155.34 KB)
+        |-- 🖼️ 322616.jpg (388.03 KB)
+        |-- 🖼️ 323363.jpg (431.98 KB)
+        |-- 🖼️ 3250110-2560x1440-desktop-hd-mountain-lake-wallpaper-photo.jpg (882.39 KB)
+        |-- 🖼️ 338596.jpg (3.41 MB)
+        |-- 🖼️ 3448162-1920x1080-desktop-hd-sith-empire-background-image.jpg (144.67 KB)
+        |-- 🖼️ 413925.jpg (165.26 KB)
+        |-- 🖼️ 465238.jpg (475.84 KB)
+        |-- 🖼️ 468739.jpg (1.11 MB)
+        |-- 🖼️ 48333-1920x1115-desktop-hd-the-lion-king-wallpaper.jpg (236.70 KB)
+        |-- 🖼️ 526622.jpg (1.64 MB)
+        |-- 🖼️ 543062.jpg (649.69 KB)
+        |-- 🖼️ 5815553-3840x2160-desktop-hd-4k-wallpaper.jpg (1.48 MB)
+        |-- 🖼️ 5825552.jpg (2.04 MB)
+        |-- 🖼️ 5825560.jpg (1.65 MB)
+        |-- 🖼️ 5825562.jpg (3.29 MB)
+        |-- 🖼️ 5825564.jpg (1.46 MB)
+        |-- 🖼️ 5825621.jpg (1.62 MB)
+        |-- 🖼️ 5825636.jpg (1.33 MB)
+        |-- 🖼️ 5825644.jpg (3.46 MB)
+        |-- 🖼️ 5825663.jpg (1.58 MB)
+        |-- 🖼️ 5825701.jpg (1.74 MB)
+        |-- 🖼️ 5825704.jpg (1.65 MB)
+        |-- 🖼️ 5825736.jpg (2.65 MB)
+        |-- 🖼️ 600594.jpg (3.97 MB)
+        |-- 🖼️ 663219.jpg (3.90 MB)
+        |-- 🖼️ 66746.png (1.89 MB)
+        |-- 🖼️ 77766-3840x2160-desktop-4k-halo-wallpaper-photo.jpg (331.84 KB)
+        |-- 🖼️ 788878.jpg (12.58 MB)
+        |-- 🖼️ 819644.jpg (1.11 MB)
+        |-- 🖼️ 833-1920x1410-desktop-hd-halo-background-photo.jpg (361.91 KB)
+        |-- 🖼️ 850-3840x2160-desktop-4k-halo-background.jpg (1.28 MB)
+        |-- 🖼️ 854-3840x2160-desktop-4k-halo-background.jpg (4.50 MB)
+        |-- 🖼️ 861-2560x1440-desktop-hd-halo-wallpaper-photo.jpg (445.63 KB)
+        |-- 🖼️ 906873.jpg (432.21 KB)
+        |-- 🖼️ 90848-3840x2160-desktop-4k-mars-wallpaper.jpg (336.10 KB)
+        |-- 🖼️ alone-forest-mountain-top-scenery-4k-wallpaper-uhdpaper.com-487@5@e.jpg (1.71 MB)
+        |-- 🖼️ alone-guy-car-night-moon-sky-stars-scenery-digital-art-4k-wallpaper-uhdpaper.com-212@5@k.jpg (2.61 MB)
+        |-- 🖼️ alone-night-city-sunrise-digital-art-4k-wallpaper-uhdpaper.com-199@5@k.jpg (1.80 MB)
+        |-- 🖼️ alone-night-space-planet-digital-art-4k-wallpaper-uhdpaper.com-132@5@r.jpg (1.64 MB)
+        |-- 🖼️ alone-standing-purple-wave-digital-art-8k-wallpaper-uhdpaper.com-70@1@o.jpg (8.44 MB)
+        |-- 🖼️ anime-yokai-mask-katana-4k-wallpaper-uhdpaper.com-136@5@q.jpg (1.25 MB)
+        |-- 🖼️ astronaut-hanging-in-the-moon-4k-wallpaper-uhdpaper.com-812@5@l.jpg (228.72 KB)
+        |-- 🖼️ astronaut-spaceship-digital-art-00-4k-wallpaper-uhdpaper.com-248@5@i.jpg (1.72 MB)
+        |-- 🖼️ autumn-leaves-nature-scenery-8k-wallpaper-uhdpaper.com-542@2@a.jpg (4.26 MB)
+        |-- 🖼️ beautiful-mountain-nature-colorful-scenery-minimalist-uhdpaper.com-4K-4.3057.jpg (1.88 MB)
+        |-- 🖼️ bird-branch-animal-4k-wallpaper-uhdpaper.com-745@3@a.jpg (1.10 MB)
+        |-- 🖼️ black-cat-animal-digital-art-4k-wallpaper-uhdpaper.com-80@5@h.jpg (1.92 MB)
+        |-- 🖼️ black-cat-digital-art-4k-wallpaper-uhdpaper.com-940@5@m.jpg (197.74 KB)
+        |-- 🖼️ black-cat-minimalist-digital-art-4k-wallpaper-uhdpaper.com-101@5@h.jpg (340.83 KB)
+        |-- 🖼️ blue-birds-animals-4k-wallpaper-uhdpaper.com-724@2@b.jpg (1.57 MB)
+        |-- 🖼️ car-night-street-digital-art-4k-wallpaper-uhdpaper.com-16@0@j.jpg (1.82 MB)
+        |-- 🖼️ cave-icicle-sunrise-scenery-4k-wallpaper-uhdpaper.com-187@5@s.jpg (1.88 MB)
+        |-- 🖼️ city-skyline-buildings-scenery-4k-wallpaper-uhdpaper.com-874@5@m.jpg (3.18 MB)
+        |-- 🖼️ coffee-love-design-digital-art-4k-wallpaper-uhdpaper.com-139@5@g.jpg (2.10 MB)
+        |-- 🖼️ comet-watching-couple-night-scenery-digital-art-4k-wallpaper-uhdpaper.com-295@5@j.jpg (1.90 MB)
+        |-- 🖼️ cyberpunk-2077-car-4k-wallpaper-uhdpaper.com-800@5@l.jpg (1.67 MB)
+        |-- 🖼️ cyberpunk-girl-playing-guitar-with-cat-4k-wallpaper-uhdpaper.com-81@0@h.jpg (1.91 MB)
+        |-- 🖼️ deer-silhouette-mountain-forest-nature-minimalist-digital-art-4k-wallpaper-uhdpaper.com-701@1@k.jpg (1.84 MB)
+        |-- 🖼️ denji-chainsaw-man-minimalist-4k-wallpaper-uhdpaper.com-82@5@i.jpg (487.10 KB)
+        |-- 🖼️ desert-alone-scenery-4k-wallpaper-uhdpaper.com-875@5@m.jpg (1.29 MB)
+        |-- 🖼️ desert-mountain-scenery-4k-wallpaper-uhdpaper.com-876@5@m.jpg (1.95 MB)
+        |-- 🖼️ desert-night-moon-scenery-digital-art-4k-wallpaper-uhdpaper.com-445@5@c.jpg (1.38 MB)
+        |-- 🖼️ diablo-4-hell-4k-wallpaper-uhdpaper.com-87@1@k.jpg (1.86 MB)
+        |-- 🖼️ eagle-flying-forest-fog-4k-wallpaper-uhdpaper.com-162@2@a.jpg (1.63 MB)
+        |-- 🖼️ ethereum-background-4k-wallpaper-uhdpaper.com-918@0@f.jpg (1.49 MB)
+        |-- 🖼️ f1-24-racing-game-4k-wallpaper-uhdpaper.com-758@0@j.jpg (2.12 MB)
+        |-- 🖼️ f1-24-racing-video-game-4k-wallpaper-uhdpaper.com-754@0@j.jpg (1.90 MB)
+        |-- 🖼️ f1-movie-4k-wallpaper-uhdpaper.com-588@5@g.jpg (655.56 KB)
+        |-- 🖼️ f1-sports-car-racing-4k-wallpaper-uhdpaper.com-93@5@h.jpg (1.80 MB)
+        |-- 🖼️ fighter-aircraft-flying-sky-clouds-digital-art-4k-wallpaper-uhdpaper.com-247@0@k.jpg (1.73 MB)
+        |-- 🖼️ fighter-jet-flying-clouds-sky-digital-art-4k-wallpaper-uhdpaper.com-259@0@k.jpg (1.85 MB)
+        |-- 🖼️ flower-field-tulips-sunrise-windmill-nature-scenery-4k-wallpaper-uhdpaper.com-285@5@i.jpg (2.64 MB)
+        |-- 🖼️ flower-sunset-scenery-4k-wallpaper-uhdpaper.com-943@5@m.jpg (1.76 MB)
+        |-- 🖼️ forest-aerial-view-nature-scenery-4k-wallpaper-uhdpaper.com-816@0@g.jpg (4.40 MB)
+        |-- 🖼️ forest-lake-nature-cloudy-sky-scenery-4k-wallpaper-uhdpaper.com-185@5@s.jpg (2.58 MB)
+        |-- 🖼️ forza-horizon-6-car-race-4k-wallpaper-uhdpaper.com-177@5@p.jpg (1.53 MB)
+        |-- 🖼️ forza-horizon-6-game-cars-4k-wallpaper-uhdpaper.com-175@5@p.jpg (1.14 MB)
+        |-- 🖼️ forza-horizon-6-japan-road-4k-wallpaper-uhdpaper.com-169@5@p.jpg (2.92 MB)
+        |-- 🖼️ forza-horizon-6-japan-scenery-4k-wallpaper-uhdpaper.com-174@5@p.jpg (1.57 MB)
+        |-- 🖼️ forza-horizon-6-nissan-sports-car-4k-wallpaper-uhdpaper.com-187@5@p.jpg (1.46 MB)
+        |-- 🖼️ forza-horizon-6-porsche-cherry-blossom-4k-wallpaper-uhdpaper.com-185@5@p.jpg (1.93 MB)
+        |-- 🖼️ forza-horizon-6-sports-car-4k-wallpaper-uhdpaper.com-184@5@p.jpg (1.15 MB)
+        |-- 🖼️ frieren-anime-sunrise-scenery-4k-wallpaper-uhdpaper.com-759@5@r.jpg (1.72 MB)
+        |-- 🖼️ geralt-the-witcher-minimalist-moon-night-uhdpaper.com-4K-8.300.jpg (763.98 KB)
+        |-- 🖼️ geralt-the-witcher-minimalist-uhdpaper.com-4K-6.2513.jpg (1.67 MB)
+        |-- 🖼️ ghost-of-yotei-game-flower-scenery-4k-wallpaper-uhdpaper.com-560@5@i.jpg (2.19 MB)
+        |-- 🖼️ ghost-of-yotei-mountain-scenery-4k-wallpaper-uhdpaper.com-556@5@i.jpg (2.10 MB)
+        |-- 🖼️ glacier-mountain-scenery-4k-wallpaper-uhdpaper.com-233@5@b.jpg (1.61 MB)
+        |-- 🖼️ golden-gate-bridge-san-francisco-scenery-4k-wallpaper-uhdpaper.com-517@5@k.jpg (1.43 MB)
+        |-- 🖼️ horse-sunset-flowers-animal-4k-wallpaper-uhdpaper.com-241@3@a.jpg (1.89 MB)
+        |-- 🖼️ island-night-moon-scenery-digital-art-8k-wallpaper-uhdpaper.com-289@0@j.jpg (3.51 MB)
+        |-- 🖼️ japan-bridge-city-sunset-akashi-kaikyo-scenery-4k-wallpaper-uhdpaper.com-180@5@s.jpg (1.80 MB)
+        |-- 🖼️ jellyfish-digital-art-4k-wallpaper-uhdpaper.com-95@5@h.jpg (1.16 MB)
+        |-- 🖼️ jet-fighter-ace-combat-7-4k-wallpaper-uhdpaper.com-748@5@r.jpg (1.75 MB)
+        |-- 🖼️ lake-fog-nature-scenery-4k-wallpaper-uhdpaper.com-878@5@m.jpg (901.86 KB)
+        |-- 🖼️ lake-reflection-forest-nature-mountain-scenery-4k-wallpaper-uhdpaper.com-104@5@a.jpg (1.64 MB)
+        |-- 🖼️ landscape-minimalist-nature-mountain-art-uhdpaper.com-4K-8.1381.jpg (1.70 MB)
+        |-- 🖼️ lion-minimalist-animal-4k-wallpaper-uhdpaper.com-599@5@f.jpg (1.77 MB)
+        |-- 🖼️ lofi-girl-cat-night-fireworks-4k-wallpaper-uhdpaper.com-504@5@f.jpg (1.62 MB)
+        |-- 🖼️ london-bridge-clock-tower-scenery-4k-wallpaper-uhdpaper.com-182@5@s.jpg (1.87 MB)
+        |-- 🖼️ men-mountain-backpack-silhouette-moon-minimalist-uhdpaper.com-4K-8.292.jpg (1.75 MB)
+        |-- 🖼️ minimalist-background-morning-breeze-digital-art-4k-wallpaper-uhdpaper.com-192@0@e.jpg (1.70 MB)
+        |-- 🖼️ minimalist-background-scenery-digital-art-4k-wallpaper-uhdpaper.com-196@0@e.jpg (1.53 MB)
+        |-- 🖼️ minimalist-background-twilight-breeze-digital-art-4k-wallpaper-uhdpaper.com-193@0@e.jpg (1.66 MB)
+        |-- 🖼️ minimalist-moon-night-river-landscape-scenery-uhdpaper.com-4K-8.270.jpg (1.29 MB)
+        |-- 🖼️ moon-ocean-girl-violin-boat-night-scenery-digital-art-4k-wallpaper-uhdpaper.com-196@5@k.jpg (1.98 MB)
+        |-- 🖼️ morning-scenery-minimalist-digital-art-4k-wallpaper-3840x2160-uhdpaper.com-614.0_b.jpg (1.33 MB)
+        |-- 🖼️ mount-fuji-hot-air-balloon-scenery-4k-wallpaper-uhdpaper.com-880@5@m.jpg (1.44 MB)
+        |-- 🖼️ mountain-clouds-scenery-nature-forest-4k-wallpaper-3840x2160-uhdpaper.com-433.0_b.jpg (2.04 MB)
+        |-- 🖼️ mountain-forest-fog-hammock-scenery-4k-wallpaper-uhdpaper.com-122@5@q.jpg (2.01 MB)
+        |-- 🖼️ mountain-forest-scenery-digital-art-4k-wallpaper-uhdpaper.com-947@5@m.jpg (886.09 KB)
+        |-- 🖼️ mountain-lake-reflection-nature-scenery-4k-wallpaper-uhdpaper.com-385@0@h.jpg (1.74 MB)
+        |-- 🖼️ mountain-lake-scenery-minimalist-digital-art-4k-wallpaper-uhdpaper.com-244@0@f.jpg (1.54 MB)
+        |-- 🖼️ mountain-landscape-minimalist-scenery-digital-art-4k-wallpaper-3840x2160-uhdpaper.com-633.0_b.jpg (1.02 MB)
+        |-- 🖼️ mountain-landscape-scenery-digital-art-4k-wallpaper-uhdpaper.com-208@5@q.jpg (1.18 MB)
+        |-- 🖼️ mountain-night-aurora-borealis-digital-scenery-art-4k-wallpaper-uhdpaper.com-649@2@b.jpg (1.75 MB)
+        |-- 🖼️ mountain-rock-forest-nature-scenery-4k-wallpaper-uhdpaper.com-134@0@i.jpg (2.92 MB)
+        |-- 🖼️ mountains-clouds-scenery-4k-wallpaper-uhdpaper.com-155@5@g.jpg (1.55 MB)
+        |-- 🖼️ nature-minimalist-scenery-silhouette-uhdpaper.com-4K-8.307.jpg (1.91 MB)
+        |-- 🖼️ nature-rice-terraces-mountain-landscape-digital-art-uhdpaper.com-4K-6.1247.jpg (1.99 MB)
+        |-- 🖼️ night-city-moon-digital-art-minimalist-uhdpaper.com-4K-6.2506.jpg (1.86 MB)
+        |-- 🖼️ night-firewatch-scenery-forest-nature-4k-wallpaper-uhdpaper.com-418@5@d.jpg (1.90 MB)
+        |-- 🖼️ night-fireworks-coupe-digital-art-4k-wallpaper-uhdpaper.com-950@5@m.jpg (1.91 MB)
+        |-- 🖼️ night-forest-mountain-digital-art-scenery-4k-wallpaper-uhdpaper.com-951@5@m.jpg (1.05 MB)
+        |-- 🖼️ night-moon-castle-digital-art-4k-wallpaper-uhdpaper.com-952@5@m.jpg (1.40 MB)
+        |-- 🖼️ night-moon-reflection-scenery-digital-art-4k-wallpaper-uhdpaper.com-869@5@m.jpg (1.87 MB)
+        |-- 🖼️ night-mountain-scenery-4k-wallpaper-uhdpaper.com-128@5@q.jpg (1.80 MB)
+        |-- 🖼️ night-sky-stars-mountain-scenery-4k-wallpaper-uhdpaper.com-189@5@s.jpg (3.00 MB)
+        |-- 🖼️ night-stars-mountain-scenery-4k-wallpaper-uhdpaper.com-277@5@d.jpg (2.42 MB)
+        |-- 🖼️ north-star-winter-mountain-scenery-4k-wallpaper-uhdpaper.com-107@5@k.jpg (1.50 MB)
+        |-- 🖼️ ocean-car-floating-full-moon-scenery-digital-art-4k-wallpaper-uhdpaper.com-664@0@j.jpg (1.69 MB)
+        |-- 🖼️ ocean-waves-beach-moon-night-scenery-digital-art-4k-wallpaper-uhdpaper.com-546@2@a.jpg (2.39 MB)
+        |-- 🖼️ old-ship-sunset-ocean-digital-art-4k-wallpaper-uhdpaper.com-106@5@h.jpg (1.80 MB)
+        |-- 🖼️ paris-sunset-scenery-4k-wallpaper-uhdpaper.com-178@5@s.jpg (1.86 MB)
+        |-- 🖼️ parrot-bird-flying-animal-4k-wallpaper-uhdpaper.com-159@5@g.jpg (1.76 MB)
+        |-- 🖼️ pochita-chainsaw-man-4k-wallpaper-uhdpaper.com-364@5@q.jpg (327.92 KB)
+        |-- 🖼️ rick-and-morty-minimalist-synthwave-8k-wallpaper-7680x4320-uhdpaper.com-454.0_b.jpg (2.71 MB)
+        |-- 🖼️ rio-de-janeiro-city-jesus-christ-statue-scenery-4k-wallpaper-uhdpaper.com-192@5@s.jpg (1.94 MB)
+        |-- 🖼️ rose-flower-close-up-nature-digital-art-4k-wallpaper-uhdpaper.com-417@5@d.jpg (2.51 MB)
+        |-- 🖼️ scary-house-halloween-night-moon-scenery-digital-art-4k-wallpaper-uhdpaper.com-849@1@m.jpg (1.95 MB)
+        |-- 🖼️ sci-fi-star-citizen-aircraft-uhdpaper.com-4K-4.16.jpg (1.66 MB)
+        |-- 🖼️ Screenshot (72).png (62.38 KB)
+        |-- 🖼️ sea-nature-trees-sunset-scenery-uhdpaper.com-4K-6.956.jpg (1.63 MB)
+        |-- 🖼️ sea-of-clouds-nature-scenery-4k-wallpaper-uhdpaper.com-886@5@m.jpg (1.63 MB)
+        |-- 🖼️ sekiro-game-castle-scenery-4k-wallpaper-uhdpaper.com-621@5@n.jpg (1.59 MB)
+        |-- 🖼️ skull-digital-art-4k-wallpaper-uhdpaper.com-271@5@i.jpg (1.60 MB)
+        |-- 🖼️ snowman-christmas-holiday-4k-wallpaper-uhdpaper.com-100@5@k.jpg (1.38 MB)
+        |-- 🖼️ snowy-mountain-night-scenery-4k-wallpaper-uhdpaper.com-313@5@o.jpg (713.37 KB)
+        |-- 🖼️ soldiers-night-ops-digital-art-4k-wallpaper-uhdpaper.com-90@5@l.jpg (894.46 KB)
+        |-- 🖼️ spiderman-minimalist-4k-wallpaper-uhdpaper.com-109@5@h.jpg (820.49 KB)
+        |-- 🖼️ starfield-shattered-space-8k-wallpaper-uhdpaper.com-171@2@b.jpg (6.06 MB)
+        |-- 🖼️ starfield-spaceship-game-4k-wallpaper-uhdpaper.com-786@1@l.jpg (1.92 MB)
+        |-- 🖼️ starry-sky-night-lake-nature-scenery-4k-wallpaper-uhdpaper.com-576@5@h.jpg (1.98 MB)
+        |-- 🖼️ sunrise-grass-field-tree-scenery-4k-wallpaper-uhdpaper.com-284@5@d.jpg (2.47 MB)
+        |-- 🖼️ sunrise-mountain-forest-scenery-4k-wallpaper-uhdpaper.com-312@5@o.jpg (1.68 MB)
+        |-- 🖼️ sunrise-mountain-scenery-4k-wallpaper-uhdpaper.com-444@5@c.jpg (1.01 MB)
+        |-- 🖼️ sunset-lake-boat-night-sky-scenery-digital-art-4k-wallpaper-uhdpaper.com-395@3@b.jpg (1.63 MB)
+        |-- 🖼️ sunset-night-scenery-digital-art-4k-wallpaper-uhdpaper.com-442@5@r.jpg (1.18 MB)
+        |-- 🖼️ sunset-river-scenery-digital-art-4k-wallpaper-uhdpaper.com-960@5@m.jpg (1.57 MB)
+        |-- 🖼️ sunset-scenery-digital-art-4k-wallpaper-uhdpaper.com-888@5@l.jpg (1.22 MB)
+        |-- 🖼️ sunset-sports-car-road-palm-trees-digital-art-4k-wallpaper-uhdpaper.com-226@0@k.jpg (1.81 MB)
+        |-- 🖼️ sunset-tree-mountain-peak-scenery-4k-wallpaper-uhdpaper.com-106@5@a.jpg (1.13 MB)
+        |-- 🖼️ t-rex-jurrasic-park-4k-wallpaper-uhdpaper.com-28@5@l.jpg (1.73 MB)
+        |-- 🖼️ the-mandalorian-minimalist-uhdpaper.com-4K-7.2788.jpg (1.29 MB)
+        |-- 🖼️ tree-landscape-scenery-digital-art-8k-wallpaper-uhdpaper.com-252@5@i.jpg (3.10 MB)
+        |-- 🖼️ tree-mountain-sunset-nature-scenery-4k-wallpaper-uhdpaper.com-645@2@b.jpg (1.83 MB)
+        |-- 🖼️ trees-grassfield-landscape-scenery-4k-wallpaper-uhdpaper.com-188@5@l.jpg (2.48 MB)
+        |-- 🖼️ volcanic-cloud-sunrise-scenery-digital-art-4k-wallpaper-uhdpaper.com-213@5@k.jpg (1.77 MB)
+        |-- 🖼️ wallhaven-5g3239.png (9.82 MB)
+        |-- 🖼️ wallhaven-9dzx7d.jpg (1.79 MB)
+        |-- 🖼️ wallhaven-9omr8k.png (1.92 MB)
+        |-- 🖼️ wallhaven-d83m63.jpg (306.21 KB)
+        |-- 🖼️ wallhaven-e8xoz8.png (6.16 MB)
+        |-- 🖼️ wallhaven-je866m.jpg (7.68 MB)
+        |-- 🖼️ wallhaven-k8zpr1.jpg (2.62 MB)
+        |-- 🖼️ wallhaven-k921md.jpg (377.97 KB)
+        |-- 🖼️ wallhaven-m3kw28.jpg (2.08 MB)
+        |-- 🖼️ wallhaven-qrgl87.jpg (5.98 MB)
+        |-- 🖼️ wallhaven-vq5odm.jpg (3.99 MB)
+        |-- 🖼️ wallhaven-xe85ko.jpg (1.27 MB)
+        |-- 🖼️ wallhaven-zpoxyj.png (1.03 MB)
+        |-- 🖼️ Wallpaper1.jpg (1.39 MB)
+        |-- 🖼️ Wallpaper10.jpg (1.55 MB)
+        |-- 🖼️ Wallpaper11.png (1.05 MB)
+        |-- 🖼️ Wallpaper2.jpg (3.46 MB)
+        |-- 🖼️ Wallpaper3.jpg (1.74 MB)
+        |-- 🖼️ Wallpaper4.jpg (530.11 KB)
+        |-- 🖼️ Wallpaper5.jpg (1.38 MB)
+        |-- 🖼️ Wallpaper6.jpg (1.09 MB)
+        |-- 🖼️ Wallpaper7.jpg (1.47 MB)
+        |-- 🖼️ Wallpaper8.jpg (1.10 MB)
+        |-- 🖼️ windows-clear-blue-sky-landscape-grassfield-digital-art-8k-wallpaper-uhdpaper.com-111@5@l.jpg (7.58 MB)
+        |-- 🖼️ winter-night-digital-art-scenery-4k-wallpaper-uhdpaper.com-108@5@k.jpg (1.71 MB)
+        |-- 🖼️ winter-night-north-star-digital-art-scenery-4k-wallpaper-uhdpaper.com-111@5@k.jpg (1.83 MB)
+    |-- 📄 !START_Horizon_Browser.lnk (1.44 KB)
+    |-- 📄 .gitignore (31.00 B)
+    |-- 📝 _SmartCopy.config.txt (277.00 B)
+    |-- 📄 App.xaml (576.00 B)
+    |-- 📄 App.xaml.cs (20.46 KB)
+    |-- ⚙️ backup.bat (1.87 KB)
+    |-- ⚙️ Build_Release.bat (4.77 KB)
+    |-- 📝 changelog.txt (99.00 B)
+    |-- 📄 cookies.json (1.55 KB)
+    |-- 📝 default_settings.txt (18.49 KB)
+    |-- 📄 dir (0.00 B)
+    |-- 📝 emergency_log_failure.txt (144.00 B)
+    |-- 📝 extra_files.txt (60.00 B)
+    |-- 📝 extra_folders.txt (11.00 B)
+    |-- 📄 global.json (75.00 B)
+    |-- 📄 history.json (971.00 B)
+    |-- 📄 Horizon.Browser.csproj (1.84 KB)
+    |-- 📄 Horizon.Browser.exe.lnk (2.04 KB)
+    |-- 📄 horizon.conf (746.00 B)
+    |-- 📄 install_auto.ps1 (4.69 KB)
+    |-- 🎬 last.mp4 (13.60 MB)
+    |-- 📄 LICENSE (18.00 KB)
+    |-- 📄 LICENSE.rtf (63.28 KB)
+    |-- 📝 LICENSE.txt (18.00 KB)
+    |-- ⚙️ maintenance_tool.bat (73.00 B)
+    |-- 📄 MainWindow.AdvancedCalc.cs (42.66 KB)
+    |-- 📄 MainWindow.FullscreenTransition.cs (5.32 KB)
+    |-- 📄 MainWindow.Widgets.cs (140.46 KB)
+    |-- 📄 MainWindow.xaml (148.54 KB)
+    |-- 📄 MainWindow.xaml.cs (546.76 KB)
+    |-- 📄 MainWindow.xaml.cs.bak (206.10 KB)
+    |-- ⚙️ manage_build_files.bat (7.68 KB)
+    |-- 📝 mapper_exclusions.txt (22.00 B)
+    |-- 📄 overlay.hta (4.00 KB)
+    |-- 📝 path.txt (85.00 B)
+    |-- 📝 PRIVACY_POLICY.md (2.66 KB)
+    |-- 📝 project_map_1791027878.txt (0.00 B)
+    |-- 💻 project_mapper.py (20.83 KB)
+    |-- 💻 push_to_github.py (19.87 KB)
+    |-- 📝 README.md (3.11 KB)
+    |-- ⚙️ restore.bat (1.38 KB)
+    |-- 📄 Setup_Horizon_Browser_Official_Release.iss (3.81 KB)
+    |-- ⚙️ start_mapper.bat (1.42 KB)
+    |-- 📝 TERMS_OF SERVICE.txt (4.06 KB)
+    |-- 📝 update.txt (47.00 B)
+    |-- ⚙️ Update_manager.bat (8.54 KB)
+    |-- ⚙️ update_orchestrator.bat (923.00 B)
+    |-- 📝 update_status.txt (54.00 B)
+    |-- 📝 version.txt (29.00 B)

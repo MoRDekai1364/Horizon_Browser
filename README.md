@@ -76,3 +76,8 @@ Before updating to a new version, run **`Update_manager.bat`** and follow the on
 - Copy, preview, cut & paste file operations in the downloads sidebar
 - Shift-click / Ctrl-click tab multi-selection
 - Improved cookie blocking
+- Homepage favorites and bookmarks arranged in compact group blocks that pack together like a puzzle, with block size based on item count
+- Bookmarks grouped by website domain on the homepage
+- Collapsible homepage groups (click a group header), animated with the same curve as the header widget widening
+- Five collapsed group styles, selectable in homepage settings (WIDGETS tab): header only, first row, stacked preview, mini folder, full
+- Homepage lists show every item, no 6-item limit

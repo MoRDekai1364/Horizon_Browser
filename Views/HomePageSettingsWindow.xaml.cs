@@ -98,8 +98,11 @@ public partial class HomePageSettingsWindow : Window
         "Calibri", "Cambria", "Arial", "Georgia", "Consolas", "Trebuchet MS"
     };
 
-    private static readonly string[] GroupStyleChoices = { "Header only", "First row", "Stacked preview", "Mini folder", "Full (all icons, no collapsing)" };
-    private static readonly string[] GroupStyleValues  = { "HeaderOnly", "FirstRow", "Stack", "Mini", "Full" };
+    private static readonly string[] GroupStyleChoices = { "Folder cards", "Header only", "First row", "Stacked preview", "Mini folder", "Full (all icons, no collapsing)" };
+    private static readonly string[] GroupStyleValues  = { "Folder", "HeaderOnly", "FirstRow", "Stack", "Mini", "Full" };
+
+    private static readonly string[] BookmarkGroupingChoices = { "By website", "Recent / Older", "One block, newest first" };
+    private static readonly string[] BookmarkGroupingValues  = { "Domain", "RecentOlder", "Single" };
 
     private static readonly string[] VisualizerScopeChoices = { "Everywhere", "Media Tab Only", "Selected Websites" };
     private static readonly string[] VisualizerScopeValues  = { "Everywhere", "MediaTabOnly", "SelectedWebsites" };
@@ -246,6 +249,10 @@ public partial class HomePageSettingsWindow : Window
         int groupStyleIdx = Array.IndexOf(GroupStyleValues, s.HomeGroupStyle);
         CmbGroupStyle.SelectedIndex = groupStyleIdx >= 0 ? groupStyleIdx : 0;
 
+        CmbBookmarkGrouping.ItemsSource = BookmarkGroupingChoices;
+        int bookmarkGroupingIdx = Array.IndexOf(BookmarkGroupingValues, s.HomeBookmarkGrouping);
+        CmbBookmarkGrouping.SelectedIndex = bookmarkGroupingIdx >= 0 ? bookmarkGroupingIdx : 0;
+
         _loadingToggles = false;
     }
 
@@ -277,6 +284,15 @@ public partial class HomePageSettingsWindow : Window
         int idx = CmbGroupStyle.SelectedIndex;
         if (idx < 0 || idx >= GroupStyleValues.Length) return;
         SettingsService.Current.HomeGroupStyle = GroupStyleValues[idx];
+        SettingsService.Save();
+    }
+
+    private void CmbBookmarkGrouping_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_loadingToggles) return;
+        int idx = CmbBookmarkGrouping.SelectedIndex;
+        if (idx < 0 || idx >= BookmarkGroupingValues.Length) return;
+        SettingsService.Current.HomeBookmarkGrouping = BookmarkGroupingValues[idx];
         SettingsService.Save();
     }
 

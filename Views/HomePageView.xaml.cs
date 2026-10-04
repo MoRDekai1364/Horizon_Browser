@@ -14,6 +14,7 @@ using System.Windows.Media.Animation;
 using System.Windows.Threading;
 using System.Windows.Data;
 using System.ComponentModel;
+using Horizon.Stealth.Controls;
 using Horizon.Stealth.Services;
 
 namespace Horizon.Stealth.Views;
@@ -36,6 +37,8 @@ public partial class HomePageView : UserControl
     private string _bookmarksSig = "";
     private readonly HashSet<string> _collapsedFavoriteGroups = new();
     private readonly HashSet<string> _collapsedBookmarkGroups = new();
+    private readonly HashSet<string> _openFavoriteGroups = new();
+    private readonly HashSet<string> _openBookmarkGroups = new();
     private readonly HashSet<GroupItem> _animatingGroups = new();
     private DispatcherTimer? _inactivityTimer;
     private Color _lastPillBg = Color.FromArgb(0x80, 0x00, 0x00, 0x00);
@@ -67,11 +70,14 @@ public partial class HomePageView : UserControl
                 WeatherBridge.SetWallpaperSurface(null);
         };
         PnlClockWeather.SizeChanged += (_, __) => UpdateClockWeatherIslandBounds();
+        SizeChanged += (_, __) => ApplyScrollCap();
         PnlClockWeather.SizeChanged += (_, __) => ReanchorInactivityMedia();
         IsVisibleChanged += (_, e) =>
         {
             if (!IsVisible) return;
             RefreshSearchEngineList();
+            RefreshFavorites();
+            RefreshBookmarks();
             WeatherBridge.SetWallpaperSurface(RootHomeGrid);
             if (BgImageBrush.ImageSource is BitmapSource ownBitmap) WeatherBridge.SetWallpaper(ownBitmap);
             if (_lastAdaptiveAvgColor.HasValue) PublishWeatherTheme(_lastAdaptiveAvgColor.Value);
@@ -193,7 +199,11 @@ public partial class HomePageView : UserControl
             CollapseContainer(PnlBookmarksContainer, transformDuration);
             _favoritesExpanded = true;
             PnlFavoritesContainer.Margin = new Thickness(0, 10, 0, 0);
-            if (ScvFavorites != null) ScvFavorites.MaxHeight = ComputeExpandedScrollMaxHeight();
+            if (ScvFavorites != null)
+            {
+                PuzzlePanel.SetViewportBudget(ScvFavorites, 0);
+                ScvFavorites.MaxHeight = ComputeExpandedScrollMaxHeight();
+            }
             TxtToggleFavorites.Text = "▲ Show less";
             RefreshFavorites();
         }
@@ -202,7 +212,11 @@ public partial class HomePageView : UserControl
             CollapseContainer(PnlFavoritesContainer, transformDuration);
             _bookmarksExpanded = true;
             PnlBookmarksContainer.Margin = new Thickness(0, 10, 0, 0);
-            if (ScvBookmarks != null) ScvBookmarks.MaxHeight = ComputeExpandedScrollMaxHeight();
+            if (ScvBookmarks != null)
+            {
+                PuzzlePanel.SetViewportBudget(ScvBookmarks, 0);
+                ScvBookmarks.MaxHeight = ComputeExpandedScrollMaxHeight();
+            }
             TxtToggleBookmarks.Text = "▲ Show less";
             RefreshBookmarks();
         }
@@ -1685,32 +1699,84 @@ public partial class HomePageView : UserControl
             }
 
             var displayList = list;
-            var domainCounts = BookmarkService.Items
-                .GroupBy(b => DomainOf(b.Url))
-                .ToDictionary(g => g.Key, g => g.Count());
-            foreach (var b in displayList)
+            string groupingMode = SettingsService.Current.HomeBookmarkGrouping;
+            bool oldestFirst = _inFocusMode && _focusWidgetName == "Bookmarks" && (CmbCategoryFilter.SelectedItem as string) == "Older";
+            List<BookmarkItem> ordered;
+            if (groupingMode == "Single")
             {
-                string domain = DomainOf(b.Url);
-                b.GroupKey = domainCounts.TryGetValue(domain, out int domainCount) && domainCount > 1 ? domain : "Other";
+                foreach (var b in displayList) b.GroupKey = "All bookmarks";
+                ordered = (oldestFirst
+                    ? displayList.OrderBy(b => b.DateAdded)
+                    : displayList.OrderByDescending(b => b.DateAdded)).ToList();
+            }
+            else if (groupingMode == "RecentOlder")
+            {
+                ordered = BuildRecentOlder(displayList, oldestFirst);
+            }
+            else
+            {
+                var domainCounts = BookmarkService.Items
+                    .GroupBy(b => DomainOf(b.Url))
+                    .ToDictionary(g => g.Key, g => g.Count());
+                foreach (var b in displayList)
+                {
+                    string domain = DomainOf(b.Url);
+                    b.GroupKey = domainCounts.TryGetValue(domain, out int domainCount) && domainCount > 1 ? domain : "Other";
+                }
+
+                ordered = displayList
+                    .GroupBy(b => b.GroupKey)
+                    .OrderBy(g => g.Key == "Other" ? 1 : 0)
+                    .ThenByDescending(g => g.Count())
+                    .ThenBy(g => g.Key, StringComparer.OrdinalIgnoreCase)
+                    .SelectMany(g => g)
+                    .ToList();
             }
 
-            var ordered = displayList
-                .GroupBy(b => b.GroupKey)
-                .OrderBy(g => g.Key == "Other" ? 1 : 0)
-                .ThenByDescending(g => g.Count())
-                .ThenBy(g => g.Key, StringComparer.OrdinalIgnoreCase)
-                .SelectMany(g => g)
-                .ToList();
-
-            string bookmarksSig = string.Join("\u0001", ordered.Select(b => b.GroupKey + "\u0002" + b.Name + "\u0002" + b.Url + "\u0002" + b.IconPath));
+            string bookmarksSig = groupingMode + "\u0003" + SettingsService.Current.HomeGroupStyle + "\u0003" + string.Join("\u0001", ordered.Select(b => b.GroupKey + "\u0002" + b.Name + "\u0002" + b.Url + "\u0002" + b.IconPath));
             if (bookmarksSig == _bookmarksSig && IcnBookmarks.ItemsSource != null) return;
             _bookmarksSig = bookmarksSig;
 
+            GroupState.SetIsFolder(IcnBookmarks, FolderStyle);
             var bookmarksView = new CollectionViewSource { Source = ordered }.View;
             bookmarksView.GroupDescriptions.Clear();
             bookmarksView.GroupDescriptions.Add(new PropertyGroupDescription(nameof(BookmarkItem.GroupKey)));
             IcnBookmarks.ItemsSource = bookmarksView;
         });
+    }
+
+    private static List<BookmarkItem> BuildRecentOlder(List<BookmarkItem> items, bool oldestFirst)
+    {
+        var allDates = BookmarkService.Items.Select(b => b.DateAdded).ToList();
+        if (allDates.Count == 0) return items;
+        DateTime newest = allDates.Max();
+        DateTime oldest = allDates.Min();
+        DateTime cutoff = oldest + TimeSpan.FromTicks((newest - oldest).Ticks / 2);
+        string newerTitle = NewerGroupTitle(newest - cutoff);
+        foreach (var b in items) b.GroupKey = b.DateAdded >= cutoff ? newerTitle : "Older";
+        var newer = items.Where(b => b.DateAdded >= cutoff);
+        var older = items.Where(b => b.DateAdded < cutoff);
+        var result = oldestFirst
+            ? newer.OrderBy(b => b.DateAdded).Concat(older.OrderBy(b => b.DateAdded))
+            : newer.OrderByDescending(b => b.DateAdded).Concat(older.OrderByDescending(b => b.DateAdded));
+        return result.ToList();
+    }
+
+    private static string NewerGroupTitle(TimeSpan span)
+    {
+        double days = Math.Max(span.TotalDays, 0);
+        double value;
+        string unit;
+        if (days < 14) { value = days; unit = "day"; }
+        else if (days <= 56) { value = days / 7; unit = "week"; }
+        else if (days <= 24 * 30.4375) { value = days / 30.4375; unit = "month"; }
+        else if (days <= 20 * 365.25) { value = days / 365.25; unit = "year"; }
+        else if (days <= 100 * 365.25) { value = days / 3652.5; unit = "decade"; }
+        else { value = days / 36525; unit = "millennium"; }
+        int n = Math.Max(1, (int)Math.Round(value, MidpointRounding.AwayFromZero));
+        if (n == 1) return "Newer (last " + unit + ")";
+        string plural = unit == "millennium" ? "millennia" : unit + "s";
+        return "Newer (last " + n + " " + plural + ")";
     }
 
     private static string GroupKeyOf(GroupItem group)
@@ -1733,9 +1799,27 @@ public partial class HomePageView : UserControl
         if (sender is not GroupItem group) return;
         var owner = OwnerItemsControl(group);
         if (owner == null) return;
-        var collapsed = owner == IcnColumns ? _collapsedFavoriteGroups : _collapsedBookmarkGroups;
-        if (SettingsService.Current.HomeGroupStyle != "Full" && collapsed.Contains(GroupKeyOf(group)))
+        GroupState.SetIsFolder(group, FolderStyle);
+        if (!FullStyle && IsGroupCollapsed(owner, GroupKeyOf(group)))
             ApplyGroupVisual(group, true);
+    }
+
+    private bool IsGroupCollapsed(ItemsControl owner, string key)
+    {
+        if (FolderStyle) return !(owner == IcnColumns ? _openFavoriteGroups : _openBookmarkGroups).Contains(key);
+        return (owner == IcnColumns ? _collapsedFavoriteGroups : _collapsedBookmarkGroups).Contains(key);
+    }
+
+    private void SetGroupCollapsed(ItemsControl owner, string key, bool collapse)
+    {
+        if (FolderStyle)
+        {
+            var open = owner == IcnColumns ? _openFavoriteGroups : _openBookmarkGroups;
+            if (collapse) open.Remove(key); else open.Add(key);
+            return;
+        }
+        var collapsedSet = owner == IcnColumns ? _collapsedFavoriteGroups : _collapsedBookmarkGroups;
+        if (collapse) collapsedSet.Add(key); else collapsedSet.Remove(key);
     }
 
     private static DoubleAnimation GroupHeightAnimation(double to)
@@ -1748,9 +1832,20 @@ public partial class HomePageView : UserControl
 
     private static bool FullStyle => SettingsService.Current.HomeGroupStyle == "Full";
 
+    private static bool FolderStyle => SettingsService.Current.HomeGroupStyle == "Folder";
+
     private void ApplyScrollCap()
     {
         if (_inFocusMode || ScvFavorites == null || ScvBookmarks == null) return;
+        if (FolderStyle)
+        {
+            double budget = Math.Max(160, ComputeExpandedScrollMaxHeight() / 2);
+            PuzzlePanel.SetViewportBudget(ScvFavorites, budget);
+            PuzzlePanel.SetViewportBudget(ScvBookmarks, budget);
+            PuzzlePanel.Resnap(ScvFavorites);
+            PuzzlePanel.Resnap(ScvBookmarks);
+            return;
+        }
         if (FullStyle)
         {
             double cap = Math.Max(160, ComputeExpandedScrollMaxHeight() / 2);
@@ -1771,6 +1866,7 @@ public partial class HomePageView : UserControl
             "FirstRow" => GroupCollapseMode.FirstRow,
             "Stack" => GroupCollapseMode.Stack,
             "Mini" => GroupCollapseMode.Mini,
+            "Folder" => GroupCollapseMode.Folder,
             _ => null
         };
     }
@@ -1855,24 +1951,34 @@ public partial class HomePageView : UserControl
 
     private void GroupHeader_Click(object sender, MouseButtonEventArgs e)
     {
-        if (_inEditMode || SettingsService.Current.HomeGroupStyle == "Full" || sender is not DependencyObject header) return;
-        DependencyObject? node = header;
+        if (_inEditMode || FullStyle || sender is not DependencyObject header) return;
+        e.Handled = ToggleGroupFrom(header);
+    }
+
+    private void FolderCard_Click(object sender, MouseButtonEventArgs e)
+    {
+        if (_inEditMode || !FolderStyle || !ReferenceEquals(e.OriginalSource, sender) || sender is not DependencyObject card) return;
+        e.Handled = ToggleGroupFrom(card);
+    }
+
+    private bool ToggleGroupFrom(DependencyObject origin)
+    {
+        DependencyObject? node = origin;
         GroupItem? group = null;
         while (node != null && group == null)
         {
             group = node as GroupItem;
             node = VisualTreeHelper.GetParent(node);
         }
-        if (group == null) return;
+        if (group == null) return false;
         var owner = OwnerItemsControl(group);
-        if (owner == null) return;
-        var collapsedSet = owner == IcnColumns ? _collapsedFavoriteGroups : _collapsedBookmarkGroups;
-        e.Handled = true;
-        if (_animatingGroups.Contains(group)) return;
+        if (owner == null) return false;
+        if (_animatingGroups.Contains(group)) return true;
         string key = GroupKeyOf(group);
-        bool collapse = !collapsedSet.Contains(key);
-        if (collapse) collapsedSet.Add(key); else collapsedSet.Remove(key);
+        bool collapse = !IsGroupCollapsed(owner, key);
+        SetGroupCollapsed(owner, key, collapse);
         AnimateGroup(group, collapse);
+        return true;
     }
 
     private static string DomainOf(string url)
@@ -1916,9 +2022,10 @@ public partial class HomePageView : UserControl
             }
 
             var displayList = list;
-            string favoritesSig = string.Join("\u0001", displayList.Select(p => p.Name + "\u0002" + p.Url + "\u0002" + p.Category + "\u0002" + p.IconPath + "\u0002" + p.IconEmoji));
+            string favoritesSig = SettingsService.Current.HomeGroupStyle + "\u0003" + string.Join("\u0001", displayList.Select(p => p.Name + "\u0002" + p.Url + "\u0002" + p.Category + "\u0002" + p.IconPath + "\u0002" + p.IconEmoji));
             if (favoritesSig == _favoritesSig && IcnColumns.ItemsSource != null) return;
             _favoritesSig = favoritesSig;
+            GroupState.SetIsFolder(IcnColumns, FolderStyle);
             var view = new CollectionViewSource { Source = displayList }.View;
             view.SortDescriptions.Clear();
             view.SortDescriptions.Add(new SortDescription(nameof(PinItem.Category), ListSortDirection.Ascending));

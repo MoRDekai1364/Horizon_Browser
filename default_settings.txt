@@ -362,8 +362,12 @@ WeatherRightPaneDefaultOpen=true
 WeatherLeftPaneDefaultOpen=false
 
 # [S05.22] How a collapsed favorites or bookmarks group looks
-#   type: string | values: HeaderOnly|FirstRow|Stack|Mini|Full | default: HeaderOnly
-HomeGroupStyle=HeaderOnly
+#   type: string | values: Folder|HeaderOnly|FirstRow|Stack|Mini|Full | default: Folder
+HomeGroupStyle=Folder
+
+# [S05.23] How bookmarks are grouped on the home page
+#   type: string | values: Domain|RecentOlder|Single | default: Domain
+HomeBookmarkGrouping=Domain
 
 #==============================================================================
 # [S06] WALLPAPER AND BACKGROUND

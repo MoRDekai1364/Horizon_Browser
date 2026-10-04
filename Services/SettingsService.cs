@@ -263,7 +263,8 @@ public class SettingsData
     public bool HomeShowBatteryWidget   { get; set; } = true; 
     public bool HomeShowVpnAdBlockWidget { get; set; } = true; 
 
-    public string HomeGroupStyle { get; set; } = "HeaderOnly";
+    public string HomeGroupStyle { get; set; } = "Folder";
+    public string HomeBookmarkGrouping { get; set; } = "Domain";
 
     public bool   HomeAdaptiveColorsEnabled { get; set; } = true;
     public double HomeTintStrength           { get; set; } = 30.0;

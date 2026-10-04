@@ -24,21 +24,32 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="GroupItem">
-                        <Border CornerRadius="18" Background="#14FFFFFF" BorderBrush="#1FFFFFFF" BorderThickness="1"
-                                Padding="6,2,6,8" services:HomeGlass.Exclude="True">
-                            <StackPanel>
-                                <ContentPresenter HorizontalAlignment="Center"/>
-                                <TextBlock x:Name="GroupCount" Visibility="Collapsed" FontSize="12" HorizontalAlignment="Center"
-                                           Foreground="{DynamicResource HomeTextBrush}" Opacity="0.4" Margin="0,0,0,4"
-                                           Text="{Binding Content.ItemCount, RelativeSource={RelativeSource TemplatedParent}, StringFormat={}{0} items}"/>
-                                <Border x:Name="GroupItemsClip" ClipToBounds="True">
-                                    <ItemsPresenter x:Name="GroupItemsHost"/>
-                                </Border>
-                            </StackPanel>
-                        </Border>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <ContentPresenter x:Name="GroupHeaderHost" Grid.Row="0" HorizontalAlignment="Center"/>
+                            <Border x:Name="GroupCard" Grid.Row="1" HorizontalAlignment="Center" CornerRadius="18" Background="#14FFFFFF" BorderBrush="#1FFFFFFF" BorderThickness="1"
+                                    Padding="8" services:HomeGlass.Exclude="True" MouseLeftButtonUp="FolderCard_Click">
+                                <StackPanel>
+                                    <TextBlock x:Name="GroupCount" Visibility="Collapsed" FontSize="12" HorizontalAlignment="Center"
+                                               Foreground="{DynamicResource HomeTextBrush}" Opacity="0.4" Margin="0,0,0,4"
+                                               Text="{Binding Content.ItemCount, RelativeSource={RelativeSource TemplatedParent}, StringFormat={}{0} items}"/>
+                                    <Border x:Name="GroupItemsClip" ClipToBounds="True">
+                                        <ItemsPresenter x:Name="GroupItemsHost"/>
+                                    </Border>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="controls:GroupState.IsCollapsed" Value="True">
                                 <Setter TargetName="GroupCount" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="controls:GroupState.IsFolder" Value="True">
+                                <Setter TargetName="GroupHeaderHost" Property="Grid.Row" Value="2"/>
+                                <Setter TargetName="GroupCount" Property="Visibility" Value="Collapsed"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
