@@ -8250,7 +8250,7 @@ return colors.length > 0 ? colors : null;
     }
 
     // Combined media text: prefers video then audio
-    private long GetCachedRamMb()
+    internal long GetCachedRamMb()
     {
         if ((DateTime.UtcNow - _ramCacheTime).TotalSeconds >= 5)
         {
@@ -8374,7 +8374,7 @@ return colors.length > 0 ? colors : null;
         TxtWidget.BeginAnimation(UIElement.OpacityProperty, fadeOut);
     }
 
-    private double GetCpuPercent()
+    internal double GetCpuPercent()
     {
         var now  = DateTime.UtcNow;
         var proc = Process.GetCurrentProcess();

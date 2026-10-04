@@ -1262,6 +1262,80 @@ public partial class MainWindow
     //  NOTES WIDGET
     // ═══════════════════════════════════════════════════════════════════════════
 
+    internal void OpenStackWidgetWindow(string key)
+    {
+        switch (key)
+        {
+            case "notes": OpenNotesWindow(); break;
+            case "calculator": OpenCalculatorWindow(); break;
+            case "converter": OpenConverterWindow(); break;
+        }
+    }
+
+    internal string GetNotesPreview()
+    {
+        try
+        {
+            var tabs = SettingsService.Current.WidgetNoteTabs;
+            string tab = !string.IsNullOrEmpty(_currentNoteTab) && tabs.ContainsKey(_currentNoteTab)
+                ? _currentNoteTab
+                : (tabs.Keys.FirstOrDefault() ?? "");
+            if (tab.Length == 0) return "";
+
+            string dir = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Notes");
+            string safe = string.Concat(tab.Split(System.IO.Path.GetInvalidFileNameChars()));
+            string file = System.IO.Path.Combine(dir, safe + ".bin");
+            if (!System.IO.File.Exists(file)) return "";
+
+            using var ms = new System.IO.MemoryStream(System.IO.File.ReadAllBytes(file));
+            var doc = new FlowDocument();
+            var range = new TextRange(doc.ContentStart, doc.ContentEnd);
+            range.Load(ms, DataFormats.XamlPackage);
+            return range.Text.Trim();
+        }
+        catch
+        {
+            return "";
+        }
+    }
+
+    internal void OpenStackWidgetWindow(string key)
+    {
+        switch (key)
+        {
+            case "notes": OpenNotesWindow(); break;
+            case "calculator": OpenCalculatorWindow(); break;
+            case "converter": OpenConverterWindow(); break;
+        }
+    }
+
+    internal string GetNotesPreview()
+    {
+        try
+        {
+            var tabs = SettingsService.Current.WidgetNoteTabs;
+            string tab = !string.IsNullOrEmpty(_currentNoteTab) && tabs.ContainsKey(_currentNoteTab)
+                ? _currentNoteTab
+                : (tabs.Keys.FirstOrDefault() ?? "");
+            if (tab.Length == 0) return "";
+
+            string dir = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Notes");
+            string safe = string.Concat(tab.Split(System.IO.Path.GetInvalidFileNameChars()));
+            string file = System.IO.Path.Combine(dir, safe + ".bin");
+            if (!System.IO.File.Exists(file)) return "";
+
+            using var ms = new System.IO.MemoryStream(System.IO.File.ReadAllBytes(file));
+            var doc = new FlowDocument();
+            var range = new TextRange(doc.ContentStart, doc.ContentEnd);
+            range.Load(ms, DataFormats.XamlPackage);
+            return range.Text.Trim();
+        }
+        catch
+        {
+            return "";
+        }
+    }
+
     private void OpenNotesWindow()
     {
         var tabs = SettingsService.Current.WidgetNoteTabs;

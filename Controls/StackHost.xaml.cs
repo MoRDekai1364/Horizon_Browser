@@ -74,6 +74,22 @@ public partial class StackHost : UserControl
         }
     }
 
+    public void ReplaceElement(FrameworkElement oldContent, string title, FrameworkElement newContent)
+    {
+        int index = _items.FindIndex(i => ReferenceEquals(i.Content, oldContent));
+        if (index < 0) return;
+
+        if (_switching) FinishSwitch();
+
+        _items[index] = new StackItem { Title = title, Content = newContent };
+        if (index == _index)
+        {
+            Incoming.Content = null;
+            Incoming.Content = newContent;
+        }
+        UpdateDots();
+    }
+
     public void Select(FrameworkElement content)
     {
         int target = _items.FindIndex(i => ReferenceEquals(i.Content, content));

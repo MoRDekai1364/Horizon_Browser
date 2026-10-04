@@ -2751,12 +2751,100 @@ public partial class HomePageView : UserControl
 
     private void BuildHomeStack()
     {
-        HomeStack.AddElement("Favorites", BuildStackCard("Favorites"));
-        HomeStack.AddElement("Bookmarks", BuildStackCard("Bookmarks"));
+        StackElementBuilders.RegisterBuiltInWidgets();
+        StackElementBuilders.RegisterLaunchWidgets();
+        StackElementBuilders.RegisterLaunchWidgets();
+        AddStackEntry("builtin:favorites", "Favorites", BuildStackCard("Favorites"));
+        AddStackEntry("builtin:bookmarks", "Bookmarks", BuildStackCard("Bookmarks"));
+        foreach (var stored in StackElementStore.Elements)
+            AddStackEntry(stored.Id, stored.Title, StackElementBuilders.Build(stored));
+        BuildStackMenu();
         System.ComponentModel.DependencyPropertyDescriptor
             .FromProperty(ColumnDefinition.ActualWidthProperty, typeof(ColumnDefinition))
             ?.AddValueChanged(ColRightBalance, (_, __) => UpdateHomeStackVisibility());
         Loaded += (_, __) => UpdateHomeStackVisibility();
+    }
+
+    private readonly List<(string Id, FrameworkElement View)> _stackEntries = new();
+
+    private void AddStackEntry(string id, string title, FrameworkElement view)
+    {
+        _stackEntries.Add((id, view));
+        HomeStack.AddElement(title, view);
+    }
+
+    private bool IsStackSelectionUserElement()
+    {
+        int index = HomeStack.SelectedIndex;
+        return index >= 0 && index < _stackEntries.Count && !_stackEntries[index].Id.StartsWith("builtin:");
+    }
+
+    private void BuildStackMenu()
+    {
+        var menu = new ContextMenu();
+        var add = new MenuItem { Header = "Add element..." };
+        var edit = new MenuItem { Header = "Edit element..." };
+        var remove = new MenuItem { Header = "Remove element" };
+        add.Click += (_, __) => OpenStackWizard(null);
+        edit.Click += (_, __) => EditSelectedStackElement();
+        remove.Click += (_, __) => RemoveSelectedStackElement();
+        menu.Items.Add(add);
+        menu.Items.Add(edit);
+        menu.Items.Add(remove);
+        menu.Opened += (_, __) =>
+        {
+            bool userElement = IsStackSelectionUserElement();
+            edit.IsEnabled = userElement;
+            remove.IsEnabled = userElement;
+        };
+        HomeStack.ContextMenu = menu;
+    }
+
+    private void EditSelectedStackElement()
+    {
+        if (!IsStackSelectionUserElement()) return;
+        var data = StackElementStore.GetById(_stackEntries[HomeStack.SelectedIndex].Id);
+        if (data == null) return;
+        OpenStackWizard(data);
+    }
+
+    private void RemoveSelectedStackElement()
+    {
+        if (!IsStackSelectionUserElement()) return;
+        int index = HomeStack.SelectedIndex;
+        var entry = _stackEntries[index];
+        string title = StackElementStore.GetById(entry.Id)?.Title ?? "this element";
+        var answer = MessageBox.Show(Window.GetWindow(this), $"Remove \"{title}\" from the stack?", "Remove element", MessageBoxButton.YesNo, MessageBoxImage.Question);
+        if (answer != MessageBoxResult.Yes) return;
+        if (!StackElementStore.Remove(entry.Id)) return;
+        _stackEntries.RemoveAt(index);
+        HomeStack.RemoveElement(entry.View);
+    }
+
+    private void OpenStackWizard(StackElementData? editing)
+    {
+        var win = new StackElementWizardWindow(editing) { Owner = Window.GetWindow(this) };
+        if (win.ShowDialog() != true || win.Result == null) return;
+
+        var data = win.Result;
+        if (!StackElementStore.TryAddOrUpdate(data, out string error))
+        {
+            MessageBox.Show(Window.GetWindow(this), error, "Stack", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        var view = StackElementBuilders.Build(data);
+        int existing = _stackEntries.FindIndex(en => en.Id == data.Id);
+        if (existing >= 0)
+        {
+            var old = _stackEntries[existing].View;
+            _stackEntries[existing] = (data.Id, view);
+            HomeStack.ReplaceElement(old, data.Title, view);
+            return;
+        }
+
+        AddStackEntry(data.Id, data.Title, view);
+        HomeStack.Select(view);
     }
 
     private void UpdateHomeStackVisibility()
