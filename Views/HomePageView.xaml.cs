@@ -2385,6 +2385,9 @@ public partial class HomePageView : UserControl
     {
         if (sender is FrameworkElement fe && fe.DataContext is PinItem pin && !string.IsNullOrWhiteSpace(pin.Url))
         {
+            pin.OpenCount++;
+            pin.LastOpened = DateTime.Now;
+            SettingsService.Save();
             NavigateRequested?.Invoke(pin.Url);
         }
     }
@@ -2393,6 +2396,7 @@ public partial class HomePageView : UserControl
     {
         if (sender is FrameworkElement fe && fe.DataContext is BookmarkItem bookmark && !string.IsNullOrWhiteSpace(bookmark.Url))
         {
+            BookmarkService.RecordOpen(bookmark);
             NavigateRequested?.Invoke(bookmark.Url);
         }
     }

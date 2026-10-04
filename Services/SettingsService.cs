@@ -13,7 +13,9 @@ public class PinItem
     public string Name { get; set; } = "New Pin";
     public string Url { get; set; } = "";
     public string Category { get; set; } = "";
-    public string IconPath  { get; set; } = "";   // path to a user-uploaded image
+    public string IconPath  { get; set; } = "";
+    public int OpenCount { get; set; } = 0;
+    public DateTime LastOpened { get; set; } = DateTime.MinValue;   // path to a user-uploaded image
     public string IconEmoji { get; set; } = "";   // e.g. "🎮", "💼" — overrides image if set
     
     public override string ToString() => Name; 

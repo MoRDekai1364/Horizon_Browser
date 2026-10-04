@@ -13,6 +13,8 @@ public class BookmarkItem
     public string Title { get => Name; set => Name = value; }
     public string Url { get; set; } = "";
     public DateTime DateAdded { get; set; } = DateTime.Now;
+    public int OpenCount { get; set; } = 0;
+    public DateTime LastOpened { get; set; } = DateTime.MinValue;
     public string IconPath { get; set; } = "";
 
     [System.Text.Json.Serialization.JsonIgnore]
@@ -30,6 +32,13 @@ public static class BookmarkService
     public static event Action? OnUpdated;
 
     public static IReadOnlyList<BookmarkItem> Items => _items;
+
+    public static void RecordOpen(BookmarkItem item)
+    {
+        item.OpenCount++;
+        item.LastOpened = DateTime.Now;
+        Save();
+    }
 
     public static void Initialize()
     {
