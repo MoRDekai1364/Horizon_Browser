@@ -70,6 +70,7 @@ public partial class HomePageView : UserControl
                 WeatherBridge.SetWallpaperSurface(null);
         };
         PnlClockWeather.SizeChanged += (_, __) => UpdateClockWeatherIslandBounds();
+        BuildHomeStack();
         SizeChanged += (_, __) => ApplyScrollCap();
         PnlClockWeather.SizeChanged += (_, __) => ReanchorInactivityMedia();
         IsVisibleChanged += (_, e) =>
@@ -2747,6 +2748,43 @@ public partial class HomePageView : UserControl
     }
 
     private const double ClockWeatherIslandPadding = 10.0;
+
+    private void BuildHomeStack()
+    {
+        HomeStack.AddElement("Favorites", BuildStackCard("Favorites"));
+        HomeStack.AddElement("Bookmarks", BuildStackCard("Bookmarks"));
+        System.ComponentModel.DependencyPropertyDescriptor
+            .FromProperty(ColumnDefinition.ActualWidthProperty, typeof(ColumnDefinition))
+            ?.AddValueChanged(ColRightBalance, (_, __) => UpdateHomeStackVisibility());
+        Loaded += (_, __) => UpdateHomeStackVisibility();
+    }
+
+    private void UpdateHomeStackVisibility()
+    {
+        HomeStack.Visibility = ColRightBalance.ActualWidth >= 260 ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private static FrameworkElement BuildStackCard(string title)
+    {
+        var label = new TextBlock
+        {
+            Text = title,
+            FontSize = 18,
+            FontWeight = FontWeights.SemiBold,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Top
+        };
+        label.SetResourceReference(TextBlock.ForegroundProperty, "HomeTextBrush");
+        return new Border
+        {
+            CornerRadius = new CornerRadius(22),
+            Background = new SolidColorBrush(Color.FromArgb(0x14, 0xFF, 0xFF, 0xFF)),
+            BorderBrush = new SolidColorBrush(Color.FromArgb(0x1F, 0xFF, 0xFF, 0xFF)),
+            BorderThickness = new Thickness(1),
+            Padding = new Thickness(16),
+            Child = label
+        };
+    }
 
     private void UpdateClockWeatherIslandBounds()
     {
