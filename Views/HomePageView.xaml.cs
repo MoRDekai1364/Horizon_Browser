@@ -2754,6 +2754,7 @@ public partial class HomePageView : UserControl
         StackElementBuilders.RegisterBuiltInWidgets();
         StackElementBuilders.RegisterLaunchWidgets();
         StackElementBuilders.RegisterLaunchWidgets();
+        StackElementBuilders.RegisterWebElements();
         AddStackEntry("builtin:favorites", "Favorites", BuildStackCard("Favorites"));
         AddStackEntry("builtin:bookmarks", "Bookmarks", BuildStackCard("Bookmarks"));
         foreach (var stored in StackElementStore.Elements)
@@ -2819,6 +2820,7 @@ public partial class HomePageView : UserControl
         if (!StackElementStore.Remove(entry.Id)) return;
         _stackEntries.RemoveAt(index);
         HomeStack.RemoveElement(entry.View);
+        if (entry.View is IDisposable removed) removed.Dispose();
     }
 
     private void OpenStackWizard(StackElementData? editing)
@@ -2840,6 +2842,7 @@ public partial class HomePageView : UserControl
             var old = _stackEntries[existing].View;
             _stackEntries[existing] = (data.Id, view);
             HomeStack.ReplaceElement(old, data.Title, view);
+            if (old is IDisposable replaced) replaced.Dispose();
             return;
         }
 

@@ -65,6 +65,27 @@ public partial class StackElementWizardWindow : Window
         ShowStep(3);
     }
 
+    private string _offeredKey = "";
+
+    private void OfferTemplate()
+    {
+        if (_kind != StackElementKind.Site || _editing != null) return;
+        var entry = StackElementCatalog.DetectTemplate(TxtSiteUrl.Text);
+        if (entry == null) return;
+
+        string key = entry.Id + "|" + TxtSiteUrl.Text;
+        if (key == _offeredKey) return;
+        _offeredKey = key;
+
+        var answer = MessageBox.Show(this, $"This looks like {entry.Name}. Optimize it as a {entry.Name} template?", "Optimize site", MessageBoxButton.YesNo, MessageBoxImage.Question);
+        if (answer != MessageBoxResult.Yes) return;
+
+        _kind = StackElementKind.Template;
+        _sourceId = entry.Id;
+        TxtTemplateUrl.Text = TxtSiteUrl.Text;
+        UpdateCardSelection();
+    }
+
     private string BuildKey() => _kind + "|" + _sourceId;
 
     private void Header_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -158,7 +179,7 @@ public partial class StackElementWizardWindow : Window
             TxtIcon.Text = entry?.Icon ?? "\U0001F310";
             CmbRefresh.SelectedIndex = 0;
             RbShared.IsChecked = true;
-            TxtTemplateUrl.Text = "";
+            if (_kind != StackElementKind.Template) TxtTemplateUrl.Text = "";
         }
         else if (string.IsNullOrWhiteSpace(TxtIcon.Text))
         {
@@ -253,6 +274,7 @@ public partial class StackElementWizardWindow : Window
                     break;
                 case 2:
                     if (!CollectStep2()) return;
+                    OfferTemplate();
                     ConfigureStep3();
                     ShowStep(3);
                     break;

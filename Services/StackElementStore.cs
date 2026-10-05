@@ -37,6 +37,14 @@ public sealed class StackCatalogEntry
     public StackElementKind Kind { get; init; }
 }
 
+public sealed class StackWebProfile
+{
+    public bool MobileUserAgent { get; init; }
+    public double Zoom { get; init; } = 1.0;
+    public bool PreferDark { get; init; }
+    public string HideCss { get; init; } = "";
+}
+
 public static class StackElementCatalog
 {
     private static StackCatalogEntry W(string id, string name, string icon) =>
@@ -84,6 +92,81 @@ public static class StackElementCatalog
         StackElementKind.Template => Templates,
         _ => Array.Empty<StackCatalogEntry>()
     };
+
+    private const string CommonHide =
+        "[class*='cookie-banner' i], [id*='cookie-banner' i], [class*='cookie-consent' i], [id*='cookie-consent' i], " +
+        ".cc-window, #onetrust-banner-sdk, #onetrust-consent-sdk, [class*='newsletter-popup' i], " +
+        "[class*='app-banner' i], [class*='smartbanner' i], .smartbanner { display: none !important; }";
+
+    private static StackWebProfile P(double zoom, bool mobile = false, bool dark = false, bool hide = true) =>
+        new() { Zoom = zoom, MobileUserAgent = mobile, PreferDark = dark, HideCss = hide ? CommonHide : "" };
+
+    private static readonly Dictionary<string, StackWebProfile> TemplateProfiles = new()
+    {
+        ["mail"] = P(0.85, dark: true),
+        ["videos"] = P(0.8, mobile: true),
+        ["music"] = P(0.85, dark: true),
+        ["streaming_gaming"] = P(0.8),
+        ["movies"] = P(0.8),
+        ["torrent_p2p"] = P(0.85, hide: false),
+        ["office"] = P(0.8),
+        ["ai"] = P(0.9, dark: true),
+        ["info_research"] = P(0.9, mobile: true),
+        ["chat"] = P(0.85, dark: true),
+        ["calendar_planner"] = P(0.8),
+        ["news"] = P(0.9, mobile: true),
+        ["developer"] = P(0.85, dark: true),
+        ["cloud_files"] = P(0.85),
+        ["social"] = P(0.9, mobile: true),
+        ["shopping"] = P(0.9, mobile: true),
+        ["translate"] = P(0.95, mobile: true),
+        ["maps_travel"] = P(0.85),
+        ["notes"] = P(0.9, dark: true)
+    };
+
+    private static readonly (string Host, string Template)[] DetectionMap =
+    {
+        ("mail.google.com", "mail"), ("gmail.com", "mail"), ("outlook.live.com", "mail"), ("outlook.office.com", "mail"),
+        ("outlook.office365.com", "mail"), ("mail.proton.me", "mail"), ("proton.me", "mail"), ("mail.yahoo.com", "mail"),
+        ("music.youtube.com", "music"), ("open.spotify.com", "music"), ("spotify.com", "music"), ("soundcloud.com", "music"),
+        ("deezer.com", "music"), ("music.apple.com", "music"),
+        ("youtube.com", "videos"), ("vimeo.com", "videos"), ("dailymotion.com", "videos"),
+        ("twitch.tv", "streaming_gaming"), ("store.steampowered.com", "streaming_gaming"), ("steamcommunity.com", "streaming_gaming"),
+        ("netflix.com", "movies"), ("imdb.com", "movies"), ("themoviedb.org", "movies"), ("max.com", "movies"), ("disneyplus.com", "movies"),
+        ("docs.google.com", "office"), ("sheets.google.com", "office"), ("slides.google.com", "office"), ("office.com", "office"),
+        ("chatgpt.com", "ai"), ("claude.ai", "ai"), ("gemini.google.com", "ai"), ("perplexity.ai", "ai"), ("copilot.microsoft.com", "ai"),
+        ("wikipedia.org", "info_research"), ("scholar.google.com", "info_research"), ("arxiv.org", "info_research"),
+        ("web.whatsapp.com", "chat"), ("web.telegram.org", "chat"), ("discord.com", "chat"), ("messenger.com", "chat"), ("app.slack.com", "chat"),
+        ("calendar.google.com", "calendar_planner"),
+        ("github.com", "developer"), ("gitlab.com", "developer"), ("stackoverflow.com", "developer"),
+        ("drive.google.com", "cloud_files"), ("dropbox.com", "cloud_files"), ("onedrive.live.com", "cloud_files"),
+        ("reddit.com", "social"), ("x.com", "social"), ("twitter.com", "social"), ("facebook.com", "social"), ("instagram.com", "social"),
+        ("translate.google.com", "translate"), ("deepl.com", "translate"),
+        ("maps.google.com", "maps_travel"), ("openstreetmap.org", "maps_travel"),
+        ("keep.google.com", "notes"), ("notion.so", "notes"),
+        ("news.google.com", "news"), ("bbc.com", "news")
+    };
+
+    public static StackWebProfile ProfileFor(StackElementData data)
+    {
+        if (data.Kind == StackElementKind.Template && TemplateProfiles.TryGetValue(data.SourceId, out var profile)) return profile;
+        return new StackWebProfile();
+    }
+
+    public static StackCatalogEntry? DetectTemplate(string? url)
+    {
+        if (string.IsNullOrWhiteSpace(url)) return null;
+        string text = url.Trim();
+        if (!text.Contains("://")) text = "https://" + text;
+        if (!Uri.TryCreate(text, UriKind.Absolute, out var uri)) return null;
+        string host = uri.Host.ToLowerInvariant();
+        foreach (var item in DetectionMap)
+        {
+            if (host == item.Host || host.EndsWith("." + item.Host))
+                return Find(StackElementKind.Template, item.Template);
+        }
+        return null;
+    }
 
     public static StackCatalogEntry? Find(StackElementKind kind, string? id)
     {
