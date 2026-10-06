@@ -319,11 +319,31 @@ public static class HomeRowLimits
     }
 }
 
+public static class FolderFallback
+{
+    public const int MinFoldersForUsage = 3;
+    public const int MinItemsInFolder = 2;
+
+    public static bool ShouldUse(int itemCount, int capacity, int thresholdPercent, IReadOnlyList<(int Items, long Opens, bool Eligible)> folders)
+    {
+        if (itemCount > capacity) return true;
+        if (thresholdPercent <= 0 || folders.Count < MinFoldersForUsage) return false;
+        long total = folders.Sum(f => f.Opens);
+        if (total <= 0) return false;
+        return folders.Any(f => f.Eligible && f.Items >= MinItemsInFolder && f.Opens * 100 >= total * thresholdPercent);
+    }
+}
+
 public class RowsPanel : Panel
 {
     public const int MinColumns = 3;
     public const int MaxColumns = 6;
-    private const double CellWidth = 131;
+    public const double CellWidth = 131;
+
+    public static int ColumnsFor(double width)
+    {
+        return Math.Clamp((int)Math.Floor(width / CellWidth), MinColumns, MaxColumns);
+    }
 
     public static readonly DependencyProperty MaxRowsProperty = DependencyProperty.RegisterAttached(
         "MaxRows", typeof(int), typeof(RowsPanel),
@@ -358,7 +378,7 @@ public class RowsPanel : Panel
         var owner = ItemsControl.GetItemsOwner(this);
         int maxRows = Math.Max(1, owner != null ? GetMaxRows(owner) : 2);
         double width = double.IsInfinity(availableSize.Width) ? MaxColumns * CellWidth : availableSize.Width;
-        _columns = Math.Clamp((int)Math.Floor(width / CellWidth), MinColumns, MaxColumns);
+        _columns = ColumnsFor(width);
         int capacity = _columns * maxRows;
         _shown = Math.Min(InternalChildren.Count, capacity);
 

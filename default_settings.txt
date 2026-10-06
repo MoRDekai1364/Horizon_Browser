@@ -377,6 +377,10 @@ HomeFavoriteRows=2
 #   type: int | values: 1 to 7 | default: 2
 HomeBookmarkRows=2
 
+# [S05.26] Share of a widget's opens that one folder must hold to turn that widget into folder cards (0 = off, items that do not fit in the rows still turn it into folder cards)
+#   type: int | values: 0|20|30|40|50 | default: 30
+HomeFolderThreshold=30
+
 #==============================================================================
 # [S06] WALLPAPER AND BACKGROUND
 #==============================================================================

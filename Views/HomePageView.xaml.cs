@@ -71,7 +71,11 @@ public partial class HomePageView : UserControl
         };
         PnlClockWeather.SizeChanged += (_, __) => UpdateClockWeatherIslandBounds();
         BuildHomeStack();
-        SizeChanged += (_, __) => ApplyScrollCap();
+        SizeChanged += (_, __) =>
+        {
+            ApplyScrollCap();
+            ScheduleFallbackCheck();
+        };
         PnlClockWeather.SizeChanged += (_, __) => ReanchorInactivityMedia();
         IsVisibleChanged += (_, e) =>
         {
@@ -88,7 +92,12 @@ public partial class HomePageView : UserControl
         PreviewKeyDown += (_, e) =>
         {
             RegisterUserActivity();
-            if (e.Key == Key.Escape && _inFocusMode)
+            if (e.Key == Key.Escape && HomeStack.IsExpanded && !HomeStack.IsOverlayOpen)
+            {
+                CollapseStack();
+                e.Handled = true;
+            }
+            else if (e.Key == Key.Escape && _inFocusMode)
             {
                 ExitWidgetFocusMode();
                 e.Handled = true;
@@ -179,6 +188,7 @@ public partial class HomePageView : UserControl
     private void EnterWidgetFocusMode(string widgetName)
     {
         if (_inFocusMode && _focusWidgetName == widgetName) return;
+        if (!_inFocusMode && ToggleStackFor(widgetName)) return;
         _inFocusMode = true;
         _focusWidgetName = widgetName;
         _inactivityTimer?.Stop();
@@ -281,6 +291,13 @@ public partial class HomePageView : UserControl
 
     private void RootHomeGrid_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
+        if (HomeStack.IsExpanded)
+        {
+            var clicked = e.OriginalSource as DependencyObject;
+            if (!IsDescendantOf(clicked, HomeStack) && !IsDescendantOf(clicked, BtnToggleFavorites) && !IsDescendantOf(clicked, BtnToggleBookmarks))
+                CollapseStack();
+        }
+
         if (!_inFocusMode) return;
 
         var source = e.OriginalSource as DependencyObject;
@@ -375,14 +392,26 @@ public partial class HomePageView : UserControl
 
     private void WidgetContainer_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
     {
-        if (_inFocusMode || FullStyle || e.Delta >= 0) return;
-        if (sender == PnlFavoritesContainer && SettingsService.Current.PinnedUrls.Count > 6)
+        if (_inFocusMode || _inEditMode) return;
+        if (e.Delta > 0)
         {
-            EnterWidgetFocusMode("Favorites");
+            if (HomeStack.IsExpanded)
+            {
+                CollapseStack();
+                e.Handled = true;
+            }
+            return;
         }
-        else if (sender == PnlBookmarksContainer && BookmarkService.Items.Count > 6)
+        if (e.Delta == 0) return;
+        if (sender == PnlFavoritesContainer && _favoritesFallback)
         {
-            EnterWidgetFocusMode("Bookmarks");
+            if (!ExpandStackFor("Favorites")) EnterWidgetFocusMode("Favorites");
+            e.Handled = true;
+        }
+        else if (sender == PnlBookmarksContainer && _bookmarksFallback)
+        {
+            if (!ExpandStackFor("Bookmarks")) EnterWidgetFocusMode("Bookmarks");
+            e.Handled = true;
         }
     }
 
@@ -1687,9 +1716,9 @@ public partial class HomePageView : UserControl
             }
 
             var list = all.ToList();
-            bool hasEnoughItems = BookmarkService.Items.Count > 6;
+            bool focusBookmarks = _inFocusMode && _focusWidgetName == "Bookmarks";
             ApplyScrollCap();
-            if ((hasEnoughItems && !FullStyle) || (_inFocusMode && _focusWidgetName == "Bookmarks"))
+            if (focusBookmarks)
             {
                 BtnToggleBookmarks.Visibility = Visibility.Visible;
                 TxtToggleBookmarks.Text = _bookmarksExpanded ? "▲ Show less" : "▼ Show more";
@@ -1734,8 +1763,16 @@ public partial class HomePageView : UserControl
                     .ToList();
             }
 
+            _bookmarksFallback = !_inFocusMode && ComputeBookmarksFallback(ordered, groupingMode);
+            ApplyScrollCap();
+            if (_bookmarksFallback)
+            {
+                BtnToggleBookmarks.Visibility = Visibility.Visible;
+                TxtToggleBookmarks.Text = _bookmarksExpanded ? "▲ Show less" : "▼ Show more";
+            }
+
             string bookmarksSig = groupingMode + "\u0003" + SettingsService.Current.HomeGroupStyle + "\u0003" + string.Join("\u0001", ordered.Select(b => b.GroupKey + "\u0002" + b.Name + "\u0002" + b.Url + "\u0002" + b.IconPath));
-            bool rowsMode = !_inFocusMode;
+            bool rowsMode = !_inFocusMode && !_bookmarksFallback;
             bookmarksSig = (rowsMode ? "R" : "G") + "\u0003" + string.Join(",", ordered.Select(b => b.OpenCount)) + "\u0003" + bookmarksSig;
             if (bookmarksSig == _bookmarksSig && IcnBookmarks.ItemsSource != null) return;
             _bookmarksSig = bookmarksSig;
@@ -1760,7 +1797,7 @@ public partial class HomePageView : UserControl
             else
             {
                 SetRowsPanel(IcnBookmarks, false);
-                GroupState.SetIsFolder(IcnBookmarks, FolderStyle);
+                GroupState.SetIsFolder(IcnBookmarks, FolderFor(IcnBookmarks));
                 IcnBookmarks.ItemsSource = bookmarksView;
             }
             UpdateBookmarksDrawer();
@@ -1821,20 +1858,20 @@ public partial class HomePageView : UserControl
         if (sender is not GroupItem group) return;
         var owner = OwnerItemsControl(group);
         if (owner == null) return;
-        GroupState.SetIsFolder(group, FolderStyle);
-        if (!FullStyle && IsGroupCollapsed(owner, GroupKeyOf(group)))
+        GroupState.SetIsFolder(group, FolderFor(owner));
+        if (!FullFor(owner) && IsGroupCollapsed(owner, GroupKeyOf(group)))
             ApplyGroupVisual(group, true);
     }
 
     private bool IsGroupCollapsed(ItemsControl owner, string key)
     {
-        if (FolderStyle) return !(owner == IcnColumns ? _openFavoriteGroups : _openBookmarkGroups).Contains(key);
+        if (FolderFor(owner)) return !(owner == IcnColumns ? _openFavoriteGroups : _openBookmarkGroups).Contains(key);
         return (owner == IcnColumns ? _collapsedFavoriteGroups : _collapsedBookmarkGroups).Contains(key);
     }
 
     private void SetGroupCollapsed(ItemsControl owner, string key, bool collapse)
     {
-        if (FolderStyle)
+        if (FolderFor(owner))
         {
             var open = owner == IcnColumns ? _openFavoriteGroups : _openBookmarkGroups;
             if (collapse) open.Remove(key); else open.Add(key);
@@ -1856,8 +1893,91 @@ public partial class HomePageView : UserControl
 
     private static bool FolderStyle => SettingsService.Current.HomeGroupStyle == "Folder";
 
+    private bool FallbackActive(ItemsControl? owner)
+    {
+        if (_inFocusMode || owner == null) return false;
+        return owner == IcnColumns ? _favoritesFallback : _bookmarksFallback;
+    }
+
+    private bool FolderFor(ItemsControl? owner) => FallbackActive(owner) || FolderStyle;
+
+    private bool FullFor(ItemsControl? owner) => !FallbackActive(owner) && FullStyle;
+
     private ICollectionView? _favoritesFullView;
     private ICollectionView? _bookmarksFullView;
+    private bool _favoritesFallback;
+    private bool _bookmarksFallback;
+    private DispatcherTimer? _fallbackTimer;
+
+    private (int Favorites, int Bookmarks) ResolvedRows()
+    {
+        double height = ActualHeight > 0 ? ActualHeight : SystemParameters.WorkArea.Height;
+        return HomeRowLimits.Resolve(SettingsService.Current.HomeFavoriteRows, SettingsService.Current.HomeBookmarkRows, height);
+    }
+
+    private double CenterPanelWidth()
+    {
+        double width = Grid.GetColumnSpan(PnlSearchArea) > 1 ? GridHomeLayout.ActualWidth : ColSearchArea.ActualWidth;
+        width -= PnlSearchArea.Margin.Left + PnlSearchArea.Margin.Right;
+        if (!double.IsInfinity(PnlSearchArea.MaxWidth)) width = Math.Min(width, PnlSearchArea.MaxWidth);
+        return width > 0 ? width : RowsPanel.MaxColumns * RowsPanel.CellWidth;
+    }
+
+    private int RowCapacity(int rows)
+    {
+        return RowsPanel.ColumnsFor(CenterPanelWidth()) * rows;
+    }
+
+    private bool ComputeFavoritesFallback(List<PinItem> items)
+    {
+        var folders = items
+            .GroupBy(p => p.Category ?? "")
+            .Select(g => (g.Count(), g.Sum(p => (long)p.OpenCount), true))
+            .ToList();
+        int capacity = RowCapacity(ResolvedRows().Favorites);
+        return FolderFallback.ShouldUse(items.Count, capacity, SettingsService.Current.HomeFolderThreshold, folders);
+    }
+
+    private bool ComputeBookmarksFallback(List<BookmarkItem> items, string groupingMode)
+    {
+        int capacity = RowCapacity(ResolvedRows().Bookmarks);
+        if (groupingMode != "Domain")
+            return FolderFallback.ShouldUse(items.Count, capacity, 0, Array.Empty<(int Items, long Opens, bool Eligible)>());
+        var folders = items
+            .GroupBy(b => b.GroupKey)
+            .Select(g => (g.Count(), g.Sum(b => (long)b.OpenCount), g.Key != "Other"))
+            .ToList();
+        return FolderFallback.ShouldUse(items.Count, capacity, SettingsService.Current.HomeFolderThreshold, folders);
+    }
+
+    private void ScheduleFallbackCheck()
+    {
+        if (_inFocusMode) return;
+        _fallbackTimer ??= new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(150) };
+        _fallbackTimer.Tick -= FallbackTimer_Tick;
+        _fallbackTimer.Tick += FallbackTimer_Tick;
+        _fallbackTimer.Stop();
+        _fallbackTimer.Start();
+    }
+
+    private void FallbackTimer_Tick(object? sender, EventArgs e)
+    {
+        _fallbackTimer?.Stop();
+        RefreshFavorites();
+        RefreshBookmarks();
+    }
+
+    private static void ApplyFallbackBudget(ScrollViewer host, bool fallback, int rows)
+    {
+        if (!fallback)
+        {
+            PuzzlePanel.SetViewportBudget(host, 0);
+            host.MaxHeight = double.PositiveInfinity;
+            return;
+        }
+        PuzzlePanel.SetViewportBudget(host, rows * HomeRowLimits.RowHeight);
+        PuzzlePanel.Resnap(host);
+    }
 
     private void SetRowsPanel(ItemsControl control, bool rows)
     {
@@ -1867,11 +1987,7 @@ public partial class HomePageView : UserControl
 
     private void ApplyRowLimits()
     {
-        double available = ActualHeight > 0 ? ActualHeight : SystemParameters.WorkArea.Height;
-        var (favoriteRows, bookmarkRows) = HomeRowLimits.Resolve(
-            SettingsService.Current.HomeFavoriteRows,
-            SettingsService.Current.HomeBookmarkRows,
-            available);
+        var (favoriteRows, bookmarkRows) = ResolvedRows();
         RowsPanel.SetMaxRows(IcnColumns, favoriteRows);
         RowsPanel.SetMaxRows(IcnBookmarks, bookmarkRows);
     }
@@ -1880,12 +1996,14 @@ public partial class HomePageView : UserControl
     {
         if (_inFocusMode || ScvFavorites == null || ScvBookmarks == null) return;
         ApplyRowLimits();
-        ScvFavorites.MaxHeight = double.PositiveInfinity;
-        ScvBookmarks.MaxHeight = double.PositiveInfinity;
+        var (favoriteRows, bookmarkRows) = ResolvedRows();
+        ApplyFallbackBudget(ScvFavorites, _favoritesFallback, favoriteRows);
+        ApplyFallbackBudget(ScvBookmarks, _bookmarksFallback, bookmarkRows);
     }
 
-    private static GroupCollapseMode? CollapseModeFromSetting()
+    private GroupCollapseMode? CollapseModeFromSetting(ItemsControl? owner)
     {
+        if (FallbackActive(owner)) return GroupCollapseMode.Folder;
         return SettingsService.Current.HomeGroupStyle switch
         {
             "FirstRow" => GroupCollapseMode.FirstRow,
@@ -1912,7 +2030,7 @@ public partial class HomePageView : UserControl
     {
         GroupState.SetIsCollapsed(group, collapsed);
         if (group.Template?.FindName("GroupItemsClip", group) is not Border clip) return;
-        var mode = collapsed ? CollapseModeFromSetting() : null;
+        var mode = collapsed ? CollapseModeFromSetting(OwnerItemsControl(group)) : null;
         var panel = FindAutoGrid(clip);
         if (panel != null) panel.Mode = mode ?? GroupCollapseMode.Full;
         clip.Visibility = collapsed && mode == null ? Visibility.Collapsed : Visibility.Visible;
@@ -1937,7 +2055,7 @@ public partial class HomePageView : UserControl
 
         if (collapse)
         {
-            var mode = CollapseModeFromSetting();
+            var mode = CollapseModeFromSetting(OwnerItemsControl(group));
             double from = clip.ActualHeight;
             double to = mode != null && panel != null ? panel.HeightFor(mode.Value) : 0;
             if (from < 1 || to >= from - 1)
@@ -1976,13 +2094,13 @@ public partial class HomePageView : UserControl
 
     private void GroupHeader_Click(object sender, MouseButtonEventArgs e)
     {
-        if (_inEditMode || FullStyle || sender is not DependencyObject header) return;
+        if (_inEditMode || sender is not DependencyObject header || FullFor(OwnerItemsControl(header))) return;
         e.Handled = ToggleGroupFrom(header);
     }
 
     private void FolderCard_Click(object sender, MouseButtonEventArgs e)
     {
-        if (_inEditMode || !FolderStyle || !ReferenceEquals(e.OriginalSource, sender) || sender is not DependencyObject card) return;
+        if (_inEditMode || !ReferenceEquals(e.OriginalSource, sender) || sender is not DependencyObject card || !FolderFor(OwnerItemsControl(card))) return;
         e.Handled = ToggleGroupFrom(card);
     }
 
@@ -2034,9 +2152,9 @@ public partial class HomePageView : UserControl
             }
 
             var list = all.ToList();
-            bool hasEnoughItems = SettingsService.Current.PinnedUrls.Count > 6;
+            _favoritesFallback = !_inFocusMode && ComputeFavoritesFallback(list);
             ApplyScrollCap();
-            if ((hasEnoughItems && !FullStyle) || (_inFocusMode && _focusWidgetName == "Favorites"))
+            if (_favoritesFallback || (_inFocusMode && _focusWidgetName == "Favorites"))
             {
                 BtnToggleFavorites.Visibility = Visibility.Visible;
                 TxtToggleFavorites.Text = _favoritesExpanded ? "▲ Show less" : "▼ Show more";
@@ -2048,7 +2166,7 @@ public partial class HomePageView : UserControl
 
             var displayList = list;
             string favoritesSig = SettingsService.Current.HomeGroupStyle + "\u0003" + string.Join("\u0001", displayList.Select(p => p.Name + "\u0002" + p.Url + "\u0002" + p.Category + "\u0002" + p.IconPath + "\u0002" + p.IconEmoji));
-            bool rowsMode = !_inFocusMode;
+            bool rowsMode = !_inFocusMode && !_favoritesFallback;
             favoritesSig = (rowsMode ? "R" : "G") + "\u0003" + string.Join(",", displayList.Select(p => p.OpenCount)) + "\u0003" + favoritesSig;
             if (favoritesSig == _favoritesSig && IcnColumns.ItemsSource != null) return;
             _favoritesSig = favoritesSig;
@@ -2075,7 +2193,7 @@ public partial class HomePageView : UserControl
             else
             {
                 SetRowsPanel(IcnColumns, false);
-                GroupState.SetIsFolder(IcnColumns, FolderStyle);
+                GroupState.SetIsFolder(IcnColumns, FolderFor(IcnColumns));
                 IcnColumns.ItemsSource = view;
             }
             UpdateFavoritesDrawer();
@@ -2817,6 +2935,9 @@ public partial class HomePageView : UserControl
             .FromProperty(ColumnDefinition.ActualWidthProperty, typeof(ColumnDefinition))
             ?.AddValueChanged(ColRightBalance, (_, __) => UpdateHomeStackVisibility());
         Loaded += (_, __) => UpdateHomeStackVisibility();
+        GridHomeLayout.SizeChanged += (_, __) => ScheduleStackRestSize();
+        GridFavBookmarksIsland.SizeChanged += (_, __) => ScheduleStackRestSize();
+        SearchBoxBorder.SizeChanged += (_, __) => ScheduleStackRestSize();
     }
 
     private readonly List<(string Id, FrameworkElement View)> _stackEntries = new();
@@ -2905,7 +3026,84 @@ public partial class HomePageView : UserControl
 
     private void UpdateHomeStackVisibility()
     {
-        HomeStack.Visibility = ColRightBalance.ActualWidth >= 260 ? Visibility.Visible : Visibility.Collapsed;
+        bool visible = ColRightBalance.ActualWidth >= 260;
+        HomeStack.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
+        if (!visible) CollapseStack();
+        ScheduleStackRestSize();
+    }
+
+    private const double StackRestMaxWidth = 320;
+    private const double StackSideMargin = 40;
+    private const double StackBottomMargin = 50;
+    private const double StackMinRestHeight = 160;
+    private bool _stackRestPending;
+
+    private bool StackAvailable => HomeStack.Visibility == Visibility.Visible && _favoritesDrawer != null && _bookmarksDrawer != null;
+
+    private void ScheduleStackRestSize()
+    {
+        if (_stackRestPending) return;
+        _stackRestPending = true;
+        Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(() =>
+        {
+            _stackRestPending = false;
+            UpdateStackRestSize();
+        }));
+    }
+
+    private void UpdateStackRestSize()
+    {
+        if (HomeStack.Visibility != Visibility.Visible || !PnlSearchArea.IsVisible || !GridHomeLayout.IsLoaded) return;
+        if (SearchBoxBorder.ActualHeight <= 0 || GridFavBookmarksIsland.ActualHeight <= 0) return;
+        double top = SearchBoxBorder.TranslatePoint(new Point(0, 0), GridHomeLayout).Y;
+        double bottom = GridFavBookmarksIsland.TranslatePoint(new Point(0, GridFavBookmarksIsland.ActualHeight), GridHomeLayout).Y;
+        double width = Math.Min(StackRestMaxWidth, Math.Max(0, ColRightBalance.ActualWidth - StackSideMargin));
+        double height = Math.Max(StackMinRestHeight, bottom - top);
+        HomeStack.Margin = new Thickness(0, Math.Max(0, top), StackSideMargin, 0);
+        HomeStack.SetRestSize(width, height);
+    }
+
+    private (double Width, double Height) StackExpandedSize()
+    {
+        double width = Math.Max(HomeStack.ActualWidth, ColRightBalance.ActualWidth - StackSideMargin);
+        double height = Math.Max(HomeStack.ActualHeight, GridHomeLayout.ActualHeight - HomeStack.Margin.Top - StackBottomMargin);
+        return (width, height);
+    }
+
+    private bool ExpandStackFor(string widgetName)
+    {
+        if (!StackAvailable) return false;
+        if (HomeStack.IsOverlayOpen) return true;
+        bool favorites = widgetName == "Favorites";
+        HomeStack.Select(favorites ? _favoritesDrawer! : _bookmarksDrawer!);
+        var (width, height) = StackExpandedSize();
+        HomeStack.ExpandTo(width, height);
+        _favoritesExpanded = favorites;
+        _bookmarksExpanded = !favorites;
+        TxtToggleFavorites.Text = favorites ? "▲ Show less" : "▼ Show more";
+        TxtToggleBookmarks.Text = favorites ? "▼ Show more" : "▲ Show less";
+        return true;
+    }
+
+    private bool ToggleStackFor(string widgetName)
+    {
+        if (!StackAvailable) return false;
+        var drawer = widgetName == "Favorites" ? _favoritesDrawer : _bookmarksDrawer;
+        int index = HomeStack.SelectedIndex;
+        bool showing = HomeStack.IsExpanded && index >= 0 && index < _stackEntries.Count && ReferenceEquals(_stackEntries[index].View, drawer);
+        if (showing) CollapseStack();
+        else ExpandStackFor(widgetName);
+        return true;
+    }
+
+    private void CollapseStack()
+    {
+        if (!HomeStack.IsExpanded) return;
+        HomeStack.Collapse();
+        _favoritesExpanded = false;
+        _bookmarksExpanded = false;
+        TxtToggleFavorites.Text = "▼ Show more";
+        TxtToggleBookmarks.Text = "▼ Show more";
     }
 
     private FolderDrawerView? _favoritesDrawer;

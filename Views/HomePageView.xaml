@@ -758,8 +758,8 @@
             </StackPanel>
 
             <controls:StackHost x:Name="HomeStack" Grid.Row="0" Grid.RowSpan="2" Grid.Column="2"
-                                HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                                Margin="0,50,40,50" Visibility="Collapsed"/>
+                                HorizontalAlignment="Right" VerticalAlignment="Top"
+                                Margin="0,50,40,0" Visibility="Collapsed"/>
 
             <!-- Centered search + pins, confined to the middle column so it can never
                  overlap the left/right side columns (e.g. the media widget) regardless

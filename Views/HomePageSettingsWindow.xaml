@@ -188,6 +188,11 @@
                     <TextBlock Text="Bookmark rows" Foreground="{DynamicResource Brush_Accent}" FontSize="13" Margin="0,14,0,6"/>
                     <ComboBox x:Name="CmbBookmarkRows" Height="28" Margin="0,0,0,8"
                               SelectionChanged="CmbBookmarkRows_SelectionChanged"/>
+
+                    <TextBlock Text="Folder cards threshold" Foreground="{DynamicResource Brush_Accent}" FontSize="13" Margin="0,14,0,6"/>
+                    <ComboBox x:Name="CmbFolderThreshold" Height="28" Margin="0,0,0,8"
+                              ToolTip="Show favorites or bookmarks as folder cards when one folder holds at least this share of their opens, or when the items do not fit in the rows."
+                              SelectionChanged="CmbFolderThreshold_SelectionChanged"/>
                 </StackPanel>
             </TabItem>
             <TabItem Header="SHORTCUTS">

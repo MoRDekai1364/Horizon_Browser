@@ -104,6 +104,9 @@ public partial class HomePageSettingsWindow : Window
     private static readonly string[] BookmarkGroupingChoices = { "By website", "Recent / Older", "One block, newest first" };
     private static readonly string[] BookmarkGroupingValues  = { "Domain", "RecentOlder", "Single" };
 
+    private static readonly string[] FolderThresholdChoices = { "Off", "20%", "30%", "40%", "50%" };
+    private static readonly int[] FolderThresholdValues  = { 0, 20, 30, 40, 50 };
+
     private static readonly string[] VisualizerScopeChoices = { "Everywhere", "Media Tab Only", "Selected Websites" };
     private static readonly string[] VisualizerScopeValues  = { "Everywhere", "MediaTabOnly", "SelectedWebsites" };
 
@@ -260,6 +263,10 @@ public partial class HomePageSettingsWindow : Window
         CmbBookmarkRows.ItemsSource = rowOptions.ToList();
         CmbBookmarkRows.SelectedIndex = Math.Clamp(s.HomeBookmarkRows, 1, rowChoices) - 1;
 
+        CmbFolderThreshold.ItemsSource = FolderThresholdChoices;
+        int folderThresholdIdx = Array.IndexOf(FolderThresholdValues, s.HomeFolderThreshold);
+        CmbFolderThreshold.SelectedIndex = folderThresholdIdx >= 0 ? folderThresholdIdx : 2;
+
         _loadingToggles = false;
     }
 
@@ -309,6 +316,15 @@ public partial class HomePageSettingsWindow : Window
         int idx = CmbBookmarkRows.SelectedIndex;
         if (idx < 0) return;
         SettingsService.Current.HomeBookmarkRows = idx + 1;
+        SettingsService.Save();
+    }
+
+    private void CmbFolderThreshold_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_loadingToggles) return;
+        int idx = CmbFolderThreshold.SelectedIndex;
+        if (idx < 0 || idx >= FolderThresholdValues.Length) return;
+        SettingsService.Current.HomeFolderThreshold = FolderThresholdValues[idx];
         SettingsService.Save();
     }
 

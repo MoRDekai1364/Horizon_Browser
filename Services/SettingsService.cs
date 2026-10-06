@@ -269,6 +269,7 @@ public class SettingsData
     public string HomeBookmarkGrouping { get; set; } = "Domain";
     public int HomeFavoriteRows { get; set; } = 2;
     public int HomeBookmarkRows { get; set; } = 2;
+    public int HomeFolderThreshold { get; set; } = 30;
 
     public bool   HomeAdaptiveColorsEnabled { get; set; } = true;
     public double HomeTintStrength           { get; set; } = 30.0;

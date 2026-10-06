@@ -26,6 +26,8 @@ public partial class StackHost : UserControl
     private double _restWidth = double.NaN;
     private double _restHeight = double.NaN;
     private bool _overlayOpen;
+    private double _baseWidth = double.NaN;
+    private double _baseHeight = double.NaN;
 
     public event Action<int>? SelectionChanged;
     public event Action<bool>? ExpandedChanged;
@@ -171,6 +173,17 @@ public partial class StackHost : UserControl
         Go((_index - 1 + _items.Count) % _items.Count, -1);
     }
 
+    public void SetRestSize(double width, double height)
+    {
+        _baseWidth = width;
+        _baseHeight = height;
+        if (_expanded) return;
+        BeginAnimation(WidthProperty, null);
+        BeginAnimation(HeightProperty, null);
+        Width = width;
+        Height = height;
+    }
+
     public void ExpandTo(double width, double height)
     {
         if (!_expanded)
@@ -270,8 +283,8 @@ public partial class StackHost : UserControl
             {
                 BeginAnimation(WidthProperty, null);
                 BeginAnimation(HeightProperty, null);
-                Width = double.NaN;
-                Height = double.NaN;
+                Width = _baseWidth;
+                Height = _baseHeight;
             };
         }
 
