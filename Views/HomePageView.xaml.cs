@@ -1743,6 +1743,7 @@ public partial class HomePageView : UserControl
             bookmarksView.GroupDescriptions.Clear();
             bookmarksView.GroupDescriptions.Add(new PropertyGroupDescription(nameof(BookmarkItem.GroupKey)));
             IcnBookmarks.ItemsSource = bookmarksView;
+            UpdateBookmarksDrawer();
         });
     }
 
@@ -2034,6 +2035,7 @@ public partial class HomePageView : UserControl
             view.GroupDescriptions.Clear();
             view.GroupDescriptions.Add(new PropertyGroupDescription(nameof(PinItem.Category)));
             IcnColumns.ItemsSource = view;
+            UpdateFavoritesDrawer();
         });
     }
 
@@ -2755,8 +2757,14 @@ public partial class HomePageView : UserControl
         StackElementBuilders.RegisterLaunchWidgets();
         StackElementBuilders.RegisterLaunchWidgets();
         StackElementBuilders.RegisterWebElements();
-        AddStackEntry("builtin:favorites", "Favorites", BuildStackCard("Favorites"));
-        AddStackEntry("builtin:bookmarks", "Bookmarks", BuildStackCard("Bookmarks"));
+        _favoritesDrawer = new FolderDrawerView { Title = "Favorites" };
+        _bookmarksDrawer = new FolderDrawerView { Title = "Bookmarks" };
+        _favoritesDrawer.ItemActivated += DrawerItem_Activated;
+        _bookmarksDrawer.ItemActivated += DrawerItem_Activated;
+        AddStackEntry("builtin:favorites", "Favorites", _favoritesDrawer);
+        AddStackEntry("builtin:bookmarks", "Bookmarks", _bookmarksDrawer);
+        UpdateFavoritesDrawer();
+        UpdateBookmarksDrawer();
         foreach (var stored in StackElementStore.Elements)
             AddStackEntry(stored.Id, stored.Title, StackElementBuilders.Build(stored));
         BuildStackMenu();
@@ -2855,26 +2863,73 @@ public partial class HomePageView : UserControl
         HomeStack.Visibility = ColRightBalance.ActualWidth >= 260 ? Visibility.Visible : Visibility.Collapsed;
     }
 
-    private static FrameworkElement BuildStackCard(string title)
+    private FolderDrawerView? _favoritesDrawer;
+    private FolderDrawerView? _bookmarksDrawer;
+
+    private static System.Windows.Media.ImageSource? DrawerIconOf(PinItem pin)
     {
-        var label = new TextBlock
+        return new PinIconConverter().Convert(pin, typeof(System.Windows.Media.ImageSource), null!, System.Globalization.CultureInfo.InvariantCulture) as System.Windows.Media.ImageSource;
+    }
+
+    private void UpdateFavoritesDrawer()
+    {
+        if (_favoritesDrawer == null) return;
+        var groups = new List<DrawerGroup>();
+        if (IcnColumns.ItemsSource is ICollectionView view && view.Groups != null)
         {
-            Text = title,
-            FontSize = 18,
-            FontWeight = FontWeights.SemiBold,
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Top
-        };
-        label.SetResourceReference(TextBlock.ForegroundProperty, "HomeTextBrush");
-        return new Border
+            foreach (CollectionViewGroup group in view.Groups)
+            {
+                var items = group.Items.OfType<PinItem>().Select(pin => new DrawerItem
+                {
+                    Name = pin.Name,
+                    Emoji = pin.IconEmoji,
+                    Icon = string.IsNullOrEmpty(pin.IconEmoji) ? DrawerIconOf(pin) : null,
+                    Source = pin
+                }).ToList();
+                if (items.Count == 0) continue;
+                string name = group.Name as string ?? "";
+                groups.Add(new DrawerGroup { Name = string.IsNullOrWhiteSpace(name) ? "General" : name, Items = items });
+            }
+        }
+        _favoritesDrawer.SetGroups(groups);
+    }
+
+    private void UpdateBookmarksDrawer()
+    {
+        if (_bookmarksDrawer == null) return;
+        var groups = new List<DrawerGroup>();
+        if (IcnBookmarks.ItemsSource is ICollectionView view && view.Groups != null)
         {
-            CornerRadius = new CornerRadius(22),
-            Background = new SolidColorBrush(Color.FromArgb(0x14, 0xFF, 0xFF, 0xFF)),
-            BorderBrush = new SolidColorBrush(Color.FromArgb(0x1F, 0xFF, 0xFF, 0xFF)),
-            BorderThickness = new Thickness(1),
-            Padding = new Thickness(16),
-            Child = label
-        };
+            foreach (CollectionViewGroup group in view.Groups)
+            {
+                var items = group.Items.OfType<BookmarkItem>().Select(bookmark => new DrawerItem
+                {
+                    Name = bookmark.Name,
+                    Icon = DrawerIconOf(bookmark.AsPin),
+                    Source = bookmark
+                }).ToList();
+                if (items.Count == 0) continue;
+                string name = group.Name as string ?? "";
+                groups.Add(new DrawerGroup { Name = string.IsNullOrWhiteSpace(name) ? "Bookmarks" : name, Items = items });
+            }
+        }
+        _bookmarksDrawer.SetGroups(groups);
+    }
+
+    private void DrawerItem_Activated(DrawerItem item)
+    {
+        if (item.Source is PinItem pin && !string.IsNullOrWhiteSpace(pin.Url))
+        {
+            pin.OpenCount++;
+            pin.LastOpened = DateTime.Now;
+            SettingsService.Save();
+            NavigateRequested?.Invoke(pin.Url);
+        }
+        else if (item.Source is BookmarkItem bookmark && !string.IsNullOrWhiteSpace(bookmark.Url))
+        {
+            BookmarkService.RecordOpen(bookmark);
+            NavigateRequested?.Invoke(bookmark.Url);
+        }
     }
 
     private void UpdateClockWeatherIslandBounds()

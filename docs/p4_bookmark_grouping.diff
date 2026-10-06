@@ -1,0 +1,193 @@
+--- a/Services/SettingsService.cs	2026-10-03 12:34:17.324934297 +0000
++++ b/Services/SettingsService.cs	2026-10-04 16:26:54.910843291 +0000
+@@ -264,6 +264,7 @@
+     public bool HomeShowVpnAdBlockWidget { get; set; } = true; 
+ 
+     public string HomeGroupStyle { get; set; } = "HeaderOnly";
++    public string HomeBookmarkGrouping { get; set; } = "Domain";
+ 
+     public bool   HomeAdaptiveColorsEnabled { get; set; } = true;
+     public double HomeTintStrength           { get; set; } = 30.0;
+--- a/Views/HomePageSettingsWindow.xaml	2026-10-03 12:34:17.327307818 +0000
++++ b/Views/HomePageSettingsWindow.xaml	2026-10-04 16:26:54.909433148 +0000
+@@ -176,6 +176,10 @@
+                     <TextBlock Text="Collapsed group style" Foreground="{DynamicResource Brush_Accent}" FontSize="13" Margin="0,14,0,6"/>
+                     <ComboBox x:Name="CmbGroupStyle" Height="28" Margin="0,0,0,8"
+                               SelectionChanged="CmbGroupStyle_SelectionChanged"/>
++
++                    <TextBlock Text="Bookmark grouping" Foreground="{DynamicResource Brush_Accent}" FontSize="13" Margin="0,14,0,6"/>
++                    <ComboBox x:Name="CmbBookmarkGrouping" Height="28" Margin="0,0,0,8"
++                              SelectionChanged="CmbBookmarkGrouping_SelectionChanged"/>
+                 </StackPanel>
+             </TabItem>
+             <TabItem Header="SHORTCUTS">
+--- a/Views/HomePageSettingsWindow.xaml.cs	2026-10-03 12:34:17.327618114 +0000
++++ b/Views/HomePageSettingsWindow.xaml.cs	2026-10-04 16:26:54.909241579 +0000
+@@ -101,6 +101,9 @@
+     private static readonly string[] GroupStyleChoices = { "Header only", "First row", "Stacked preview", "Mini folder", "Full (all icons, no collapsing)" };
+     private static readonly string[] GroupStyleValues  = { "HeaderOnly", "FirstRow", "Stack", "Mini", "Full" };
+ 
++    private static readonly string[] BookmarkGroupingChoices = { "By website", "Recent / Older", "One block, newest first" };
++    private static readonly string[] BookmarkGroupingValues  = { "Domain", "RecentOlder", "Single" };
++
+     private static readonly string[] VisualizerScopeChoices = { "Everywhere", "Media Tab Only", "Selected Websites" };
+     private static readonly string[] VisualizerScopeValues  = { "Everywhere", "MediaTabOnly", "SelectedWebsites" };
+ 
+@@ -246,6 +249,10 @@
+         int groupStyleIdx = Array.IndexOf(GroupStyleValues, s.HomeGroupStyle);
+         CmbGroupStyle.SelectedIndex = groupStyleIdx >= 0 ? groupStyleIdx : 0;
+ 
++        CmbBookmarkGrouping.ItemsSource = BookmarkGroupingChoices;
++        int bookmarkGroupingIdx = Array.IndexOf(BookmarkGroupingValues, s.HomeBookmarkGrouping);
++        CmbBookmarkGrouping.SelectedIndex = bookmarkGroupingIdx >= 0 ? bookmarkGroupingIdx : 0;
++
+         _loadingToggles = false;
+     }
+ 
+@@ -280,6 +287,15 @@
+         SettingsService.Save();
+     }
+ 
++    private void CmbBookmarkGrouping_SelectionChanged(object sender, SelectionChangedEventArgs e)
++    {
++        if (_loadingToggles) return;
++        int idx = CmbBookmarkGrouping.SelectedIndex;
++        if (idx < 0 || idx >= BookmarkGroupingValues.Length) return;
++        SettingsService.Current.HomeBookmarkGrouping = BookmarkGroupingValues[idx];
++        SettingsService.Save();
++    }
++
+     private void RefreshShortcutsList()
+     {
+         ListShortcuts.ItemsSource = null;
+--- a/Views/HomePageView.xaml.cs	2026-10-03 12:34:17.327618114 +0000
++++ b/Views/HomePageView.xaml.cs	2026-10-04 16:26:54.910413341 +0000
+@@ -14,6 +14,7 @@
+ using System.Windows.Threading;
+ using System.Windows.Data;
+ using System.ComponentModel;
++using Horizon.Stealth.Controls;
+ using Horizon.Stealth.Services;
+ 
+ namespace Horizon.Stealth.Views;
+@@ -72,6 +73,7 @@
+         {
+             if (!IsVisible) return;
+             RefreshSearchEngineList();
++            RefreshBookmarks();
+             WeatherBridge.SetWallpaperSurface(RootHomeGrid);
+             if (BgImageBrush.ImageSource is BitmapSource ownBitmap) WeatherBridge.SetWallpaper(ownBitmap);
+             if (_lastAdaptiveAvgColor.HasValue) PublishWeatherTheme(_lastAdaptiveAvgColor.Value);
+@@ -1685,24 +1687,41 @@
+             }
+ 
+             var displayList = list;
+-            var domainCounts = BookmarkService.Items
+-                .GroupBy(b => DomainOf(b.Url))
+-                .ToDictionary(g => g.Key, g => g.Count());
+-            foreach (var b in displayList)
+-            {
+-                string domain = DomainOf(b.Url);
+-                b.GroupKey = domainCounts.TryGetValue(domain, out int domainCount) && domainCount > 1 ? domain : "Other";
+-            }
+-
+-            var ordered = displayList
+-                .GroupBy(b => b.GroupKey)
+-                .OrderBy(g => g.Key == "Other" ? 1 : 0)
+-                .ThenByDescending(g => g.Count())
+-                .ThenBy(g => g.Key, StringComparer.OrdinalIgnoreCase)
+-                .SelectMany(g => g)
+-                .ToList();
++            string groupingMode = SettingsService.Current.HomeBookmarkGrouping;
++            bool oldestFirst = _inFocusMode && _focusWidgetName == "Bookmarks" && (CmbCategoryFilter.SelectedItem as string) == "Older";
++            List<BookmarkItem> ordered;
++            if (groupingMode == "Single")
++            {
++                foreach (var b in displayList) b.GroupKey = "All bookmarks";
++                ordered = (oldestFirst
++                    ? displayList.OrderBy(b => b.DateAdded)
++                    : displayList.OrderByDescending(b => b.DateAdded)).ToList();
++            }
++            else if (groupingMode == "RecentOlder")
++            {
++                ordered = BuildRecentOlder(displayList, oldestFirst);
++            }
++            else
++            {
++                var domainCounts = BookmarkService.Items
++                    .GroupBy(b => DomainOf(b.Url))
++                    .ToDictionary(g => g.Key, g => g.Count());
++                foreach (var b in displayList)
++                {
++                    string domain = DomainOf(b.Url);
++                    b.GroupKey = domainCounts.TryGetValue(domain, out int domainCount) && domainCount > 1 ? domain : "Other";
++                }
++
++                ordered = displayList
++                    .GroupBy(b => b.GroupKey)
++                    .OrderBy(g => g.Key == "Other" ? 1 : 0)
++                    .ThenByDescending(g => g.Count())
++                    .ThenBy(g => g.Key, StringComparer.OrdinalIgnoreCase)
++                    .SelectMany(g => g)
++                    .ToList();
++            }
+ 
+-            string bookmarksSig = string.Join("\u0001", ordered.Select(b => b.GroupKey + "\u0002" + b.Name + "\u0002" + b.Url + "\u0002" + b.IconPath));
++            string bookmarksSig = groupingMode + "\u0003" + string.Join("\u0001", ordered.Select(b => b.GroupKey + "\u0002" + b.Name + "\u0002" + b.Url + "\u0002" + b.IconPath));
+             if (bookmarksSig == _bookmarksSig && IcnBookmarks.ItemsSource != null) return;
+             _bookmarksSig = bookmarksSig;
+ 
+@@ -1713,6 +1732,40 @@
+         });
+     }
+ 
++    private static List<BookmarkItem> BuildRecentOlder(List<BookmarkItem> items, bool oldestFirst)
++    {
++        var allDates = BookmarkService.Items.Select(b => b.DateAdded).ToList();
++        if (allDates.Count == 0) return items;
++        DateTime newest = allDates.Max();
++        DateTime oldest = allDates.Min();
++        DateTime cutoff = oldest + TimeSpan.FromTicks((newest - oldest).Ticks / 2);
++        string newerTitle = NewerGroupTitle(newest - cutoff);
++        foreach (var b in items) b.GroupKey = b.DateAdded >= cutoff ? newerTitle : "Older";
++        var newer = items.Where(b => b.DateAdded >= cutoff);
++        var older = items.Where(b => b.DateAdded < cutoff);
++        var result = oldestFirst
++            ? newer.OrderBy(b => b.DateAdded).Concat(older.OrderBy(b => b.DateAdded))
++            : newer.OrderByDescending(b => b.DateAdded).Concat(older.OrderByDescending(b => b.DateAdded));
++        return result.ToList();
++    }
++
++    private static string NewerGroupTitle(TimeSpan span)
++    {
++        double days = Math.Max(span.TotalDays, 0);
++        double value;
++        string unit;
++        if (days < 14) { value = days; unit = "day"; }
++        else if (days <= 56) { value = days / 7; unit = "week"; }
++        else if (days <= 24 * 30.4375) { value = days / 30.4375; unit = "month"; }
++        else if (days <= 20 * 365.25) { value = days / 365.25; unit = "year"; }
++        else if (days <= 100 * 365.25) { value = days / 3652.5; unit = "decade"; }
++        else { value = days / 36525; unit = "millennium"; }
++        int n = Math.Max(1, (int)Math.Round(value, MidpointRounding.AwayFromZero));
++        if (n == 1) return "Newer (last " + unit + ")";
++        string plural = unit == "millennium" ? "millennia" : unit + "s";
++        return "Newer (last " + n + " " + plural + ")";
++    }
++
+     private static string GroupKeyOf(GroupItem group)
+     {
+         return (group.Content as CollectionViewGroup)?.Name?.ToString() ?? "";
+--- a/default_settings.txt	2026-10-03 12:34:17.327618114 +0000
++++ b/default_settings.txt	2026-10-04 16:26:54.909709916 +0000
+@@ -365,6 +365,10 @@
+ #   type: string | values: HeaderOnly|FirstRow|Stack|Mini|Full | default: HeaderOnly
+ HomeGroupStyle=HeaderOnly
+ 
++# [S05.23] How bookmarks are grouped on the home page
++#   type: string | values: Domain|RecentOlder|Single | default: Domain
++HomeBookmarkGrouping=Domain
++
+ #==============================================================================
+ # [S06] WALLPAPER AND BACKGROUND
+ #==============================================================================

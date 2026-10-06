@@ -1,0 +1,362 @@
+--- a/Controls/PuzzlePanel.cs	2026-10-04 16:26:00.572204879 +0000
++++ b/Controls/PuzzlePanel.cs	2026-10-03 12:40:26.222603327 +0000
+@@ -113,6 +113,12 @@
+ 
+     public static bool GetIsCollapsed(DependencyObject d) => (bool)d.GetValue(IsCollapsedProperty);
+     public static void SetIsCollapsed(DependencyObject d, bool value) => d.SetValue(IsCollapsedProperty, value);
++
++    public static readonly DependencyProperty IsFolderProperty =
++        DependencyProperty.RegisterAttached("IsFolder", typeof(bool), typeof(GroupState), new PropertyMetadata(false));
++
++    public static bool GetIsFolder(DependencyObject d) => (bool)d.GetValue(IsFolderProperty);
++    public static void SetIsFolder(DependencyObject d, bool value) => d.SetValue(IsFolderProperty, value);
+ }
+ 
+ public enum GroupCollapseMode
+@@ -120,7 +126,8 @@
+     Full,
+     FirstRow,
+     Stack,
+-    Mini
++    Mini,
++    Folder
+ }
+ 
+ public class AutoGridPanel : Panel
+@@ -131,6 +138,10 @@
+     private const int MiniThreshold = 9;
+     private const int MiniFullTiles = 8;
+     private const int MiniClusterMax = 9;
++    private const double FolderCellWidth = 100;
++    private const int FolderFullTiles = 3;
++    private const int FolderClusterMax = 4;
++    private static readonly ScaleTransform FolderScale = CreateScale(0.46);
+     private static readonly ScaleTransform MiniScale2 = CreateScale(0.46);
+     private static readonly ScaleTransform MiniScale3 = CreateScale(0.3);
+ 
+@@ -159,6 +170,61 @@
+     private int _columns = 1;
+     private Size _cell;
+ 
++    private static void SetHit(UIElement child, bool value)
++    {
++        if (child.IsHitTestVisible != value) child.IsHitTestVisible = value;
++    }
++
++    private Size FolderSize(int count)
++    {
++        return count <= FolderFullTiles
++            ? new Size(count * _cell.Width, _cell.Height)
++            : new Size(2 * _cell.Width, 2 * _cell.Height);
++    }
++
++    private void ArrangeFolder(Size finalSize)
++    {
++        int count = InternalChildren.Count;
++        Size size = FolderSize(count);
++        double offsetX = Math.Max(0, (finalSize.Width - size.Width) / 2.0);
++        bool cluster = count > FolderFullTiles + 1;
++        int fullTiles = cluster ? FolderFullTiles : count;
++        int shown = cluster ? Math.Min(FolderClusterMax, count - FolderFullTiles) : 0;
++        double clusterX = offsetX + _cell.Width;
++        double clusterY = _cell.Height;
++        double slotWidth = _cell.Width / 2.0;
++        double slotHeight = _cell.Height / 2.0;
++
++        for (int i = 0; i < count; i++)
++        {
++            UIElement child = InternalChildren[i];
++            Panel.SetZIndex(child, 0);
++
++            if (i < fullTiles)
++            {
++                ResetTransform(child);
++                SetHit(child, true);
++                double x = count <= FolderFullTiles ? i * _cell.Width : (i % 2) * _cell.Width;
++                double y = count <= FolderFullTiles ? 0 : (i / 2) * _cell.Height;
++                child.Arrange(new Rect(offsetX + x, y, _cell.Width, _cell.Height));
++                continue;
++            }
++
++            int k = i - fullTiles;
++            SetHit(child, false);
++            if (k < shown)
++            {
++                if (!ReferenceEquals(child.RenderTransform, FolderScale)) child.RenderTransform = FolderScale;
++                child.Arrange(new Rect(clusterX + (k % 2) * slotWidth, clusterY + (k / 2) * slotHeight, _cell.Width, _cell.Height));
++            }
++            else
++            {
++                ResetTransform(child);
++                child.Arrange(new Rect(HiddenOffset, HiddenOffset, _cell.Width, _cell.Height));
++            }
++        }
++    }
++
+     private void ArrangeMini(Size finalSize)
+     {
+         double offsetX = Math.Max(0, (finalSize.Width - 3 * _cell.Width) / 2.0);
+@@ -203,6 +269,7 @@
+         return mode switch
+         {
+             GroupCollapseMode.FirstRow => _cell.Height,
++            GroupCollapseMode.Folder => count <= FolderFullTiles ? _cell.Height : 2 * _cell.Height,
+             GroupCollapseMode.Stack => _cell.Height + (Math.Min(StackDepth, count) - 1) * StackOffset,
+             GroupCollapseMode.Mini => count > MiniThreshold
+                 ? 3 * _cell.Height
+@@ -226,6 +293,20 @@
+         int count = InternalChildren.Count;
+         if (count == 0) return new Size(0, 0);
+ 
++        if (Mode == GroupCollapseMode.Folder)
++        {
++            double folderHeight = 0;
++            var folderConstraint = new Size(FolderCellWidth, double.PositiveInfinity);
++            foreach (UIElement child in InternalChildren)
++            {
++                child.Measure(folderConstraint);
++                folderHeight = Math.Max(folderHeight, child.DesiredSize.Height);
++            }
++
++            _cell = new Size(FolderCellWidth, folderHeight);
++            return FolderSize(count);
++        }
++
+         double cellWidth = 0;
+         double cellHeight = 0;
+         var infinite = new Size(double.PositiveInfinity, double.PositiveInfinity);
+@@ -261,6 +342,14 @@
+ 
+     protected override Size ArrangeOverride(Size finalSize)
+     {
++        if (Mode == GroupCollapseMode.Folder)
++        {
++            ArrangeFolder(finalSize);
++            return finalSize;
++        }
++
++        foreach (UIElement child in InternalChildren) SetHit(child, true);
++
+         if (Mode == GroupCollapseMode.Stack)
+         {
+             int shown = Math.Min(StackDepth, InternalChildren.Count);
+--- a/Services/SettingsService.cs	2026-10-04 16:26:54.910843291 +0000
++++ b/Services/SettingsService.cs	2026-10-03 12:40:26.294648590 +0000
+@@ -263,7 +263,7 @@
+     public bool HomeShowBatteryWidget   { get; set; } = true; 
+     public bool HomeShowVpnAdBlockWidget { get; set; } = true; 
+ 
+-    public string HomeGroupStyle { get; set; } = "HeaderOnly";
++    public string HomeGroupStyle { get; set; } = "Folder";
+     public string HomeBookmarkGrouping { get; set; } = "Domain";
+ 
+     public bool   HomeAdaptiveColorsEnabled { get; set; } = true;
+--- a/Views/HomePageSettingsWindow.xaml.cs	2026-10-04 16:26:54.909241579 +0000
++++ b/Views/HomePageSettingsWindow.xaml.cs	2026-10-03 12:40:26.292983142 +0000
+@@ -98,8 +98,8 @@
+         "Calibri", "Cambria", "Arial", "Georgia", "Consolas", "Trebuchet MS"
+     };
+ 
+-    private static readonly string[] GroupStyleChoices = { "Header only", "First row", "Stacked preview", "Mini folder", "Full (all icons, no collapsing)" };
+-    private static readonly string[] GroupStyleValues  = { "HeaderOnly", "FirstRow", "Stack", "Mini", "Full" };
++    private static readonly string[] GroupStyleChoices = { "Folder cards", "Header only", "First row", "Stacked preview", "Mini folder", "Full (all icons, no collapsing)" };
++    private static readonly string[] GroupStyleValues  = { "Folder", "HeaderOnly", "FirstRow", "Stack", "Mini", "Full" };
+ 
+     private static readonly string[] BookmarkGroupingChoices = { "By website", "Recent / Older", "One block, newest first" };
+     private static readonly string[] BookmarkGroupingValues  = { "Domain", "RecentOlder", "Single" };
+--- a/Views/HomePageView.xaml	2026-10-04 16:26:06.060988536 +0000
++++ b/Views/HomePageView.xaml	2026-10-03 12:40:26.289322995 +0000
+@@ -24,22 +24,33 @@
+             <Setter Property="Template">
+                 <Setter.Value>
+                     <ControlTemplate TargetType="GroupItem">
+-                        <Border CornerRadius="18" Background="#14FFFFFF" BorderBrush="#1FFFFFFF" BorderThickness="1"
+-                                Padding="6,2,6,8" services:HomeGlass.Exclude="True">
+-                            <StackPanel>
+-                                <ContentPresenter HorizontalAlignment="Center"/>
+-                                <TextBlock x:Name="GroupCount" Visibility="Collapsed" FontSize="12" HorizontalAlignment="Center"
+-                                           Foreground="{DynamicResource HomeTextBrush}" Opacity="0.4" Margin="0,0,0,4"
+-                                           Text="{Binding Content.ItemCount, RelativeSource={RelativeSource TemplatedParent}, StringFormat={}{0} items}"/>
+-                                <Border x:Name="GroupItemsClip" ClipToBounds="True">
+-                                    <ItemsPresenter x:Name="GroupItemsHost"/>
+-                                </Border>
+-                            </StackPanel>
+-                        </Border>
++                        <Grid>
++                            <Grid.RowDefinitions>
++                                <RowDefinition Height="Auto"/>
++                                <RowDefinition Height="Auto"/>
++                                <RowDefinition Height="Auto"/>
++                            </Grid.RowDefinitions>
++                            <ContentPresenter x:Name="GroupHeaderHost" Grid.Row="0" HorizontalAlignment="Center"/>
++                            <Border x:Name="GroupCard" Grid.Row="1" CornerRadius="18" Background="#14FFFFFF" BorderBrush="#1FFFFFFF" BorderThickness="1"
++                                    Padding="8" services:HomeGlass.Exclude="True" MouseLeftButtonUp="FolderCard_Click">
++                                <StackPanel>
++                                    <TextBlock x:Name="GroupCount" Visibility="Collapsed" FontSize="12" HorizontalAlignment="Center"
++                                               Foreground="{DynamicResource HomeTextBrush}" Opacity="0.4" Margin="0,0,0,4"
++                                               Text="{Binding Content.ItemCount, RelativeSource={RelativeSource TemplatedParent}, StringFormat={}{0} items}"/>
++                                    <Border x:Name="GroupItemsClip" ClipToBounds="True">
++                                        <ItemsPresenter x:Name="GroupItemsHost"/>
++                                    </Border>
++                                </StackPanel>
++                            </Border>
++                        </Grid>
+                         <ControlTemplate.Triggers>
+                             <Trigger Property="controls:GroupState.IsCollapsed" Value="True">
+                                 <Setter TargetName="GroupCount" Property="Visibility" Value="Visible"/>
+                             </Trigger>
++                            <Trigger Property="controls:GroupState.IsFolder" Value="True">
++                                <Setter TargetName="GroupHeaderHost" Property="Grid.Row" Value="2"/>
++                                <Setter TargetName="GroupCount" Property="Visibility" Value="Collapsed"/>
++                            </Trigger>
+                         </ControlTemplate.Triggers>
+                     </ControlTemplate>
+                 </Setter.Value>
+--- a/Views/HomePageView.xaml.cs	2026-10-04 16:26:54.910413341 +0000
++++ b/Views/HomePageView.xaml.cs	2026-10-03 12:40:26.291251110 +0000
+@@ -37,6 +37,8 @@
+     private string _bookmarksSig = "";
+     private readonly HashSet<string> _collapsedFavoriteGroups = new();
+     private readonly HashSet<string> _collapsedBookmarkGroups = new();
++    private readonly HashSet<string> _openFavoriteGroups = new();
++    private readonly HashSet<string> _openBookmarkGroups = new();
+     private readonly HashSet<GroupItem> _animatingGroups = new();
+     private DispatcherTimer? _inactivityTimer;
+     private Color _lastPillBg = Color.FromArgb(0x80, 0x00, 0x00, 0x00);
+@@ -73,6 +75,7 @@
+         {
+             if (!IsVisible) return;
+             RefreshSearchEngineList();
++            RefreshFavorites();
+             RefreshBookmarks();
+             WeatherBridge.SetWallpaperSurface(RootHomeGrid);
+             if (BgImageBrush.ImageSource is BitmapSource ownBitmap) WeatherBridge.SetWallpaper(ownBitmap);
+@@ -1721,7 +1724,7 @@
+                     .ToList();
+             }
+ 
+-            string bookmarksSig = groupingMode + "\u0003" + string.Join("\u0001", ordered.Select(b => b.GroupKey + "\u0002" + b.Name + "\u0002" + b.Url + "\u0002" + b.IconPath));
++            string bookmarksSig = groupingMode + "\u0003" + SettingsService.Current.HomeGroupStyle + "\u0003" + string.Join("\u0001", ordered.Select(b => b.GroupKey + "\u0002" + b.Name + "\u0002" + b.Url + "\u0002" + b.IconPath));
+             if (bookmarksSig == _bookmarksSig && IcnBookmarks.ItemsSource != null) return;
+             _bookmarksSig = bookmarksSig;
+ 
+@@ -1786,11 +1789,29 @@
+         if (sender is not GroupItem group) return;
+         var owner = OwnerItemsControl(group);
+         if (owner == null) return;
+-        var collapsed = owner == IcnColumns ? _collapsedFavoriteGroups : _collapsedBookmarkGroups;
+-        if (SettingsService.Current.HomeGroupStyle != "Full" && collapsed.Contains(GroupKeyOf(group)))
++        GroupState.SetIsFolder(group, FolderStyle);
++        if (!FullStyle && IsGroupCollapsed(owner, GroupKeyOf(group)))
+             ApplyGroupVisual(group, true);
+     }
+ 
++    private bool IsGroupCollapsed(ItemsControl owner, string key)
++    {
++        if (FolderStyle) return !(owner == IcnColumns ? _openFavoriteGroups : _openBookmarkGroups).Contains(key);
++        return (owner == IcnColumns ? _collapsedFavoriteGroups : _collapsedBookmarkGroups).Contains(key);
++    }
++
++    private void SetGroupCollapsed(ItemsControl owner, string key, bool collapse)
++    {
++        if (FolderStyle)
++        {
++            var open = owner == IcnColumns ? _openFavoriteGroups : _openBookmarkGroups;
++            if (collapse) open.Remove(key); else open.Add(key);
++            return;
++        }
++        var collapsedSet = owner == IcnColumns ? _collapsedFavoriteGroups : _collapsedBookmarkGroups;
++        if (collapse) collapsedSet.Add(key); else collapsedSet.Remove(key);
++    }
++
+     private static DoubleAnimation GroupHeightAnimation(double to)
+     {
+         return new DoubleAnimation(to, new Duration(TimeSpan.FromMilliseconds(300)))
+@@ -1801,10 +1822,12 @@
+ 
+     private static bool FullStyle => SettingsService.Current.HomeGroupStyle == "Full";
+ 
++    private static bool FolderStyle => SettingsService.Current.HomeGroupStyle == "Folder";
++
+     private void ApplyScrollCap()
+     {
+         if (_inFocusMode || ScvFavorites == null || ScvBookmarks == null) return;
+-        if (FullStyle)
++        if (FullStyle || FolderStyle)
+         {
+             double cap = Math.Max(160, ComputeExpandedScrollMaxHeight() / 2);
+             ScvFavorites.MaxHeight = cap;
+@@ -1824,6 +1847,7 @@
+             "FirstRow" => GroupCollapseMode.FirstRow,
+             "Stack" => GroupCollapseMode.Stack,
+             "Mini" => GroupCollapseMode.Mini,
++            "Folder" => GroupCollapseMode.Folder,
+             _ => null
+         };
+     }
+@@ -1908,24 +1932,34 @@
+ 
+     private void GroupHeader_Click(object sender, MouseButtonEventArgs e)
+     {
+-        if (_inEditMode || SettingsService.Current.HomeGroupStyle == "Full" || sender is not DependencyObject header) return;
+-        DependencyObject? node = header;
++        if (_inEditMode || FullStyle || sender is not DependencyObject header) return;
++        e.Handled = ToggleGroupFrom(header);
++    }
++
++    private void FolderCard_Click(object sender, MouseButtonEventArgs e)
++    {
++        if (_inEditMode || !FolderStyle || !ReferenceEquals(e.OriginalSource, sender) || sender is not DependencyObject card) return;
++        e.Handled = ToggleGroupFrom(card);
++    }
++
++    private bool ToggleGroupFrom(DependencyObject origin)
++    {
++        DependencyObject? node = origin;
+         GroupItem? group = null;
+         while (node != null && group == null)
+         {
+             group = node as GroupItem;
+             node = VisualTreeHelper.GetParent(node);
+         }
+-        if (group == null) return;
++        if (group == null) return false;
+         var owner = OwnerItemsControl(group);
+-        if (owner == null) return;
+-        var collapsedSet = owner == IcnColumns ? _collapsedFavoriteGroups : _collapsedBookmarkGroups;
+-        e.Handled = true;
+-        if (_animatingGroups.Contains(group)) return;
++        if (owner == null) return false;
++        if (_animatingGroups.Contains(group)) return true;
+         string key = GroupKeyOf(group);
+-        bool collapse = !collapsedSet.Contains(key);
+-        if (collapse) collapsedSet.Add(key); else collapsedSet.Remove(key);
++        bool collapse = !IsGroupCollapsed(owner, key);
++        SetGroupCollapsed(owner, key, collapse);
+         AnimateGroup(group, collapse);
++        return true;
+     }
+ 
+     private static string DomainOf(string url)
+@@ -1969,7 +2003,7 @@
+             }
+ 
+             var displayList = list;
+-            string favoritesSig = string.Join("\u0001", displayList.Select(p => p.Name + "\u0002" + p.Url + "\u0002" + p.Category + "\u0002" + p.IconPath + "\u0002" + p.IconEmoji));
++            string favoritesSig = SettingsService.Current.HomeGroupStyle + "\u0003" + string.Join("\u0001", displayList.Select(p => p.Name + "\u0002" + p.Url + "\u0002" + p.Category + "\u0002" + p.IconPath + "\u0002" + p.IconEmoji));
+             if (favoritesSig == _favoritesSig && IcnColumns.ItemsSource != null) return;
+             _favoritesSig = favoritesSig;
+             var view = new CollectionViewSource { Source = displayList }.View;
+--- a/default_settings.txt	2026-10-04 16:26:54.909709916 +0000
++++ b/default_settings.txt	2026-10-03 12:40:26.296037611 +0000
+@@ -362,8 +362,8 @@
+ WeatherLeftPaneDefaultOpen=false
+ 
+ # [S05.22] How a collapsed favorites or bookmarks group looks
+-#   type: string | values: HeaderOnly|FirstRow|Stack|Mini|Full | default: HeaderOnly
+-HomeGroupStyle=HeaderOnly
++#   type: string | values: Folder|HeaderOnly|FirstRow|Stack|Mini|Full | default: Folder
++HomeGroupStyle=Folder
+ 
+ # [S05.23] How bookmarks are grouped on the home page
+ #   type: string | values: Domain|RecentOlder|Single | default: Domain

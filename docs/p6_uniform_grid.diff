@@ -1,0 +1,287 @@
+--- a/Controls/PuzzlePanel.cs	2026-10-03 12:40:26.222603327 +0000
++++ b/Controls/PuzzlePanel.cs	2026-10-04 16:28:36.491243161 +0000
+@@ -1,6 +1,7 @@
+ using System.Windows;
+ using System.Windows.Controls;
+ using System.Windows.Media;
++using System.Windows.Threading;
+ 
+ namespace Horizon.Stealth.Controls;
+ 
+@@ -26,9 +27,163 @@
+         set => SetValue(MaxRowWidthProperty, value);
+     }
+ 
++    private const int MaxColumns = 6;
++    private const int MinRows = 2;
++    private const int MaxRows = 6;
++    private const double MaxCardWidth = 260;
++
++    public static readonly DependencyProperty ViewportBudgetProperty = DependencyProperty.RegisterAttached(
++        "ViewportBudget", typeof(double), typeof(PuzzlePanel), new PropertyMetadata(0.0, OnViewportBudgetChanged));
++
++    private static readonly DependencyProperty HostPanelProperty = DependencyProperty.RegisterAttached(
++        "HostPanel", typeof(PuzzlePanel), typeof(PuzzlePanel), new PropertyMetadata(null));
++
++    public static double GetViewportBudget(DependencyObject d) => (double)d.GetValue(ViewportBudgetProperty);
++    public static void SetViewportBudget(DependencyObject d, double value) => d.SetValue(ViewportBudgetProperty, value);
++
++    private static void OnViewportBudgetChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
++    {
++        Resnap(d as ScrollViewer);
++    }
++
++    public static void Resnap(ScrollViewer? host)
++    {
++        if (host?.GetValue(HostPanelProperty) is PuzzlePanel panel) panel.Snap();
++    }
++
+     private readonly List<Rect> _slots = new();
+     private double _packedWidth = -1;
+     private double _packedUsedWidth = -1;
++    private bool _uniform;
++    private double _cellW;
++    private double _cellH;
++    private int _cols = 1;
++    private double _snapPitch = -1;
++    private ScrollViewer? _host;
++
++    public PuzzlePanel()
++    {
++        Loaded += (_, _) => AttachHost();
++    }
++
++    private void AttachHost()
++    {
++        DependencyObject? node = VisualTreeHelper.GetParent(this);
++        while (node != null && node is not ScrollViewer) node = VisualTreeHelper.GetParent(node);
++        if (node is not ScrollViewer host) return;
++        _host = host;
++        host.SetValue(HostPanelProperty, this);
++        Snap();
++    }
++
++    private void Snap()
++    {
++        if (_host == null || !_uniform || _cellH <= 0) return;
++        double budget = GetViewportBudget(_host);
++        if (budget <= 0) return;
++        double pitch = _cellH + Gap;
++        int rows = Math.Max(MinRows, Math.Min(MaxRows, (int)Math.Floor((budget + Gap) / pitch)));
++        double target = rows * pitch - Gap + 4;
++        if (Math.Abs(_host.MaxHeight - target) > 0.5) _host.MaxHeight = target;
++    }
++
++    private bool IsUniform()
++    {
++        return ItemsControl.GetItemsOwner(this) is ItemsControl owner && GroupState.GetIsFolder(owner);
++    }
++
++    private Size MeasureUniform(double width)
++    {
++        double gap = Gap;
++        double cellW = 0;
++        double cellH = 0;
++        int collapsedCount = 0;
++        var cardConstraint = new Size(MaxCardWidth, double.PositiveInfinity);
++
++        foreach (UIElement child in InternalChildren)
++        {
++            if (!GroupState.GetIsCollapsed(child)) continue;
++            child.Measure(cardConstraint);
++            cellW = Math.Max(cellW, child.DesiredSize.Width);
++            cellH = Math.Max(cellH, child.DesiredSize.Height);
++            collapsedCount++;
++        }
++
++        int cols = 1;
++        if (collapsedCount > 0 && cellW > 0)
++        {
++            int fit = (int)Math.Floor((width + gap) / (cellW + gap));
++            cols = Math.Max(1, Math.Min(Math.Min(fit, MaxColumns), collapsedCount));
++        }
++
++        var expandedConstraint = new Size(width, double.PositiveInfinity);
++        foreach (UIElement child in InternalChildren)
++            if (!GroupState.GetIsCollapsed(child)) child.Measure(expandedConstraint);
++
++        _cellW = cellW;
++        _cellH = cellH;
++        _cols = cols;
++        Size size = PackUniform(width);
++
++        if (cellH > 0 && Math.Abs(_snapPitch - (cellH + gap)) > 0.5)
++        {
++            _snapPitch = cellH + gap;
++            Dispatcher.BeginInvoke(new Action(Snap), DispatcherPriority.Loaded);
++        }
++
++        return size;
++    }
++
++    private Size PackUniform(double width)
++    {
++        _slots.Clear();
++        double gap = Gap;
++        double y = 0;
++        int c = 0;
++        double used = _cellW > 0 ? _cols * _cellW + (_cols - 1) * gap : 0;
++        var expanded = new List<int>();
++
++        for (int i = 0; i < InternalChildren.Count; i++)
++        {
++            UIElement child = InternalChildren[i];
++            Size desired = child.DesiredSize;
++            if (GroupState.GetIsCollapsed(child))
++            {
++                _slots.Add(new Rect(c * (_cellW + gap), y, _cellW, _cellH));
++                c++;
++                if (c >= _cols)
++                {
++                    c = 0;
++                    y += _cellH + gap;
++                }
++            }
++            else
++            {
++                if (c > 0)
++                {
++                    c = 0;
++                    y += _cellH + gap;
++                }
++                _slots.Add(new Rect(0, y, desired.Width, desired.Height));
++                expanded.Add(i);
++                used = Math.Max(used, desired.Width);
++                y += desired.Height + gap;
++            }
++        }
++
++        foreach (int i in expanded)
++        {
++            Rect slot = _slots[i];
++            _slots[i] = new Rect((used - slot.Width) / 2.0, slot.Y, slot.Width, slot.Height);
++        }
++
++        double height = 0;
++        foreach (Rect slot in _slots) height = Math.Max(height, slot.Bottom);
++
++        _packedWidth = width;
++        _packedUsedWidth = used;
++        return new Size(used, height);
++    }
+ 
+     protected override Size MeasureOverride(Size availableSize)
+     {
+@@ -36,6 +191,9 @@
+             ? MaxRowWidth
+             : Math.Min(availableSize.Width, MaxRowWidth);
+ 
++        _uniform = IsUniform();
++        if (_uniform) return MeasureUniform(width);
++
+         var constraint = new Size(width, double.PositiveInfinity);
+         foreach (UIElement child in InternalChildren)
+             child.Measure(constraint);
+@@ -48,7 +206,10 @@
+         double width = Math.Min(Math.Max(finalSize.Width, 1), MaxRowWidth);
+         bool reusable = _slots.Count == InternalChildren.Count
+             && (Math.Abs(width - _packedWidth) <= 0.5 || Math.Abs(width - _packedUsedWidth) <= 0.5);
+-        if (!reusable) Pack(width);
++        if (!reusable)
++        {
++            if (_uniform) PackUniform(width); else Pack(width);
++        }
+ 
+         for (int i = 0; i < InternalChildren.Count && i < _slots.Count; i++)
+             InternalChildren[i].Arrange(_slots[i]);
+@@ -109,7 +270,8 @@
+ public static class GroupState
+ {
+     public static readonly DependencyProperty IsCollapsedProperty =
+-        DependencyProperty.RegisterAttached("IsCollapsed", typeof(bool), typeof(GroupState), new PropertyMetadata(false));
++        DependencyProperty.RegisterAttached("IsCollapsed", typeof(bool), typeof(GroupState),
++            new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.AffectsParentMeasure | FrameworkPropertyMetadataOptions.AffectsParentArrange));
+ 
+     public static bool GetIsCollapsed(DependencyObject d) => (bool)d.GetValue(IsCollapsedProperty);
+     public static void SetIsCollapsed(DependencyObject d, bool value) => d.SetValue(IsCollapsedProperty, value);
+--- a/Views/HomePageView.xaml	2026-10-03 12:40:26.289322995 +0000
++++ b/Views/HomePageView.xaml	2026-10-04 16:28:36.491513116 +0000
+@@ -31,7 +31,7 @@
+                                 <RowDefinition Height="Auto"/>
+                             </Grid.RowDefinitions>
+                             <ContentPresenter x:Name="GroupHeaderHost" Grid.Row="0" HorizontalAlignment="Center"/>
+-                            <Border x:Name="GroupCard" Grid.Row="1" CornerRadius="18" Background="#14FFFFFF" BorderBrush="#1FFFFFFF" BorderThickness="1"
++                            <Border x:Name="GroupCard" Grid.Row="1" HorizontalAlignment="Center" CornerRadius="18" Background="#14FFFFFF" BorderBrush="#1FFFFFFF" BorderThickness="1"
+                                     Padding="8" services:HomeGlass.Exclude="True" MouseLeftButtonUp="FolderCard_Click">
+                                 <StackPanel>
+                                     <TextBlock x:Name="GroupCount" Visibility="Collapsed" FontSize="12" HorizontalAlignment="Center"
+--- a/Views/HomePageView.xaml.cs	2026-10-03 12:40:26.291251110 +0000
++++ b/Views/HomePageView.xaml.cs	2026-10-04 16:28:36.491969496 +0000
+@@ -70,6 +70,7 @@
+                 WeatherBridge.SetWallpaperSurface(null);
+         };
+         PnlClockWeather.SizeChanged += (_, __) => UpdateClockWeatherIslandBounds();
++        SizeChanged += (_, __) => ApplyScrollCap();
+         PnlClockWeather.SizeChanged += (_, __) => ReanchorInactivityMedia();
+         IsVisibleChanged += (_, e) =>
+         {
+@@ -198,7 +199,11 @@
+             CollapseContainer(PnlBookmarksContainer, transformDuration);
+             _favoritesExpanded = true;
+             PnlFavoritesContainer.Margin = new Thickness(0, 10, 0, 0);
+-            if (ScvFavorites != null) ScvFavorites.MaxHeight = ComputeExpandedScrollMaxHeight();
++            if (ScvFavorites != null)
++            {
++                PuzzlePanel.SetViewportBudget(ScvFavorites, 0);
++                ScvFavorites.MaxHeight = ComputeExpandedScrollMaxHeight();
++            }
+             TxtToggleFavorites.Text = "▲ Show less";
+             RefreshFavorites();
+         }
+@@ -207,7 +212,11 @@
+             CollapseContainer(PnlFavoritesContainer, transformDuration);
+             _bookmarksExpanded = true;
+             PnlBookmarksContainer.Margin = new Thickness(0, 10, 0, 0);
+-            if (ScvBookmarks != null) ScvBookmarks.MaxHeight = ComputeExpandedScrollMaxHeight();
++            if (ScvBookmarks != null)
++            {
++                PuzzlePanel.SetViewportBudget(ScvBookmarks, 0);
++                ScvBookmarks.MaxHeight = ComputeExpandedScrollMaxHeight();
++            }
+             TxtToggleBookmarks.Text = "▲ Show less";
+             RefreshBookmarks();
+         }
+@@ -1728,6 +1737,7 @@
+             if (bookmarksSig == _bookmarksSig && IcnBookmarks.ItemsSource != null) return;
+             _bookmarksSig = bookmarksSig;
+ 
++            GroupState.SetIsFolder(IcnBookmarks, FolderStyle);
+             var bookmarksView = new CollectionViewSource { Source = ordered }.View;
+             bookmarksView.GroupDescriptions.Clear();
+             bookmarksView.GroupDescriptions.Add(new PropertyGroupDescription(nameof(BookmarkItem.GroupKey)));
+@@ -1827,7 +1837,16 @@
+     private void ApplyScrollCap()
+     {
+         if (_inFocusMode || ScvFavorites == null || ScvBookmarks == null) return;
+-        if (FullStyle || FolderStyle)
++        if (FolderStyle)
++        {
++            double budget = Math.Max(160, ComputeExpandedScrollMaxHeight() / 2);
++            PuzzlePanel.SetViewportBudget(ScvFavorites, budget);
++            PuzzlePanel.SetViewportBudget(ScvBookmarks, budget);
++            PuzzlePanel.Resnap(ScvFavorites);
++            PuzzlePanel.Resnap(ScvBookmarks);
++            return;
++        }
++        if (FullStyle)
+         {
+             double cap = Math.Max(160, ComputeExpandedScrollMaxHeight() / 2);
+             ScvFavorites.MaxHeight = cap;
+@@ -2006,6 +2025,7 @@
+             string favoritesSig = SettingsService.Current.HomeGroupStyle + "\u0003" + string.Join("\u0001", displayList.Select(p => p.Name + "\u0002" + p.Url + "\u0002" + p.Category + "\u0002" + p.IconPath + "\u0002" + p.IconEmoji));
+             if (favoritesSig == _favoritesSig && IcnColumns.ItemsSource != null) return;
+             _favoritesSig = favoritesSig;
++            GroupState.SetIsFolder(IcnColumns, FolderStyle);
+             var view = new CollectionViewSource { Source = displayList }.View;
+             view.SortDescriptions.Clear();
+             view.SortDescriptions.Add(new SortDescription(nameof(PinItem.Category), ListSortDirection.Ascending));
