@@ -253,6 +253,13 @@ public partial class HomePageSettingsWindow : Window
         int bookmarkGroupingIdx = Array.IndexOf(BookmarkGroupingValues, s.HomeBookmarkGrouping);
         CmbBookmarkGrouping.SelectedIndex = bookmarkGroupingIdx >= 0 ? bookmarkGroupingIdx : 0;
 
+        int rowChoices = Horizon.Stealth.Controls.HomeRowLimits.Ceiling(SystemParameters.WorkArea.Height) - 1;
+        var rowOptions = Enumerable.Range(1, rowChoices).Select(n => n.ToString()).ToList();
+        CmbFavoriteRows.ItemsSource = rowOptions;
+        CmbFavoriteRows.SelectedIndex = Math.Clamp(s.HomeFavoriteRows, 1, rowChoices) - 1;
+        CmbBookmarkRows.ItemsSource = rowOptions.ToList();
+        CmbBookmarkRows.SelectedIndex = Math.Clamp(s.HomeBookmarkRows, 1, rowChoices) - 1;
+
         _loadingToggles = false;
     }
 
@@ -284,6 +291,24 @@ public partial class HomePageSettingsWindow : Window
         int idx = CmbGroupStyle.SelectedIndex;
         if (idx < 0 || idx >= GroupStyleValues.Length) return;
         SettingsService.Current.HomeGroupStyle = GroupStyleValues[idx];
+        SettingsService.Save();
+    }
+
+    private void CmbFavoriteRows_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_loadingToggles) return;
+        int idx = CmbFavoriteRows.SelectedIndex;
+        if (idx < 0) return;
+        SettingsService.Current.HomeFavoriteRows = idx + 1;
+        SettingsService.Save();
+    }
+
+    private void CmbBookmarkRows_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_loadingToggles) return;
+        int idx = CmbBookmarkRows.SelectedIndex;
+        if (idx < 0) return;
+        SettingsService.Current.HomeBookmarkRows = idx + 1;
         SettingsService.Save();
     }
 

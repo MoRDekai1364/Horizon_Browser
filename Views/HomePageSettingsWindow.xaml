@@ -180,6 +180,14 @@
                     <TextBlock Text="Bookmark grouping" Foreground="{DynamicResource Brush_Accent}" FontSize="13" Margin="0,14,0,6"/>
                     <ComboBox x:Name="CmbBookmarkGrouping" Height="28" Margin="0,0,0,8"
                               SelectionChanged="CmbBookmarkGrouping_SelectionChanged"/>
+
+                    <TextBlock Text="Favorites rows" Foreground="{DynamicResource Brush_Accent}" FontSize="13" Margin="0,14,0,6"/>
+                    <ComboBox x:Name="CmbFavoriteRows" Height="28" Margin="0,0,0,8"
+                              SelectionChanged="CmbFavoriteRows_SelectionChanged"/>
+
+                    <TextBlock Text="Bookmark rows" Foreground="{DynamicResource Brush_Accent}" FontSize="13" Margin="0,14,0,6"/>
+                    <ComboBox x:Name="CmbBookmarkRows" Height="28" Margin="0,0,0,8"
+                              SelectionChanged="CmbBookmarkRows_SelectionChanged"/>
                 </StackPanel>
             </TabItem>
             <TabItem Header="SHORTCUTS">

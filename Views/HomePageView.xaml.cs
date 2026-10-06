@@ -1735,14 +1735,34 @@ public partial class HomePageView : UserControl
             }
 
             string bookmarksSig = groupingMode + "\u0003" + SettingsService.Current.HomeGroupStyle + "\u0003" + string.Join("\u0001", ordered.Select(b => b.GroupKey + "\u0002" + b.Name + "\u0002" + b.Url + "\u0002" + b.IconPath));
+            bool rowsMode = !_inFocusMode;
+            bookmarksSig = (rowsMode ? "R" : "G") + "\u0003" + string.Join(",", ordered.Select(b => b.OpenCount)) + "\u0003" + bookmarksSig;
             if (bookmarksSig == _bookmarksSig && IcnBookmarks.ItemsSource != null) return;
             _bookmarksSig = bookmarksSig;
 
-            GroupState.SetIsFolder(IcnBookmarks, FolderStyle);
             var bookmarksView = new CollectionViewSource { Source = ordered }.View;
             bookmarksView.GroupDescriptions.Clear();
             bookmarksView.GroupDescriptions.Add(new PropertyGroupDescription(nameof(BookmarkItem.GroupKey)));
-            IcnBookmarks.ItemsSource = bookmarksView;
+            _bookmarksFullView = bookmarksView;
+            if (rowsMode)
+            {
+                SetRowsPanel(IcnBookmarks, true);
+                GroupState.SetIsFolder(IcnBookmarks, false);
+                IcnBookmarks.ItemsSource = new CollectionViewSource
+                {
+                    Source = ordered
+                        .OrderByDescending(b => b.OpenCount)
+                        .ThenByDescending(b => b.LastOpened)
+                        .ThenBy(b => b.Name, StringComparer.OrdinalIgnoreCase)
+                        .ToList()
+                }.View;
+            }
+            else
+            {
+                SetRowsPanel(IcnBookmarks, false);
+                GroupState.SetIsFolder(IcnBookmarks, FolderStyle);
+                IcnBookmarks.ItemsSource = bookmarksView;
+            }
             UpdateBookmarksDrawer();
         });
     }
@@ -1836,29 +1856,32 @@ public partial class HomePageView : UserControl
 
     private static bool FolderStyle => SettingsService.Current.HomeGroupStyle == "Folder";
 
+    private ICollectionView? _favoritesFullView;
+    private ICollectionView? _bookmarksFullView;
+
+    private void SetRowsPanel(ItemsControl control, bool rows)
+    {
+        var template = (ItemsPanelTemplate)FindResource(rows ? "RowsItemsPanel" : "PuzzleItemsPanel");
+        if (!ReferenceEquals(control.ItemsPanel, template)) control.ItemsPanel = template;
+    }
+
+    private void ApplyRowLimits()
+    {
+        double available = ActualHeight > 0 ? ActualHeight : SystemParameters.WorkArea.Height;
+        var (favoriteRows, bookmarkRows) = HomeRowLimits.Resolve(
+            SettingsService.Current.HomeFavoriteRows,
+            SettingsService.Current.HomeBookmarkRows,
+            available);
+        RowsPanel.SetMaxRows(IcnColumns, favoriteRows);
+        RowsPanel.SetMaxRows(IcnBookmarks, bookmarkRows);
+    }
+
     private void ApplyScrollCap()
     {
         if (_inFocusMode || ScvFavorites == null || ScvBookmarks == null) return;
-        if (FolderStyle)
-        {
-            double budget = Math.Max(160, ComputeExpandedScrollMaxHeight() / 2);
-            PuzzlePanel.SetViewportBudget(ScvFavorites, budget);
-            PuzzlePanel.SetViewportBudget(ScvBookmarks, budget);
-            PuzzlePanel.Resnap(ScvFavorites);
-            PuzzlePanel.Resnap(ScvBookmarks);
-            return;
-        }
-        if (FullStyle)
-        {
-            double cap = Math.Max(160, ComputeExpandedScrollMaxHeight() / 2);
-            ScvFavorites.MaxHeight = cap;
-            ScvBookmarks.MaxHeight = cap;
-        }
-        else
-        {
-            ScvFavorites.MaxHeight = 320;
-            ScvBookmarks.MaxHeight = 220;
-        }
+        ApplyRowLimits();
+        ScvFavorites.MaxHeight = double.PositiveInfinity;
+        ScvBookmarks.MaxHeight = double.PositiveInfinity;
     }
 
     private static GroupCollapseMode? CollapseModeFromSetting()
@@ -2025,16 +2048,36 @@ public partial class HomePageView : UserControl
 
             var displayList = list;
             string favoritesSig = SettingsService.Current.HomeGroupStyle + "\u0003" + string.Join("\u0001", displayList.Select(p => p.Name + "\u0002" + p.Url + "\u0002" + p.Category + "\u0002" + p.IconPath + "\u0002" + p.IconEmoji));
+            bool rowsMode = !_inFocusMode;
+            favoritesSig = (rowsMode ? "R" : "G") + "\u0003" + string.Join(",", displayList.Select(p => p.OpenCount)) + "\u0003" + favoritesSig;
             if (favoritesSig == _favoritesSig && IcnColumns.ItemsSource != null) return;
             _favoritesSig = favoritesSig;
-            GroupState.SetIsFolder(IcnColumns, FolderStyle);
             var view = new CollectionViewSource { Source = displayList }.View;
             view.SortDescriptions.Clear();
             view.SortDescriptions.Add(new SortDescription(nameof(PinItem.Category), ListSortDirection.Ascending));
             view.SortDescriptions.Add(new SortDescription(nameof(PinItem.Name), ListSortDirection.Ascending));
             view.GroupDescriptions.Clear();
             view.GroupDescriptions.Add(new PropertyGroupDescription(nameof(PinItem.Category)));
-            IcnColumns.ItemsSource = view;
+            _favoritesFullView = view;
+            if (rowsMode)
+            {
+                SetRowsPanel(IcnColumns, true);
+                GroupState.SetIsFolder(IcnColumns, false);
+                IcnColumns.ItemsSource = new CollectionViewSource
+                {
+                    Source = displayList
+                        .OrderByDescending(p => p.OpenCount)
+                        .ThenByDescending(p => p.LastOpened)
+                        .ThenBy(p => p.Name, StringComparer.OrdinalIgnoreCase)
+                        .ToList()
+                }.View;
+            }
+            else
+            {
+                SetRowsPanel(IcnColumns, false);
+                GroupState.SetIsFolder(IcnColumns, FolderStyle);
+                IcnColumns.ItemsSource = view;
+            }
             UpdateFavoritesDrawer();
         });
     }
@@ -2877,7 +2920,7 @@ public partial class HomePageView : UserControl
     {
         if (_favoritesDrawer == null) return;
         var groups = new List<DrawerGroup>();
-        if (IcnColumns.ItemsSource is ICollectionView view && view.Groups != null)
+        if (_favoritesFullView is ICollectionView view && view.Groups != null)
         {
             foreach (CollectionViewGroup group in view.Groups)
             {
@@ -2900,7 +2943,7 @@ public partial class HomePageView : UserControl
     {
         if (_bookmarksDrawer == null) return;
         var groups = new List<DrawerGroup>();
-        if (IcnBookmarks.ItemsSource is ICollectionView view && view.Groups != null)
+        if (_bookmarksFullView is ICollectionView view && view.Groups != null)
         {
             foreach (CollectionViewGroup group in view.Groups)
             {

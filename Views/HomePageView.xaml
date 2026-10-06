@@ -15,6 +15,10 @@
             <controls:PuzzlePanel Gap="14" HorizontalAlignment="Center"/>
         </ItemsPanelTemplate>
 
+        <ItemsPanelTemplate x:Key="RowsItemsPanel">
+            <controls:RowsPanel/>
+        </ItemsPanelTemplate>
+
         <ItemsPanelTemplate x:Key="BlockItemsPanel">
             <controls:AutoGridPanel/>
         </ItemsPanelTemplate>

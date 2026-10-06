@@ -292,6 +292,115 @@ public enum GroupCollapseMode
     Folder
 }
 
+public static class HomeRowLimits
+{
+    public const int MinTotalRows = 4;
+    public const int MaxTotalRows = 8;
+    public const double RowHeight = 125;
+    public const double ReservedHeight = 240;
+
+    public static int Ceiling(double availableHeight)
+    {
+        int fit = (int)Math.Floor(Math.Max(0, availableHeight - ReservedHeight) / RowHeight);
+        return Math.Clamp(fit, MinTotalRows, MaxTotalRows);
+    }
+
+    public static (int Favorites, int Bookmarks) Resolve(int favorites, int bookmarks, double availableHeight)
+    {
+        int ceiling = Ceiling(availableHeight);
+        favorites = Math.Clamp(favorites, 1, ceiling - 1);
+        bookmarks = Math.Clamp(bookmarks, 1, ceiling - 1);
+        while (favorites + bookmarks > ceiling)
+        {
+            if (favorites >= bookmarks) favorites--;
+            else bookmarks--;
+        }
+        return (favorites, bookmarks);
+    }
+}
+
+public class RowsPanel : Panel
+{
+    public const int MinColumns = 3;
+    public const int MaxColumns = 6;
+    private const double CellWidth = 131;
+
+    public static readonly DependencyProperty MaxRowsProperty = DependencyProperty.RegisterAttached(
+        "MaxRows", typeof(int), typeof(RowsPanel),
+        new FrameworkPropertyMetadata(2, OnMaxRowsChanged));
+
+    public static int GetMaxRows(DependencyObject d) => (int)d.GetValue(MaxRowsProperty);
+    public static void SetMaxRows(DependencyObject d, int value) => d.SetValue(MaxRowsProperty, value);
+
+    private int _columns = MinColumns;
+    private int _shown;
+    private double _cellHeight;
+
+    private static void OnMaxRowsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (FindPanel(d) is RowsPanel panel) panel.InvalidateMeasure();
+    }
+
+    private static RowsPanel? FindPanel(DependencyObject node)
+    {
+        if (node is RowsPanel panel) return panel;
+        int count = VisualTreeHelper.GetChildrenCount(node);
+        for (int i = 0; i < count; i++)
+        {
+            var found = FindPanel(VisualTreeHelper.GetChild(node, i));
+            if (found != null) return found;
+        }
+        return null;
+    }
+
+    protected override Size MeasureOverride(Size availableSize)
+    {
+        var owner = ItemsControl.GetItemsOwner(this);
+        int maxRows = Math.Max(1, owner != null ? GetMaxRows(owner) : 2);
+        double width = double.IsInfinity(availableSize.Width) ? MaxColumns * CellWidth : availableSize.Width;
+        _columns = Math.Clamp((int)Math.Floor(width / CellWidth), MinColumns, MaxColumns);
+        int capacity = _columns * maxRows;
+        _shown = Math.Min(InternalChildren.Count, capacity);
+
+        double cellHeight = 0;
+        for (int i = 0; i < InternalChildren.Count; i++)
+        {
+            var child = InternalChildren[i];
+            if (i >= _shown)
+            {
+                child.Visibility = Visibility.Collapsed;
+                continue;
+            }
+            child.Visibility = Visibility.Visible;
+            child.Measure(new Size(CellWidth, double.PositiveInfinity));
+            cellHeight = Math.Max(cellHeight, child.DesiredSize.Height);
+        }
+
+        _cellHeight = cellHeight;
+        int rows = _shown == 0 ? 0 : (_shown + _columns - 1) / _columns;
+        return new Size(Math.Min(_columns, Math.Max(_shown, 1)) * CellWidth, rows * cellHeight);
+    }
+
+    protected override Size ArrangeOverride(Size finalSize)
+    {
+        for (int i = 0; i < InternalChildren.Count; i++)
+        {
+            var child = InternalChildren[i];
+            if (i >= _shown)
+            {
+                child.Arrange(new Rect(0, 0, 0, 0));
+                continue;
+            }
+            int row = i / _columns;
+            int col = i % _columns;
+            int inRow = Math.Min(_columns, _shown - row * _columns);
+            double offset = (finalSize.Width - inRow * CellWidth) / 2;
+            child.Arrange(new Rect(offset + col * CellWidth, row * _cellHeight, CellWidth, _cellHeight));
+        }
+        return finalSize;
+    }
+}
+
 public class AutoGridPanel : Panel
 {
     public const int StackDepth = 3;

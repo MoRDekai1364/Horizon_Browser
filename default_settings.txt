@@ -369,6 +369,14 @@ HomeGroupStyle=Folder
 #   type: string | values: Domain|RecentOlder|Single | default: Domain
 HomeBookmarkGrouping=Domain
 
+# [S05.24] Rows of favorites in the home page center (the maximum total is limited by screen height)
+#   type: int | values: 1 to 7 | default: 2
+HomeFavoriteRows=2
+
+# [S05.25] Rows of bookmarks in the home page center (the maximum total is limited by screen height)
+#   type: int | values: 1 to 7 | default: 2
+HomeBookmarkRows=2
+
 #==============================================================================
 # [S06] WALLPAPER AND BACKGROUND
 #==============================================================================
