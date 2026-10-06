@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using System.Windows.Media.Effects;
 using System.Windows.Shapes;
 
 namespace Horizon.Stealth.Controls;
@@ -24,14 +25,17 @@ public partial class StackHost : UserControl
     private bool _expanded;
     private double _restWidth = double.NaN;
     private double _restHeight = double.NaN;
+    private bool _overlayOpen;
 
     public event Action<int>? SelectionChanged;
     public event Action<bool>? ExpandedChanged;
+    public event Action? OverlayClosed;
 
     public bool WheelSwitchEnabled { get; set; } = true;
     public int Count => _items.Count;
     public int SelectedIndex => _index;
     public bool IsExpanded => _expanded;
+    public bool IsOverlayOpen => _overlayOpen;
 
     public StackHost()
     {
@@ -90,6 +94,65 @@ public partial class StackHost : UserControl
         UpdateDots();
     }
 
+    public void ShowOverlay(FrameworkElement content)
+    {
+        if (_overlayOpen)
+        {
+            OverlayContent.Content = content;
+            return;
+        }
+
+        if (_switching) FinishSwitch();
+        _overlayOpen = true;
+        OverlayContent.Content = content;
+        Overlay.Visibility = Visibility.Visible;
+
+        var duration = new Duration(TimeSpan.FromMilliseconds(AnimationMs));
+        var ease = new SineEase { EasingMode = EasingMode.EaseInOut };
+        var blur = new BlurEffect { Radius = 0 };
+        Incoming.Effect = blur;
+        blur.BeginAnimation(BlurEffect.RadiusProperty, new DoubleAnimation(14, duration) { EasingFunction = ease });
+        Overlay.BeginAnimation(OpacityProperty, new DoubleAnimation(1, duration) { EasingFunction = ease });
+        Overlay.Focus();
+    }
+
+    public void CloseOverlay()
+    {
+        if (!_overlayOpen) return;
+        _overlayOpen = false;
+
+        var duration = new Duration(TimeSpan.FromMilliseconds(AnimationMs));
+        var ease = new SineEase { EasingMode = EasingMode.EaseInOut };
+        if (Incoming.Effect is BlurEffect blur)
+            blur.BeginAnimation(BlurEffect.RadiusProperty, new DoubleAnimation(0, duration) { EasingFunction = ease });
+
+        var fade = new DoubleAnimation(0, duration) { EasingFunction = ease };
+        fade.Completed += (_, _) =>
+        {
+            if (_overlayOpen) return;
+            Overlay.BeginAnimation(OpacityProperty, null);
+            Overlay.Opacity = 0;
+            Overlay.Visibility = Visibility.Collapsed;
+            OverlayContent.Content = null;
+            Incoming.Effect = null;
+        };
+        Overlay.BeginAnimation(OpacityProperty, fade);
+        OverlayClosed?.Invoke();
+    }
+
+    private void Overlay_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Escape) return;
+        e.Handled = true;
+        CloseOverlay();
+    }
+
+    private void OverlayBackdrop_Click(object sender, MouseButtonEventArgs e)
+    {
+        e.Handled = true;
+        CloseOverlay();
+    }
+
     public void Select(FrameworkElement content)
     {
         int target = _items.FindIndex(i => ReferenceEquals(i.Content, content));
@@ -130,7 +193,7 @@ public partial class StackHost : UserControl
 
     private void Go(int index, int direction)
     {
-        if (index < 0 || index >= _items.Count || index == _index || _switching) return;
+        if (index < 0 || index >= _items.Count || index == _index || _switching || _overlayOpen) return;
 
         _switching = true;
         double offset = Math.Max(ActualHeight, 1) * SlideFraction;
@@ -252,7 +315,7 @@ public partial class StackHost : UserControl
 
     private void Root_MouseWheel(object sender, MouseWheelEventArgs e)
     {
-        if (!WheelSwitchEnabled || _items.Count < 2 || e.Handled) return;
+        if (!WheelSwitchEnabled || _items.Count < 2 || e.Handled || _overlayOpen) return;
         e.Handled = true;
         if (e.Delta > 0) Previous(); else Next();
     }

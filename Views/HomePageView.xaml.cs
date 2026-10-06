@@ -2761,6 +2761,8 @@ public partial class HomePageView : UserControl
         _bookmarksDrawer = new FolderDrawerView { Title = "Bookmarks" };
         _favoritesDrawer.ItemActivated += DrawerItem_Activated;
         _bookmarksDrawer.ItemActivated += DrawerItem_Activated;
+        _favoritesDrawer.FolderOpenRequested += DrawerFolder_Requested;
+        _bookmarksDrawer.FolderOpenRequested += DrawerFolder_Requested;
         AddStackEntry("builtin:favorites", "Favorites", _favoritesDrawer);
         AddStackEntry("builtin:bookmarks", "Bookmarks", _bookmarksDrawer);
         UpdateFavoritesDrawer();
@@ -2914,6 +2916,18 @@ public partial class HomePageView : UserControl
             }
         }
         _bookmarksDrawer.SetGroups(groups);
+    }
+
+    private void DrawerFolder_Requested(DrawerGroup group)
+    {
+        var view = new OpenFolderView(group);
+        view.CloseRequested += () => HomeStack.CloseOverlay();
+        view.ItemActivated += item =>
+        {
+            HomeStack.CloseOverlay();
+            DrawerItem_Activated(item);
+        };
+        HomeStack.ShowOverlay(view);
     }
 
     private void DrawerItem_Activated(DrawerItem item)
