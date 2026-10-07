@@ -35,9 +35,9 @@ Status legend: [ ] todo, [~] in progress, [x] done, [?] exists in code, unverifi
 | ID | Task | Status | Section |
 |---|---|---|---|
 | V0 | Baseline verify and repo hygiene | [ ] | 4 |
-| D6 | Side-expand folder open mode + home setting | [ ] | 5 |
-| S4 | Built-in widget elements for the stack | [?] | 6 |
-| S5 | Web templates + optimize detection | [?] | 7 |
+| D6 | Side-expand folder open mode + home setting | [~] | 5 |
+| S4 | Built-in widget elements for the stack | [~] | 6 |
+| S5 | Web templates + optimize detection | [~] | 7 |
 | DS | default_settings rework | [?] | 8 |
 | WA | Web App manage button | [?] | 9 |
 | VP | VPN phases 2 to 4 | [!] undefined | 10 |

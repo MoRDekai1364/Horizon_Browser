@@ -60,6 +60,7 @@ public partial class StackElementWizardWindow : Window
         CmbRefresh.SelectedIndex = refreshIndex >= 0 ? refreshIndex : 0;
         RbIsolated.IsChecked = editing.LoginProfile == StackLoginProfile.Isolated;
         RbShared.IsChecked = editing.LoginProfile != StackLoginProfile.Isolated;
+        TxtUserCss.Text = editing.UserCss;
 
         ConfigureStep3();
         ShowStep(3);
@@ -179,6 +180,7 @@ public partial class StackElementWizardWindow : Window
             TxtIcon.Text = entry?.Icon ?? "\U0001F310";
             CmbRefresh.SelectedIndex = 0;
             RbShared.IsChecked = true;
+            TxtUserCss.Text = "";
             if (_kind != StackElementKind.Template) TxtTemplateUrl.Text = "";
         }
         else if (string.IsNullOrWhiteSpace(TxtIcon.Text))
@@ -206,7 +208,8 @@ public partial class StackElementWizardWindow : Window
             SourceId = _sourceId,
             Url = url,
             RefreshMinutes = CmbRefresh.SelectedIndex >= 0 ? RefreshChoices[CmbRefresh.SelectedIndex] : 0,
-            LoginProfile = RbIsolated.IsChecked == true ? StackLoginProfile.Isolated : StackLoginProfile.Shared
+            LoginProfile = RbIsolated.IsChecked == true ? StackLoginProfile.Isolated : StackLoginProfile.Shared,
+            UserCss = TxtUserCss.Text
         };
     }
 
@@ -233,6 +236,7 @@ public partial class StackElementWizardWindow : Window
             lines.Add("Address: " + _draft.Url);
             lines.Add("Refresh: " + (_draft.RefreshMinutes == 0 ? "Off" : _draft.RefreshMinutes + " min"));
             lines.Add("Login: " + (_draft.LoginProfile == StackLoginProfile.Shared ? "Shared with the main browser" : "Separate profile"));
+            if (!string.IsNullOrWhiteSpace(_draft.UserCss)) lines.Add("Custom CSS: " + _draft.UserCss.Trim().Length + " characters");
         }
         TxtSummary.Text = string.Join("\n", lines);
     }

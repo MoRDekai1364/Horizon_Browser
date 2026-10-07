@@ -142,6 +142,9 @@
                                      Foreground="{DynamicResource Brush_Text}" IsChecked="True" Margin="0,0,0,6"/>
                         <RadioButton x:Name="RbIsolated" Content="Separate profile for this element" GroupName="StackLogin"
                                      Foreground="{DynamicResource Brush_Text}"/>
+                        <TextBlock Text="Custom CSS (optional, CSS only, scripts are not allowed)" Style="{StaticResource WizardLabel}"/>
+                        <TextBox x:Name="TxtUserCss" AcceptsReturn="True" TextWrapping="Wrap" Height="90" MaxLength="4000"
+                                 VerticalScrollBarVisibility="Auto" FontFamily="Consolas"/>
                     </StackPanel>
                 </StackPanel>
             </ScrollViewer>

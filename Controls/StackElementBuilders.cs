@@ -222,9 +222,10 @@ internal sealed class StackWebHost : Border, IDisposable
             if (_profile.MobileUserAgent) core.Settings.UserAgent = MobileUa;
             if (isolated && _profile.PreferDark) core.Profile.PreferredColorScheme = CoreWebView2PreferredColorScheme.Dark;
 
-            if (_profile.HideCss.Length > 0)
+            string combinedCss = (_profile.HideCss + "\n" + _data.UserCss).Trim();
+            if (combinedCss.Length > 0)
             {
-                string css = System.Text.Json.JsonSerializer.Serialize(_profile.HideCss);
+                string css = System.Text.Json.JsonSerializer.Serialize(combinedCss);
                 string script = "(function(){var css=" + css + ";var add=function(){if(document.getElementById('hz-stack-opt'))return;var s=document.createElement('style');s.id='hz-stack-opt';s.textContent=css;(document.head||document.documentElement).appendChild(s);};document.addEventListener('DOMContentLoaded',add);if(document.readyState!=='loading')add();})();";
                 await core.AddScriptToExecuteOnDocumentCreatedAsync(script);
             }
@@ -256,6 +257,11 @@ internal sealed class StackWebHost : Border, IDisposable
 
     private void UpdateBadge(string? title)
     {
+        if (_data.Kind != StackElementKind.Template || (_data.SourceId != "mail" && _data.SourceId != "chat"))
+        {
+            _badge.Visibility = Visibility.Collapsed;
+            return;
+        }
         var match = System.Text.RegularExpressions.Regex.Match(title ?? "", @"[\(\[](\d{1,4})[\)\]]");
         if (!match.Success)
         {
@@ -350,114 +356,16 @@ public static class StackElementBuilders
 
         RegisterSource(StackElementKind.Widget, "calculator", d => BuildOpenCard(d, "Standard, scientific and AI calculator", null, 0));
         RegisterSource(StackElementKind.Widget, "converter", d => BuildOpenCard(d, "Unit and currency converter", null, 0));
-    }
 
-    private static FrameworkElement BuildOpenCard(StackElementData data, string hint, Func<string>? read, int intervalMs)
-    {
-        var icon = new TextBlock
+        RegisterSource(StackElementKind.Widget, "calendar", d => BuildOpenCard(d, "No upcoming events", () =>
         {
-            Text = data.Icon,
-            FontFamily = new FontFamily("Segoe UI Emoji"),
-            FontSize = 30,
-            HorizontalAlignment = HorizontalAlignment.Center
-        };
-        icon.SetResourceReference(TextBlock.ForegroundProperty, "HomeTextBrush");
-
-        var title = new TextBlock
-        {
-            Text = data.Title,
-            FontSize = 16,
-            FontWeight = FontWeights.SemiBold,
-            Margin = new Thickness(0, 6, 0, 0),
-            HorizontalAlignment = HorizontalAlignment.Center,
-            TextTrimming = TextTrimming.CharacterEllipsis
-        };
-        title.SetResourceReference(TextBlock.ForegroundProperty, "HomeTextBrush");
-
-        var body = new TextBlock
-        {
-            Text = hint,
-            FontSize = 13,
-            Opacity = 0.85,
-            TextWrapping = TextWrapping.Wrap,
-            TextTrimming = TextTrimming.CharacterEllipsis,
-            MaxHeight = 150,
-            Margin = new Thickness(0, 14, 0, 0),
-            TextAlignment = read == null ? TextAlignment.Center : TextAlignment.Left
-        };
-        body.SetResourceReference(TextBlock.ForegroundProperty, "HomeTextBrush");
-
-        var openHint = new TextBlock
-        {
-            Text = "Click to open",
-            FontSize = 11,
-            Opacity = 0.45,
-            Margin = new Thickness(0, 14, 0, 0),
-            HorizontalAlignment = HorizontalAlignment.Center
-        };
-        openHint.SetResourceReference(TextBlock.ForegroundProperty, "HomeTextBrush");
-
-        var panel = new StackPanel { VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(0, 6, 0, 0) };
-        panel.Children.Add(icon);
-        panel.Children.Add(title);
-        panel.Children.Add(body);
-        panel.Children.Add(openHint);
-
-        var card = new Border
-        {
-            CornerRadius = new CornerRadius(22),
-            Background = new SolidColorBrush(Color.FromArgb(0x14, 0xFF, 0xFF, 0xFF)),
-            BorderBrush = new SolidColorBrush(Color.FromArgb(0x1F, 0xFF, 0xFF, 0xFF)),
-            BorderThickness = new Thickness(1),
-            Padding = new Thickness(16),
-            Cursor = Cursors.Hand,
-            Child = panel
-        };
-
-        card.MouseLeftButtonUp += (_, __) =>
-        {
-            if (Application.Current?.MainWindow is MainWindow main) main.OpenStackWidgetWindow(data.SourceId);
-        };
-
-        if (read == null) return card;
-
-        var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(intervalMs) };
-
-        void Update()
-        {
-            try
-            {
-                string text = read();
-                body.Text = string.IsNullOrWhiteSpace(text) ? hint : text;
-            }
-            catch (Exception ex)
-            {
-                timer.Stop();
-                LogService.RecordCrash(ex, "StackElementBuilders.OpenCard");
-            }
-        }
-
-        timer.Tick += (_, __) => Update();
-        card.Loaded += (_, __) =>
-        {
-            Update();
-            timer.Start();
-        };
-        card.Unloaded += (_, __) => timer.Stop();
-        return card;
-    }
-
-    public static void RegisterLaunchWidgets()
-    {
-        RegisterSource(StackElementKind.Widget, "notes", d => BuildOpenCard(d, "No notes yet", () =>
-        {
-            if (Application.Current?.MainWindow is not MainWindow main) return "";
-            string text = main.GetNotesPreview();
-            return string.Join("\n", text.Split('\n').Select(l => l.Trim()).Where(l => l.Length > 0).Take(6));
-        }, 2000));
-
-        RegisterSource(StackElementKind.Widget, "calculator", d => BuildOpenCard(d, "Standard, scientific and AI calculator", null, 0));
-        RegisterSource(StackElementKind.Widget, "converter", d => BuildOpenCard(d, "Unit and currency converter", null, 0));
+            var next = CalendarBridge.GetNextEvent();
+            var previous = CalendarBridge.GetPreviousEvent();
+            var lines = new List<string>();
+            if (next != null) lines.Add("Next: " + next.Start.ToString("ddd HH:mm") + "  " + next.Title);
+            if (previous != null) lines.Add("Last: " + previous.Start.ToString("ddd HH:mm") + "  " + previous.Title);
+            return string.Join("\n", lines);
+        }, 30000));
     }
 
     private static FrameworkElement BuildOpenCard(StackElementData data, string hint, Func<string>? read, int intervalMs)

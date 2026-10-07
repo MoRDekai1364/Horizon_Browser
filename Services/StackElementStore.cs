@@ -27,6 +27,7 @@ public class StackElementData
     public string Url { get; set; } = "";
     public int RefreshMinutes { get; set; }
     public StackLoginProfile LoginProfile { get; set; } = StackLoginProfile.Shared;
+    public string UserCss { get; set; } = "";
 }
 
 public sealed class StackCatalogEntry
@@ -60,7 +61,8 @@ public static class StackElementCatalog
         W("notifications", "Notifications", "\U0001F514"),
         W("notes", "Notes", "\U0001F4DD"),
         W("calculator", "Calculator", "\U0001F9EE"),
-        W("converter", "Converter", "\u21C4")
+        W("converter", "Converter", "\u21C4"),
+        W("calendar", "Calendar", "\U0001F5D3")
     };
 
     public static IReadOnlyList<StackCatalogEntry> Templates { get; } = new List<StackCatalogEntry>
@@ -126,17 +128,17 @@ public static class StackElementCatalog
 
     private static readonly (string Host, string Template)[] DetectionMap =
     {
-        ("mail.google.com", "mail"), ("gmail.com", "mail"), ("outlook.live.com", "mail"), ("outlook.office.com", "mail"),
-        ("outlook.office365.com", "mail"), ("mail.proton.me", "mail"), ("proton.me", "mail"), ("mail.yahoo.com", "mail"),
+        ("mail.google.com", "mail"), ("gmail.com", "mail"), ("outlook.live.com", "mail"), ("outlook.com", "mail"), ("outlook.office.com", "mail"),
+        ("outlook.office365.com", "mail"), ("calendar.proton.me", "calendar_planner"), ("drive.proton.me", "cloud_files"), ("mail.proton.me", "mail"), ("proton.me", "mail"), ("mail.yahoo.com", "mail"),
         ("music.youtube.com", "music"), ("open.spotify.com", "music"), ("spotify.com", "music"), ("soundcloud.com", "music"),
         ("deezer.com", "music"), ("music.apple.com", "music"),
-        ("youtube.com", "videos"), ("vimeo.com", "videos"), ("dailymotion.com", "videos"),
+        ("youtube.com", "videos"), ("youtu.be", "videos"), ("vimeo.com", "videos"), ("dailymotion.com", "videos"),
         ("twitch.tv", "streaming_gaming"), ("store.steampowered.com", "streaming_gaming"), ("steamcommunity.com", "streaming_gaming"),
         ("netflix.com", "movies"), ("imdb.com", "movies"), ("themoviedb.org", "movies"), ("max.com", "movies"), ("disneyplus.com", "movies"),
         ("docs.google.com", "office"), ("sheets.google.com", "office"), ("slides.google.com", "office"), ("office.com", "office"),
-        ("chatgpt.com", "ai"), ("claude.ai", "ai"), ("gemini.google.com", "ai"), ("perplexity.ai", "ai"), ("copilot.microsoft.com", "ai"),
+        ("chatgpt.com", "ai"), ("chat.openai.com", "ai"), ("claude.ai", "ai"), ("gemini.google.com", "ai"), ("perplexity.ai", "ai"), ("copilot.microsoft.com", "ai"),
         ("wikipedia.org", "info_research"), ("scholar.google.com", "info_research"), ("arxiv.org", "info_research"),
-        ("web.whatsapp.com", "chat"), ("web.telegram.org", "chat"), ("discord.com", "chat"), ("messenger.com", "chat"), ("app.slack.com", "chat"),
+        ("web.whatsapp.com", "chat"), ("web.telegram.org", "chat"), ("discord.com", "chat"), ("messenger.com", "chat"), ("app.slack.com", "chat"), ("teams.microsoft.com", "chat"), ("meet.google.com", "chat"),
         ("calendar.google.com", "calendar_planner"),
         ("github.com", "developer"), ("gitlab.com", "developer"), ("stackoverflow.com", "developer"),
         ("drive.google.com", "cloud_files"), ("dropbox.com", "cloud_files"), ("onedrive.live.com", "cloud_files"),
@@ -144,7 +146,7 @@ public static class StackElementCatalog
         ("translate.google.com", "translate"), ("deepl.com", "translate"),
         ("maps.google.com", "maps_travel"), ("openstreetmap.org", "maps_travel"),
         ("keep.google.com", "notes"), ("notion.so", "notes"),
-        ("news.google.com", "news"), ("bbc.com", "news")
+        ("news.google.com", "news"), ("bbc.com", "news"), ("bbc.co.uk", "news"), ("cnn.com", "news"), ("reuters.com", "news"), ("nytimes.com", "news")
     };
 
     public static StackWebProfile ProfileFor(StackElementData data)
@@ -255,6 +257,10 @@ public static class StackElementStore
         if (title.Length > 40) title = title.Substring(0, 40);
         data.Title = title;
 
+        string userCss = (data.UserCss ?? "").Trim();
+        if (userCss.Length > 4000) userCss = userCss.Substring(0, 4000);
+        data.UserCss = data.Kind == StackElementKind.Widget ? "" : userCss;
+
         string icon = (data.Icon ?? "").Trim();
         if (icon.Length == 0) icon = entry?.Icon ?? "\U0001F310";
         if (icon.Length > 8) icon = icon.Substring(0, 8);
@@ -312,7 +318,8 @@ public static class StackElementStore
         SourceId = e.SourceId,
         Url = e.Url,
         RefreshMinutes = e.RefreshMinutes,
-        LoginProfile = e.LoginProfile
+        LoginProfile = e.LoginProfile,
+        UserCss = e.UserCss
     };
 
     private static void EnsureLoaded()

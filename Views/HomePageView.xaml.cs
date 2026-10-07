@@ -3028,7 +3028,6 @@ public partial class HomePageView : UserControl
     {
         StackElementBuilders.RegisterBuiltInWidgets();
         StackElementBuilders.RegisterLaunchWidgets();
-        StackElementBuilders.RegisterLaunchWidgets();
         StackElementBuilders.RegisterWebElements();
         _favoritesDrawer = new FolderDrawerView { Title = "Favorites" };
         _bookmarksDrawer = new FolderDrawerView { Title = "Bookmarks" };
