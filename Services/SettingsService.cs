@@ -270,6 +270,7 @@ public class SettingsData
     public int HomeFavoriteRows { get; set; } = 2;
     public int HomeBookmarkRows { get; set; } = 2;
     public int HomeFolderThreshold { get; set; } = 30;
+    public string HomeSearchMode { get; set; } = "Search";
 
     public bool   HomeAdaptiveColorsEnabled { get; set; } = true;
     public double HomeTintStrength           { get; set; } = 30.0;

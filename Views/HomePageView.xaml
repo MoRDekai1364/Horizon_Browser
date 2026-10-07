@@ -779,12 +779,33 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <Grid Grid.Column="0" Margin="8,8,0,8" VerticalAlignment="Top">
-                            <ComboBox x:Name="CmbSearchEngine" Width="120"
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Border x:Name="PnlSearchMode" Grid.Column="0" Height="40" Margin="0,0,8,0" CornerRadius="20"
+                                    BorderThickness="2" Background="#CC000000" BorderBrush="#33FFFFFF" VerticalAlignment="Top">
+                                <StackPanel Orientation="Horizontal">
+                                    <Border x:Name="SegModeFavorites" Tag="Favorites" CornerRadius="18" Padding="12,0" Cursor="Hand"
+                                            Background="Transparent" ToolTip="Favorites" MouseLeftButtonUp="SearchModeSegment_Click">
+                                        <TextBlock x:Name="TxtModeFavorites" Text="Fav" FontSize="13" FontWeight="Bold" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <Border x:Name="SegModeSearch" Tag="Search" CornerRadius="18" Padding="12,0" Cursor="Hand"
+                                            Background="Transparent" ToolTip="Search" MouseLeftButtonUp="SearchModeSegment_Click">
+                                        <TextBlock x:Name="TxtModeSearch" Text="Search" FontSize="13" FontWeight="Bold" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <Border x:Name="SegModeBookmarks" Tag="Bookmarks" CornerRadius="18" Padding="12,0" Cursor="Hand"
+                                            Background="Transparent" ToolTip="Bookmarks" MouseLeftButtonUp="SearchModeSegment_Click">
+                                        <TextBlock x:Name="TxtModeBookmarks" Text="Bkm" FontSize="13" FontWeight="Bold" VerticalAlignment="Center"/>
+                                    </Border>
+                                </StackPanel>
+                            </Border>
+                            <ComboBox x:Name="CmbSearchEngine" Grid.Column="1" Width="120"
                                       DisplayMemberPath="Name" BorderThickness="2"
                                       Background="#CC000000" Foreground="White"
                                       Style="{StaticResource PillComboBoxStyle}"
                                       SelectionChanged="CmbSearchEngine_SelectionChanged"/>
-                            <ComboBox x:Name="CmbCategoryFilter" Width="140" Visibility="Collapsed"
+                            <ComboBox x:Name="CmbCategoryFilter" Grid.Column="1" Width="140" Visibility="Collapsed"
                                       BorderThickness="2" Background="#CC000000" Foreground="White"
                                       Style="{StaticResource PillComboBoxStyle}"
                                       SelectionChanged="CmbCategoryFilter_SelectionChanged"/>

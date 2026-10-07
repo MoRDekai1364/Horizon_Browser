@@ -381,6 +381,10 @@ HomeBookmarkRows=2
 #   type: int | values: 0|20|30|40|50 | default: 30
 HomeFolderThreshold=30
 
+# [S05.27] Last chosen mode of the home search bar tri-switch (reset to Search after the inactivity timeout)
+#   type: string | values: Search|Favorites|Bookmarks | default: Search
+HomeSearchMode=Search
+
 #==============================================================================
 # [S06] WALLPAPER AND BACKGROUND
 #==============================================================================

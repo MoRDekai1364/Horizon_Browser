@@ -233,6 +233,7 @@ public partial class HomePageView : UserControl
         }
 
         CmbSearchEngine.Visibility = Visibility.Collapsed;
+        PnlSearchMode.Visibility = Visibility.Collapsed;
         CmbCategoryFilter.Visibility = Visibility.Visible;
         TxtHomeSearchPlaceholder.Text = "Search " + widgetName.ToLower() + "...";
         TxtHomeSearch.Text = "";
@@ -357,7 +358,7 @@ public partial class HomePageView : UserControl
 
         CmbSearchEngine.Visibility = Visibility.Visible;
         CmbCategoryFilter.Visibility = Visibility.Collapsed;
-        TxtHomeSearchPlaceholder.Text = "Search here ...";
+        ApplySearchModeVisual();
         TxtHomeSearch.Text = "";
 
         RefreshFavorites();
@@ -498,6 +499,8 @@ public partial class HomePageView : UserControl
     private void HomePageView_Loaded(object sender, RoutedEventArgs e)
     {
         UpdateSearchAreaLayout();
+        _searchMode = (SettingsService.Current.HomeSearchMode is "Favorites" or "Bookmarks") ? SettingsService.Current.HomeSearchMode : "Search";
+        ApplySearchModeVisual();
         if (!_winStateHooked)
         {
             var win = Window.GetWindow(this);
@@ -565,6 +568,7 @@ public partial class HomePageView : UserControl
         _inactivityTimer.Tick += (_, _) =>
         {
             _inactivityTimer?.Stop();
+            SetSearchMode("Search", false);
             if (_isContentVisible)
             {
                 AnimateInteractiveContent(false);
@@ -1291,6 +1295,7 @@ public partial class HomePageView : UserControl
         CmbSearchEngine.Background = new SolidColorBrush(defaultPillBg);
         CmbSearchEngine.BorderBrush = CreateFadingBorderBrush(((SolidColorBrush)defaultPillTextBrush).Color);
         CmbSearchEngine.Foreground = defaultPillTextBrush;
+        ApplySearchModeVisual();
 
         ApplyThemedButton(BtnToggleFavorites, defaultPillBg);
         ApplyThemedButton(BtnToggleBookmarks, defaultPillBg);
@@ -1419,6 +1424,7 @@ public partial class HomePageView : UserControl
         CmbSearchEngine.Background = new SolidColorBrush(pillBg);
         CmbSearchEngine.BorderBrush = CreateFadingBorderBrush(((SolidColorBrush)pillTextBrush).Color);
         CmbSearchEngine.Foreground = pillTextBrush;
+        ApplySearchModeVisual();
 
         ApplyThemedButton(BtnToggleFavorites, pillBg);
         ApplyThemedButton(BtnToggleBookmarks, pillBg);
@@ -1712,6 +1718,16 @@ public partial class HomePageView : UserControl
                 else if (selectedCat == "Older")
                 {
                     all = all.OrderBy(b => b.DateAdded);
+                }
+            }
+
+            if (!_inFocusMode && _searchMode == "Bookmarks")
+            {
+                string modeFilter = (TxtHomeSearch.Text ?? "").Trim();
+                if (modeFilter.Length > 0)
+                {
+                    all = all.Where(b => b.Title.Contains(modeFilter, StringComparison.OrdinalIgnoreCase) ||
+                                         b.Url.Contains(modeFilter, StringComparison.OrdinalIgnoreCase));
                 }
             }
 
@@ -2151,6 +2167,16 @@ public partial class HomePageView : UserControl
                 }
             }
 
+            if (!_inFocusMode && _searchMode == "Favorites")
+            {
+                string modeFilter = (TxtHomeSearch.Text ?? "").Trim();
+                if (modeFilter.Length > 0)
+                {
+                    all = all.Where(p => p.Name.Contains(modeFilter, StringComparison.OrdinalIgnoreCase) ||
+                                         p.Url.Contains(modeFilter, StringComparison.OrdinalIgnoreCase));
+                }
+            }
+
             var list = all.ToList();
             _favoritesFallback = !_inFocusMode && ComputeFavoritesFallback(list);
             ApplyScrollCap();
@@ -2490,6 +2516,8 @@ public partial class HomePageView : UserControl
     {
         string text = TxtHomeSearch.Text ?? "";
         TxtHomeSearchPlaceholder.Visibility = text.Length == 0 ? Visibility.Visible : Visibility.Collapsed;
+        if (!_inFocusMode && _searchMode == "Favorites") RefreshFavorites();
+        else if (!_inFocusMode && _searchMode == "Bookmarks") RefreshBookmarks();
         if (_inFocusMode)
         {
             if (_focusWidgetName == "Favorites") RefreshFavorites();
@@ -2526,6 +2554,13 @@ public partial class HomePageView : UserControl
             return;
         }
 
+        if (_searchMode != "Search")
+        {
+            if (!string.IsNullOrWhiteSpace(TxtHomeSearch.Text)) OpenFirstModeMatch();
+            e.Handled = true;
+            return;
+        }
+
         var query = TxtHomeSearch.Text?.Trim();
         if (string.IsNullOrEmpty(query)) return;
 
@@ -2543,6 +2578,83 @@ public partial class HomePageView : UserControl
         }
 
         NavigateRequested?.Invoke(url);
+    }
+
+    private string _searchMode = "Search";
+
+    private void SearchModeSegment_Click(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is FrameworkElement segment && segment.Tag is string mode) SetSearchMode(mode, true);
+        e.Handled = true;
+    }
+
+    private void SetSearchMode(string mode, bool focus)
+    {
+        if (mode != "Favorites" && mode != "Bookmarks") mode = "Search";
+        if (mode == _searchMode)
+        {
+            if (focus) TxtHomeSearch.Focus();
+            return;
+        }
+
+        _searchMode = mode;
+        SettingsService.Current.HomeSearchMode = mode;
+        SettingsService.Save();
+        if (!string.IsNullOrEmpty(TxtHomeSearch.Text)) TxtHomeSearch.Text = "";
+        ApplySearchModeVisual();
+        RefreshFavorites();
+        RefreshBookmarks();
+        if (focus) TxtHomeSearch.Focus();
+    }
+
+    private void ApplySearchModeVisual()
+    {
+        PnlSearchMode.Visibility = _inFocusMode ? Visibility.Collapsed : Visibility.Visible;
+        if (!_inFocusMode)
+        {
+            CmbSearchEngine.Visibility = _searchMode == "Search" ? Visibility.Visible : Visibility.Collapsed;
+            TxtHomeSearchPlaceholder.Text = _searchMode switch
+            {
+                "Favorites" => "Favorites here...",
+                "Bookmarks" => "Bookmarks here...",
+                _ => "Search here ..."
+            };
+        }
+
+        PnlSearchMode.Background = CmbSearchEngine.Background;
+        PnlSearchMode.BorderBrush = CmbSearchEngine.BorderBrush;
+        Brush text = CmbSearchEngine.Foreground;
+        Color accent = text is SolidColorBrush solid ? solid.Color : Colors.White;
+        Brush activeBrush = new SolidColorBrush(Color.FromArgb(0x48, accent.R, accent.G, accent.B));
+        StyleModeSegment(SegModeFavorites, TxtModeFavorites, _searchMode == "Favorites", text, activeBrush);
+        StyleModeSegment(SegModeSearch, TxtModeSearch, _searchMode == "Search", text, activeBrush);
+        StyleModeSegment(SegModeBookmarks, TxtModeBookmarks, _searchMode == "Bookmarks", text, activeBrush);
+    }
+
+    private static void StyleModeSegment(Border segment, TextBlock label, bool active, Brush text, Brush activeBrush)
+    {
+        segment.Background = active ? activeBrush : Brushes.Transparent;
+        label.Foreground = text;
+        label.Opacity = active ? 1.0 : 0.65;
+    }
+
+    private void OpenFirstModeMatch()
+    {
+        if (_searchMode == "Favorites")
+        {
+            if (IcnColumns.Items.Cast<object>().FirstOrDefault() is PinItem pin && !string.IsNullOrWhiteSpace(pin.Url))
+            {
+                pin.OpenCount++;
+                pin.LastOpened = DateTime.Now;
+                SettingsService.Save();
+                NavigateRequested?.Invoke(pin.Url);
+            }
+        }
+        else if (IcnBookmarks.Items.Cast<object>().FirstOrDefault() is BookmarkItem bookmark && !string.IsNullOrWhiteSpace(bookmark.Url))
+        {
+            BookmarkService.RecordOpen(bookmark);
+            NavigateRequested?.Invoke(bookmark.Url);
+        }
     }
 
     private void Pin_Click(object sender, MouseButtonEventArgs e)
