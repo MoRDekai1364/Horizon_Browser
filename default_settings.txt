@@ -385,6 +385,10 @@ HomeFolderThreshold=30
 #   type: string | values: Search|Favorites|Bookmarks | default: Search
 HomeSearchMode=Search
 
+# [S05.28] How an opened folder appears inside the right column stack: Popup floats over a blurred, dimmed drawer; InPlace grows the clicked folder card to fill the drawer
+#   type: string | values: Popup|InPlace | default: Popup
+HomeFolderOpenMode=Popup
+
 #==============================================================================
 # [S06] WALLPAPER AND BACKGROUND
 #==============================================================================

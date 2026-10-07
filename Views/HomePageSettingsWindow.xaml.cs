@@ -107,6 +107,9 @@ public partial class HomePageSettingsWindow : Window
     private static readonly string[] FolderThresholdChoices = { "Off", "20%", "30%", "40%", "50%" };
     private static readonly int[] FolderThresholdValues  = { 0, 20, 30, 40, 50 };
 
+    private static readonly string[] FolderOpenModeChoices = { "Popup", "In-place expand" };
+    private static readonly string[] FolderOpenModeValues  = { "Popup", "InPlace" };
+
     private static readonly string[] VisualizerScopeChoices = { "Everywhere", "Media Tab Only", "Selected Websites" };
     private static readonly string[] VisualizerScopeValues  = { "Everywhere", "MediaTabOnly", "SelectedWebsites" };
 
@@ -267,6 +270,10 @@ public partial class HomePageSettingsWindow : Window
         int folderThresholdIdx = Array.IndexOf(FolderThresholdValues, s.HomeFolderThreshold);
         CmbFolderThreshold.SelectedIndex = folderThresholdIdx >= 0 ? folderThresholdIdx : 2;
 
+        CmbFolderOpenMode.ItemsSource = FolderOpenModeChoices;
+        int folderOpenModeIdx = Array.IndexOf(FolderOpenModeValues, s.HomeFolderOpenMode);
+        CmbFolderOpenMode.SelectedIndex = folderOpenModeIdx >= 0 ? folderOpenModeIdx : 0;
+
         _loadingToggles = false;
     }
 
@@ -316,6 +323,15 @@ public partial class HomePageSettingsWindow : Window
         int idx = CmbBookmarkRows.SelectedIndex;
         if (idx < 0) return;
         SettingsService.Current.HomeBookmarkRows = idx + 1;
+        SettingsService.Save();
+    }
+
+    private void CmbFolderOpenMode_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_loadingToggles) return;
+        int idx = CmbFolderOpenMode.SelectedIndex;
+        if (idx < 0 || idx >= FolderOpenModeValues.Length) return;
+        SettingsService.Current.HomeFolderOpenMode = FolderOpenModeValues[idx];
         SettingsService.Save();
     }
 

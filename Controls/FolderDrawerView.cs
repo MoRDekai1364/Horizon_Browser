@@ -320,7 +320,7 @@ public sealed class FolderDrawerView : UserControl
     private double _pageWidth;
     private bool _animating;
 
-    public event Action<DrawerGroup>? FolderOpenRequested;
+    public event Action<DrawerGroup, Rect>? FolderOpenRequested;
     public event Action<DrawerItem>? ItemActivated;
 
     public string Title
@@ -678,7 +678,10 @@ public sealed class FolderDrawerView : UserControl
         cell.MouseLeftButtonUp += (_, e) =>
         {
             e.Handled = true;
-            FolderOpenRequested?.Invoke(group);
+            Rect bounds = IsAncestorOf(cell)
+                ? new Rect(cell.TranslatePoint(new Point(0, 0), this), new Size(cell.ActualWidth, cell.ActualHeight))
+                : new Rect(0, 0, ActualWidth, ActualHeight);
+            FolderOpenRequested?.Invoke(group, bounds);
         };
         return cell;
     }

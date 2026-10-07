@@ -28,6 +28,11 @@ public partial class StackHost : UserControl
     private bool _overlayOpen;
     private double _baseWidth = double.NaN;
     private double _baseHeight = double.NaN;
+    private const double InPlaceDim = 0.45;
+    private bool _inPlace;
+    private Rect _inPlaceOrigin;
+    private readonly ScaleTransform _inPlaceScale = new();
+    private readonly TranslateTransform _inPlaceMove = new();
 
     public event Action<int>? SelectionChanged;
     public event Action<bool>? ExpandedChanged;
@@ -118,10 +123,91 @@ public partial class StackHost : UserControl
         Overlay.Focus();
     }
 
+    public void ShowInPlace(FrameworkElement content, Rect origin)
+    {
+        if (_overlayOpen)
+        {
+            OverlayContent.Content = content;
+            return;
+        }
+
+        if (_switching) FinishSwitch();
+        double width = Math.Max(1, Viewport.ActualWidth);
+        double height = Math.Max(1, Viewport.ActualHeight);
+        double startX = Math.Max(0.05, origin.Width / width);
+        double startY = Math.Max(0.05, origin.Height / height);
+        _overlayOpen = true;
+        _inPlace = true;
+        _inPlaceOrigin = origin;
+        OverlayContent.Content = content;
+
+        var transforms = new TransformGroup();
+        transforms.Children.Add(_inPlaceScale);
+        transforms.Children.Add(_inPlaceMove);
+        OverlayContent.RenderTransformOrigin = new Point(0, 0);
+        OverlayContent.RenderTransform = transforms;
+        Overlay.BeginAnimation(OpacityProperty, null);
+        Overlay.Opacity = 1;
+        Overlay.Visibility = Visibility.Visible;
+
+        var duration = new Duration(TimeSpan.FromMilliseconds(AnimationMs));
+        var ease = new SineEase { EasingMode = EasingMode.EaseInOut };
+        _inPlaceScale.BeginAnimation(ScaleTransform.ScaleXProperty, new DoubleAnimation(startX, 1, duration) { EasingFunction = ease });
+        _inPlaceScale.BeginAnimation(ScaleTransform.ScaleYProperty, new DoubleAnimation(startY, 1, duration) { EasingFunction = ease });
+        _inPlaceMove.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation(origin.X, 0, duration) { EasingFunction = ease });
+        _inPlaceMove.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(origin.Y, 0, duration) { EasingFunction = ease });
+        OverlayContent.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, duration) { EasingFunction = ease });
+        OverlayBackdrop.BeginAnimation(OpacityProperty, new DoubleAnimation(0, InPlaceDim, duration) { EasingFunction = ease });
+        Incoming.BeginAnimation(OpacityProperty, new DoubleAnimation(0, duration) { EasingFunction = ease });
+        Overlay.Focus();
+    }
+
+    private void CloseInPlace()
+    {
+        _inPlace = false;
+        var duration = new Duration(TimeSpan.FromMilliseconds(AnimationMs));
+        var ease = new SineEase { EasingMode = EasingMode.EaseInOut };
+        double width = Math.Max(1, Viewport.ActualWidth);
+        double height = Math.Max(1, Viewport.ActualHeight);
+        _inPlaceScale.BeginAnimation(ScaleTransform.ScaleXProperty, new DoubleAnimation(Math.Max(0.05, _inPlaceOrigin.Width / width), duration) { EasingFunction = ease });
+        _inPlaceScale.BeginAnimation(ScaleTransform.ScaleYProperty, new DoubleAnimation(Math.Max(0.05, _inPlaceOrigin.Height / height), duration) { EasingFunction = ease });
+        _inPlaceMove.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation(_inPlaceOrigin.X, duration) { EasingFunction = ease });
+        _inPlaceMove.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(_inPlaceOrigin.Y, duration) { EasingFunction = ease });
+        OverlayContent.BeginAnimation(OpacityProperty, new DoubleAnimation(0, duration) { EasingFunction = ease });
+        OverlayBackdrop.BeginAnimation(OpacityProperty, new DoubleAnimation(0, duration) { EasingFunction = ease });
+
+        var restore = new DoubleAnimation(1, duration) { EasingFunction = ease };
+        restore.Completed += (_, _) =>
+        {
+            if (_overlayOpen) return;
+            Incoming.BeginAnimation(OpacityProperty, null);
+            Incoming.Opacity = 1;
+            _inPlaceScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+            _inPlaceScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+            _inPlaceMove.BeginAnimation(TranslateTransform.XProperty, null);
+            _inPlaceMove.BeginAnimation(TranslateTransform.YProperty, null);
+            OverlayContent.BeginAnimation(OpacityProperty, null);
+            OverlayContent.Opacity = 1;
+            OverlayContent.RenderTransform = null;
+            OverlayBackdrop.BeginAnimation(OpacityProperty, null);
+            OverlayBackdrop.Opacity = 1;
+            Overlay.Opacity = 0;
+            Overlay.Visibility = Visibility.Collapsed;
+            OverlayContent.Content = null;
+        };
+        Incoming.BeginAnimation(OpacityProperty, restore);
+    }
+
     public void CloseOverlay()
     {
         if (!_overlayOpen) return;
         _overlayOpen = false;
+        if (_inPlace)
+        {
+            CloseInPlace();
+            OverlayClosed?.Invoke();
+            return;
+        }
 
         var duration = new Duration(TimeSpan.FromMilliseconds(AnimationMs));
         var ease = new SineEase { EasingMode = EasingMode.EaseInOut };

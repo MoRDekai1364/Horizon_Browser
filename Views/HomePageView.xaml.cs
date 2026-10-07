@@ -3271,7 +3271,7 @@ public partial class HomePageView : UserControl
         _bookmarksDrawer.SetGroups(groups);
     }
 
-    private void DrawerFolder_Requested(DrawerGroup group)
+    private void DrawerFolder_Requested(DrawerGroup group, Rect origin)
     {
         var view = new OpenFolderView(group);
         view.CloseRequested += () => HomeStack.CloseOverlay();
@@ -3280,7 +3280,8 @@ public partial class HomePageView : UserControl
             HomeStack.CloseOverlay();
             DrawerItem_Activated(item);
         };
-        HomeStack.ShowOverlay(view);
+        if (SettingsService.Current.HomeFolderOpenMode == "InPlace") HomeStack.ShowInPlace(view, origin);
+        else HomeStack.ShowOverlay(view);
     }
 
     private void DrawerItem_Activated(DrawerItem item)
