@@ -1925,7 +1925,92 @@ public partial class HomePageView : UserControl
     private bool _bookmarksFallback;
     private DispatcherTimer? _fallbackTimer;
 
-    private (int Favorites, int Bookmarks) ResolvedRows()
+    private void UpdateSearchAreaMaxHeight()
+    {
+        if (_inFocusMode || GridHomeLayout.ActualHeight <= 0)
+        {
+            PnlSearchArea.MaxHeight = double.PositiveInfinity;
+            return;
+        }
+        PnlSearchArea.MaxHeight = Math.Max(240, GridHomeLayout.ActualHeight - PnlSearchArea.Margin.Top - 8);
+    }
+
+    private void DumpHomeLayout()
+    {
+        var sb = new System.Text.StringBuilder();
+        void Add(string name, FrameworkElement? e)
+        {
+            if (e == null)
+            {
+                sb.AppendLine(name + ": null");
+                return;
+            }
+            sb.AppendLine(name + ": " + e.ActualWidth.ToString("0") + "x" + e.ActualHeight.ToString("0") + " vis=" + e.Visibility + " opacity=" + e.Opacity.ToString("0.00") + " margin=" + e.Margin + " maxH=" + e.MaxHeight + " align=" + e.HorizontalAlignment + "/" + e.VerticalAlignment);
+        }
+
+        var rows = ResolvedRows();
+        sb.AppendLine("page=" + ActualWidth.ToString("0") + "x" + ActualHeight.ToString("0") + " focus=" + _inFocusMode + " mode=" + _searchMode + " favFallback=" + _favoritesFallback + " bmFallback=" + _bookmarksFallback);
+        sb.AppendLine("rows=" + rows.Favorites + "+" + rows.Bookmarks + " columns=" + RowsPanel.ColumnsFor(CenterPanelWidth()) + " centerWidth=" + CenterPanelWidth().ToString("0") + " ceiling=" + HomeRowLimits.Ceiling(ActualHeight));
+        sb.AppendLine("favorites=" + SettingsService.Current.PinnedUrls.Count + " bookmarks=" + BookmarkService.Items.Count);
+        Add("GridHomeLayout", GridHomeLayout);
+        Add("PnlSearchArea", PnlSearchArea);
+        Add("SearchBoxBorder", SearchBoxBorder);
+        Add("GridFavBookmarksIsland", GridFavBookmarksIsland);
+        Add("PnlFavoritesContainer", PnlFavoritesContainer);
+        Add("ScvFavorites", ScvFavorites);
+        Add("IcnColumns", IcnColumns);
+        Add("PnlBookmarksContainer", PnlBookmarksContainer);
+        Add("ScvBookmarks", ScvBookmarks);
+        Add("IcnBookmarks", IcnBookmarks);
+        Add("HomeStack", HomeStack);
+        sb.AppendLine("stackExpanded=" + HomeStack.IsExpanded + " overlayOpen=" + HomeStack.IsOverlayOpen);
+        if (HomeStack.IsOverlayOpen)
+        {
+            Add("overlayHost", HomeStack.OverlayContent);
+            Add("overlayContent", HomeStack.OverlayContent.Content as FrameworkElement);
+        }
+        DescribePanel(sb, "IcnColumns panel", IcnColumns);
+        DescribePanel(sb, "IcnBookmarks panel", IcnBookmarks);
+        Clipboard.SetText(sb.ToString());
+    }
+
+    private static void DescribePanel(System.Text.StringBuilder sb, string name, DependencyObject root)
+    {
+        var panel = FindFirstPanel(root);
+        if (panel == null)
+        {
+            sb.AppendLine(name + ": none");
+            return;
+        }
+        int visible = 0;
+        foreach (UIElement child in panel.Children)
+        {
+            if (child.Visibility == Visibility.Visible) visible++;
+        }
+        sb.AppendLine(name + ": " + panel.GetType().Name + " " + panel.ActualWidth.ToString("0") + "x" + panel.ActualHeight.ToString("0") + " children=" + panel.Children.Count + " visibleChildren=" + visible);
+    }
+
+    private static Panel? FindFirstPanel(DependencyObject node)
+    {
+        int count = VisualTreeHelper.GetChildrenCount(node);
+        for (int i = 0; i < count; i++)
+        {
+            var child = VisualTreeHelper.GetChild(node, i);
+            if (child is Panel panel && panel.IsItemsHost) return panel;
+            var found = FindFirstPanel(child);
+            if (found != null) return found;
+        }
+        return null;
+    }
+
+    RegisterUserActivity();
+            if (e.Key == Key.D && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
+            {
+                DumpHomeLayout();
+                e.Handled = true;
+                return;
+            }
+            if (e.Key == Key.Escape && HomeStack.IsExpanded && !HomeStack.IsOverlayOpen)
     {
         double height = ActualHeight > 0 ? ActualHeight : SystemParameters.WorkArea.Height;
         return HomeRowLimits.Resolve(SettingsService.Current.HomeFavoriteRows, SettingsService.Current.HomeBookmarkRows, height);
@@ -2015,6 +2100,7 @@ public partial class HomePageView : UserControl
         var (favoriteRows, bookmarkRows) = ResolvedRows();
         ApplyFallbackBudget(ScvFavorites, _favoritesFallback, favoriteRows);
         ApplyFallbackBudget(ScvBookmarks, _bookmarksFallback, bookmarkRows);
+        UpdateSearchAreaMaxHeight();
     }
 
     private GroupCollapseMode? CollapseModeFromSetting(ItemsControl? owner)

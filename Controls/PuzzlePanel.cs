@@ -294,10 +294,10 @@ public enum GroupCollapseMode
 
 public static class HomeRowLimits
 {
-    public const int MinTotalRows = 4;
+    public const int MinTotalRows = 2;
     public const int MaxTotalRows = 8;
-    public const double RowHeight = 125;
-    public const double ReservedHeight = 240;
+    public const double RowHeight = 171;
+    public const double ReservedHeight = 300;
 
     public static int Ceiling(double availableHeight)
     {
