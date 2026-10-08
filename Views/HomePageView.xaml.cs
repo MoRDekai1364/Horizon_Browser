@@ -92,6 +92,12 @@ public partial class HomePageView : UserControl
         PreviewKeyDown += (_, e) =>
         {
             RegisterUserActivity();
+            if (e.Key == Key.D && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
+            {
+                DumpHomeLayout();
+                e.Handled = true;
+                return;
+            }
             if (e.Key == Key.Escape && HomeStack.IsExpanded && !HomeStack.IsOverlayOpen)
             {
                 CollapseStack();
@@ -2003,14 +2009,7 @@ public partial class HomePageView : UserControl
         return null;
     }
 
-    RegisterUserActivity();
-            if (e.Key == Key.D && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
-            {
-                DumpHomeLayout();
-                e.Handled = true;
-                return;
-            }
-            if (e.Key == Key.Escape && HomeStack.IsExpanded && !HomeStack.IsOverlayOpen)
+    private (int Favorites, int Bookmarks) ResolvedRows()
     {
         double height = ActualHeight > 0 ? ActualHeight : SystemParameters.WorkArea.Height;
         return HomeRowLimits.Resolve(SettingsService.Current.HomeFavoriteRows, SettingsService.Current.HomeBookmarkRows, height);
