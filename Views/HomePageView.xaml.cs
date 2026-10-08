@@ -198,6 +198,7 @@ public partial class HomePageView : UserControl
         _inFocusMode = true;
         _focusWidgetName = widgetName;
         _inactivityTimer?.Stop();
+        UpdateSearchAreaMaxHeight();
 
         var transformDuration = TimeSpan.FromMilliseconds(220);
         var moveDuration = TimeSpan.FromMilliseconds(260);
@@ -455,6 +456,7 @@ public partial class HomePageView : UserControl
             double maxMobileWidth = Math.Max(200.0, totalWidth - 20.0);
             PnlSearchArea.MaxWidth = maxMobileWidth;
             SearchBoxBorder.MaxWidth = Math.Min(900.0, maxMobileWidth);
+            UpdateSearchAreaMaxHeight();
             return;
         }
 
@@ -500,6 +502,7 @@ public partial class HomePageView : UserControl
         double searchMax = Math.Max(240.0, Math.Min(900.0, maxAllowedWidth));
         SearchBoxBorder.MaxWidth = searchMax;
         PnlSearchArea.Margin = new Thickness(10, 60, 10, 0);
+        UpdateSearchAreaMaxHeight();
     }
 
     private void HomePageView_Loaded(object sender, RoutedEventArgs e)
@@ -1931,14 +1934,48 @@ public partial class HomePageView : UserControl
     private bool _bookmarksFallback;
     private DispatcherTimer? _fallbackTimer;
 
+    private double HomeButtonGap()
+    {
+        if (PnlVpnAdBlock.Visibility == Visibility.Visible && PnlVpnAdBlock.ActualWidth > 0 && BtnChangeWallpaper.ActualWidth > 0)
+        {
+            double vpnRight = PnlVpnAdBlock.TranslatePoint(new Point(PnlVpnAdBlock.ActualWidth, 0), GridHomeLayout).X;
+            double wallpaperLeft = BtnChangeWallpaper.TranslatePoint(new Point(0, 0), GridHomeLayout).X;
+            double measured = wallpaperLeft - vpnRight;
+            if (measured > 0) return measured;
+        }
+        return PnlVpnAdBlock.Margin.Right;
+    }
+
+    private double HomeBottomBoundary()
+    {
+        double layoutHeight = GridHomeLayout.ActualHeight;
+        if (layoutHeight <= 0 || !GridHomeLayout.IsLoaded) return layoutHeight;
+        if (BtnChangeWallpaper.Parent is not FrameworkElement bottomRow || !bottomRow.IsLoaded || bottomRow.ActualHeight <= 0) return layoutHeight;
+        double rowTop = bottomRow.TranslatePoint(new Point(0, 0), GridHomeLayout).Y;
+        return Math.Clamp(rowTop - 2 * HomeButtonGap(), 0, layoutHeight);
+    }
+
     private void UpdateSearchAreaMaxHeight()
     {
-        if (_inFocusMode || GridHomeLayout.ActualHeight <= 0)
+        double layoutHeight = GridHomeLayout.ActualHeight;
+        if (layoutHeight <= 0)
         {
             PnlSearchArea.MaxHeight = double.PositiveInfinity;
             return;
         }
-        PnlSearchArea.MaxHeight = Math.Max(240, GridHomeLayout.ActualHeight - PnlSearchArea.Margin.Top - 8);
+        double reserve = _inFocusMode ? 0 : Math.Max(0, layoutHeight - HomeBottomBoundary());
+        var margin = PnlSearchArea.Margin;
+        if (Math.Abs(margin.Bottom - reserve) > 0.5)
+        {
+            PnlSearchArea.Margin = new Thickness(margin.Left, margin.Top, margin.Right, reserve);
+            ScheduleStackRestSize();
+        }
+        if (_inFocusMode)
+        {
+            PnlSearchArea.MaxHeight = double.PositiveInfinity;
+            return;
+        }
+        PnlSearchArea.MaxHeight = Math.Max(SearchBoxBorder.MinHeight, layoutHeight - PnlSearchArea.Margin.Top - reserve);
     }
 
     private void DumpHomeLayout()
@@ -1958,6 +1995,8 @@ public partial class HomePageView : UserControl
         sb.AppendLine("page=" + ActualWidth.ToString("0") + "x" + ActualHeight.ToString("0") + " focus=" + _inFocusMode + " mode=" + _searchMode + " favFallback=" + _favoritesFallback + " bmFallback=" + _bookmarksFallback);
         sb.AppendLine("rows=" + rows.Favorites + "+" + rows.Bookmarks + " columns=" + RowsPanel.ColumnsFor(CenterPanelWidth()) + " centerWidth=" + CenterPanelWidth().ToString("0") + " ceiling=" + HomeRowLimits.Ceiling(ActualHeight));
         sb.AppendLine("favorites=" + SettingsService.Current.PinnedUrls.Count + " bookmarks=" + BookmarkService.Items.Count);
+        double stackBottom = HomeStack.Visibility == Visibility.Visible ? HomeStack.TranslatePoint(new Point(0, HomeStack.ActualHeight), GridHomeLayout).Y : 0;
+        sb.AppendLine("boundary=" + HomeBottomBoundary().ToString("0") + " gap=" + HomeButtonGap().ToString("0") + " layoutHeight=" + GridHomeLayout.ActualHeight.ToString("0") + " searchAreaBottom=" + PnlSearchArea.TranslatePoint(new Point(0, PnlSearchArea.ActualHeight), GridHomeLayout).Y.ToString("0") + " islandBottom=" + GridFavBookmarksIsland.TranslatePoint(new Point(0, GridFavBookmarksIsland.ActualHeight), GridHomeLayout).Y.ToString("0") + " stackBottom=" + stackBottom.ToString("0"));
         Add("GridHomeLayout", GridHomeLayout);
         Add("PnlSearchArea", PnlSearchArea);
         Add("SearchBoxBorder", SearchBoxBorder);
@@ -3135,6 +3174,9 @@ public partial class HomePageView : UserControl
         GridHomeLayout.SizeChanged += (_, __) => ScheduleStackRestSize();
         GridFavBookmarksIsland.SizeChanged += (_, __) => ScheduleStackRestSize();
         SearchBoxBorder.SizeChanged += (_, __) => ScheduleStackRestSize();
+        GridHomeLayout.SizeChanged += (_, __) => UpdateSearchAreaMaxHeight();
+        if (BtnChangeWallpaper.Parent is FrameworkElement bottomRow)
+            bottomRow.SizeChanged += (_, __) => UpdateSearchAreaMaxHeight();
     }
 
     private readonly List<(string Id, FrameworkElement View)> _stackEntries = new();
@@ -3231,7 +3273,6 @@ public partial class HomePageView : UserControl
 
     private const double StackRestMaxWidth = 320;
     private const double StackSideMargin = 40;
-    private const double StackBottomMargin = 50;
     private const double StackMinRestHeight = 160;
     private bool _stackRestPending;
 
@@ -3255,15 +3296,16 @@ public partial class HomePageView : UserControl
         double top = SearchBoxBorder.TranslatePoint(new Point(0, 0), GridHomeLayout).Y;
         double bottom = GridFavBookmarksIsland.TranslatePoint(new Point(0, GridFavBookmarksIsland.ActualHeight), GridHomeLayout).Y;
         double width = Math.Min(StackRestMaxWidth, Math.Max(0, ColRightBalance.ActualWidth - StackSideMargin));
-        double height = Math.Max(StackMinRestHeight, bottom - top);
-        HomeStack.Margin = new Thickness(0, Math.Max(0, top), StackSideMargin, 0);
+        double marginTop = Math.Max(0, top);
+        double height = Math.Min(Math.Max(StackMinRestHeight, bottom - top), Math.Max(0, HomeBottomBoundary() - marginTop));
+        HomeStack.Margin = new Thickness(0, marginTop, StackSideMargin, 0);
         HomeStack.SetRestSize(width, height);
     }
 
     private (double Width, double Height) StackExpandedSize()
     {
         double width = Math.Max(HomeStack.ActualWidth, ColRightBalance.ActualWidth - StackSideMargin);
-        double height = Math.Max(HomeStack.ActualHeight, GridHomeLayout.ActualHeight - HomeStack.Margin.Top - StackBottomMargin);
+        double height = Math.Max(0, HomeBottomBoundary() - HomeStack.Margin.Top);
         return (width, height);
     }
 
