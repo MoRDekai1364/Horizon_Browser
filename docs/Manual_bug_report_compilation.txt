@@ -1,0 +1,341 @@
+The dump pins it down. I'm checking git history to see whether the panel nesting changed recently.
+
+The history explains it: both panel assignments came from one commit on Oct 3. I'm checking everything that references these panel templates before proposing the fix.
+
+this is the repo we will be working with
+
+gh repo clone MoRDekai1364/Horizon_Browser
+
+use ONLY the new_changes channel
+
+do not push changes to the github. output in the find replace format
+
+page=395x758 focus=False mode=Search favFallback=False bmFallback=True
+rows=1+1 columns=3 centerWidth=375 ceiling=2
+favorites=3 bookmarks=163
+boundary=622 gap=10 layoutHeight=684 searchAreaBottom=77387 islandBottom=77387 stackBottom=0
+GridHomeLayout: 424x684 vis=Visible opacity=1,00 margin=0,0,0,0 maxH=∞ align=Stretch/Stretch
+PnlSearchArea: 375x77232 vis=Visible opacity=1,00 margin=10,20,10,62 maxH=602,4000000000001 align=Center/Center
+SearchBoxBorder: 375x58 vis=Visible opacity=1,00 margin=0,0,0,0 maxH=∞ align=Center/Stretch
+GridFavBookmarksIsland: 375x77174 vis=Visible opacity=1,00 margin=0,0,0,0 maxH=∞ align=Center/Stretch
+PnlFavoritesContainer: 375x123 vis=Visible opacity=1,00 margin=0,30,0,0 maxH=∞ align=Center/Stretch
+ScvFavorites: 375x123 vis=Visible opacity=1,00 margin=0,0,0,0 maxH=∞ align=Center/Stretch
+IcnColumns: 375x123 vis=Visible opacity=1,00 margin=0,0,0,0 maxH=∞ align=Center/Stretch
+PnlBookmarksContainer: 298x76981 vis=Visible opacity=1,00 margin=0,40,0,0 maxH=∞ align=Center/Stretch
+ScvBookmarks: 298x76929 vis=Visible opacity=1,00 margin=0,0,0,0 maxH=∞ align=Center/Stretch
+IcnBookmarks: 298x76929 vis=Visible opacity=1,00 margin=0,0,0,0 maxH=∞ align=Center/Stretch
+HomeStack: 0x0 vis=Collapsed opacity=1,00 margin=0,60,40,0 maxH=∞ align=Right/Top
+stackExpanded=False overlayOpen=False
+IcnColumns panel: RowsPanel 393x123 children=3 visibleChildren=3
+IcnBookmarks panel: AutoGridPanel 298x76929 children=14 visibleChildren=14
+tree ScrollViewer actual=298x76929 desired=298x76929 maxH=∞
+tree .....ItemsPresenter actual=298x76929 desired=298x76929 maxH=∞
+tree ......AutoGridPanel actual=298x76929 desired=298x76929 maxH=∞ itemsHost=True children=14 firstChildDesired=149x10990 mode=Full
+tree .......GroupItem actual=149x10990 desired=149x10990 maxH=∞
+tree ............ItemsPresenter actual=131x10941 desired=131x10941 maxH=∞
+tree .............PuzzlePanel actual=131x10941 desired=131x10941 maxH=∞ itemsHost=True children=80 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x582 maxH=∞
+tree ............ItemsPresenter actual=131x534 desired=131x534 maxH=∞
+tree .............PuzzlePanel actual=131x534 desired=131x534 maxH=∞ itemsHost=True children=4 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x582 maxH=∞
+tree ............ItemsPresenter actual=131x534 desired=131x534 maxH=∞
+tree .............PuzzlePanel actual=131x534 desired=131x534 maxH=∞ itemsHost=True children=4 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x445 maxH=∞
+tree ............ItemsPresenter actual=131x397 desired=131x397 maxH=∞
+tree .............PuzzlePanel actual=131x397 desired=131x397 maxH=∞ itemsHost=True children=3 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x309 maxH=∞
+tree ............ItemsPresenter actual=131x260 desired=131x260 maxH=∞
+tree .............PuzzlePanel actual=131x260 desired=131x260 maxH=∞ itemsHost=True children=2 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x309 maxH=∞
+tree ............ItemsPresenter actual=131x260 desired=131x260 maxH=∞
+tree .............PuzzlePanel actual=131x260 desired=131x260 maxH=∞ itemsHost=True children=2 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x309 maxH=∞
+tree ............ItemsPresenter actual=131x260 desired=131x260 maxH=∞
+tree .............PuzzlePanel actual=131x260 desired=131x260 maxH=∞ itemsHost=True children=2 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x309 maxH=∞
+tree ............ItemsPresenter actual=131x260 desired=131x260 maxH=∞
+tree .............PuzzlePanel actual=131x260 desired=131x260 maxH=∞ itemsHost=True children=2 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x309 maxH=∞
+tree ............ItemsPresenter actual=131x260 desired=131x260 maxH=∞
+tree .............PuzzlePanel actual=131x260 desired=131x260 maxH=∞ itemsHost=True children=2 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x309 maxH=∞
+tree ............ItemsPresenter actual=131x260 desired=131x260 maxH=∞
+tree .............PuzzlePanel actual=131x260 desired=131x260 maxH=∞ itemsHost=True children=2 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x309 maxH=∞
+tree ............ItemsPresenter actual=131x260 desired=131x260 maxH=∞
+tree .............PuzzlePanel actual=131x260 desired=131x260 maxH=∞ itemsHost=True children=2 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x309 maxH=∞
+tree ............ItemsPresenter actual=131x260 desired=131x260 maxH=∞
+tree .............PuzzlePanel actual=131x260 desired=131x260 maxH=∞ itemsHost=True children=2 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x309 maxH=∞
+tree ............ItemsPresenter actual=131x260 desired=131x260 maxH=∞
+tree .............PuzzlePanel actual=131x260 desired=131x260 maxH=∞ itemsHost=True children=2 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x7429 maxH=∞
+tree ............ItemsPresenter actual=131x7381 desired=131x7381 maxH=∞
+tree .............PuzzlePanel actual=131x7381 desired=131x7381 maxH=∞ itemsHost=True children=54 firstChildDesired=131x123
+
+page=1285x176 focus=False mode=Search favFallback=False bmFallback=True
+rows=1+1 columns=6 centerWidth=821 ceiling=2
+favorites=3 bookmarks=163
+boundary=40 gap=10 layoutHeight=272 searchAreaBottom=44298 islandBottom=44298 stackBottom=0
+GridHomeLayout: 1285x272 vis=Visible opacity=1,00 margin=0,0,0,0 maxH=∞ align=Stretch/Stretch
+PnlSearchArea: 596x44262 vis=Visible opacity=1,00 margin=10,60,10,231.55333333333334 maxH=48 align=Center/Center
+SearchBoxBorder: 444x58 vis=Visible opacity=1,00 margin=0,0,0,0 maxH=∞ align=Center/Stretch
+GridFavBookmarksIsland: 596x44204 vis=Visible opacity=1,00 margin=0,0,0,0 maxH=∞ align=Center/Stretch
+PnlFavoritesContainer: 393x123 vis=Visible opacity=1,00 margin=0,30,0,0 maxH=∞ align=Center/Stretch
+ScvFavorites: 393x123 vis=Visible opacity=1,00 margin=0,0,0,0 maxH=∞ align=Center/Stretch
+IcnColumns: 393x123 vis=Visible opacity=1,00 margin=0,0,0,0 maxH=∞ align=Center/Stretch
+PnlBookmarksContainer: 596x44011 vis=Visible opacity=1,00 margin=0,40,0,0 maxH=∞ align=Center/Stretch
+ScvBookmarks: 596x43959 vis=Visible opacity=1,00 margin=0,0,0,0 maxH=∞ align=Center/Stretch
+IcnBookmarks: 596x43959 vis=Visible opacity=1,00 margin=0,0,0,0 maxH=∞ align=Center/Stretch
+HomeStack: 0x0 vis=Collapsed opacity=1,00 margin=0,60,40,0 maxH=∞ align=Right/Top
+stackExpanded=False overlayOpen=False
+IcnColumns panel: RowsPanel 393x123 children=3 visibleChildren=3
+IcnBookmarks panel: AutoGridPanel 596x43959 children=14 visibleChildren=14
+tree ScrollViewer actual=596x43959 desired=596x43959 maxH=∞
+tree .....ItemsPresenter actual=596x43959 desired=596x43959 maxH=∞
+tree ......AutoGridPanel actual=596x43959 desired=596x43959 maxH=∞ itemsHost=True children=14 firstChildDesired=149x10990 mode=Full
+tree .......GroupItem actual=149x10990 desired=149x10990 maxH=∞
+tree ............ItemsPresenter actual=131x10941 desired=131x10941 maxH=∞
+tree .............PuzzlePanel actual=131x10941 desired=131x10941 maxH=∞ itemsHost=True children=80 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x582 maxH=∞
+tree ............ItemsPresenter actual=131x534 desired=131x534 maxH=∞
+tree .............PuzzlePanel actual=131x534 desired=131x534 maxH=∞ itemsHost=True children=4 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x582 maxH=∞
+tree ............ItemsPresenter actual=131x534 desired=131x534 maxH=∞
+tree .............PuzzlePanel actual=131x534 desired=131x534 maxH=∞ itemsHost=True children=4 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x445 maxH=∞
+tree ............ItemsPresenter actual=131x397 desired=131x397 maxH=∞
+tree .............PuzzlePanel actual=131x397 desired=131x397 maxH=∞ itemsHost=True children=3 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x309 maxH=∞
+tree ............ItemsPresenter actual=131x260 desired=131x260 maxH=∞
+tree .............PuzzlePanel actual=131x260 desired=131x260 maxH=∞ itemsHost=True children=2 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x309 maxH=∞
+tree ............ItemsPresenter actual=131x260 desired=131x260 maxH=∞
+tree .............PuzzlePanel actual=131x260 desired=131x260 maxH=∞ itemsHost=True children=2 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x309 maxH=∞
+tree ............ItemsPresenter actual=131x260 desired=131x260 maxH=∞
+tree .............PuzzlePanel actual=131x260 desired=131x260 maxH=∞ itemsHost=True children=2 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x309 maxH=∞
+tree ............ItemsPresenter actual=131x260 desired=131x260 maxH=∞
+tree .............PuzzlePanel actual=131x260 desired=131x260 maxH=∞ itemsHost=True children=2 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x309 maxH=∞
+tree ............ItemsPresenter actual=131x260 desired=131x260 maxH=∞
+tree .............PuzzlePanel actual=131x260 desired=131x260 maxH=∞ itemsHost=True children=2 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x309 maxH=∞
+tree ............ItemsPresenter actual=131x260 desired=131x260 maxH=∞
+tree .............PuzzlePanel actual=131x260 desired=131x260 maxH=∞ itemsHost=True children=2 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x309 maxH=∞
+tree ............ItemsPresenter actual=131x260 desired=131x260 maxH=∞
+tree .............PuzzlePanel actual=131x260 desired=131x260 maxH=∞ itemsHost=True children=2 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x309 maxH=∞
+tree ............ItemsPresenter actual=131x260 desired=131x260 maxH=∞
+tree .............PuzzlePanel actual=131x260 desired=131x260 maxH=∞ itemsHost=True children=2 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x309 maxH=∞
+tree ............ItemsPresenter actual=131x260 desired=131x260 maxH=∞
+tree .............PuzzlePanel actual=131x260 desired=131x260 maxH=∞ itemsHost=True children=2 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x7429 maxH=∞
+tree ............ItemsPresenter actual=131x7381 desired=131x7381 maxH=∞
+tree .............PuzzlePanel actual=131x7381 desired=131x7381 maxH=∞ itemsHost=True children=54 firstChildDesired=131x123
+
+
+page=1533x800 focus=False mode=Search favFallback=False bmFallback=True
+rows=1+1 columns=5 centerWidth=674 ceiling=2
+favorites=3 bookmarks=163
+boundary=664 gap=10 layoutHeight=726 searchAreaBottom=44322 islandBottom=44322 stackBottom=664
+GridHomeLayout: 1533x726 vis=Visible opacity=1,00 margin=0,0,0,0 maxH=∞ align=Stretch/Stretch
+PnlSearchArea: 596x44262 vis=Visible opacity=1,00 margin=10,60,10,62 maxH=604,4000000000001 align=Center/Center
+SearchBoxBorder: 444x58 vis=Visible opacity=1,00 margin=0,0,0,0 maxH=∞ align=Center/Stretch
+GridFavBookmarksIsland: 596x44204 vis=Visible opacity=1,00 margin=0,0,0,0 maxH=∞ align=Center/Stretch
+PnlFavoritesContainer: 393x123 vis=Visible opacity=1,00 margin=0,30,0,0 maxH=∞ align=Center/Stretch
+ScvFavorites: 393x123 vis=Visible opacity=1,00 margin=0,0,0,0 maxH=∞ align=Center/Stretch
+IcnColumns: 393x123 vis=Visible opacity=1,00 margin=0,0,0,0 maxH=∞ align=Center/Stretch
+PnlBookmarksContainer: 596x44011 vis=Visible opacity=1,00 margin=0,40,0,0 maxH=∞ align=Center/Stretch
+ScvBookmarks: 596x43959 vis=Visible opacity=1,00 margin=0,0,0,0 maxH=∞ align=Center/Stretch
+IcnBookmarks: 596x43959 vis=Visible opacity=1,00 margin=0,0,0,0 maxH=∞ align=Center/Stretch
+HomeStack: 320x604 vis=Visible opacity=1,00 margin=0,60,40,0 maxH=∞ align=Right/Top
+stackExpanded=False overlayOpen=False
+IcnColumns panel: RowsPanel 393x123 children=3 visibleChildren=3
+IcnBookmarks panel: AutoGridPanel 596x43959 children=14 visibleChildren=14
+tree ScrollViewer actual=596x43959 desired=596x43959 maxH=∞
+tree .....ItemsPresenter actual=596x43959 desired=596x43959 maxH=∞
+tree ......AutoGridPanel actual=596x43959 desired=596x43959 maxH=∞ itemsHost=True children=14 firstChildDesired=149x10990 mode=Full
+tree .......GroupItem actual=149x10990 desired=149x10990 maxH=∞
+tree ............ItemsPresenter actual=131x10941 desired=131x10941 maxH=∞
+tree .............PuzzlePanel actual=131x10941 desired=131x10941 maxH=∞ itemsHost=True children=80 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x582 maxH=∞
+tree ............ItemsPresenter actual=131x534 desired=131x534 maxH=∞
+tree .............PuzzlePanel actual=131x534 desired=131x534 maxH=∞ itemsHost=True children=4 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x582 maxH=∞
+tree ............ItemsPresenter actual=131x534 desired=131x534 maxH=∞
+tree .............PuzzlePanel actual=131x534 desired=131x534 maxH=∞ itemsHost=True children=4 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x445 maxH=∞
+tree ............ItemsPresenter actual=131x397 desired=131x397 maxH=∞
+tree .............PuzzlePanel actual=131x397 desired=131x397 maxH=∞ itemsHost=True children=3 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x309 maxH=∞
+tree ............ItemsPresenter actual=131x260 desired=131x260 maxH=∞
+tree .............PuzzlePanel actual=131x260 desired=131x260 maxH=∞ itemsHost=True children=2 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x309 maxH=∞
+tree ............ItemsPresenter actual=131x260 desired=131x260 maxH=∞
+tree .............PuzzlePanel actual=131x260 desired=131x260 maxH=∞ itemsHost=True children=2 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x309 maxH=∞
+tree ............ItemsPresenter actual=131x260 desired=131x260 maxH=∞
+tree .............PuzzlePanel actual=131x260 desired=131x260 maxH=∞ itemsHost=True children=2 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x309 maxH=∞
+tree ............ItemsPresenter actual=131x260 desired=131x260 maxH=∞
+tree .............PuzzlePanel actual=131x260 desired=131x260 maxH=∞ itemsHost=True children=2 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x309 maxH=∞
+tree ............ItemsPresenter actual=131x260 desired=131x260 maxH=∞
+tree .............PuzzlePanel actual=131x260 desired=131x260 maxH=∞ itemsHost=True children=2 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x309 maxH=∞
+tree ............ItemsPresenter actual=131x260 desired=131x260 maxH=∞
+tree .............PuzzlePanel actual=131x260 desired=131x260 maxH=∞ itemsHost=True children=2 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x309 maxH=∞
+tree ............ItemsPresenter actual=131x260 desired=131x260 maxH=∞
+tree .............PuzzlePanel actual=131x260 desired=131x260 maxH=∞ itemsHost=True children=2 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x309 maxH=∞
+tree ............ItemsPresenter actual=131x260 desired=131x260 maxH=∞
+tree .............PuzzlePanel actual=131x260 desired=131x260 maxH=∞ itemsHost=True children=2 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x309 maxH=∞
+tree ............ItemsPresenter actual=131x260 desired=131x260 maxH=∞
+tree .............PuzzlePanel actual=131x260 desired=131x260 maxH=∞ itemsHost=True children=2 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x7429 maxH=∞
+tree ............ItemsPresenter actual=131x7381 desired=131x7381 maxH=∞
+tree .............PuzzlePanel actual=131x7381 desired=131x7381 maxH=∞ itemsHost=True children=54 firstChildDesired=131x123
+
+
+page=439x616 focus=False mode=Search favFallback=False bmFallback=True
+rows=1+1 columns=3 centerWidth=419 ceiling=2
+favorites=3 bookmarks=163
+boundary=480 gap=10 layoutHeight=542 searchAreaBottom=77387 islandBottom=77387 stackBottom=0
+GridHomeLayout: 439x542 vis=Visible opacity=1,00 margin=0,0,0,0 maxH=∞ align=Stretch/Stretch
+PnlSearchArea: 419x77232 vis=Visible opacity=1,00 margin=10,20,10,62 maxH=460 align=Center/Center
+SearchBoxBorder: 419x58 vis=Visible opacity=1,00 margin=0,0,0,0 maxH=∞ align=Center/Stretch
+GridFavBookmarksIsland: 393x77174 vis=Visible opacity=1,00 margin=0,0,0,0 maxH=∞ align=Center/Stretch
+PnlFavoritesContainer: 393x123 vis=Visible opacity=1,00 margin=0,30,0,0 maxH=∞ align=Center/Stretch
+ScvFavorites: 393x123 vis=Visible opacity=1,00 margin=0,0,0,0 maxH=∞ align=Center/Stretch
+IcnColumns: 393x123 vis=Visible opacity=1,00 margin=0,0,0,0 maxH=∞ align=Center/Stretch
+PnlBookmarksContainer: 298x76981 vis=Visible opacity=1,00 margin=0,40,0,0 maxH=∞ align=Center/Stretch
+ScvBookmarks: 298x76929 vis=Visible opacity=1,00 margin=0,0,0,0 maxH=∞ align=Center/Stretch
+IcnBookmarks: 298x76929 vis=Visible opacity=1,00 margin=0,0,0,0 maxH=∞ align=Center/Stretch
+HomeStack: 0x0 vis=Collapsed opacity=1,00 margin=0,60,40,0 maxH=∞ align=Right/Top
+stackExpanded=False overlayOpen=False
+IcnColumns panel: RowsPanel 393x123 children=3 visibleChildren=3
+IcnBookmarks panel: AutoGridPanel 298x76929 children=14 visibleChildren=14
+tree ScrollViewer actual=298x76929 desired=298x76929 maxH=∞
+tree .....ItemsPresenter actual=298x76929 desired=298x76929 maxH=∞
+tree ......AutoGridPanel actual=298x76929 desired=298x76929 maxH=∞ itemsHost=True children=14 firstChildDesired=149x10990 mode=Full
+tree .......GroupItem actual=149x10990 desired=149x10990 maxH=∞
+tree ............ItemsPresenter actual=131x10941 desired=131x10941 maxH=∞
+tree .............PuzzlePanel actual=131x10941 desired=131x10941 maxH=∞ itemsHost=True children=80 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x582 maxH=∞
+tree ............ItemsPresenter actual=131x534 desired=131x534 maxH=∞
+tree .............PuzzlePanel actual=131x534 desired=131x534 maxH=∞ itemsHost=True children=4 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x582 maxH=∞
+tree ............ItemsPresenter actual=131x534 desired=131x534 maxH=∞
+tree .............PuzzlePanel actual=131x534 desired=131x534 maxH=∞ itemsHost=True children=4 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x445 maxH=∞
+tree ............ItemsPresenter actual=131x397 desired=131x397 maxH=∞
+tree .............PuzzlePanel actual=131x397 desired=131x397 maxH=∞ itemsHost=True children=3 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x309 maxH=∞
+tree ............ItemsPresenter actual=131x260 desired=131x260 maxH=∞
+tree .............PuzzlePanel actual=131x260 desired=131x260 maxH=∞ itemsHost=True children=2 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x309 maxH=∞
+tree ............ItemsPresenter actual=131x260 desired=131x260 maxH=∞
+tree .............PuzzlePanel actual=131x260 desired=131x260 maxH=∞ itemsHost=True children=2 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x309 maxH=∞
+tree ............ItemsPresenter actual=131x260 desired=131x260 maxH=∞
+tree .............PuzzlePanel actual=131x260 desired=131x260 maxH=∞ itemsHost=True children=2 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x309 maxH=∞
+tree ............ItemsPresenter actual=131x260 desired=131x260 maxH=∞
+tree .............PuzzlePanel actual=131x260 desired=131x260 maxH=∞ itemsHost=True children=2 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x309 maxH=∞
+tree ............ItemsPresenter actual=131x260 desired=131x260 maxH=∞
+tree .............PuzzlePanel actual=131x260 desired=131x260 maxH=∞ itemsHost=True children=2 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x309 maxH=∞
+tree ............ItemsPresenter actual=131x260 desired=131x260 maxH=∞
+tree .............PuzzlePanel actual=131x260 desired=131x260 maxH=∞ itemsHost=True children=2 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x309 maxH=∞
+tree ............ItemsPresenter actual=131x260 desired=131x260 maxH=∞
+tree .............PuzzlePanel actual=131x260 desired=131x260 maxH=∞ itemsHost=True children=2 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x309 maxH=∞
+tree ............ItemsPresenter actual=131x260 desired=131x260 maxH=∞
+tree .............PuzzlePanel actual=131x260 desired=131x260 maxH=∞ itemsHost=True children=2 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x309 maxH=∞
+tree ............ItemsPresenter actual=131x260 desired=131x260 maxH=∞
+tree .............PuzzlePanel actual=131x260 desired=131x260 maxH=∞ itemsHost=True children=2 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x7429 maxH=∞
+tree ............ItemsPresenter actual=131x7381 desired=131x7381 maxH=∞
+tree .............PuzzlePanel actual=131x7381 desired=131x7381 maxH=∞ itemsHost=True children=54 firstChildDesired=131x123
+
+
+
+
+
+
+
+
+dump:
+page=395x758 focus=False mode=Search favFallback=False bmFallback=True
+rows=1+1 columns=3 centerWidth=375 ceiling=2
+favorites=3 bookmarks=163
+boundary=622 gap=10 layoutHeight=684 searchAreaBottom=77387 islandBottom=77387 stackBottom=0
+GridHomeLayout: 424x684 vis=Visible opacity=1,00 margin=0,0,0,0 maxH=∞ align=Stretch/Stretch
+PnlSearchArea: 375x77232 vis=Visible opacity=1,00 margin=10,20,10,62 maxH=602,4000000000001 align=Center/Center
+SearchBoxBorder: 375x58 vis=Visible opacity=1,00 margin=0,0,0,0 maxH=∞ align=Center/Stretch
+GridFavBookmarksIsland: 375x77174 vis=Visible opacity=1,00 margin=0,0,0,0 maxH=∞ align=Center/Stretch
+PnlFavoritesContainer: 375x123 vis=Visible opacity=1,00 margin=0,30,0,0 maxH=∞ align=Center/Stretch
+ScvFavorites: 375x123 vis=Visible opacity=1,00 margin=0,0,0,0 maxH=∞ align=Center/Stretch
+IcnColumns: 375x123 vis=Visible opacity=1,00 margin=0,0,0,0 maxH=∞ align=Center/Stretch
+PnlBookmarksContainer: 298x76981 vis=Visible opacity=1,00 margin=0,40,0,0 maxH=∞ align=Center/Stretch
+ScvBookmarks: 298x76929 vis=Visible opacity=1,00 margin=0,0,0,0 maxH=∞ align=Center/Stretch
+IcnBookmarks: 298x76929 vis=Visible opacity=1,00 margin=0,0,0,0 maxH=∞ align=Center/Stretch
+HomeStack: 0x0 vis=Collapsed opacity=1,00 margin=0,60,40,0 maxH=∞ align=Right/Top
+stackExpanded=False overlayOpen=False
+IcnColumns panel: RowsPanel 393x123 children=3 visibleChildren=3
+IcnBookmarks panel: AutoGridPanel 298x76929 children=14 visibleChildren=14
+tree ScrollViewer actual=298x76929 desired=298x76929 maxH=∞
+tree .....ItemsPresenter actual=298x76929 desired=298x76929 maxH=∞
+tree ......AutoGridPanel actual=298x76929 desired=298x76929 maxH=∞ itemsHost=True children=14 firstChildDesired=149x10990 mode=Full
+tree .......GroupItem actual=149x10990 desired=149x10990 maxH=∞
+tree ............ItemsPresenter actual=131x10941 desired=131x10941 maxH=∞
+tree .............PuzzlePanel actual=131x10941 desired=131x10941 maxH=∞ itemsHost=True children=80 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x582 maxH=∞
+tree ............ItemsPresenter actual=131x534 desired=131x534 maxH=∞
+tree .............PuzzlePanel actual=131x534 desired=131x534 maxH=∞ itemsHost=True children=4 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x582 maxH=∞
+tree ............ItemsPresenter actual=131x534 desired=131x534 maxH=∞
+tree .............PuzzlePanel actual=131x534 desired=131x534 maxH=∞ itemsHost=True children=4 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x445 maxH=∞
+tree ............ItemsPresenter actual=131x397 desired=131x397 maxH=∞
+tree .............PuzzlePanel actual=131x397 desired=131x397 maxH=∞ itemsHost=True children=3 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x309 maxH=∞
+tree ............ItemsPresenter actual=131x260 desired=131x260 maxH=∞
+tree .............PuzzlePanel actual=131x260 desired=131x260 maxH=∞ itemsHost=True children=2 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x309 maxH=∞
+tree ............ItemsPresenter actual=131x260 desired=131x260 maxH=∞
+tree .............PuzzlePanel actual=131x260 desired=131x260 maxH=∞ itemsHost=True children=2 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x309 maxH=∞
+tree ............ItemsPresenter actual=131x260 desired=131x260 maxH=∞
+tree .............PuzzlePanel actual=131x260 desired=131x260 maxH=∞ itemsHost=True children=2 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x309 maxH=∞
+tree ............ItemsPresenter actual=131x260 desired=131x260 maxH=∞
+tree .............PuzzlePanel actual=131x260 desired=131x260 maxH=∞ itemsHost=True children=2 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x309 maxH=∞
+tree ............ItemsPresenter actual=131x260 desired=131x260 maxH=∞
+tree .............PuzzlePanel actual=131x260 desired=131x260 maxH=∞ itemsHost=True children=2 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x309 maxH=∞
+tree ............ItemsPresenter actual=131x260 desired=131x260 maxH=∞
+tree .............PuzzlePanel actual=131x260 desired=131x260 maxH=∞ itemsHost=True children=2 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x309 maxH=∞
+tree ............ItemsPresenter actual=131x260 desired=131x260 maxH=∞
+tree .............PuzzlePanel actual=131x260 desired=131x260 maxH=∞ itemsHost=True children=2 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x309 maxH=∞
+tree ............ItemsPresenter actual=131x260 desired=131x260 maxH=∞
+tree .............PuzzlePanel actual=131x260 desired=131x260 maxH=∞ itemsHost=True children=2 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x309 maxH=∞
+tree ............ItemsPresenter actual=131x260 desired=131x260 maxH=∞
+tree .............PuzzlePanel actual=131x260 desired=131x260 maxH=∞ itemsHost=True children=2 firstChildDesired=131x123
+tree .......GroupItem actual=149x10990 desired=149x7429 maxH=∞
+tree ............ItemsPresenter actual=131x7381 desired=131x7381 maxH=∞
+tree .............PuzzlePanel actual=131x7381 desired=131x7381 maxH=∞ itemsHost=True children=54 firstChildDesired=131x123

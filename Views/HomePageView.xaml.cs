@@ -2027,7 +2027,28 @@ public partial class HomePageView : UserControl
         }
         DescribePanel(sb, "IcnColumns panel", IcnColumns);
         DescribePanel(sb, "IcnBookmarks panel", IcnBookmarks);
-        Clipboard.SetText(sb.ToString());
+        int treeBudget = 60;
+        DescribeTree(sb, "tree ", ScvBookmarks, 0, ref treeBudget);
+        string dump = sb.ToString();
+        try
+        {
+            System.IO.File.WriteAllText(System.IO.Path.Combine(System.IO.Path.GetTempPath(), "horizon_layout_dump.txt"), dump);
+        }
+        catch (Exception)
+        {
+        }
+        for (int attempt = 0; attempt < 8; attempt++)
+        {
+            try
+            {
+                Clipboard.SetDataObject(dump, true);
+                return;
+            }
+            catch (System.Runtime.InteropServices.COMException)
+            {
+                Thread.Sleep(40);
+            }
+        }
     }
 
     private static void DescribePanel(System.Text.StringBuilder sb, string name, DependencyObject root)
@@ -2044,6 +2065,25 @@ public partial class HomePageView : UserControl
             if (child.Visibility == Visibility.Visible) visible++;
         }
         sb.AppendLine(name + ": " + panel.GetType().Name + " " + panel.ActualWidth.ToString("0") + "x" + panel.ActualHeight.ToString("0") + " children=" + panel.Children.Count + " visibleChildren=" + visible);
+    }
+
+    private static void DescribeTree(System.Text.StringBuilder sb, string name, DependencyObject node, int depth, ref int budget)
+    {
+        if (budget <= 0 || depth > 14) return;
+        if (node is FrameworkElement fe && (fe is PuzzlePanel || fe is RowsPanel || fe is AutoGridPanel || fe is ScrollViewer || fe is GroupItem || fe is ItemsPresenter))
+        {
+            budget--;
+            string extra = "";
+            if (fe is Panel panel)
+            {
+                extra = " itemsHost=" + panel.IsItemsHost + " children=" + panel.Children.Count;
+                if (panel.Children.Count > 0) extra += " firstChildDesired=" + panel.Children[0].DesiredSize.Width.ToString("0") + "x" + panel.Children[0].DesiredSize.Height.ToString("0");
+            }
+            if (fe is AutoGridPanel grid) extra += " mode=" + grid.Mode;
+            sb.AppendLine(name + new string('.', depth) + fe.GetType().Name + " actual=" + fe.ActualWidth.ToString("0") + "x" + fe.ActualHeight.ToString("0") + " desired=" + fe.DesiredSize.Width.ToString("0") + "x" + fe.DesiredSize.Height.ToString("0") + " maxH=" + fe.MaxHeight + extra);
+        }
+        int count = VisualTreeHelper.GetChildrenCount(node);
+        for (int i = 0; i < count; i++) DescribeTree(sb, name, VisualTreeHelper.GetChild(node, i), depth + 1, ref budget);
     }
 
     private static Panel? FindFirstPanel(DependencyObject node)
