@@ -3043,8 +3043,9 @@ public partial class HomePageView : UserControl
             AddStackEntry(stored.Id, stored.Title, StackElementBuilders.Build(stored));
         BuildStackMenu();
         System.ComponentModel.DependencyPropertyDescriptor
-            .FromProperty(ColumnDefinition.ActualWidthProperty, typeof(ColumnDefinition))
-            ?.AddValueChanged(ColRightBalance, (_, __) => UpdateHomeStackVisibility());
+            .FromProperty(ColumnDefinition.WidthProperty, typeof(ColumnDefinition))
+            ?.AddValueChanged(ColRightBalance, (_, __) => Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(UpdateHomeStackVisibility)));
+        GridHomeLayout.SizeChanged += (_, __) => UpdateHomeStackVisibility();
         Loaded += (_, __) => UpdateHomeStackVisibility();
         GridHomeLayout.SizeChanged += (_, __) => ScheduleStackRestSize();
         GridFavBookmarksIsland.SizeChanged += (_, __) => ScheduleStackRestSize();

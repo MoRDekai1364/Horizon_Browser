@@ -4,7 +4,6 @@ using System.Windows.Media;
 using System.Windows.Input;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.Wpf;
-using System.Windows.Input;
 using System.Windows.Threading;
 using Horizon.Stealth.Services;
 
@@ -207,7 +206,9 @@ internal sealed class StackWebHost : Border, IDisposable
             bool isolated = _data.LoginProfile == StackLoginProfile.Isolated;
             if (isolated)
             {
-                var options = env.CreateCoreWebView2ControllerOptions("stack_" + _data.Id, false);
+                var options = env.CreateCoreWebView2ControllerOptions();
+                options.ProfileName = "stack_" + _data.Id;
+                options.IsInPrivateModeEnabled = false;
                 await view.EnsureCoreWebView2Async(env, options);
             }
             else
