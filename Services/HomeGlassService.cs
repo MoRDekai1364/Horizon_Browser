@@ -730,6 +730,15 @@ public sealed class HomeGlassInlineLayer
                 if (diag) LogService.Write("PillDiag", "  -> TransformToVisual threw: " + ex.Message);
                 continue;
             }
+            Rect visible = GetAncestorClipRect(el, b);
+            if (visible.IsEmpty || visible.Width < 0.5 || visible.Height < 0.5)
+            {
+                shape.Visibility = Visibility.Collapsed;
+                continue;
+            }
+            shape.Clip = visible == b
+                ? null
+                : new RectangleGeometry(new Rect(visible.X - b.X, visible.Y - b.Y, visible.Width, visible.Height));
             Canvas.SetLeft(shape, b.X);
             Canvas.SetTop(shape, b.Y);
             shape.Width = b.Width;
@@ -740,6 +749,37 @@ public sealed class HomeGlassInlineLayer
             if (diag) LogService.Write("PillDiag", $"  -> shape set: opacity={shape.Opacity:0.###} visibility={shape.Visibility} cornerRadius={shape.CornerRadius}");
         }
         RasterizeMask(w, h);
+    }
+
+    private Rect GetAncestorClipRect(FrameworkElement el, Rect bounds)
+    {
+        Rect result = bounds;
+        DependencyObject? cur = VisualTreeHelper.GetParent(el);
+        while (cur != null && !ReferenceEquals(cur, _root))
+        {
+            if (cur is FrameworkElement fe && fe.ActualWidth > 0 && fe.ActualHeight > 0)
+            {
+                Rect? clipLocal = null;
+                if (fe.Clip != null) clipLocal = fe.Clip.Bounds;
+                else if (fe.ClipToBounds || fe is ScrollViewer) clipLocal = new Rect(0, 0, fe.ActualWidth, fe.ActualHeight);
+
+                if (clipLocal.HasValue)
+                {
+                    try
+                    {
+                        Rect inRoot = fe.TransformToVisual(_root).TransformBounds(clipLocal.Value);
+                        result.Intersect(inRoot);
+                        if (result.IsEmpty) return Rect.Empty;
+                    }
+                    catch (InvalidOperationException)
+                    {
+                        return bounds;
+                    }
+                }
+            }
+            cur = cur is Visual ? VisualTreeHelper.GetParent(cur) : null;
+        }
+        return result;
     }
 
     private double GetMaskDeviceScale()
