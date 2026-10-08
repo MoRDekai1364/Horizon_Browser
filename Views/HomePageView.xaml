@@ -846,9 +846,9 @@
 
                 <StackPanel x:Name="PnlFavoritesContainer" Tag="Favorites" Grid.Row="0" Margin="0,14,0,0" HorizontalAlignment="Center" PreviewMouseWheel="WidgetContainer_PreviewMouseWheel" PreviewMouseLeftButtonDown="Widget_PreviewMouseLeftButtonDown" MouseMove="Widget_MouseMove">
                     <ScrollViewer x:Name="ScvFavorites" MaxHeight="320" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" HorizontalAlignment="Center" Style="{StaticResource HomeScrollViewerStyle}">
-                    <ItemsControl x:Name="IcnColumns" HorizontalAlignment="Center" ItemsPanel="{StaticResource PuzzleItemsPanel}">
+                    <ItemsControl x:Name="IcnColumns" HorizontalAlignment="Center" ItemsPanel="{StaticResource BlockItemsPanel}">
                         <ItemsControl.GroupStyle>
-                            <GroupStyle ContainerStyle="{StaticResource PuzzleGroupItemStyle}" Panel="{StaticResource BlockItemsPanel}">
+                            <GroupStyle ContainerStyle="{StaticResource PuzzleGroupItemStyle}" Panel="{StaticResource PuzzleItemsPanel}">
                                 <GroupStyle.HeaderTemplate>
                                     <DataTemplate>
                                         <TextBlock FontSize="14" FontWeight="Bold" Foreground="{DynamicResource HomeTextBrush}"
@@ -917,9 +917,9 @@
 
                 <StackPanel x:Name="PnlBookmarksContainer" Tag="Bookmarks" Grid.Row="1" Margin="0,14,0,0" HorizontalAlignment="Center" PreviewMouseWheel="WidgetContainer_PreviewMouseWheel" PreviewMouseLeftButtonDown="Widget_PreviewMouseLeftButtonDown" MouseMove="Widget_MouseMove">
                     <ScrollViewer x:Name="ScvBookmarks" MaxHeight="220" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" HorizontalAlignment="Center" Style="{StaticResource HomeScrollViewerStyle}">
-                    <ItemsControl x:Name="IcnBookmarks" HorizontalAlignment="Center" ItemsPanel="{StaticResource PuzzleItemsPanel}">
+                    <ItemsControl x:Name="IcnBookmarks" HorizontalAlignment="Center" ItemsPanel="{StaticResource BlockItemsPanel}">
                         <ItemsControl.GroupStyle>
-                            <GroupStyle ContainerStyle="{StaticResource PuzzleGroupItemStyle}" Panel="{StaticResource BlockItemsPanel}"
+                            <GroupStyle ContainerStyle="{StaticResource PuzzleGroupItemStyle}" Panel="{StaticResource PuzzleItemsPanel}"
                                         HeaderTemplate="{StaticResource PuzzleHeaderTemplate}"/>
                         </ItemsControl.GroupStyle>
                         <ItemsControl.ItemTemplate>

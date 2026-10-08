@@ -2171,7 +2171,7 @@ public partial class HomePageView : UserControl
 
     private void SetRowsPanel(ItemsControl control, bool rows)
     {
-        var template = (ItemsPanelTemplate)FindResource(rows ? "RowsItemsPanel" : "PuzzleItemsPanel");
+        var template = (ItemsPanelTemplate)FindResource(rows ? "RowsItemsPanel" : "BlockItemsPanel");
         if (!ReferenceEquals(control.ItemsPanel, template)) control.ItemsPanel = template;
     }
 
