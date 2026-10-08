@@ -440,6 +440,16 @@ public partial class HomePageView : UserControl
 
     private bool _winStateHooked = false;
 
+    private void Window_DumpHotkey(object sender, KeyEventArgs e)
+    {
+        if (!IsVisible) return;
+        if (e.Key == Key.D && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
+        {
+            DumpHomeLayout();
+            e.Handled = true;
+        }
+    }
+
     private void UpdateSearchAreaLayout()
     {
         double totalWidth = RootHomeGrid.ActualWidth > 0 ? RootHomeGrid.ActualWidth : ActualWidth;
@@ -516,6 +526,7 @@ public partial class HomePageView : UserControl
             if (win != null)
             {
                 win.StateChanged += (_, _) => UpdateSearchAreaLayout();
+                win.PreviewKeyDown += Window_DumpHotkey;
                 _winStateHooked = true;
             }
             SizeChanged += (_, _) => UpdateSearchAreaLayout();
