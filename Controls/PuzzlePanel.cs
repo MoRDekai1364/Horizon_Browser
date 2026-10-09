@@ -59,6 +59,7 @@ public class PuzzlePanel : Panel
     private double _cellH;
     private int _cols = 1;
     private double _snapPitch = -1;
+    private readonly List<double> _rowBottoms = new();
     private ScrollViewer? _host;
 
     public PuzzlePanel()
@@ -78,13 +79,24 @@ public class PuzzlePanel : Panel
 
     private void Snap()
     {
-        if (_host == null || !_uniform || _cellH <= 0) return;
+        if (_host == null || !_uniform || _rowBottoms.Count == 0) return;
         double budget = GetViewportBudget(_host);
         if (budget <= 0) return;
-        double pitch = _cellH + Gap;
-        int rows = Math.Max(MinRows, Math.Min(MaxRows, (int)Math.Floor((budget + Gap) / pitch)));
-        double target = rows * pitch - Gap + 4;
+        double bottomAtRows = _rowBottoms[0];
+        for (int k = 2; k <= Math.Min(MaxRows, _rowBottoms.Count); k++) 
+        {
+            if (_rowBottoms[k - 1] <= budget) bottomAtRows = _rowBottoms[k - 1];
+        }
+        double target = Math.Min(bottomAtRows + 4, budget);
         if (Math.Abs(_host.MaxHeight - target) > 0.5) _host.MaxHeight = target;
+    }
+
+    public string DebugUniform()
+    {
+        var heights = new List<string>();
+        foreach (UIElement child in InternalChildren)
+            heights.Add((GroupState.GetIsCollapsed(child) ? "c" : "o") + child.DesiredSize.Height.ToString("0"));
+        return " uniform=" + _uniform + " cell=" + _cellW.ToString("0") + "x" + _cellH.ToString("0") + " cols=" + _cols + " cards=[" + string.Join(",", heights) + "]";
     }
 
     private bool IsUniform()
@@ -125,9 +137,10 @@ public class PuzzlePanel : Panel
         _cols = cols;
         Size size = PackUniform(width);
 
-        if (cellH > 0 && Math.Abs(_snapPitch - (cellH + gap)) > 0.5)
+        double rowSignature = _rowBottoms.Count + _rowBottoms.Sum();
+        if (_rowBottoms.Count > 0 && Math.Abs(_snapPitch - rowSignature) > 0.5)
         {
-            _snapPitch = cellH + gap;
+            _snapPitch = rowSignature;
             Dispatcher.BeginInvoke(new Action(Snap), DispatcherPriority.Loaded);
         }
 
@@ -137,9 +150,11 @@ public class PuzzlePanel : Panel
     private Size PackUniform(double width)
     {
         _slots.Clear();
+        _rowBottoms.Clear();
         double gap = Gap;
         double y = 0;
         int c = 0;
+        double rowHeight = 0;
         double used = _cellW > 0 ? _cols * _cellW + (_cols - 1) * gap : 0;
         var expanded = new List<int>();
 
@@ -149,12 +164,15 @@ public class PuzzlePanel : Panel
             Size desired = child.DesiredSize;
             if (GroupState.GetIsCollapsed(child))
             {
-                _slots.Add(new Rect(c * (_cellW + gap), y, _cellW, _cellH));
+                _slots.Add(new Rect(c * (_cellW + gap), y, _cellW, desired.Height));
+                rowHeight = Math.Max(rowHeight, desired.Height);
                 c++;
                 if (c >= _cols)
                 {
                     c = 0;
-                    y += _cellH + gap;
+                    _rowBottoms.Add(y + rowHeight);
+                    y += rowHeight + gap;
+                    rowHeight = 0;
                 }
             }
             else
@@ -162,14 +180,19 @@ public class PuzzlePanel : Panel
                 if (c > 0)
                 {
                     c = 0;
-                    y += _cellH + gap;
+                    _rowBottoms.Add(y + rowHeight);
+                    y += rowHeight + gap;
+                    rowHeight = 0;
                 }
                 _slots.Add(new Rect(0, y, desired.Width, desired.Height));
                 expanded.Add(i);
                 used = Math.Max(used, desired.Width);
+                _rowBottoms.Add(y + desired.Height);
                 y += desired.Height + gap;
             }
         }
+
+        if (c > 0) _rowBottoms.Add(y + rowHeight);
 
         foreach (int i in expanded)
         {

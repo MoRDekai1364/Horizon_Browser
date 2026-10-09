@@ -70,6 +70,8 @@ public partial class HomePageView : UserControl
                 WeatherBridge.SetWallpaperSurface(null);
         };
         PnlClockWeather.SizeChanged += (_, __) => UpdateClockWeatherIslandBounds();
+        ScvFavorites.SizeChanged += (_, __) => ApplyScrollerClip(ScvFavorites);
+        ScvBookmarks.SizeChanged += (_, __) => ApplyScrollerClip(ScvBookmarks);
         BuildHomeStack();
         SizeChanged += (_, __) =>
         {
@@ -126,6 +128,17 @@ public partial class HomePageView : UserControl
         anim.CurrentTimeInvalidated += (_, _) => _homeGlass.Invalidate();
         anim.Completed += (_, _) => _homeGlass.Invalidate();
         target.BeginAnimation(UIElement.OpacityProperty, anim);
+    }
+
+    private void ApplyScrollerClip(ScrollViewer scroller)
+    {
+        if (scroller.ActualWidth < 1 || scroller.ActualHeight < 1)
+        {
+            scroller.Clip = null;
+            return;
+        }
+        double radius = Math.Min(FavBookmarksIslandBorder.CornerRadius.TopLeft, Math.Min(scroller.ActualWidth, scroller.ActualHeight) / 2.0);
+        scroller.Clip = new RectangleGeometry(new Rect(0, 0, scroller.ActualWidth, scroller.ActualHeight), radius, radius);
     }
 
     private void CollapseContainer(UIElement target, TimeSpan duration)
@@ -2080,6 +2093,7 @@ public partial class HomePageView : UserControl
                 if (panel.Children.Count > 0) extra += " firstChildDesired=" + panel.Children[0].DesiredSize.Width.ToString("0") + "x" + panel.Children[0].DesiredSize.Height.ToString("0");
             }
             if (fe is AutoGridPanel grid) extra += " mode=" + grid.Mode;
+            if (fe is PuzzlePanel puzzle) extra += puzzle.DebugUniform();
             sb.AppendLine(name + new string('.', depth) + fe.GetType().Name + " actual=" + fe.ActualWidth.ToString("0") + "x" + fe.ActualHeight.ToString("0") + " desired=" + fe.DesiredSize.Width.ToString("0") + "x" + fe.DesiredSize.Height.ToString("0") + " maxH=" + fe.MaxHeight + extra);
         }
         int count = VisualTreeHelper.GetChildrenCount(node);
@@ -2157,7 +2171,7 @@ public partial class HomePageView : UserControl
         RefreshBookmarks();
     }
 
-    private static void ApplyFallbackBudget(ScrollViewer host, bool fallback, int rows)
+    private static void ApplyFallbackBudget(ScrollViewer host, bool fallback, double budget)
     {
         if (!fallback)
         {
@@ -2165,8 +2179,18 @@ public partial class HomePageView : UserControl
             host.MaxHeight = double.PositiveInfinity;
             return;
         }
-        PuzzlePanel.SetViewportBudget(host, rows * HomeRowLimits.RowHeight);
+        PuzzlePanel.SetViewportBudget(host, budget);    
         PuzzlePanel.Resnap(host);
+    }
+
+    private double BookmarksBudget(int rows)
+    {
+        UpdateSearchAreaMaxHeight();
+        double cap = PnlSearchArea.MaxHeight;
+        if (double.IsInfinity(cap) || PnlSearchArea.ActualHeight <= 0 || ScvBookmarks.ActualHeight <= 0)
+            return rows * HomeRowLimits.RowHeight;
+        double other = Math.Max(0, PnlSearchArea.ActualHeight - ScvBookmarks.ActualHeight);
+        return Math.Max(1, cap - other);
     }
 
     private void SetRowsPanel(ItemsControl control, bool rows)
@@ -2187,8 +2211,8 @@ public partial class HomePageView : UserControl
         if (_inFocusMode || ScvFavorites == null || ScvBookmarks == null) return;
         ApplyRowLimits();
         var (favoriteRows, bookmarkRows) = ResolvedRows();
-        ApplyFallbackBudget(ScvFavorites, _favoritesFallback, favoriteRows);
-        ApplyFallbackBudget(ScvBookmarks, _bookmarksFallback, bookmarkRows);
+        ApplyFallbackBudget(ScvFavorites, _favoritesFallback, favoriteRows * HomeRowLimits.RowHeight);
+        ApplyFallbackBudget(ScvBookmarks, _bookmarksFallback, BookmarksBudget(bookmarkRows));
         UpdateSearchAreaMaxHeight();
     }
 
