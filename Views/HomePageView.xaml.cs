@@ -79,6 +79,7 @@ public partial class HomePageView : UserControl
             ScheduleFallbackCheck();
         };
         PnlClockWeather.SizeChanged += (_, __) => ReanchorInactivityMedia();
+        PnlClockWeather.SizeChanged += (_, __) => ApplyScrollCap();
         IsVisibleChanged += (_, e) =>
         {
             if (!IsVisible) return;
@@ -426,12 +427,12 @@ public partial class HomePageView : UserControl
         if (e.Delta == 0) return;
         if (sender == PnlFavoritesContainer && _favoritesFallback)
         {
-            if (!ExpandStackFor("Favorites")) EnterWidgetFocusMode("Favorites");
+            if (!ExpandStackFor("Favorites")) return;
             e.Handled = true;
         }
         else if (sender == PnlBookmarksContainer && _bookmarksFallback)
         {
-            if (!ExpandStackFor("Bookmarks")) EnterWidgetFocusMode("Bookmarks");
+            if (!ExpandStackFor("Bookmarks")) return;
             e.Handled = true;
         }
     }
@@ -1999,7 +2000,8 @@ public partial class HomePageView : UserControl
             PnlSearchArea.MaxHeight = double.PositiveInfinity;
             return;
         }
-        PnlSearchArea.MaxHeight = Math.Max(SearchBoxBorder.MinHeight, layoutHeight - PnlSearchArea.Margin.Top - reserve);
+        double rowOffset = Grid.GetRow(PnlSearchArea) == 0 ? 0 : RowClockWeather.ActualHeight;
+        PnlSearchArea.MaxHeight = Math.Max(SearchBoxBorder.MinHeight, layoutHeight - rowOffset - PnlSearchArea.Margin.Top - reserve);
     }
 
     private void DumpHomeLayout()

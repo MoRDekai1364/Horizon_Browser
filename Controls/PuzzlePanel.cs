@@ -454,6 +454,7 @@ public class AutoGridPanel : Panel
     private const int MiniClusterMax = 9;
     private const double FolderCellWidth = 100;
     private const int FolderFullTiles = 3;
+    private const int FolderRowMax = 2;
     private const int FolderClusterMax = 4;
     private static readonly ScaleTransform FolderScale = CreateScale(0.46);
     private static readonly ScaleTransform MiniScale2 = CreateScale(0.46);
@@ -491,7 +492,7 @@ public class AutoGridPanel : Panel
 
     private Size FolderSize(int count)
     {
-        return count <= FolderFullTiles
+        return count <= FolderRowMax
             ? new Size(count * _cell.Width, _cell.Height)
             : new Size(2 * _cell.Width, 2 * _cell.Height);
     }
@@ -518,8 +519,8 @@ public class AutoGridPanel : Panel
             {
                 ResetTransform(child);
                 SetHit(child, true);
-                double x = count <= FolderFullTiles ? i * _cell.Width : (i % 2) * _cell.Width;
-                double y = count <= FolderFullTiles ? 0 : (i / 2) * _cell.Height;
+                double x = count <= FolderRowMax ? i * _cell.Width : (i % 2) * _cell.Width;
+                double y = count <= FolderRowMax ? 0 : (i / 2) * _cell.Height;
                 child.Arrange(new Rect(offsetX + x, y, _cell.Width, _cell.Height));
                 continue;
             }
@@ -583,7 +584,7 @@ public class AutoGridPanel : Panel
         return mode switch
         {
             GroupCollapseMode.FirstRow => _cell.Height,
-            GroupCollapseMode.Folder => count <= FolderFullTiles ? _cell.Height : 2 * _cell.Height,
+            GroupCollapseMode.Folder => count <= FolderRowMax ? _cell.Height : 2 * _cell.Height,
             GroupCollapseMode.Stack => _cell.Height + (Math.Min(StackDepth, count) - 1) * StackOffset,
             GroupCollapseMode.Mini => count > MiniThreshold
                 ? 3 * _cell.Height
