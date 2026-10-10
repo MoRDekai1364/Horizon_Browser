@@ -307,7 +307,11 @@ public class FaviconConverter : IValueConverter
 
     private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, object?> _memCache = new();
 
-    static FaviconConverter() => Directory.CreateDirectory(_cacheDir);
+    static FaviconConverter()
+    {
+        Directory.CreateDirectory(_cacheDir);
+        System.Threading.Tasks.Task.Run(PurgeDefaultIconsAsync);
+    }
 
     // ── IValueConverter ──────────────────────────────────────────────────────
     public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
@@ -331,6 +335,12 @@ public class FaviconConverter : IValueConverter
             }
 
             // 3. Network fetch — async, return placeholder URL immediately
+            string marker = file + ".none";
+            if (File.Exists(marker) && DateTime.UtcNow - File.GetLastWriteTimeUtc(marker) < TimeSpan.FromDays(7))
+            {
+                _memCache[key] = null;
+                return null;
+            }
             _ = FetchAndCacheAsync(key, uri.Host, file);
             string placeholder = $"https://www.google.com/s2/favicons?domain={uri.Host}&sz=64";
             _memCache[key] = placeholder; // store placeholder so we don't re-queue
@@ -356,6 +366,7 @@ public class FaviconConverter : IValueConverter
             };
 
             byte[]? bytes = null;
+            bool answered = false;
             using var hc = new System.Net.Http.HttpClient
             {
                 Timeout = System.TimeSpan.FromSeconds(6)
@@ -367,12 +378,28 @@ public class FaviconConverter : IValueConverter
                 try
                 {
                     bytes = await hc.GetByteArrayAsync(src).ConfigureAwait(false);
-                    if (bytes.Length > 64) break; // skip empty 1x1 responses
+                    answered = true;
+                    if (bytes.Length > 64 && !(await DefaultHashesAsync(hc).ConfigureAwait(false)).Contains(HashOf(bytes))) break;
+                    bytes = null;
+                }
+                catch (System.Net.Http.HttpRequestException ex)
+                {
+                    bytes = null;
+                    if (ex.StatusCode != null) answered = true;
                 }
                 catch { bytes = null; }
             }
 
-            if (bytes == null || bytes.Length <= 64) return;
+            if (bytes == null || bytes.Length <= 64)
+            {
+                if (answered)
+                {
+                    try { await File.WriteAllBytesAsync(file + ".none", Array.Empty<byte>()).ConfigureAwait(false); }
+                    catch { }
+                    _memCache[key] = null;
+                }
+                return;
+            }
 
             await File.WriteAllBytesAsync(file, bytes).ConfigureAwait(false);
 
@@ -380,6 +407,55 @@ public class FaviconConverter : IValueConverter
             _memCache.TryRemove(key, out _);
         }
         catch { /* silently discard — favicon is cosmetic */ }
+    }
+
+    private static readonly string[] _referenceSources =
+    {
+        "https://www.google.com/s2/favicons?domain=horizon-reference-missing.invalid&sz=64",
+        "https://icons.duckduckgo.com/ip3/horizon-reference-missing.invalid.ico"
+    };
+
+    private static HashSet<string>? _defaultHashes;
+
+    private static string HashOf(byte[] bytes) => System.Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes));
+
+    private static async System.Threading.Tasks.Task<HashSet<string>> DefaultHashesAsync(System.Net.Http.HttpClient hc)
+    {
+        if (_defaultHashes != null) return _defaultHashes;
+        var hashes = new HashSet<string>();
+        foreach (var source in _referenceSources)
+        {
+            try
+            {
+                var data = await hc.GetByteArrayAsync(source).ConfigureAwait(false);
+                if (data.Length > 0) hashes.Add(HashOf(data));
+            }
+            catch { }
+        }
+        if (hashes.Count > 0) _defaultHashes = hashes;
+        return hashes;
+    }
+
+    private static async System.Threading.Tasks.Task PurgeDefaultIconsAsync()
+    {
+        try
+        {
+            using var hc = new System.Net.Http.HttpClient { Timeout = System.TimeSpan.FromSeconds(6) };
+            hc.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "Mozilla/5.0");
+            var hashes = await DefaultHashesAsync(hc).ConfigureAwait(false);
+            if (hashes.Count == 0) return;
+            foreach (var path in Directory.EnumerateFiles(_cacheDir, "*.png"))
+            {
+                try
+                {
+                    if (!hashes.Contains(HashOf(await File.ReadAllBytesAsync(path).ConfigureAwait(false)))) continue;
+                    File.Delete(path);
+                    _memCache.TryRemove(Path.GetFileNameWithoutExtension(path), out _);
+                }
+                catch { }
+            }
+        }
+        catch { }
     }
 
     private static System.Windows.Media.Imaging.BitmapImage? LoadBitmapFromFile(string path)

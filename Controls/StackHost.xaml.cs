@@ -119,9 +119,7 @@ public partial class StackHost : UserControl
 
         var duration = new Duration(TimeSpan.FromMilliseconds(AnimationMs));
         var ease = new SineEase { EasingMode = EasingMode.EaseInOut };
-        var blur = new BlurEffect { Radius = 0 };
-        Incoming.Effect = blur;
-        blur.BeginAnimation(BlurEffect.RadiusProperty, new DoubleAnimation(14, duration) { EasingFunction = ease });
+        Incoming.BeginAnimation(OpacityProperty, new DoubleAnimation(0, duration) { EasingFunction = ease });
         Overlay.BeginAnimation(OpacityProperty, new DoubleAnimation(1, duration) { EasingFunction = ease });
         Overlay.Focus();
     }
@@ -214,8 +212,7 @@ public partial class StackHost : UserControl
 
         var duration = new Duration(TimeSpan.FromMilliseconds(AnimationMs));
         var ease = new SineEase { EasingMode = EasingMode.EaseInOut };
-        if (Incoming.Effect is BlurEffect blur)
-            blur.BeginAnimation(BlurEffect.RadiusProperty, new DoubleAnimation(0, duration) { EasingFunction = ease });
+        Incoming.BeginAnimation(OpacityProperty, new DoubleAnimation(1, duration) { EasingFunction = ease });
 
         var fade = new DoubleAnimation(0, duration) { EasingFunction = ease };
         fade.Completed += (_, _) =>
@@ -225,7 +222,8 @@ public partial class StackHost : UserControl
             Overlay.Opacity = 0;
             Overlay.Visibility = Visibility.Collapsed;
             OverlayContent.Content = null;
-            Incoming.Effect = null;
+            Incoming.BeginAnimation(OpacityProperty, null);
+            Incoming.Opacity = 1;
         };
         Overlay.BeginAnimation(OpacityProperty, fade);
         OverlayClosed?.Invoke();

@@ -13,13 +13,7 @@
             <ContentPresenter x:Name="Outgoing" IsHitTestVisible="False"/>
             <ContentPresenter x:Name="Incoming"/>
             <Grid x:Name="Overlay" Visibility="Collapsed" Opacity="0" Focusable="True" FocusVisualStyle="{x:Null}" KeyDown="Overlay_KeyDown">
-                <Rectangle x:Name="OverlayBackdrop" MouseLeftButtonUp="OverlayBackdrop_Click">
-                    <Rectangle.Fill>
-                        <RadialGradientBrush>
-                            <GradientStop Color="#66000000" Offset="0"/>
-                            <GradientStop Color="#B3000000" Offset="1"/>
-                        </RadialGradientBrush>
-                    </Rectangle.Fill>
+                <Rectangle x:Name="OverlayBackdrop" Fill="Transparent" MouseLeftButtonUp="OverlayBackdrop_Click">
                 </Rectangle>
                 <ContentPresenter x:Name="OverlayContent"/>
             </Grid>

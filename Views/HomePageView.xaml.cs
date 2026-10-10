@@ -81,6 +81,7 @@ public partial class HomePageView : UserControl
         PnlClockWeather.SizeChanged += (_, __) => ReanchorInactivityMedia();
         PnlClockWeather.SizeChanged += (_, __) => ApplyScrollCap();
         BuildModeThumb();
+        BuildCenterSheet();
         IsVisibleChanged += (_, e) =>
         {
             if (!IsVisible) return;
@@ -1961,6 +1962,7 @@ public partial class HomePageView : UserControl
     private bool _favoritesFallback;
     private bool _bookmarksFallback;
     private readonly FolderCardHost _favoriteCards = new();
+    private readonly FolderSheetHost _centerSheet = new();
     private readonly FolderCardHost _bookmarkCards = new();
     private DispatcherTimer? _fallbackTimer;
 
@@ -2041,7 +2043,8 @@ public partial class HomePageView : UserControl
         Add("HomeStack", HomeStack);
         sb.AppendLine("stackExpanded=" + HomeStack.IsExpanded + " overlayOpen=" + HomeStack.IsOverlayOpen);
         sb.AppendLine("favoritesDrawer " + (_favoritesDrawer?.DebugInfo() ?? "null"));
-        sb.AppendLine("bookmarksDrawer " + (_bookmarksDrawer?.DebugInfo() ?? "null"));  
+        sb.AppendLine("bookmarksDrawer " + (_bookmarksDrawer?.DebugInfo() ?? "null"));
+        sb.AppendLine("centerSheet open=" + _centerSheet.IsOpen + " " + ((_centerSheet.Content as OpenFolderView)?.DebugInfo() ?? "none"));  
         if (HomeStack.IsOverlayOpen)    
         {
             Add("overlayHost", HomeStack.OverlayContent);
@@ -2865,6 +2868,10 @@ public partial class HomePageView : UserControl
         TxtHomeSearch.HorizontalAlignment = HorizontalAlignment.Stretch;
         ApplySearchModeVisual();
         Loaded += (_, _) => FixSearchBarWidth();
+        IsVisibleChanged += (_, _) =>
+        {
+            if (IsVisible && _searchBarWidth <= 0) FixSearchBarWidth();
+        };
     }
 
     private void UpdateModeThumb(Brush activeBrush)
@@ -2887,8 +2894,8 @@ public partial class HomePageView : UserControl
         {
             _searchMode = mode;
             ApplySearchModeVisual();
-            SearchBoxBorder.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-            widest = Math.Max(widest, SearchBoxBorder.DesiredSize.Width);
+            SearchBoxBorder.UpdateLayout();
+            widest = Math.Max(widest, SearchBoxBorder.ActualWidth);
         }
         _searchMode = savedMode;
         ApplySearchModeVisual();
@@ -3332,8 +3339,8 @@ public partial class HomePageView : UserControl
         _bookmarksDrawer.FolderOpenRequested += DrawerFolder_Requested;
         _favoriteCards.ItemActivated += DrawerItem_Activated;
         _bookmarkCards.ItemActivated += DrawerItem_Activated;
-        _favoriteCards.FolderOpenRequested += CardFolder_Requested;
-        _bookmarkCards.FolderOpenRequested += CardFolder_Requested;
+        _favoriteCards.FolderOpenRequested += CardSheet_Requested;
+        _bookmarkCards.FolderOpenRequested += CardSheet_Requested;
         _favoriteCards.RowsChanged += ApplyScrollCap;
         _bookmarkCards.RowsChanged += ApplyScrollCap;
         AddStackEntry("builtin:favorites", "Favorites", _favoritesDrawer);
@@ -3575,6 +3582,31 @@ public partial class HomePageView : UserControl
         }
         _bookmarksDrawer.SetGroups(groups);
         ApplyCenterCards(false, groups);
+    }
+
+    private void BuildCenterSheet()
+    {
+        _centerSheet.Margin = new Thickness(-15, 16, -15, -15);
+        _centerSheet.CornerRadius = SearchBoxBorder.CornerRadius;
+        Grid.SetRowSpan(_centerSheet, 2);
+        Panel.SetZIndex(_centerSheet, 50);
+        GridFavBookmarksIsland.Children.Add(_centerSheet);
+        _centerSheet.Underlays.Add(PnlFavoritesContainer);
+        _centerSheet.Underlays.Add(PnlBookmarksContainer);
+    }
+
+    private void CardSheet_Requested(DrawerGroup group, FolderCardView source)
+    {
+        var view = new OpenFolderView(group);
+        view.CloseRequested += () => _centerSheet.Close();
+        view.ItemActivated += item =>
+        {
+            _centerSheet.Close();
+            DrawerItem_Activated(item);
+        };
+        Point host = _centerSheet.TranslatePoint(new Point(0, 0), GridFavBookmarksIsland);
+        Rect bounds = source.ClusterBounds(GridFavBookmarksIsland);
+        _centerSheet.Open(view, new Rect(bounds.X - host.X, bounds.Y - host.Y, bounds.Width, bounds.Height));
     }
 
     private void CardFolder_Requested(DrawerGroup group, FolderCardView source)

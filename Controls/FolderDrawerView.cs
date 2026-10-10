@@ -26,7 +26,10 @@ public sealed class OpenFolderView : UserControl
 {
     private const double Tile = 64;
     private const double IconSize = 40;
-    private const double Gap = 16;
+    private const double MinCell = 84;
+    private const double LabelH = 18;
+    private const double RowGap = 10;
+    private const double RowH = Tile + 6 + LabelH + RowGap;
     private const double DotsH = PagerDots.Cell;
     private const int AnimationMs = 300;
 
@@ -44,6 +47,22 @@ public sealed class OpenFolderView : UserControl
 
     public event Action<DrawerItem>? ItemActivated;
     public event Action? CloseRequested;
+
+    public string DebugInfo()
+    {
+        return PageProbe()
+            + " viewport=" + _viewport.ActualWidth.ToString("0") + "x" + _viewport.ActualHeight.ToString("0")
+            + " strip=" + _strip.Children.Count
+            + " opacity=" + Opacity.ToString("0.##");
+    }
+
+    private string PageProbe()
+    {
+        string content = "none";
+        if (_page >= 0 && _page < _strip.Children.Count && _strip.Children[_page] is Grid pageGrid && pageGrid.Children.Count > 0 && pageGrid.Children[0] is StackPanel host)
+            content = host.ActualWidth.ToString("0") + "x" + host.ActualHeight.ToString("0") + " rows=" + host.Children.Count;
+        return "page=" + _page + "/" + _pageCount + " slideX=" + _slide.X.ToString("0") + " pageContent=" + content;
+    }
 
     public OpenFolderView(DrawerGroup group)
     {
@@ -87,8 +106,36 @@ public sealed class OpenFolderView : UserControl
             CloseRequested?.Invoke();
         };
 
+        var backGlyph = new TextBlock
+        {
+            Text = "\u2039",
+            FontSize = 20,
+            Margin = new Thickness(0, -3, 0, 0),
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        backGlyph.SetResourceReference(TextBlock.ForegroundProperty, "HomeTextBrush");
+        var back = new Border
+        {
+            Width = 28,
+            Height = 28,
+            CornerRadius = new CornerRadius(14),
+            Background = new SolidColorBrush(Color.FromArgb(0x26, 0xFF, 0xFF, 0xFF)),
+            HorizontalAlignment = HorizontalAlignment.Left,
+            VerticalAlignment = VerticalAlignment.Center,
+            Cursor = Cursors.Hand,
+            ToolTip = "Back",
+            Child = backGlyph
+        };
+        back.MouseLeftButtonUp += (_, e) =>
+        {
+            e.Handled = true;
+            CloseRequested?.Invoke();
+        };
+
         var header = new Grid { Height = 36, Margin = new Thickness(0, 0, 0, 14) };
         header.Children.Add(title);
+        header.Children.Add(back);
         header.Children.Add(close);
 
         _strip = new StackPanel
@@ -157,8 +204,9 @@ public sealed class OpenFolderView : UserControl
         double height = _viewport.ActualHeight;
         if (width <= 0 || height <= 0) return;
 
-        int cols = Math.Max(1, (int)Math.Floor(width / (Tile + Gap)));
-        int rows = Math.Max(1, (int)Math.Floor(height / (Tile + Gap)));
+        int cols = Math.Max(1, (int)Math.Floor(width / MinCell));
+        double cell = width / cols;
+        int rows = Math.Max(1, (int)Math.Floor(height / RowH));
         int perPage = cols * rows;
         int count = _group.Items.Count;
 
@@ -183,7 +231,7 @@ public sealed class OpenFolderView : UserControl
                     HorizontalAlignment = HorizontalAlignment.Center
                 };
                 int rowEnd = Math.Min(rowStart + cols, end);
-                for (int i = rowStart; i < rowEnd; i++) rowPanel.Children.Add(BuildTile(_group.Items[i]));
+                for (int i = rowStart; i < rowEnd; i++) rowPanel.Children.Add(BuildTile(_group.Items[i], cell));
                 rowsHost.Children.Add(rowPanel);
             }
             _strip.Children.Add(new Grid { Width = width, Height = height, Children = { rowsHost } });
@@ -192,52 +240,50 @@ public sealed class OpenFolderView : UserControl
         UpdateDots();
     }
 
-    private FrameworkElement BuildTile(DrawerItem item)
+    private FrameworkElement BuildTile(DrawerItem item, double cell)
     {
-        FrameworkElement glyph;
-        if (!string.IsNullOrEmpty(item.Emoji))
-        {
-            glyph = new TextBlock
-            {
-                Text = item.Emoji,
-                FontSize = IconSize * 0.8,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center
-            };
-        }
-        else
-        {
-            glyph = new Image
-            {
-                Source = item.Icon,
-                Width = IconSize,
-                Height = IconSize,
-                Stretch = Stretch.Uniform,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center
-            };
-        }
-
         var tile = new Border
         {
             Width = Tile,
             Height = Tile,
-            Margin = new Thickness(Gap / 2),
             CornerRadius = new CornerRadius(16),
             BorderBrush = new SolidColorBrush(Color.FromArgb(0x26, 0xFF, 0xFF, 0xFF)),
             BorderThickness = new Thickness(1),
+            HorizontalAlignment = HorizontalAlignment.Center,
             ClipToBounds = true,
-            Cursor = Cursors.Hand,
-            ToolTip = item.Name,
-            Child = glyph
+            Child = TileFallback.Glyph(item, IconSize)
         };
-        tile.SetResourceReference(Border.BackgroundProperty, "HomeAccentBrush");
-        tile.MouseLeftButtonUp += (_, e) =>
+        TileFallback.Paint(tile, item);
+
+        var label = new TextBlock
+        {
+            Text = item.Name,
+            FontSize = 12,
+            Height = LabelH,
+            Opacity = 0.9,
+            Margin = new Thickness(0, 6, 0, 0),
+            HorizontalAlignment = HorizontalAlignment.Center,
+            TextTrimming = TextTrimming.CharacterEllipsis,
+            MaxWidth = Math.Max(1, cell - 8)
+        };
+        label.SetResourceReference(TextBlock.ForegroundProperty, "HomeTextBrush");
+
+        var holder = new StackPanel
+        {
+            Width = cell,
+            Margin = new Thickness(0, RowGap / 2, 0, RowGap / 2),
+            Background = Brushes.Transparent,
+            Cursor = Cursors.Hand,
+            ToolTip = item.Name
+        };
+        holder.Children.Add(tile);
+        holder.Children.Add(label);
+        holder.MouseLeftButtonUp += (_, e) =>
         {
             e.Handled = true;
             ItemActivated?.Invoke(item);
         };
-        return tile;
+        return holder;
     }
 
     private void UpdateDots()
@@ -394,6 +440,14 @@ public sealed class FolderDrawerView : UserControl
         PreviewMouseWheel += Drawer_PreviewMouseWheel;
     }
 
+    private string PageProbe()
+    {
+        string content = "none";
+        if (_page >= 0 && _page < _strip.Children.Count && _strip.Children[_page] is Grid pageGrid && pageGrid.Children.Count > 0 && pageGrid.Children[0] is StackPanel host)
+            content = host.ActualWidth.ToString("0") + "x" + host.ActualHeight.ToString("0") + " rows=" + host.Children.Count;
+        return "page=" + _page + "/" + _pageCount + " slideX=" + _slide.X.ToString("0") + " pageContent=" + content;
+    }
+
     public string DebugInfo()
     {
         return "groups=" + _groups.Count
@@ -404,7 +458,8 @@ public sealed class FolderDrawerView : UserControl
             + " visible=" + IsVisible
             + " opacity=" + Opacity.ToString("0.##")
             + " sizeEvents=" + _sizeEvents
-            + " relayouts=" + _relayoutDone;
+            + " relayouts=" + _relayoutDone
+            + " " + PageProbe();
     }
 
     public void SetGroups(IReadOnlyList<DrawerGroup> groups)
@@ -516,7 +571,7 @@ public sealed class FolderDrawerView : UserControl
         if (width <= 0 || height <= 0) return;
 
         var plan = Plan(width, height);
-        double pageHeight = plan.Paged ? height - DotsH : height;
+        double pageHeight = Math.Max(1, plan.Paged ? height - DotsH : height);
 
         _slide.BeginAnimation(TranslateTransform.XProperty, null);
         _animating = false;

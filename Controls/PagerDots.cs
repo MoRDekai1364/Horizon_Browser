@@ -169,3 +169,58 @@ public sealed class PagerDots : Grid
         _move.Y = 0;
     }
 }
+
+public sealed class SegmentThumb
+{
+    private const double StretchPeak = 1.12;
+
+    private readonly Border _thumb;
+    private readonly Panel _host;
+    private readonly TranslateTransform _move = new();
+    private readonly ScaleTransform _stretch = new();
+    private FrameworkElement? _segment;
+    private bool _placed;
+
+    public SegmentThumb(Border thumb, Panel host)
+    {
+        _thumb = thumb;
+        _host = host;
+        thumb.HorizontalAlignment = HorizontalAlignment.Left;
+        thumb.IsHitTestVisible = false;
+        thumb.RenderTransformOrigin = new Point(0.5, 0.5);
+        var transforms = new TransformGroup();
+        transforms.Children.Add(_stretch);
+        transforms.Children.Add(_move);
+        thumb.RenderTransform = transforms;
+        host.SizeChanged += (_, _) => Place(false);
+    }
+
+    public void Select(FrameworkElement segment, bool animate)
+    {
+        _segment = segment;
+        Place(animate && _placed);
+    }
+
+    private void Place(bool animate)
+    {
+        if (_segment == null || _segment.ActualWidth <= 0 || !_host.IsLoaded) return;
+        double left = _segment.TranslatePoint(new Point(0, 0), _host).X;
+        double width = _segment.ActualWidth;
+
+        if (!animate)
+        {
+            _move.BeginAnimation(TranslateTransform.XProperty, null);
+            _thumb.BeginAnimation(FrameworkElement.WidthProperty, null);
+            _stretch.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+            _move.X = left;
+            _thumb.Width = width;
+            _stretch.ScaleX = 1;
+            _placed = true;
+            return;
+        }
+
+        _move.BeginAnimation(TranslateTransform.XProperty, SnapMotion.Move(left));
+        _thumb.BeginAnimation(FrameworkElement.WidthProperty, SnapMotion.Move(width));
+        _stretch.BeginAnimation(ScaleTransform.ScaleXProperty, SnapMotion.Stretch(StretchPeak));
+    }
+}

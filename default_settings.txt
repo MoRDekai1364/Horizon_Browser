@@ -34,7 +34,7 @@
 # @AppIcon      path to a .ico file, becomes the exe icon
 # @StartupVideo path to a video, copied into the build and set as StartupVideoFileName
 #==============================================================================
-@AppIcon=src\icons\IMG_20260930_110456.ico@AppIcon=src\IMG_20260930_110456.ico
+@AppIcon=src\icons\IMG_20260930_110456.ico
 @StartupVideo=start_videos\Mechanical.mp4
 
 #==============================================================================
