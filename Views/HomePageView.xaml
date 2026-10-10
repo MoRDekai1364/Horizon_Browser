@@ -788,7 +788,7 @@
                                 <StackPanel Orientation="Horizontal">
                                     <Border x:Name="SegModeFavorites" Tag="Favorites" CornerRadius="18" Padding="12,0" Cursor="Hand"
                                             Background="Transparent" ToolTip="Favorites" MouseLeftButtonUp="SearchModeSegment_Click">
-                                        <TextBlock x:Name="TxtModeFavorites" Text="Fav" FontSize="13" FontWeight="Bold" VerticalAlignment="Center"/>
+                                        <TextBlock x:Name="TxtModeFavorites" Text="Favorites" FontSize="13" FontWeight="Bold" VerticalAlignment="Center"/>
                                     </Border>
                                     <Border x:Name="SegModeSearch" Tag="Search" CornerRadius="18" Padding="12,0" Cursor="Hand"
                                             Background="Transparent" ToolTip="Search" MouseLeftButtonUp="SearchModeSegment_Click">
@@ -796,7 +796,7 @@
                                     </Border>
                                     <Border x:Name="SegModeBookmarks" Tag="Bookmarks" CornerRadius="18" Padding="12,0" Cursor="Hand"
                                             Background="Transparent" ToolTip="Bookmarks" MouseLeftButtonUp="SearchModeSegment_Click">
-                                        <TextBlock x:Name="TxtModeBookmarks" Text="Bkm" FontSize="13" FontWeight="Bold" VerticalAlignment="Center"/>
+                                        <TextBlock x:Name="TxtModeBookmarks" Text="Bookmarks" FontSize="13" FontWeight="Bold" VerticalAlignment="Center"/>
                                     </Border>
                                 </StackPanel>
                             </Border>

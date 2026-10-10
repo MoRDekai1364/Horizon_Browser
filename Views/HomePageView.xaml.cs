@@ -80,6 +80,7 @@ public partial class HomePageView : UserControl
         };
         PnlClockWeather.SizeChanged += (_, __) => ReanchorInactivityMedia();
         PnlClockWeather.SizeChanged += (_, __) => ApplyScrollCap();
+        BuildModeThumb();
         IsVisibleChanged += (_, e) =>
         {
             if (!IsVisible) return;
@@ -480,6 +481,7 @@ public partial class HomePageView : UserControl
             double maxMobileWidth = Math.Max(200.0, totalWidth - 20.0);
             PnlSearchArea.MaxWidth = maxMobileWidth;
             SearchBoxBorder.MaxWidth = Math.Min(900.0, maxMobileWidth);
+        SyncSearchBarMinWidth();
             UpdateSearchAreaMaxHeight();
             return;
         }
@@ -525,6 +527,7 @@ public partial class HomePageView : UserControl
 
         double searchMax = Math.Max(240.0, Math.Min(900.0, maxAllowedWidth));
         SearchBoxBorder.MaxWidth = searchMax;
+        SyncSearchBarMinWidth();
         PnlSearchArea.Margin = new Thickness(10, 60, 10, 0);
         UpdateSearchAreaMaxHeight();
     }
@@ -2817,6 +2820,10 @@ public partial class HomePageView : UserControl
     }
 
     private string _searchMode = "Search";
+    private readonly Border _modeThumbBorder = new() { CornerRadius = new CornerRadius(18) };
+    private SegmentThumb? _modeThumb;
+    private bool _animateModeThumb;
+    private double _searchBarWidth;
 
     private void SearchModeSegment_Click(object sender, MouseButtonEventArgs e)
     {
@@ -2837,10 +2844,61 @@ public partial class HomePageView : UserControl
         SettingsService.Current.HomeSearchMode = mode;
         SettingsService.Save();
         if (!string.IsNullOrEmpty(TxtHomeSearch.Text)) TxtHomeSearch.Text = "";
+        _animateModeThumb = true;
         ApplySearchModeVisual();
         RefreshFavorites();
         RefreshBookmarks();
         if (focus) TxtHomeSearch.Focus();
+    }
+
+    private void BuildModeThumb()
+    {
+        if (PnlSearchMode.Child is not StackPanel segments) return;
+        PnlSearchMode.Child = null;
+        var host = new Grid();
+        host.Children.Add(_modeThumbBorder);
+        host.Children.Add(segments);
+        PnlSearchMode.Child = host;
+        _modeThumb = new SegmentThumb(_modeThumbBorder, host);
+        if (SearchBoxBorder.Child is Grid searchGrid && searchGrid.ColumnDefinitions.Count == 2)
+            searchGrid.ColumnDefinitions[1].Width = new GridLength(1, GridUnitType.Star);
+        TxtHomeSearch.HorizontalAlignment = HorizontalAlignment.Stretch;
+        ApplySearchModeVisual();
+        Loaded += (_, _) => FixSearchBarWidth();
+    }
+
+    private void UpdateModeThumb(Brush activeBrush)
+    {
+        if (_modeThumb == null) return;
+        _modeThumbBorder.Background = activeBrush;
+        FrameworkElement target = _searchMode == "Favorites" ? SegModeFavorites : _searchMode == "Bookmarks" ? SegModeBookmarks : SegModeSearch;
+        bool animate = _animateModeThumb;
+        _animateModeThumb = false;
+        _modeThumb.Select(target, animate);
+    }
+
+    private void FixSearchBarWidth()
+    {
+        if (_inFocusMode) return;
+        string savedMode = _searchMode;
+        double widest = 0;
+        SearchBoxBorder.MinWidth = 0;
+        foreach (string mode in new[] { "Favorites", "Search", "Bookmarks" })
+        {
+            _searchMode = mode;
+            ApplySearchModeVisual();
+            SearchBoxBorder.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+            widest = Math.Max(widest, SearchBoxBorder.DesiredSize.Width);
+        }
+        _searchMode = savedMode;
+        ApplySearchModeVisual();
+        _searchBarWidth = widest;
+        SyncSearchBarMinWidth();
+    }
+
+    private void SyncSearchBarMinWidth()
+    {
+        SearchBoxBorder.MinWidth = Math.Min(_searchBarWidth, SearchBoxBorder.MaxWidth);
     }
 
     private void ApplySearchModeVisual()
@@ -2865,11 +2923,12 @@ public partial class HomePageView : UserControl
         StyleModeSegment(SegModeFavorites, TxtModeFavorites, _searchMode == "Favorites", text, activeBrush);
         StyleModeSegment(SegModeSearch, TxtModeSearch, _searchMode == "Search", text, activeBrush);
         StyleModeSegment(SegModeBookmarks, TxtModeBookmarks, _searchMode == "Bookmarks", text, activeBrush);
+        UpdateModeThumb(activeBrush);
     }
 
     private static void StyleModeSegment(Border segment, TextBlock label, bool active, Brush text, Brush activeBrush)
     {
-        segment.Background = active ? activeBrush : Brushes.Transparent;
+        segment.Background = Brushes.Transparent;
         label.Foreground = text;
         label.Opacity = active ? 1.0 : 0.65;
     }

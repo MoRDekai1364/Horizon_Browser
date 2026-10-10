@@ -21,6 +21,7 @@ public partial class StackHost : UserControl
 
     private readonly List<StackItem> _items = new();
     private int _index = -1;
+    private readonly PagerDots _pager = new(Orientation.Vertical);
     private bool _switching;
     private bool _expanded;
     private double _restWidth = double.NaN;
@@ -49,6 +50,8 @@ public partial class StackHost : UserControl
         InitializeComponent();
         Outgoing.RenderTransform = new TranslateTransform();
         Incoming.RenderTransform = new TranslateTransform();
+        _pager.PageRequested += target => Go(target, target > _index ? 1 : -1);
+        Dots.Children.Add(_pager);
         Loaded += (_, _) => UpdateDots();
     }
 
@@ -380,36 +383,8 @@ public partial class StackHost : UserControl
 
     private void UpdateDots()
     {
-        Dots.Children.Clear();
         Dots.Visibility = _items.Count > 1 ? Visibility.Visible : Visibility.Collapsed;
-        Brush brush = TryFindResource("HomeTextBrush") as Brush ?? Brushes.White;
-
-        for (int i = 0; i < _items.Count; i++)
-        {
-            bool active = i == _index;
-            var dot = new Ellipse
-            {
-                Width = active ? 8 : 6,
-                Height = active ? 8 : 6,
-                Margin = new Thickness(0, 3, 0, 3),
-                Fill = brush,
-                Opacity = active ? 0.95 : 0.35,
-                Cursor = Cursors.Hand,
-                Tag = i,
-                ToolTip = _items[i].Title
-            };
-            dot.MouseLeftButtonUp += Dot_Click;
-            Dots.Children.Add(dot);
-        }
-    }
-
-    private void Dot_Click(object sender, MouseButtonEventArgs e)
-    {
-        if (sender is FrameworkElement dot && dot.Tag is int target)
-        {
-            Go(target, target > _index ? 1 : -1);
-            e.Handled = true;
-        }
+        _pager.SetState(_items.Count, _index, _items.Select(item => item.Title).ToList());
     }
 
     private void Root_MouseWheel(object sender, MouseWheelEventArgs e)

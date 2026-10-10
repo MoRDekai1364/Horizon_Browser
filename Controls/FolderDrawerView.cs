@@ -27,14 +27,14 @@ public sealed class OpenFolderView : UserControl
     private const double Tile = 64;
     private const double IconSize = 40;
     private const double Gap = 16;
-    private const double DotsH = 20;
+    private const double DotsH = PagerDots.Cell;
     private const int AnimationMs = 300;
 
     private readonly DrawerGroup _group;
     private readonly Grid _viewport;
     private readonly StackPanel _strip;
     private readonly TranslateTransform _slide = new();
-    private readonly StackPanel _dots;
+    private readonly PagerDots _dots;
     private readonly DispatcherTimer _timer;
 
     private int _page;
@@ -101,13 +101,13 @@ public sealed class OpenFolderView : UserControl
         _viewport = new Grid { ClipToBounds = true };
         _viewport.Children.Add(_strip);
 
-        _dots = new StackPanel
+        _dots = new PagerDots(Orientation.Horizontal)
         {
-            Orientation = Orientation.Horizontal,
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
             Visibility = Visibility.Hidden
         };
+        _dots.PageRequested += GoTo;
 
         var layout = new Grid { Margin = new Thickness(16) };
         layout.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
@@ -242,7 +242,6 @@ public sealed class OpenFolderView : UserControl
 
     private void UpdateDots()
     {
-        _dots.Children.Clear();
         if (_pageCount <= 1)
         {
             _dots.Visibility = Visibility.Hidden;
@@ -250,31 +249,7 @@ public sealed class OpenFolderView : UserControl
         }
 
         _dots.Visibility = Visibility.Visible;
-        for (int i = 0; i < _pageCount; i++)
-        {
-            bool active = i == _page;
-            var dot = new Ellipse
-            {
-                Width = active ? 8 : 6,
-                Height = active ? 8 : 6,
-                Margin = new Thickness(3, 0, 3, 0),
-                Opacity = active ? 0.95 : 0.35,
-                Cursor = Cursors.Hand,
-                Tag = i
-            };
-            dot.SetResourceReference(Shape.FillProperty, "HomeTextBrush");
-            dot.MouseLeftButtonUp += Dot_Click;
-            _dots.Children.Add(dot);
-        }
-    }
-
-    private void Dot_Click(object sender, MouseButtonEventArgs e)
-    {
-        if (sender is FrameworkElement dot && dot.Tag is int target)
-        {
-            e.Handled = true;
-            GoTo(target);
-        }
+        _dots.SetState(_pageCount, _page);
     }
 
     private void GoTo(int target)
@@ -314,14 +289,14 @@ public sealed class FolderDrawerView : UserControl
     private int _sizeEvents;
     private bool _relayoutQueued;
     private int _relayoutDone;
-    private const double DotsH = 20;
+    private const double DotsH = PagerDots.Cell;
     private const int AnimationMs = 300;
 
     private readonly TextBlock _title;
     private readonly Grid _viewport;
     private readonly StackPanel _strip;
     private readonly TranslateTransform _slide = new();
-    private readonly StackPanel _dots;
+    private readonly PagerDots _dots;
     private readonly DispatcherTimer _timer;
 
     private List<DrawerGroup> _groups = new();
@@ -358,14 +333,14 @@ public sealed class FolderDrawerView : UserControl
             RenderTransform = _slide
         };
 
-        _dots = new StackPanel
+        _dots = new PagerDots(Orientation.Horizontal)
         {
-            Orientation = Orientation.Horizontal,
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Bottom,
             Height = DotsH,
             Visibility = Visibility.Collapsed
         };
+        _dots.PageRequested += GoTo;
 
         _viewport = new Grid { ClipToBounds = true };
         _viewport.Children.Add(_strip);
@@ -573,7 +548,6 @@ public sealed class FolderDrawerView : UserControl
 
     private void UpdateDots()
     {
-        _dots.Children.Clear();
         if (_pageCount <= 1)
         {
             _dots.Visibility = Visibility.Collapsed;
@@ -581,31 +555,7 @@ public sealed class FolderDrawerView : UserControl
         }
 
         _dots.Visibility = Visibility.Visible;
-        for (int i = 0; i < _pageCount; i++)
-        {
-            bool active = i == _page;
-            var dot = new Ellipse
-            {
-                Width = active ? 8 : 6,
-                Height = active ? 8 : 6,
-                Margin = new Thickness(3, 0, 3, 0),
-                Opacity = active ? 0.95 : 0.35,
-                Cursor = Cursors.Hand,
-                Tag = i
-            };
-            dot.SetResourceReference(Shape.FillProperty, "HomeTextBrush");
-            dot.MouseLeftButtonUp += Dot_Click;
-            _dots.Children.Add(dot);
-        }
-    }
-
-    private void Dot_Click(object sender, MouseButtonEventArgs e)
-    {
-        if (sender is FrameworkElement dot && dot.Tag is int target)
-        {
-            e.Handled = true;
-            GoTo(target);
-        }
+        _dots.SetState(_pageCount, _page);
     }
 
     private void GoTo(int target)
