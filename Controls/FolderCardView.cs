@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace Horizon.Stealth.Controls;
 
@@ -33,7 +34,7 @@ public sealed class FolderCardView : StackPanel
         return (w, h);
     }
 
-    public FolderCardView(DrawerGroup group, int n)
+    public FolderCardView(DrawerGroup group, int n, bool clusterOnly = false)
     {
         Group = group;
         int count = group.Items.Count;
@@ -59,6 +60,17 @@ public sealed class FolderCardView : StackPanel
         {
             int extra = Math.Min(ClusterMax, count - fullLimit);
             var cluster = new Canvas { Width = Tile, Height = Tile, IsHitTestVisible = false };
+            if (clusterOnly)
+            {
+                cluster.IsHitTestVisible = true;
+                cluster.Background = Brushes.Transparent;
+                cluster.Cursor = Cursors.Hand;
+                cluster.MouseLeftButtonUp += (_, e) =>
+                {
+                    e.Handled = true;
+                    OpenRequested?.Invoke(this);
+                };
+            }
             for (int k = 0; k < extra; k++)
             {
                 var mini = BuildTile(group.Items[fullLimit + k], MiniTile, 14, 6, false);
@@ -97,14 +109,17 @@ public sealed class FolderCardView : StackPanel
 
         Margin = new Thickness(CellMargin);
         Background = Brushes.Transparent;
-        Cursor = Cursors.Hand;
         Children.Add(card);
         Children.Add(name);
-        MouseLeftButtonUp += (_, e) =>
+        if (!clusterOnly)
         {
-            e.Handled = true;
-            OpenRequested?.Invoke(this);
-        };
+            Cursor = Cursors.Hand;
+            MouseLeftButtonUp += (_, e) =>
+            {
+                e.Handled = true;
+                OpenRequested?.Invoke(this);
+            };
+        }
     }
 
     private FrameworkElement BuildTile(DrawerItem item, double size, double iconSize, double radius, bool interactive)
@@ -157,5 +172,75 @@ public sealed class FolderCardView : StackPanel
             };
         }
         return tile;
+    }
+}
+
+public sealed class FolderCardHost : WrapPanel
+{
+    private const double CardScale = 1.25;
+    private const int CardGridSize = 2;
+
+    public event Action<DrawerItem>? ItemActivated;
+    public event Action<DrawerGroup, FolderCardView>? FolderOpenRequested;
+    public event Action? RowsChanged;
+
+    private Size _lastSignature;
+
+    public FolderCardHost()
+    {
+        Orientation = Orientation.Horizontal;
+        HorizontalAlignment = HorizontalAlignment.Center;
+    }
+
+    public void SetGroups(IReadOnlyList<DrawerGroup> groups)
+    {
+        Children.Clear();
+        foreach (var group in groups)
+        {
+            var card = new FolderCardView(group, CardGridSize, true)
+            {
+                LayoutTransform = new ScaleTransform(CardScale, CardScale)
+            };
+            card.ItemActivated += item => ItemActivated?.Invoke(item);
+            card.OpenRequested += source => FolderOpenRequested?.Invoke(group, source);
+            Children.Add(card);
+        }
+    }
+
+    protected override Size ArrangeOverride(Size finalSize)
+    {
+        var arranged = base.ArrangeOverride(finalSize);
+        var signature = new Size(Math.Round(arranged.Width), Math.Round(DesiredSize.Height));
+        if (signature != _lastSignature)
+        {
+            _lastSignature = signature;
+            Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(() => RowsChanged?.Invoke()));
+        }
+        return arranged;
+    }
+
+    public double SnapHeight(double budget, bool atLeastFirstRow)
+    {
+        double total = ActualHeight;
+        if (total <= 0 || Children.Count == 0) return budget;
+        if (total <= budget) return total;
+        var tops = new List<double>();
+        foreach (UIElement child in Children)
+        {
+            if (child is not FrameworkElement card) continue;
+            double top = Math.Round(card.TranslatePoint(new Point(0, 0), this).Y);
+            if (!tops.Contains(top)) tops.Add(top);
+        }
+        tops.Sort();
+        double fit = 0;
+        double firstBottom = 0;
+        for (int i = 0; i < tops.Count; i++)
+        {
+            double bottom = i + 1 < tops.Count ? tops[i + 1] : total;
+            if (i == 0) firstBottom = bottom;
+            if (bottom <= budget + 0.5) fit = bottom;
+        }
+        if (fit > 0) return fit;
+        return atLeastFirstRow ? firstBottom : budget;
     }
 }

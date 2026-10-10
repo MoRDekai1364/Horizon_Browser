@@ -1957,6 +1957,8 @@ public partial class HomePageView : UserControl
     private ICollectionView? _bookmarksFullView;
     private bool _favoritesFallback;
     private bool _bookmarksFallback;
+    private readonly FolderCardHost _favoriteCards = new();
+    private readonly FolderCardHost _bookmarkCards = new();
     private DispatcherTimer? _fallbackTimer;
 
     private double HomeButtonGap()
@@ -2191,9 +2193,10 @@ public partial class HomePageView : UserControl
     {
         UpdateSearchAreaMaxHeight();
         double cap = PnlSearchArea.MaxHeight;
-        if (double.IsInfinity(cap) || PnlSearchArea.ActualHeight <= 0 || ScvBookmarks.ActualHeight <= 0)
+        double content = PnlSearchArea.RowDefinitions.Sum(r => r.ActualHeight);
+        if (double.IsInfinity(cap) || content <= 0 || ScvBookmarks.ActualHeight <= 0)
             return rows * HomeRowLimits.RowHeight;
-        double other = Math.Max(0, PnlSearchArea.ActualHeight - ScvBookmarks.ActualHeight);
+        double other = Math.Max(0, content - ScvBookmarks.ActualHeight);
         return Math.Max(1, cap - other);
     }
 
@@ -2217,6 +2220,8 @@ public partial class HomePageView : UserControl
         var (favoriteRows, bookmarkRows) = ResolvedRows();
         ApplyFallbackBudget(ScvFavorites, _favoritesFallback, favoriteRows * HomeRowLimits.RowHeight);
         ApplyFallbackBudget(ScvBookmarks, _bookmarksFallback, BookmarksBudget(bookmarkRows));
+        if (_favoritesFallback && ReferenceEquals(ScvFavorites.Content, _favoriteCards)) ScvFavorites.MaxHeight = _favoriteCards.SnapHeight(Math.Max(1, favoriteRows * HomeRowLimits.RowHeight), true);
+        if (_bookmarksFallback && ReferenceEquals(ScvBookmarks.Content, _bookmarkCards)) ScvBookmarks.MaxHeight = _bookmarkCards.SnapHeight(Math.Max(1, BookmarksBudget(bookmarkRows)), false);
         UpdateSearchAreaMaxHeight();
     }
 
@@ -3266,6 +3271,12 @@ public partial class HomePageView : UserControl
         _bookmarksDrawer.ItemActivated += DrawerItem_Activated;
         _favoritesDrawer.FolderOpenRequested += DrawerFolder_Requested;
         _bookmarksDrawer.FolderOpenRequested += DrawerFolder_Requested;
+        _favoriteCards.ItemActivated += DrawerItem_Activated;
+        _bookmarkCards.ItemActivated += DrawerItem_Activated;
+        _favoriteCards.FolderOpenRequested += CardFolder_Requested;
+        _bookmarkCards.FolderOpenRequested += CardFolder_Requested;
+        _favoriteCards.RowsChanged += ApplyScrollCap;
+        _bookmarkCards.RowsChanged += ApplyScrollCap;
         AddStackEntry("builtin:favorites", "Favorites", _favoritesDrawer);
         AddStackEntry("builtin:bookmarks", "Bookmarks", _bookmarksDrawer);
         UpdateFavoritesDrawer();
@@ -3481,6 +3492,7 @@ public partial class HomePageView : UserControl
             }
         }
         _favoritesDrawer.SetGroups(groups);
+        ApplyCenterCards(true, groups);
     }
 
     private void UpdateBookmarksDrawer()
@@ -3503,6 +3515,27 @@ public partial class HomePageView : UserControl
             }
         }
         _bookmarksDrawer.SetGroups(groups);
+        ApplyCenterCards(false, groups);
+    }
+
+    private void CardFolder_Requested(DrawerGroup group, FolderCardView source)
+    {
+        if (!StackAvailable) return;
+        DrawerFolder_Requested(group, new Rect(0, 0, HomeStack.ActualWidth, HomeStack.ActualHeight));
+    }
+
+    private void ApplyCenterCards(bool favorites, List<DrawerGroup> groups)
+    {
+        var scroller = favorites ? ScvFavorites : ScvBookmarks;
+        var items = favorites ? IcnColumns : IcnBookmarks;
+        var host = favorites ? _favoriteCards : _bookmarkCards;
+        if (scroller == null || items == null) return;
+        bool cards = !_inFocusMode && groups.Count > 0 && FolderFor(items);
+        FrameworkElement target = cards ? host : items;
+        bool changed = !ReferenceEquals(scroller.Content, target);
+        if (cards) host.SetGroups(groups);
+        if (changed) scroller.Content = target;
+        if (changed || cards) ApplyScrollCap();
     }
 
     private void DrawerFolder_Requested(DrawerGroup group, Rect origin)
