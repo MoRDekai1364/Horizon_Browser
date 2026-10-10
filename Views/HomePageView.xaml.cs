@@ -2035,7 +2035,9 @@ public partial class HomePageView : UserControl
         Add("IcnBookmarks", IcnBookmarks);
         Add("HomeStack", HomeStack);
         sb.AppendLine("stackExpanded=" + HomeStack.IsExpanded + " overlayOpen=" + HomeStack.IsOverlayOpen);
-        if (HomeStack.IsOverlayOpen)
+        sb.AppendLine("favoritesDrawer " + (_favoritesDrawer?.DebugInfo() ?? "null"));
+        sb.AppendLine("bookmarksDrawer " + (_bookmarksDrawer?.DebugInfo() ?? "null"));  
+        if (HomeStack.IsOverlayOpen)    
         {
             Add("overlayHost", HomeStack.OverlayContent);
             Add("overlayContent", HomeStack.OverlayContent.Content as FrameworkElement);
@@ -2317,8 +2319,36 @@ public partial class HomePageView : UserControl
 
     private void FolderCard_Click(object sender, MouseButtonEventArgs e)
     {
-        if (_inEditMode || !ReferenceEquals(e.OriginalSource, sender) || sender is not DependencyObject card || !FolderFor(OwnerItemsControl(card))) return;
-        e.Handled = ToggleGroupFrom(card);
+        if (_inEditMode || sender is not DependencyObject card) return;
+        var cardOwner = OwnerItemsControl(card);
+        if (!FolderFor(cardOwner)) return;
+        var folderPanel = FindFirstOf<AutoGridPanel>(card);
+        if (folderPanel == null || folderPanel.Mode != GroupCollapseMode.Folder || folderPanel.ClusterRect.IsEmpty) return;
+        if (!folderPanel.ClusterRect.Contains(e.GetPosition(folderPanel))) return;
+        if (!StackAvailable) return;
+        DependencyObject? node = card;
+        GroupItem? groupItem = null;
+        while (node != null && groupItem == null)
+        {
+            groupItem = node as GroupItem;
+            node = VisualTreeHelper.GetParent(node);
+        }
+        if (groupItem?.Content is not CollectionViewGroup source) return;
+        bool favorites = cardOwner == IcnColumns;
+        var drawerItems = new List<DrawerItem>();
+        foreach (var entry in source.Items)
+        {
+            if (entry is PinItem pin)
+                drawerItems.Add(new DrawerItem { Name = pin.Name, Emoji = pin.IconEmoji, Icon = string.IsNullOrEmpty(pin.IconEmoji) ? DrawerIconOf(pin) : null, Source = pin });
+            else if (entry is BookmarkItem bookmark)
+                drawerItems.Add(new DrawerItem { Name = bookmark.Name, Icon = DrawerIconOf(bookmark.AsPin), Source = bookmark });
+        }
+        if (drawerItems.Count == 0) return;
+        string groupName = source.Name as string ?? "";
+        var drawerGroup = new DrawerGroup { Name = string.IsNullOrWhiteSpace(groupName) ? (favorites ? "General" : "Bookmarks") : groupName, Items = drawerItems };
+        e.Handled = true;
+        DrawerFolder_Requested(drawerGroup, new Rect(0, 0, HomeStack.ActualWidth, HomeStack.ActualHeight));
+        
     }
 
     private bool ToggleGroupFrom(DependencyObject origin)
@@ -3773,6 +3803,19 @@ public partial class HomePageView : UserControl
             SettingsService.Save();
             ApplyActiveLayoutMatrix(_editingInactivityLayout);
         }
+    }
+
+    private static T? FindFirstOf<T>(DependencyObject parent) where T : DependencyObject
+    {
+        int count = VisualTreeHelper.GetChildrenCount(parent);
+        for (int i = 0; i < count; i++)
+        {
+            var child = VisualTreeHelper.GetChild(parent, i);
+            if (child is T match) return match;
+            var nested = FindFirstOf<T>(child);
+            if (nested != null) return nested;
+        }
+        return null;
     }
 
     private static T? FindVisualChild<T>(DependencyObject parent, string name) where T : FrameworkElement

@@ -3,7 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Input;
 using Microsoft.Web.WebView2.Core;
-using Microsoft.Web.WebView2.Wpf;
+using Microsoft.Web.WebView2.Wpf;   
 using System.Windows.Threading;
 using Horizon.Stealth.Services;
 
@@ -104,7 +104,7 @@ internal sealed class StackWebHost : Border, IDisposable
         if (_view?.CoreWebView2 != null && IsVisible && !_suspended)
         {
             try { _view.CoreWebView2.Reload(); }
-            catch (Exception ex) { LogService.RecordCrash(ex, "StackWebHost.Refresh"); }
+            catch (Exception ex) { LogService.RecordCrash(ex, "StackWebHost.Refresh"); }    
         }
         else
         {

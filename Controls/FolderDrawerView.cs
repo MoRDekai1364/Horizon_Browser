@@ -132,6 +132,22 @@ public sealed class OpenFolderView : UserControl
             _timer.Stop();
             _timer.Start();
         };
+        bool queued = false;
+        _viewport.SizeChanged += (_, _) =>
+        {
+            if (_pageCount == 0)
+            {
+                Relayout();
+                return;
+            }
+            if (queued) return;
+            queued = true;
+            Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(() =>
+            {
+                queued = false;
+                Relayout();
+            }));
+        };
         PreviewMouseWheel += Folder_PreviewMouseWheel;
     }
 
@@ -294,16 +310,10 @@ public sealed class FolderDrawerView : UserControl
 {
     private const int MinN = 3;
     private const int MaxN = 6;
-    private const int OneRowMax = 3;
-    private const int ClusterMax = 4;
-    private const double Tile = 48;
-    private const double Gap = 5;
-    private const double MiniTile = 22;
-    private const double MiniGap = 4;
-    private const double CardChrome = 18;
-    private const double CellMargin = 6;
-    private const double NameGap = 6;
-    private const double NameH = 20;
+    private const int OneRowMax = FolderCardView.OneRowMax;
+    private int _sizeEvents;
+    private bool _relayoutQueued;
+    private int _relayoutDone;
     private const double DotsH = 20;
     private const int AnimationMs = 300;
 
@@ -390,7 +400,36 @@ public sealed class FolderDrawerView : UserControl
             _timer.Stop();
             _timer.Start();
         };
+        _viewport.SizeChanged += (_, _) =>
+        {
+            _sizeEvents++;
+            if (_pageCount == 0)
+            {
+                Relayout();
+                return;
+            }
+            if (_relayoutQueued) return;
+            _relayoutQueued = true;
+            Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(() =>
+            {
+                _relayoutQueued = false;
+                Relayout();
+            }));
+        };
         PreviewMouseWheel += Drawer_PreviewMouseWheel;
+    }
+
+    public string DebugInfo()
+    {
+        return "groups=" + _groups.Count
+            + " items=" + _groups.Sum(g => g.Items.Count)
+            + " viewport=" + _viewport.ActualWidth.ToString("0") + "x" + _viewport.ActualHeight.ToString("0")
+            + " pages=" + _pageCount
+            + " stripChildren=" + _strip.Children.Count
+            + " visible=" + IsVisible
+            + " opacity=" + Opacity.ToString("0.##")
+            + " sizeEvents=" + _sizeEvents
+            + " relayouts=" + _relayoutDone;
     }
 
     public void SetGroups(IReadOnlyList<DrawerGroup> groups)
@@ -399,15 +438,7 @@ public sealed class FolderDrawerView : UserControl
         Relayout();
     }
 
-    private static (double W, double H) CellSize(int count, int n)
-    {
-        bool oneRow = count <= OneRowMax;
-        int cols = oneRow ? count : n;
-        int rows = oneRow ? 1 : n;
-        double w = cols * Tile + (cols - 1) * Gap + CardChrome + CellMargin * 2;
-        double h = rows * Tile + (rows - 1) * Gap + CardChrome + NameGap + NameH + CellMargin * 2;
-        return (w, h);
-    }
+    private static (double W, double H) CellSize(int count, int n) => FolderCardView.CellSize(count, n);
 
     private static List<List<int>> PackRows((double W, double H)[] cells, double width)
     {
@@ -516,6 +547,7 @@ public sealed class FolderDrawerView : UserControl
         _animating = false;
         _strip.Children.Clear();
         _pageWidth = width;
+        _relayoutDone++;
         _pageCount = plan.Pages.Count;
         _page = Math.Min(_page, Math.Max(_pageCount - 1, 0));
         _slide.X = -_page * width;
@@ -530,7 +562,7 @@ public sealed class FolderDrawerView : UserControl
                     Orientation = Orientation.Horizontal,
                     HorizontalAlignment = HorizontalAlignment.Center
                 };
-                foreach (int index in row) rowPanel.Children.Add(BuildFolder(_groups[index], plan.Sizes[index]));
+                foreach (int index in row) rowPanel.Children.Add(CreateCard(_groups[index], plan.Sizes[index]));
                 rowsHost.Children.Add(rowPanel);
             }
             _strip.Children.Add(new Grid { Width = width, Height = pageHeight, Children = { rowsHost } });
@@ -606,135 +638,19 @@ public sealed class FolderDrawerView : UserControl
         GoTo(target);
     }
 
-    private FrameworkElement BuildFolder(DrawerGroup group, int n)
+    private FolderCardView CreateCard(DrawerGroup group, int n)
     {
-        int count = group.Items.Count;
-        bool oneRow = count <= OneRowMax;
-        int cols = oneRow ? count : n;
-        int rows = oneRow ? 1 : n;
-        int fullLimit = oneRow ? count : n * n - 1;
-        int full = Math.Min(count, fullLimit);
-
-        double width = cols * Tile + (cols - 1) * Gap;
-        double height = rows * Tile + (rows - 1) * Gap;
-        var canvas = new Canvas { Width = width, Height = height };
-
-        for (int i = 0; i < full; i++)
+        var card = new FolderCardView(group, n);
+        card.ItemActivated += item => ItemActivated?.Invoke(item);
+        card.OpenRequested += source =>
         {
-            var tile = BuildTile(group.Items[i], Tile, 30, 12, true);
-            Canvas.SetLeft(tile, (i % cols) * (Tile + Gap));
-            Canvas.SetTop(tile, (i / cols) * (Tile + Gap));
-            canvas.Children.Add(tile);
-        }
-
-        if (!oneRow && count > fullLimit)
-        {
-            int extra = Math.Min(ClusterMax, count - fullLimit);
-            var cluster = new Canvas { Width = Tile, Height = Tile, IsHitTestVisible = false };
-            for (int k = 0; k < extra; k++)
-            {
-                var mini = BuildTile(group.Items[fullLimit + k], MiniTile, 14, 6, false);
-                Canvas.SetLeft(mini, (k % 2) * (MiniTile + MiniGap));
-                Canvas.SetTop(mini, (k / 2) * (MiniTile + MiniGap));
-                cluster.Children.Add(mini);
-            }
-            Canvas.SetLeft(cluster, (n - 1) * (Tile + Gap));
-            Canvas.SetTop(cluster, (n - 1) * (Tile + Gap));
-            canvas.Children.Add(cluster);
-        }
-
-        var card = new Border
-        {
-            CornerRadius = new CornerRadius(18),
-            Background = new SolidColorBrush(Color.FromArgb(0x1A, 0xFF, 0xFF, 0xFF)),
-            BorderBrush = new SolidColorBrush(Color.FromArgb(0x1F, 0xFF, 0xFF, 0xFF)),
-            BorderThickness = new Thickness(1),
-            Padding = new Thickness(8),
-            HorizontalAlignment = HorizontalAlignment.Center,
-            Child = canvas
-        };
-
-        var name = new TextBlock
-        {
-            Text = group.Name,
-            FontSize = 14,
-            Height = NameH,
-            Opacity = 0.8,
-            HorizontalAlignment = HorizontalAlignment.Center,
-            TextTrimming = TextTrimming.CharacterEllipsis,
-            MaxWidth = width + CardChrome,
-            Margin = new Thickness(0, NameGap, 0, 0)
-        };
-        name.SetResourceReference(TextBlock.ForegroundProperty, "HomeTextBrush");
-
-        var cell = new StackPanel
-        {
-            Margin = new Thickness(CellMargin),
-            Background = Brushes.Transparent,
-            Cursor = Cursors.Hand
-        };
-        cell.Children.Add(card);
-        cell.Children.Add(name);
-        cell.MouseLeftButtonUp += (_, e) =>
-        {
-            e.Handled = true;
-            Rect bounds = IsAncestorOf(cell)
-                ? new Rect(cell.TranslatePoint(new Point(0, 0), this), new Size(cell.ActualWidth, cell.ActualHeight))
+            Rect bounds = IsAncestorOf(source)
+                ? new Rect(source.TranslatePoint(new Point(0, 0), this), new Size(source.ActualWidth, source.ActualHeight))
                 : new Rect(0, 0, ActualWidth, ActualHeight);
             FolderOpenRequested?.Invoke(group, bounds);
         };
-        return cell;
+        return card;
     }
 
-    private FrameworkElement BuildTile(DrawerItem item, double size, double iconSize, double radius, bool interactive)
-    {
-        FrameworkElement glyph;
-        if (!string.IsNullOrEmpty(item.Emoji))
-        {
-            glyph = new TextBlock
-            {
-                Text = item.Emoji,
-                FontSize = iconSize * 0.8,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center
-            };
-        }
-        else
-        {
-            glyph = new Image
-            {
-                Source = item.Icon,
-                Width = iconSize,
-                Height = iconSize,
-                Stretch = Stretch.Uniform,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center
-            };
-        }
 
-        var tile = new Border
-        {
-            Width = size,
-            Height = size,
-            CornerRadius = new CornerRadius(radius),
-            BorderBrush = new SolidColorBrush(Color.FromArgb(0x26, 0xFF, 0xFF, 0xFF)),
-            BorderThickness = new Thickness(1),
-            ClipToBounds = true,
-            IsHitTestVisible = interactive,
-            Child = glyph
-        };
-        tile.SetResourceReference(Border.BackgroundProperty, "HomeAccentBrush");
-
-        if (interactive)
-        {
-            tile.Cursor = Cursors.Hand;
-            tile.ToolTip = item.Name;
-            tile.MouseLeftButtonUp += (_, e) =>
-            {
-                e.Handled = true;
-                ItemActivated?.Invoke(item);
-            };
-        }
-        return tile;
-    }
 }

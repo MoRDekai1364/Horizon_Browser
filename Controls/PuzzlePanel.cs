@@ -497,6 +497,8 @@ public class AutoGridPanel : Panel
             : new Size(2 * _cell.Width, 2 * _cell.Height);
     }
 
+    public Rect ClusterRect { get; private set; } = Rect.Empty;
+
     private void ArrangeFolder(Size finalSize)
     {
         int count = InternalChildren.Count;
@@ -507,6 +509,7 @@ public class AutoGridPanel : Panel
         int shown = cluster ? Math.Min(FolderClusterMax, count - FolderFullTiles) : 0;
         double clusterX = offsetX + _cell.Width;
         double clusterY = _cell.Height;
+        ClusterRect = cluster ? new Rect(clusterX, clusterY, _cell.Width, _cell.Height) : Rect.Empty;
         double slotWidth = _cell.Width / 2.0;
         double slotHeight = _cell.Height / 2.0;
 
