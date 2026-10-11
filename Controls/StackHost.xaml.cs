@@ -137,6 +137,7 @@ public partial class StackHost : UserControl
         var ease = new SineEase { EasingMode = EasingMode.EaseInOut };
         Incoming.BeginAnimation(OpacityProperty, new DoubleAnimation(0, duration) { EasingFunction = ease });
         Overlay.BeginAnimation(OpacityProperty, new DoubleAnimation(1, duration) { EasingFunction = ease });
+        HomeGlassMotion.Pulse(AnimationMs);
         Overlay.Focus();
     }
 
@@ -175,6 +176,7 @@ public partial class StackHost : UserControl
         _inPlaceMove.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(origin.Y, 0, duration) { EasingFunction = ease });
         OverlayContent.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, duration) { EasingFunction = ease });
         OverlayBackdrop.BeginAnimation(OpacityProperty, new DoubleAnimation(0, InPlaceDim, duration) { EasingFunction = ease });
+        HomeGlassMotion.Pulse(AnimationMs);
         Incoming.BeginAnimation(OpacityProperty, new DoubleAnimation(0, duration) { EasingFunction = ease });
         Overlay.Focus();
     }
@@ -219,6 +221,7 @@ public partial class StackHost : UserControl
     {
         if (!_overlayOpen) return;
         _overlayOpen = false;
+        HomeGlassMotion.Pulse(AnimationMs);
         if (_inPlace)
         {
             CloseInPlace();
@@ -363,6 +366,7 @@ public partial class StackHost : UserControl
         Incoming.BeginAnimation(OpacityProperty, new DoubleAnimation(1, duration) { EasingFunction = ease });
         outgoingMove.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(-direction * offset, duration) { EasingFunction = ease });
         incomingMove.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(0, duration) { EasingFunction = ease });
+        HomeGlassMotion.Pulse(AnimationMs);
     }
 
     private void FinishSwitch()

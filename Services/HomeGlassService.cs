@@ -11,6 +11,7 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using HomeGlassMotion = Horizon.Stealth.Controls.HomeGlassMotion;
 
 namespace Horizon.Stealth.Services;
 
@@ -488,6 +489,8 @@ public sealed class HomeGlassInlineLayer
     private readonly Dictionary<FrameworkElement, Border> _shapes = new();
     private Mode _mode = Mode.None;
     private bool _refreshQueued;
+    private DateTime _motionUntilUtc = DateTime.MinValue;
+    private bool _motionHooked;
 
     public HomeGlassInlineLayer(Grid root, ImageBrush imageSource, MediaElement video)
     {
@@ -532,6 +535,9 @@ public sealed class HomeGlassInlineLayer
 
         _root.SizeChanged += OnRootSizeChanged;
         _root.IsVisibleChanged += OnRootVisibleChanged;
+        _root.Loaded += OnRootLoaded;
+        _root.Unloaded += OnRootUnloaded;
+        if (_root.IsLoaded) HookMotion();
         if (_root.IsVisible) _root.LayoutUpdated += OnLayoutUpdated;
         QueueRefresh();
     }
@@ -572,6 +578,47 @@ public sealed class HomeGlassInlineLayer
     }
 
     public void Invalidate() => QueueRefresh();
+
+    private void OnRootLoaded(object sender, RoutedEventArgs e) => HookMotion();
+
+    private void OnRootUnloaded(object sender, RoutedEventArgs e)
+    {
+        HomeGlassMotion.Pulsed -= OnMotionPulse;
+        StopMotion();
+    }
+
+    private void HookMotion()
+    {
+        HomeGlassMotion.Pulsed -= OnMotionPulse;
+        HomeGlassMotion.Pulsed += OnMotionPulse;
+    }
+
+    private void OnMotionPulse(int durationMs)
+    {
+        if (!_root.IsVisible) return;
+        DateTime until = DateTime.UtcNow.AddMilliseconds(durationMs + 100);
+        if (until > _motionUntilUtc) _motionUntilUtc = until;
+        if (!_motionHooked)
+        {
+            _motionHooked = true;
+            CompositionTarget.Rendering += OnMotionRendering;
+        }
+        QueueRefresh();
+    }
+
+    private void OnMotionRendering(object? sender, EventArgs e)
+    {
+        QueueRefresh();
+        if (DateTime.UtcNow >= _motionUntilUtc) StopMotion();
+    }
+
+    private void StopMotion()
+    {
+        if (!_motionHooked) return;
+        _motionHooked = false;
+        CompositionTarget.Rendering -= OnMotionRendering;
+        QueueRefresh();
+    }
 
     public string DebugInfo()
     {

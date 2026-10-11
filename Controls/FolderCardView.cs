@@ -560,6 +560,7 @@ public sealed class StartMenuView : UserControl
             _animating = false;
         };
         _slide.BeginAnimation(TranslateTransform.XProperty, animation);
+        HomeGlassMotion.Pulse(AnimationMs);
     }
 }
 
@@ -752,6 +753,7 @@ public sealed class FolderSheetHost : Grid
             underlay.BeginAnimation(OpacityProperty, new DoubleAnimation(0, TimeSpan.FromSeconds(0.2)));
         }
         Focus();
+        HomeGlassMotion.Pulse((int)(OpenSeconds * 1000));
     }
 
     public void Close()
@@ -781,6 +783,7 @@ public sealed class FolderSheetHost : Grid
             Finish();
         };
         _scrim.BeginAnimation(OpacityProperty, fade);
+        HomeGlassMotion.Pulse((int)(OpenSeconds * 1000));
     }
 
     private void Finish()

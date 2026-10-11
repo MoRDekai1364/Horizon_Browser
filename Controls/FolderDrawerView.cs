@@ -216,6 +216,7 @@ public sealed class OpenFolderView : UserControl
         _strip.Children.Clear();
         _pageWidth = width;
         _pageCount = Math.Max(1, (int)Math.Ceiling(count / (double)perPage));
+        _relayouts++;
         _page = Math.Min(_page, _pageCount - 1);
         _slide.X = -_page * width;
 
@@ -239,6 +240,36 @@ public sealed class OpenFolderView : UserControl
         }
 
         UpdateDots();
+    }
+
+    private void StartWatch()
+    {
+        if (_watch != null) return;
+        _watch = new DispatcherTimer(DispatcherPriority.Background) { Interval = TimeSpan.FromMilliseconds(200) };
+        _watch.Tick += (_, _) => WatchTick();
+        _watch.Start();
+    }
+
+    private void StopWatch()
+    {
+        _watch?.Stop();
+        _watch = null;
+    }
+
+    private void WatchTick()
+    {
+        string ink = _page >= 0 && _page < _strip.Children.Count && _strip.Children[_page] is FrameworkElement activePage ? PageDiag.Ink(activePage) : "none";
+        string state = "ink=" + ink
+            + " relayouts=" + _relayouts
+            + " strip=" + _strip.Children.Count
+            + " page=" + _page
+            + " slideX=" + _slide.X.ToString("0")
+            + " vp=" + _viewport.ActualWidth.ToString("0.#") + "x" + _viewport.ActualHeight.ToString("0.#")
+            + " visible=" + IsVisible
+            + " loaded=" + IsLoaded;
+        if (state == _watchState) return;
+        _watchState = state;
+        Horizon.Stealth.Services.LogService.Write("FolderBlank", state);
     }
 
     private FrameworkElement BuildTile(DrawerItem item, double cell)
@@ -318,6 +349,7 @@ public sealed class OpenFolderView : UserControl
             _animating = false;
         };
         _slide.BeginAnimation(TranslateTransform.XProperty, animation);
+        HomeGlassMotion.Pulse(AnimationMs);
     }
 
     private void Folder_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
@@ -634,6 +666,7 @@ public sealed class FolderDrawerView : UserControl
             _animating = false;
         };
         _slide.BeginAnimation(TranslateTransform.XProperty, animation);
+        HomeGlassMotion.Pulse(AnimationMs);
     }
 
     private void Drawer_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
