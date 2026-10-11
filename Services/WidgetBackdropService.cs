@@ -76,7 +76,7 @@ public static class WidgetBackdropService
         var wallpaper = WeatherBridge.ThemeWallpaper;
         if (wallpaper == null) return new Rect(0, 0, 1, 1);
 
-        var monitorBounds = GetSurfaceScreenRect() ?? GetMonitorBounds(widget);
+        var monitorBounds = GetBackdropRegion(widget) ?? GetMonitorBounds(widget);
         double imgW = wallpaper.PixelWidth;
         double imgH = wallpaper.PixelHeight;
         if (imgW <= 0 || imgH <= 0 || monitorBounds.Width <= 0 || monitorBounds.Height <= 0)
@@ -110,6 +110,15 @@ public static class WidgetBackdropService
         return new Rect(r.Left, r.Top, r.Right - r.Left, r.Bottom - r.Top);
     }
 
+    private static Rect? GetBackdropRegion(Window widget)
+    {
+        var surface = GetSurfaceScreenRect();
+        if (surface == null) return null;
+        var owner = GetOwnerScreenRect(widget);
+        if (owner == null) return surface;
+        return Rect.Union(surface.Value, owner.Value);
+    }
+
     private static bool IsAppActive()
     {
         if (Application.Current == null) return false;
@@ -122,7 +131,7 @@ public static class WidgetBackdropService
     {
         if (!IsAppActive()) return null;
 
-        var region = GetSurfaceScreenRect() ?? GetOwnerScreenRect(widget);
+        var region = GetBackdropRegion(widget) ?? GetOwnerScreenRect(widget);
         if (region == null) return null;
 
         var widgetRect = GetWindowScreenRect(widget);

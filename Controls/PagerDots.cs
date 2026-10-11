@@ -185,7 +185,8 @@ public sealed class SegmentThumb
     {
         _thumb = thumb;
         _host = host;
-        thumb.HorizontalAlignment = HorizontalAlignment.Left;
+        thumb.HorizontalAlignment = HorizontalAlignment.Stretch;
+        thumb.VerticalAlignment = VerticalAlignment.Top;
         thumb.IsHitTestVisible = false;
         thumb.RenderTransformOrigin = new Point(0.5, 0.5);
         var transforms = new TransformGroup();
@@ -203,24 +204,24 @@ public sealed class SegmentThumb
 
     private void Place(bool animate)
     {
-        if (_segment == null || _segment.ActualWidth <= 0 || !_host.IsLoaded) return;
-        double left = _segment.TranslatePoint(new Point(0, 0), _host).X;
-        double width = _segment.ActualWidth;
+        if (_segment == null || _segment.ActualHeight <= 0 || !_host.IsLoaded) return;
+        double top = _segment.TranslatePoint(new Point(0, 0), _host).Y;
+        double height = _segment.ActualHeight;
 
         if (!animate)
         {
-            _move.BeginAnimation(TranslateTransform.XProperty, null);
-            _thumb.BeginAnimation(FrameworkElement.WidthProperty, null);
-            _stretch.BeginAnimation(ScaleTransform.ScaleXProperty, null);
-            _move.X = left;
-            _thumb.Width = width;
-            _stretch.ScaleX = 1;
+            _move.BeginAnimation(TranslateTransform.YProperty, null);
+            _thumb.BeginAnimation(FrameworkElement.HeightProperty, null);
+            _stretch.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+            _move.Y = top;
+            _thumb.Height = height;
+            _stretch.ScaleY = 1;
             _placed = true;
             return;
         }
 
-        _move.BeginAnimation(TranslateTransform.XProperty, SnapMotion.Move(left));
-        _thumb.BeginAnimation(FrameworkElement.WidthProperty, SnapMotion.Move(width));
-        _stretch.BeginAnimation(ScaleTransform.ScaleXProperty, SnapMotion.Stretch(StretchPeak));
+        _move.BeginAnimation(TranslateTransform.YProperty, SnapMotion.Move(top));
+        _thumb.BeginAnimation(FrameworkElement.HeightProperty, SnapMotion.Move(height));
+        _stretch.BeginAnimation(ScaleTransform.ScaleYProperty, SnapMotion.Stretch(StretchPeak));
     }
 }

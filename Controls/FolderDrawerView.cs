@@ -508,7 +508,7 @@ public sealed class FolderDrawerView : UserControl
             {
                 int count = _groups[i].Items.Count;
                 if (stuck[i] || count <= OneRowMax || ns[i] >= MaxN) continue;
-                int hidden = count - (ns[i] * ns[i] - 1);
+                int hidden = count - FolderCardView.FullLimit(count, ns[i]);
                 if (hidden > most)
                 {
                     most = hidden;

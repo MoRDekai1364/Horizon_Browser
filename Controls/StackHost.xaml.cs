@@ -64,6 +64,20 @@ public partial class StackHost : UserControl
         else UpdateDots();
     }
 
+    public void InsertElement(int index, string title, FrameworkElement content)
+    {
+        index = Math.Clamp(index, 0, _items.Count);
+        if (_switching) FinishSwitch();
+        _items.Insert(index, new StackItem { Title = title, Content = content });
+        if (_index < 0)
+        {
+            ShowImmediate(0);
+            return;
+        }
+        if (index <= _index) _index++;
+        UpdateDots();
+    }
+
     public void RemoveElement(FrameworkElement content)
     {
         int removed = _items.FindIndex(i => ReferenceEquals(i.Content, content));

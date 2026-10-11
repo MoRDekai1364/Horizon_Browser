@@ -59,6 +59,7 @@ public partial class HomePageView : UserControl
         InitializeComponent();
         _homeGlass = new HomeGlassInlineLayer(RootHomeGrid, BgImageBrush, BgVideoElement);
         _homeGlass.Register(SearchBoxBorder);
+        _homeGlass.Register(PnlSearchMode);
         _homeGlass.Register(SearchBlurPill);
         _homeGlass.Register(FavBookmarksIslandBorder);
         _homeGlass.Register(PnlBatteryPill);
@@ -487,7 +488,8 @@ public partial class HomePageView : UserControl
             double maxMobileWidth = Math.Max(200.0, totalWidth - 20.0);
             PnlSearchArea.MaxWidth = maxMobileWidth;
             SearchBoxBorder.MaxWidth = Math.Min(900.0, maxMobileWidth);
-        SyncSearchBarMinWidth();
+            ApplySearchRowLayout(true);
+            SyncSearchBarMinWidth();
             UpdateSearchAreaMaxHeight();
             return;
         }
@@ -533,6 +535,7 @@ public partial class HomePageView : UserControl
 
         double searchMax = Math.Max(240.0, Math.Min(900.0, maxAllowedWidth));
         SearchBoxBorder.MaxWidth = searchMax;
+        ApplySearchRowLayout(false);
         SyncSearchBarMinWidth();
         PnlSearchArea.Margin = new Thickness(10, 60, 10, 0);
         UpdateSearchAreaMaxHeight();
@@ -2828,7 +2831,7 @@ public partial class HomePageView : UserControl
     }
 
     private string _searchMode = "Search";
-    private readonly Border _modeThumbBorder = new() { CornerRadius = new CornerRadius(18) };
+    private readonly Border _modeThumbBorder = new() { CornerRadius = new CornerRadius(15) };
     private SegmentThumb? _modeThumb;
     private bool _animateModeThumb;
     private double _searchBarWidth;
@@ -2868,8 +2871,7 @@ public partial class HomePageView : UserControl
         host.Children.Add(segments);
         PnlSearchMode.Child = host;
         _modeThumb = new SegmentThumb(_modeThumbBorder, host);
-        if (SearchBoxBorder.Child is Grid searchGrid && searchGrid.ColumnDefinitions.Count == 2)
-            searchGrid.ColumnDefinitions[1].Width = new GridLength(1, GridUnitType.Star);
+        PnlSearchPills.SizeChanged += (_, _) => SyncSearchMirror();
         TxtHomeSearch.HorizontalAlignment = HorizontalAlignment.Stretch;
         ApplySearchModeVisual();
         Loaded += (_, _) => FixSearchBarWidth();
@@ -2910,7 +2912,32 @@ public partial class HomePageView : UserControl
 
     private void SyncSearchBarMinWidth()
     {
-        SearchBoxBorder.MinWidth = Math.Min(_searchBarWidth, SearchBoxBorder.MaxWidth);
+        SearchBoxBorder.MinWidth = Math.Min(Math.Max(_searchBarWidth, SearchBarMinFloor), SearchBoxBorder.MaxWidth);
+    }
+
+    private const double SearchBarMinFloor = 360;
+
+    private bool? _searchRowCompact;
+
+    private void ApplySearchRowLayout(bool compact)
+    {
+        if (_searchRowCompact == compact) return;
+        _searchRowCompact = compact;
+        Grid.SetRow(PnlSearchPills, 0);
+        Grid.SetColumn(PnlSearchPills, 0);
+        Grid.SetColumnSpan(PnlSearchPills, compact ? 3 : 1);
+        PnlSearchPills.HorizontalAlignment = compact ? HorizontalAlignment.Center : HorizontalAlignment.Stretch;
+        PnlSearchPills.Margin = compact ? new Thickness(0, 0, 0, 10) : new Thickness(0);
+        Grid.SetRow(SearchBoxBorder, compact ? 1 : 0);
+        Grid.SetColumn(SearchBoxBorder, compact ? 0 : 1);
+        Grid.SetColumnSpan(SearchBoxBorder, compact ? 3 : 1);
+        SyncSearchMirror();
+    }
+
+    private void SyncSearchMirror()
+    {
+        if (GridSearchRow == null || PnlSearchPills == null) return;
+        GridSearchRow.ColumnDefinitions[2].Width = new GridLength(0);
     }
 
     private double _engineFullWidth;
@@ -3393,8 +3420,6 @@ public partial class HomePageView : UserControl
         _bookmarkCards.FolderOpenRequested += CardSheet_Requested;
         _favoriteCards.RowsChanged += ApplyScrollCap;
         _bookmarkCards.RowsChanged += ApplyScrollCap;
-        if (SettingsService.Current.HomeRightColumnFavorites) AddStackEntry("builtin:favorites", "Favorites", _favoritesDrawer);
-        AddStackEntry("builtin:bookmarks", "Bookmarks", _bookmarksDrawer);
         UpdateFavoritesDrawer();
         UpdateBookmarksDrawer();
         foreach (var stored in StackElementStore.Elements)
@@ -3501,8 +3526,7 @@ public partial class HomePageView : UserControl
     private void SyncRightColumn()
     {
         var s = SettingsService.Current;
-        SyncBuiltinEntry("builtin:favorites", "Favorites", _favoritesDrawer, s.HomeRightColumnFavorites);
-        SyncBuiltinEntry("builtin:bookmarks", "Bookmarks", _bookmarksDrawer, s.HomeRightColumnBookmarks);
+        SyncBuiltinStackPages();
         var storedIds = StackElementStore.Elements.Select(e => e.Id).ToHashSet();
         for (int i = _stackEntries.Count - 1; i >= 0; i--)
         {
@@ -3515,16 +3539,26 @@ public partial class HomePageView : UserControl
         UpdateHomeStackVisibility();
     }
 
+    private void SyncBuiltinStackPages()
+    {
+        var s = SettingsService.Current;
+        SyncBuiltinEntry("builtin:favorites", "Favorites", _favoritesDrawer, s.HomeRightColumnFavorites && _favoriteGroups.Count > 0);
+        SyncBuiltinEntry("builtin:bookmarks", "Bookmarks", _bookmarksDrawer, s.HomeRightColumnBookmarks && _bookmarkGroups.Count > 0);
+    }
+
     private void SyncBuiltinEntry(string id, string title, FolderDrawerView? drawer, bool wanted)
     {
         if (drawer == null) return;
         int index = _stackEntries.FindIndex(e => e.Id == id);
         if (wanted && index < 0)
         {
-            AddStackEntry(id, title, drawer);
+            int at = id == "builtin:bookmarks" && _stackEntries.Any(e => e.Id == "builtin:favorites") ? 1 : 0;
+            _stackEntries.Insert(at, (id, drawer));
+            HomeStack.InsertElement(at, title, drawer);
         }
         else if (!wanted && index >= 0)
         {
+            if (HomeStack.IsExpanded && HomeStack.SelectedIndex == index) CollapseStack();
             _stackEntries.RemoveAt(index);
             HomeStack.RemoveElement(drawer);
         }
@@ -3674,6 +3708,7 @@ public partial class HomePageView : UserControl
         _favoriteGroups = groups;
         _favoritesDrawer.SetGroups(groups);
         ApplyCenterCards(true, groups);
+        SyncBuiltinStackPages();
     }
 
     private void UpdateBookmarksDrawer()
@@ -3698,6 +3733,7 @@ public partial class HomePageView : UserControl
         _bookmarkGroups = groups;
         _bookmarksDrawer.SetGroups(groups);
         ApplyCenterCards(false, groups);
+        SyncBuiltinStackPages();
     }
 
     private void BuildCenterSheet()

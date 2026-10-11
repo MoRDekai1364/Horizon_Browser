@@ -27,6 +27,12 @@ public sealed class FolderCardView : StackPanel
     public event Action<FolderCardView>? OpenRequested;
     public event Action<DrawerItem>? ItemActivated;
 
+    public static int FullLimit(int count, int n)
+    {
+        if (count <= OneRowMax || count <= n * n) return count;
+        return n * n - 1;
+    }
+
     public static (double W, double H) CellSize(int count, int n)
     {
         bool oneRow = count <= OneRowMax;
