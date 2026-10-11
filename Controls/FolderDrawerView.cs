@@ -53,7 +53,8 @@ public sealed class OpenFolderView : UserControl
         return PageProbe()
             + " viewport=" + _viewport.ActualWidth.ToString("0") + "x" + _viewport.ActualHeight.ToString("0")
             + " strip=" + _strip.Children.Count
-            + " opacity=" + Opacity.ToString("0.##");
+            + " opacity=" + Opacity.ToString("0.##")
+            + PageDiag.Describe(_strip, _viewport, _pageWidth, _page, _animating);
     }
 
     private string PageProbe()
@@ -459,7 +460,8 @@ public sealed class FolderDrawerView : UserControl
             + " opacity=" + Opacity.ToString("0.##")
             + " sizeEvents=" + _sizeEvents
             + " relayouts=" + _relayoutDone
-            + " " + PageProbe();
+            + " " + PageProbe()
+            + PageDiag.Describe(_strip, _viewport, _pageWidth, _page, _animating);
     }
 
     public void SetGroups(IReadOnlyList<DrawerGroup> groups)

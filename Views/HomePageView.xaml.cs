@@ -2052,6 +2052,14 @@ public partial class HomePageView : UserControl
         sb.AppendLine("stackExpanded=" + HomeStack.IsExpanded + " overlayOpen=" + HomeStack.IsOverlayOpen);
         sb.AppendLine("favoritesDrawer " + (_favoritesDrawer?.DebugInfo() ?? "null"));
         sb.AppendLine("bookmarksDrawer " + (_bookmarksDrawer?.DebugInfo() ?? "null"));
+        sb.AppendLine("glass " + _homeGlass.DebugInfo());
+        void FindFolders(DependencyObject folderNode)
+        {
+            if (folderNode is OpenFolderView openFolder) sb.AppendLine("openFolder " + openFolder.DebugInfo());
+            int folderChildCount = VisualTreeHelper.GetChildrenCount(folderNode);
+            for (int folderChildIndex = 0; folderChildIndex < folderChildCount; folderChildIndex++) FindFolders(VisualTreeHelper.GetChild(folderNode, folderChildIndex));
+        }
+        FindFolders(HomeStack);
         sb.AppendLine("centerSheet open=" + _centerSheet.IsOpen + " " + ((_centerSheet.Content as OpenFolderView)?.DebugInfo() ?? "none"));  
         if (HomeStack.IsOverlayOpen)    
         {
@@ -2871,7 +2879,6 @@ public partial class HomePageView : UserControl
         host.Children.Add(segments);
         PnlSearchMode.Child = host;
         _modeThumb = new SegmentThumb(_modeThumbBorder, host);
-        PnlSearchPills.SizeChanged += (_, _) => SyncSearchMirror();
         TxtHomeSearch.HorizontalAlignment = HorizontalAlignment.Stretch;
         ApplySearchModeVisual();
         Loaded += (_, _) => FixSearchBarWidth();
@@ -2923,21 +2930,15 @@ public partial class HomePageView : UserControl
     {
         if (_searchRowCompact == compact) return;
         _searchRowCompact = compact;
-        Grid.SetRow(PnlSearchPills, 0);
-        Grid.SetColumn(PnlSearchPills, 0);
-        Grid.SetColumnSpan(PnlSearchPills, compact ? 3 : 1);
-        PnlSearchPills.HorizontalAlignment = compact ? HorizontalAlignment.Center : HorizontalAlignment.Stretch;
-        PnlSearchPills.Margin = compact ? new Thickness(0, 0, 0, 10) : new Thickness(0);
+        Grid.SetRow(SwitchSlot, 0);
+        Grid.SetColumn(SwitchSlot, 0);
+        Grid.SetColumnSpan(SwitchSlot, compact ? 3 : 1);
+        SwitchSlot.HorizontalAlignment = compact ? HorizontalAlignment.Center : HorizontalAlignment.Stretch;
+        PnlSearchMode.Margin = compact ? new Thickness(0, 0, 0, 10) : new Thickness(0, 0, 10, 0);
+        SearchMirror.Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
         Grid.SetRow(SearchBoxBorder, compact ? 1 : 0);
         Grid.SetColumn(SearchBoxBorder, compact ? 0 : 1);
         Grid.SetColumnSpan(SearchBoxBorder, compact ? 3 : 1);
-        SyncSearchMirror();
-    }
-
-    private void SyncSearchMirror()
-    {
-        if (GridSearchRow == null || PnlSearchPills == null) return;
-        GridSearchRow.ColumnDefinitions[2].Width = new GridLength(0);
     }
 
     private double _engineFullWidth;

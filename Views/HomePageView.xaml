@@ -778,52 +778,60 @@
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="0"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <StackPanel x:Name="PnlSearchPills" Grid.Row="0" Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Border x:Name="PnlSearchMode" Margin="0,0,10,0" CornerRadius="18"
-                            BorderThickness="2" Background="#CC000000" BorderBrush="#33FFFFFF" VerticalAlignment="Center">
-                        <StackPanel Orientation="Vertical">
-                            <Border x:Name="SegModeFavorites" Tag="Favorites" Height="34" CornerRadius="15" Padding="14,0" Cursor="Hand"
-                                    Background="Transparent" ToolTip="Favorites" MouseLeftButtonUp="SearchModeSegment_Click">
-                                <TextBlock x:Name="TxtModeFavorites" Text="Favorites" FontSize="13" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                            </Border>
-                            <Border x:Name="SegModeSearch" Tag="Search" Height="34" CornerRadius="15" Padding="14,0" Cursor="Hand"
-                                    Background="Transparent" ToolTip="Search" MouseLeftButtonUp="SearchModeSegment_Click">
-                                <TextBlock x:Name="TxtModeSearch" Text="Search" FontSize="13" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                            </Border>
-                            <Border x:Name="SegModeBookmarks" Tag="Bookmarks" Height="34" CornerRadius="15" Padding="14,0" Cursor="Hand"
-                                    Background="Transparent" ToolTip="Bookmarks" MouseLeftButtonUp="SearchModeSegment_Click">
-                                <TextBlock x:Name="TxtModeBookmarks" Text="Bookmarks" FontSize="13" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                            </Border>
-                        </StackPanel>
-                    </Border>
-                    <ComboBox x:Name="CmbSearchEngine" Width="120" VerticalAlignment="Center" Margin="0,0,10,0"
-                              DisplayMemberPath="Name" BorderThickness="2"
-                              Background="#CC000000" Foreground="White"
-                              Style="{StaticResource PillComboBoxStyle}"
-                              SelectionChanged="CmbSearchEngine_SelectionChanged"/>
-                    <ComboBox x:Name="CmbCategoryFilter" Width="140" Visibility="Collapsed" VerticalAlignment="Center" Margin="0,0,10,0"
-                              BorderThickness="2" Background="#CC000000" Foreground="White"
-                              Style="{StaticResource PillComboBoxStyle}"
-                              SelectionChanged="CmbCategoryFilter_SelectionChanged"/>
-                    </StackPanel>
-                <Border x:Name="SearchBoxBorder" Grid.Row="0" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" ClipToBounds="True"
-                        Background="{DynamicResource SharedSearchBgBrush}" CornerRadius="24" MaxWidth="900" MinHeight="48" BorderBrush="{DynamicResource SharedSearchBorderBrush}" BorderThickness="1">
-                    <Grid>
-                        <Grid>
-                            <TextBlock x:Name="TxtHomeSearchPlaceholder" Text="Search here ..." Foreground="#888"
-                                       FontSize="18" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="12,12,20,12" IsHitTestVisible="False"/>
-                            <TextBox x:Name="TxtHomeSearch" Background="Transparent" BorderThickness="0" Foreground="{DynamicResource HomeTextBrush}"
-                                     CaretBrush="White" FontSize="18" VerticalContentAlignment="Center" HorizontalAlignment="Left" Margin="12,12,20,12"
-                                     MinWidth="{Binding ActualWidth, ElementName=TxtHomeSearchPlaceholder}" MaxWidth="740"
-                                     TextWrapping="Wrap" AcceptsReturn="False" MaxHeight="140" VerticalScrollBarVisibility="Auto"
-                                     KeyDown="TxtHomeSearch_KeyDown" TextChanged="TxtHomeSearch_TextChanged"/>
-                        </Grid>
+                    <Grid x:Name="SwitchSlot" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center">
+                        <Border x:Name="PnlSearchMode" Margin="0,0,10,0" CornerRadius="18"
+                                BorderThickness="2" Background="#CC000000" BorderBrush="#33FFFFFF" VerticalAlignment="Center">
+                            <StackPanel Orientation="Vertical">
+                                <Border x:Name="SegModeFavorites" Tag="Favorites" Height="34" CornerRadius="15" Padding="14,0" Cursor="Hand"
+                                        Background="Transparent" ToolTip="Favorites" MouseLeftButtonUp="SearchModeSegment_Click">
+                                    <TextBlock x:Name="TxtModeFavorites" Text="Favorites" FontSize="13" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                </Border>
+                                <Border x:Name="SegModeSearch" Tag="Search" Height="34" CornerRadius="15" Padding="14,0" Cursor="Hand"
+                                        Background="Transparent" ToolTip="Search" MouseLeftButtonUp="SearchModeSegment_Click">
+                                    <TextBlock x:Name="TxtModeSearch" Text="Search" FontSize="13" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                </Border>
+                                <Border x:Name="SegModeBookmarks" Tag="Bookmarks" Height="34" CornerRadius="15" Padding="14,0" Cursor="Hand"
+                                        Background="Transparent" ToolTip="Bookmarks" MouseLeftButtonUp="SearchModeSegment_Click">
+                                    <TextBlock x:Name="TxtModeBookmarks" Text="Bookmarks" FontSize="13" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                </Border>
+                            </StackPanel>
+                        </Border>
                     </Grid>
-                </Border>
-                </Grid>
+                    <Border x:Name="SearchBoxBorder" Grid.Row="0" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" ClipToBounds="True"
+                            Background="{DynamicResource SharedSearchBgBrush}" CornerRadius="24" MaxWidth="900" MinHeight="48" BorderBrush="{DynamicResource SharedSearchBorderBrush}" BorderThickness="1">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid Grid.Column="0" Margin="8,8,0,8" VerticalAlignment="Top">
+                                <ComboBox x:Name="CmbSearchEngine" Width="120"
+                                          DisplayMemberPath="Name" BorderThickness="2"
+                                          Background="#CC000000" Foreground="White"
+                                          Style="{StaticResource PillComboBoxStyle}"
+                                          SelectionChanged="CmbSearchEngine_SelectionChanged"/>
+                                <ComboBox x:Name="CmbCategoryFilter" Width="140" Visibility="Collapsed"
+                                          BorderThickness="2" Background="#CC000000" Foreground="White"
+                                          Style="{StaticResource PillComboBoxStyle}"
+                                          SelectionChanged="CmbCategoryFilter_SelectionChanged"/>
+                            </Grid>
+                            <Grid Grid.Column="1">
+                                <TextBlock x:Name="TxtHomeSearchPlaceholder" Text="Search here ..." Foreground="#888"
+                                           FontSize="18" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="12,12,20,12" IsHitTestVisible="False"/>
+                                <TextBox x:Name="TxtHomeSearch" Background="Transparent" BorderThickness="0" Foreground="{DynamicResource HomeTextBrush}"
+                                         CaretBrush="White" FontSize="18" VerticalContentAlignment="Center" HorizontalAlignment="Left" Margin="12,12,20,12"
+                                         MinWidth="{Binding ActualWidth, ElementName=TxtHomeSearchPlaceholder}" MaxWidth="740"
+                                         TextWrapping="Wrap" AcceptsReturn="False" MaxHeight="140" VerticalScrollBarVisibility="Auto"
+                                         KeyDown="TxtHomeSearch_KeyDown" TextChanged="TxtHomeSearch_TextChanged"/>
+                            </Grid>
+                        </Grid>
+                    </Border>
+                    <Border x:Name="SearchMirror" Grid.Row="0" Grid.Column="2" IsHitTestVisible="False"
+                            Width="{Binding ActualWidth, ElementName=SwitchSlot}"/>
+                </Grid>   
 
                 <Grid x:Name="GridFavBookmarksIsland" Grid.Row="1" Grid.RowSpan="2" HorizontalAlignment="Center">
                     <Grid.RowDefinitions>

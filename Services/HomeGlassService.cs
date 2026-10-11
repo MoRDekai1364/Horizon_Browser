@@ -573,6 +573,36 @@ public sealed class HomeGlassInlineLayer
 
     public void Invalidate() => QueueRefresh();
 
+    public string DebugInfo()
+    {
+        int shown = 0;
+        int stale = 0;
+        foreach (var pair in _shapes)
+        {
+            var el = pair.Key;
+            var shape = pair.Value;
+            bool shapeShown = shape.Visibility == Visibility.Visible;
+            if (shapeShown) shown++;
+            bool shouldShow = false;
+            Rect bounds = Rect.Empty;
+            if (el.IsVisible && el.ActualWidth > 0 && el.ActualHeight > 0 && EffectiveOpacity(el) > 0.001)
+            {
+                try
+                {
+                    bounds = el.TransformToVisual(_root).TransformBounds(new Rect(0, 0, el.ActualWidth, el.ActualHeight));
+                    Rect clipped = GetAncestorClipRect(el, bounds);
+                    shouldShow = !clipped.IsEmpty && clipped.Width >= 0.5 && clipped.Height >= 0.5;
+                }
+                catch (InvalidOperationException)
+                {
+                }
+            }
+            if (shouldShow != shapeShown) stale++;
+            else if (shouldShow && (Math.Abs(Canvas.GetLeft(shape) - bounds.X) > 1 || Math.Abs(Canvas.GetTop(shape) - bounds.Y) > 1)) stale++;
+        }
+        return "shapes=" + _shapes.Count + " shown=" + shown + " stale=" + stale + " layer=" + _layer.Visibility + " refreshQueued=" + _refreshQueued;
+    }
+
     private void OnSourceChanged(object? sender, EventArgs e) => QueueRefresh();
     private void OnRootSizeChanged(object sender, SizeChangedEventArgs e) => QueueRefresh();
     private void OnElementSizeChanged(object sender, SizeChangedEventArgs e) => QueueRefresh();
