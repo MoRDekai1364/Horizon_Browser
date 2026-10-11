@@ -950,7 +950,7 @@ public partial class BrowserView : UserControl
         // with audio playing but a black/uncomposited frame when the WebView2 surface
         // wasn't already "warm" (i.e. direct/deep-link navigation). Nudging the size
         // forces WPF to recomposite the WebView2 visual instead of leaving it black.
-        Dispatcher.InvokeAsync(() => ForceWebViewRepaint(), System.Windows.Threading.DispatcherPriority.Background);
+        _ = Dispatcher.InvokeAsync(() => ForceWebViewRepaint(), System.Windows.Threading.DispatcherPriority.Background);
 
         // Apply per-tab language preference
         if (SettingsService.Current.PerTabLanguageEnabled && !string.IsNullOrEmpty(_tabViewModel.Language))
@@ -958,7 +958,7 @@ public partial class BrowserView : UserControl
 
         try
         {
-            string url = MainWebView.Source?.ToString() ?? string.Empty;
+            string url = MainWebView?.Source?.ToString() ?? string.Empty;
             // Extract only the meta/og tags — not the full DOM.
             string rawJson = await MainWebView.CoreWebView2!.ExecuteScriptAsync(
                 @"(function(){
@@ -1428,7 +1428,11 @@ public partial class BrowserView : UserControl
         SaveWhitelist();
         HideScriptWarning();
         await RefreshHostCheckScriptAsync();
-        try { await MainWebView.CoreWebView2?.ExecuteScriptAsync("window.__horizonScriptDisabled = true;"); } catch { }
+        var scriptCore = MainWebView?.CoreWebView2;
+        if (scriptCore != null)
+        {
+            try { await scriptCore.ExecuteScriptAsync("window.__horizonScriptDisabled = true;"); } catch { }
+        }
         MainWebView?.Reload();
     }
 
@@ -2190,7 +2194,7 @@ public partial class BrowserView : UserControl
             LogService.Write("GACCT", $"DetectCalled — url={url}");
             if (!url.Contains("google.com", StringComparison.OrdinalIgnoreCase)) return;
 
-            var cookieManager = MainWebView.CoreWebView2?.CookieManager;
+            var cookieManager = MainWebView?.CoreWebView2?.CookieManager;
             if (cookieManager == null) return;
 
             var wv2Cookies = await cookieManager.GetCookiesAsync("https://accounts.google.com");

@@ -2466,8 +2466,8 @@ public partial class FluxSidebar : UserControl
     {
         DlContextPopup.IsOpen = false;
         ActiveDownloadPanel.Visibility = Visibility.Collapsed;
-        _activeDownloadPath = null;
-        _activeDownloadLink = null;
+        _activeDownloadPath = "";
+        _activeDownloadLink = "";
         _activeDownloadComplete = false;
     }
 

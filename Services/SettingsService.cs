@@ -284,6 +284,7 @@ public class SettingsData
 
     public bool   HomeAdaptiveColorsEnabled { get; set; } = true;
     public double HomeTintStrength           { get; set; } = 30.0;
+    public bool DisableBlurEffects           { get; set; } = false;
     public string HomeFontFamily            { get; set; } = "Segoe UI"; 
     public double HomeInactivityTimeoutSeconds { get; set; } = 15.0; 
 

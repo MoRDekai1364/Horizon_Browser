@@ -412,6 +412,13 @@
                                        Text="30%"/>
                         </Grid>
 
+                        <TextBlock Text="Blur Effects" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" Margin="0,10,0,5"/>
+                        <TextBlock Text="Turns off the blurred wallpaper glass behind homepage panels. Lowers CPU and GPU load. Panels show the sharp wallpaper instead." Foreground="#AAA" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,6"/>
+                        <CheckBox x:Name="ChkDisableBlur" Content="Disable blur effects (homepage glass)"
+                                  local:SearchIndex.Label="Disable Blur Effects" local:SearchIndex.Description="Turns off the blurred wallpaper glass on the homepage to reduce CPU and GPU load."
+                                  Foreground="{StaticResource Brush_Text}" Margin="0,0,0,10"
+                                  ToolTip="Turns off the blurred wallpaper glass on the homepage to reduce CPU and GPU load."/>
+
                         <TextBlock Text="Startup" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" Margin="0,10,0,5"/>
                         <CheckBox x:Name="ChkStartupVideo" Content="Play animated logo video on startup"
                                   Foreground="{StaticResource Brush_Text}" Margin="0,0,0,6"

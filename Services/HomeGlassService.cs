@@ -579,11 +579,36 @@ public sealed class HomeGlassInlineLayer
 
     public void Invalidate() => QueueRefresh();
 
+    private static bool BlurDisabled => SettingsService.Current.DisableBlurEffects;
+
+    private void OnBlurSettingChanged()
+    {
+        _root.Dispatcher.BeginInvoke(new Action(ApplyBlurSetting));
+    }
+
+    private void ApplyBlurSetting()
+    {
+        if (BlurDisabled)
+        {
+            StopMotion();
+            _layer.Visibility = Visibility.Collapsed;
+            _layer.OpacityMask = null;
+            _blur.Background = null;
+            _blurVideo = null;
+            _maskBrush = null;
+            _maskBitmap = null;
+            _mode = Mode.None;
+            return;
+        }
+        QueueRefresh();
+    }
+
     private void OnRootLoaded(object sender, RoutedEventArgs e) => HookMotion();
 
     private void OnRootUnloaded(object sender, RoutedEventArgs e)
     {
         HomeGlassMotion.Pulsed -= OnMotionPulse;
+        HomeGlassMotion.BlurSettingChanged -= OnBlurSettingChanged;
         StopMotion();
     }
 
@@ -591,11 +616,13 @@ public sealed class HomeGlassInlineLayer
     {
         HomeGlassMotion.Pulsed -= OnMotionPulse;
         HomeGlassMotion.Pulsed += OnMotionPulse;
+        HomeGlassMotion.BlurSettingChanged -= OnBlurSettingChanged;
+        HomeGlassMotion.BlurSettingChanged += OnBlurSettingChanged;
     }
 
     private void OnMotionPulse(int durationMs)
     {
-        if (!_root.IsVisible) return;
+        if (!_root.IsVisible || BlurDisabled) return;
         DateTime until = DateTime.UtcNow.AddMilliseconds(durationMs + 100);
         if (until > _motionUntilUtc) _motionUntilUtc = until;
         if (!_motionHooked)
@@ -664,9 +691,22 @@ public sealed class HomeGlassInlineLayer
     }
 
     private DateTime _lastRefreshUtc = DateTime.MinValue;
+    private DispatcherTimer? _throttleTimer;
+
+    private DispatcherTimer CreateThrottleTimer()
+    {
+        var timer = new DispatcherTimer(DispatcherPriority.Render);
+        timer.Tick += (s, e) =>
+        {
+            timer.Stop();
+            Refresh();
+        };
+        return timer;
+    }
 
     private void QueueRefresh()
     {
+        if (BlurDisabled) return;
         if (_refreshQueued) return;
         _refreshQueued = true;
         double elapsedMs = (DateTime.UtcNow - _lastRefreshUtc).TotalMilliseconds;
@@ -676,16 +716,9 @@ public sealed class HomeGlassInlineLayer
         }
         else
         {
-            var timer = new DispatcherTimer(DispatcherPriority.Render)
-            {
-                Interval = TimeSpan.FromMilliseconds(16 - elapsedMs)
-            };
-            timer.Tick += (s, e) =>
-            {
-                timer.Stop();
-                Refresh();
-            };
-            timer.Start();
+            _throttleTimer ??= CreateThrottleTimer();
+            _throttleTimer.Interval = TimeSpan.FromMilliseconds(16 - elapsedMs);
+            _throttleTimer.Start();
         }
     }
 
@@ -701,6 +734,11 @@ public sealed class HomeGlassInlineLayer
     private void Refresh()
     {
         _refreshQueued = false;
+        if (BlurDisabled)
+        {
+            _layer.Visibility = Visibility.Collapsed;
+            return;
+        }
         _lastRefreshUtc = DateTime.UtcNow;
         try
         {
@@ -787,9 +825,14 @@ public sealed class HomeGlassInlineLayer
             var el = pair.Key;
             var shape = pair.Value;
             bool diag = el.Name == "TestClockPill2";
+            if (!el.IsVisible || el.ActualWidth <= 0 || el.ActualHeight <= 0)
+            {
+                shape.Visibility = Visibility.Collapsed;
+                continue;
+            }
             double op = EffectiveOpacity(el);
             if (diag) LogService.Write("PillDiag", $"op={op:0.###} isVisible={el.IsVisible} w={el.ActualWidth:0.#} h={el.ActualHeight:0.#} isLoaded={el.IsLoaded} inShapes={_shapes.ContainsKey(el)}");
-            if (op <= 0.001 || !el.IsVisible || el.ActualWidth <= 0 || el.ActualHeight <= 0)
+            if (op <= 0.001)
             {
                 shape.Visibility = Visibility.Collapsed;
                 if (diag) LogService.Write("PillDiag", "  -> collapsed (opacity/visible/size gate)");
@@ -825,7 +868,37 @@ public sealed class HomeGlassInlineLayer
             shape.Visibility = Visibility.Visible;
             if (diag) LogService.Write("PillDiag", $"  -> shape set: opacity={shape.Opacity:0.###} visibility={shape.Visibility} cornerRadius={shape.CornerRadius}");
         }
+        int signature = ComputeMaskSignature(w, h);
+        if (signature == _maskSignature && _maskBitmap != null && ReferenceEquals(_layer.OpacityMask, _maskBrush)) return;
+        _maskSignature = signature;
         RasterizeMask(w, h);
+    }
+
+    private int _maskSignature;
+
+    private int ComputeMaskSignature(double w, double h)
+    {
+        var hash = new HashCode();
+        hash.Add(_shapes.Count);
+        hash.Add((int)Math.Round(w));
+        hash.Add((int)Math.Round(h));
+        hash.Add((int)Math.Round(GetMaskDeviceScale() * 1000));
+        foreach (var shape in _shapes.Values)
+        {
+            if (shape.Visibility != Visibility.Visible)
+            {
+                hash.Add(0);
+                continue;
+            }
+            hash.Add((int)Math.Round(Canvas.GetLeft(shape) * 4));
+            hash.Add((int)Math.Round(Canvas.GetTop(shape) * 4));
+            hash.Add((int)Math.Round(shape.Width * 4));
+            hash.Add((int)Math.Round(shape.Height * 4));
+            hash.Add((int)Math.Round(shape.Opacity * 255));
+            hash.Add(shape.CornerRadius.TopLeft);
+            hash.Add(shape.Clip?.Bounds ?? Rect.Empty);
+        }
+        return hash.ToHashCode();
     }
 
     private Rect GetAncestorClipRect(FrameworkElement el, Rect bounds)
@@ -879,7 +952,6 @@ public sealed class HomeGlassInlineLayer
 
         _maskCanvas.Measure(new Size(w, h));
         _maskCanvas.Arrange(new Rect(0, 0, w, h));
-        _maskCanvas.UpdateLayout();
 
         if (_maskBitmap == null || pw != _maskPw || ph != _maskPh || Math.Abs(k - _maskScale) > 0.0001)
         {

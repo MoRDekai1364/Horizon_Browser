@@ -151,7 +151,7 @@ public static class ExtensionService
     private static void SyncBundledExtensions()
     {
         var currentIds = Directory.Exists(AppBundleRoot)
-            ? Directory.GetDirectories(AppBundleRoot).Select(Path.GetFileName).ToHashSet(StringComparer.OrdinalIgnoreCase)
+            ? Directory.GetDirectories(AppBundleRoot).Select(Path.GetFileName).OfType<string>().ToHashSet(StringComparer.OrdinalIgnoreCase)
             : new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         if (Directory.Exists(AppBundleRoot))

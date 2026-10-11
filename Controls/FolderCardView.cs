@@ -607,6 +607,7 @@ internal static class TileFallback
 
     public static void Paint(Border tile, DrawerItem item)
     {
+        Horizon.Stealth.Services.HomeGlass.SetExclude(tile, true);
         if (NeedsLetter(item)) tile.Background = ColorFor(item.Name);
         else tile.SetResourceReference(Border.BackgroundProperty, "HomeAccentBrush");
     }

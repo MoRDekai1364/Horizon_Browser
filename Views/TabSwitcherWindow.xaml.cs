@@ -98,8 +98,6 @@ public partial class TabSwitcherWindow : Window
     public void CancelSelf()    => Cancel();
 
     // ── Build list ────────────────────────────────────────────────────────────
-    private Border? _lastAccent;
-
     private void CloseTabFromSwitcher(TabViewModel tab)
     {
         TabCloseRequested?.Invoke(tab);

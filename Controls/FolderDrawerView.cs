@@ -44,6 +44,9 @@ public sealed class OpenFolderView : UserControl
     private int _pageCount;
     private double _pageWidth;
     private bool _animating;
+    private int _relayouts;
+    private DispatcherTimer? _watch;
+    private string _watchState = "";
 
     public event Action<DrawerItem>? ItemActivated;
     public event Action? CloseRequested;

@@ -256,7 +256,6 @@ public partial class MainWindow : Window
     private DispatcherTimer _sidebarDwellTimer = new DispatcherTimer();
     private DispatcherTimer _sensorPollTimer   = new DispatcherTimer();
     private bool _isHeaderLockedOpen = false;
-    private bool _wpfShellLastFocused = true; // true = WPF shell had last click, false = WebView
     private bool _isSidebarLocked    = false;
     private DispatcherTimer _headerHideTimer = new DispatcherTimer();
     private bool _isReflowing = false;
@@ -1360,7 +1359,6 @@ public partial class MainWindow : Window
                 tab.IsLoading = true;
                 StartLoadingAnimation(tab);
             }
-            _wpfShellLastFocused = false;
             CurrentBrowser?.Navigate(url);
         };
 
@@ -1371,7 +1369,6 @@ public partial class MainWindow : Window
                 tab.IsLoading = true;
                 StartLoadingAnimation(tab);
             }
-            _wpfShellLastFocused = false;
             CurrentBrowser?.Navigate(url);
         };
 
@@ -1419,20 +1416,6 @@ public partial class MainWindow : Window
         this.ContentRendered += (s, e) => Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.ApplicationIdle, new Action(ScheduleReflow));
         this.PreviewKeyDown  += Window_PreviewKeyDown;
         this.PreviewKeyUp    += Window_PreviewKeyUp;
-
-        // Track which surface received the last mouse click so arrow-key routing is correct.
-        // WebView2 sinks focus silently — this is the only reliable detection point.
-        this.PreviewMouseDown += (s, e) =>
-        {
-            var hit = e.OriginalSource as DependencyObject;
-            while (hit != null)
-            {
-                if (hit is Microsoft.Web.WebView2.Wpf.WebView2)
-                { _wpfShellLastFocused = false; return; }
-                hit = VisualTreeHelper.GetParent(hit);
-            }
-            _wpfShellLastFocused = true;
-        };
 
         ApplyLayoutState();
 
@@ -10843,11 +10826,11 @@ private sealed class WeatherRetryHandler : DelegatingHandler
             v => SettingsService.Current.WeatherRightPaneDefaultOpen = v);
         bool wxFullscreen = false;
         WindowState wxPrevState = WindowState.Normal;
-        TextBlock fsGlyph = null;
-        Border exitFsBtn = null;
+        TextBlock fsGlyph = null!;
+        Border exitFsBtn = null!;
         bool layoutApplying = false;
-        ScaleTransform wxScale = null;
-        TextBlock layoutGlyph = null;
+        ScaleTransform wxScale = null!;
+        TextBlock layoutGlyph = null!;
         MakeCaptionButton("\uE921", false, () => win.WindowState = WindowState.Minimized);
         var (_, maxGlyph) = MakeCaptionButton("\uE922", false, () => win.WindowState = win.WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized);
         (_, fsGlyph) = MakeCaptionButton("\uE740", false, () => SetFullscreen(!wxFullscreen));

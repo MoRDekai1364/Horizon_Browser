@@ -1005,6 +1005,7 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
         SliderWidgetTint.Value          = s.HomeTintStrength;
         TblWidgetTintValue.Text         = $"{SliderWidgetTint.Value:0}%";
 
+        ChkDisableBlur.IsChecked = s.DisableBlurEffects;
         ChkStartupVideo.IsChecked = s.ShowStartupVideo;
         LoadStartupVideoOptions();
         
@@ -1104,6 +1105,8 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
             s.VisualizerColorScheme = vci.Tag?.ToString() ?? "Favicon";
         s.PaletteSampleRateSec = SliderPaletteSampleRate.Value;
         s.HomeTintStrength     = SliderWidgetTint.Value;
+        s.DisableBlurEffects   = ChkDisableBlur.IsChecked == true;
+        Horizon.Stealth.Controls.HomeGlassMotion.RaiseBlurSettingChanged();
 
         s.ShowStartupVideo = ChkStartupVideo.IsChecked == true;
         SaveStartupVideoOptions();

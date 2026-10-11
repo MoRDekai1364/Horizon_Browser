@@ -22,7 +22,6 @@ public partial class MainWindow
 
     private bool _fsDesired;
     private bool _fsBusy;
-    private bool _fsAnimating;
 
     private void ToggleFullscreen() => RequestFullscreen(!_fsDesired);
 
@@ -50,7 +49,6 @@ public partial class MainWindow
         }
         finally
         {
-            _fsAnimating = false;
             _fsBusy = false;
         }
     }
@@ -128,7 +126,6 @@ public partial class MainWindow
 
         if (!canAnimate)
         {
-            _fsAnimating = false;
             ApplyFullscreenImmediate();
             return;
         }
@@ -136,12 +133,10 @@ public partial class MainWindow
         using var curtain = FullscreenGlassCurtain.TryCreate(hwnd, enter ? "Entering fullscreen..." : "Exiting fullscreen...");
         if (curtain == null)
         {
-            _fsAnimating = false;
             ApplyFullscreenImmediate();
             return;
         }
 
-        _fsAnimating = true;
         SetOsWindowTransitions(hwnd, true);
 
         try
@@ -177,7 +172,6 @@ public partial class MainWindow
         finally
         {
             if (curtain.OwnerAlive) SetOsWindowTransitions(hwnd, false);
-            _fsAnimating = false;
         }
     }
 }
