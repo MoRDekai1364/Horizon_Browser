@@ -44,6 +44,9 @@ Verified by dumps: searchAreaBottom and islandBottom stay at or under the bounda
 - Right column pager dots: bigger, dynamic, gliding pill (done).
 - Right column drawer, folder view hover look: no blur ghost, no dark square (done).
 
+## FOLDER RULE (done)
+- A folder with 4 or fewer items shows every item as a full clickable tile. From the 5th item on, the cluster is restored (3 full tiles plus the cluster). Applied in FolderCardView and the drawer's Grow.
+
 ## NEW REQUIREMENTS FROM THE OWNER (this handoff)
 N1. The website shown in a right column widget (Gmail in screenshot) must render in MOBILE view, best fitting the column format.
 N2. Show more / Show less buttons must be completely detached from the right column. They must expand the central widget into a Linux-start-menu-like view covering the entire browser window, with X and < buttons. (This replaces the earlier "island fills the central column" decision.)
@@ -78,9 +81,9 @@ Phase 3 - Right column widgets: removable, off by default, plus button, settings
 
 Phase 4 - Show more start-menu view (N2)
 - Detach Show more / Show less from the right column (stop calling ExpandStackFor).
-- New window-level host (generalize FolderSheetHost or add a sibling) that grows from the Show more button to cover the whole browser window (ask: does it also cover the tab and address header, or only the page area). Contents: all bookmarks as folder cards with the cluster sheet working inside it; X and < buttons close; Esc closes.
+- New window-level host (generalize FolderSheetHost or add a sibling) that grows from the Show more button to cover the whole browser window (DECIDED: covers the page area below the header; tabs, address bar and window controls stay visible). Contents: all bookmarks as folder cards with the cluster sheet working inside it; X and < buttons close; Esc closes.
 - Mockup first.
-- Files: Views/HomePageView.xaml(.cs), Controls/FolderCardView.cs, MainWindow.xaml and .cs if the host must live above the header.
+- Files: Views/HomePageView.xaml(.cs), Controls/FolderCardView.cs.
 
 Phase 5 - Web widget mobile view (N1)
 - Trace how StackElementBuilders creates web elements (WebView2). Apply a mobile user agent and a mobile viewport (CoreWebView2 UserAgent and DevToolsProtocol Emulation.setDeviceMetricsOverride with width from the live column width, mobile=true), re-applied on resize. Keep it per element so only the right column widgets are affected.

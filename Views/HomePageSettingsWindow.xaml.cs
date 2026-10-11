@@ -27,7 +27,19 @@ public partial class HomePageSettingsWindow : Window
         InitializeComponent();
         Loaded += HomePageSettingsWindow_Loaded;
         Loaded += (_, __) => BuildGlassBackdrop();
+        Loaded += (_, __) => ClampToWorkArea();
         Closed += (_, __) => _detachGlassBackdrop?.Invoke();
+    }
+
+    private void ClampToWorkArea()
+    {
+        const double edgeMargin = 60.0;
+        var area = SystemParameters.WorkArea;
+        MaxWidth = Math.Min(MaxWidth, Math.Max(MinWidth, area.Width - edgeMargin));
+        MaxHeight = Math.Min(MaxHeight, Math.Max(MinHeight, area.Height - edgeMargin));
+        UpdateLayout();
+        Top = Math.Min(Math.Max(Top, area.Top), Math.Max(area.Top, area.Bottom - ActualHeight));
+        Left = Math.Min(Math.Max(Left, area.Left), Math.Max(area.Left, area.Right - ActualWidth));
     }
 
     private void BuildGlassBackdrop()
