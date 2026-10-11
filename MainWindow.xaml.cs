@@ -1416,6 +1416,7 @@ public partial class MainWindow : Window
             }
         };
         this.ContentRendered += (s, e) => ScheduleReflow();
+        this.ContentRendered += (s, e) => Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.ApplicationIdle, new Action(ScheduleReflow));
         this.PreviewKeyDown  += Window_PreviewKeyDown;
         this.PreviewKeyUp    += Window_PreviewKeyUp;
 
@@ -1704,7 +1705,7 @@ public partial class MainWindow : Window
         if (exact >= TAB_MIN_WIDTH)     return (regularCount, exact);
 
         int fit = Math.Max(0, (int)(remaining / (TAB_MIN_WIDTH + TAB_MARGIN * 2)));
-        if (fit == 0) return (0, TAB_MIN_WIDTH);
+        if (fit == 0) return (protectedCount == 0 && regularCount > 0 ? 1 : 0, TAB_MIN_WIDTH);
         double fitWidth = Math.Min(TAB_DEFAULT_WIDTH, remaining / fit - TAB_MARGIN * 2);
         return (fit, Math.Max(TAB_MIN_WIDTH, fitWidth));
     }

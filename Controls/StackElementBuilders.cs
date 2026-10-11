@@ -26,6 +26,7 @@ internal sealed class StackWebHost : Border, IDisposable
     private bool _suspended;
     private bool _dirty;
     private bool _disposed;
+    private DispatcherTimer? _emuTimer;
 
     public StackWebHost(StackElementData data)
     {
@@ -220,7 +221,8 @@ internal sealed class StackWebHost : Border, IDisposable
 
             var core = view.CoreWebView2;
             await Horizon.Stealth.Core.StealthEnvironment.ApplyStealthStrategies(core);
-            if (_profile.MobileUserAgent) core.Settings.UserAgent = MobileUa;
+            core.Settings.UserAgent = MobileUa;
+            view.SizeChanged += (_, __) => ScheduleEmulation();
             if (isolated && _profile.PreferDark) core.Profile.PreferredColorScheme = CoreWebView2PreferredColorScheme.Dark;
 
             string combinedCss = (_profile.HideCss + "\n" + _data.UserCss).Trim();
@@ -234,7 +236,9 @@ internal sealed class StackWebHost : Border, IDisposable
             core.DocumentTitleChanged += (_, __) => UpdateBadge(core.DocumentTitle);
             core.NavigationCompleted += (_, __) =>
             {
-                if (!_disposed && _view != null) _view.ZoomFactor = _profile.Zoom;
+                if (_disposed || _view == null) return;
+                _view.ZoomFactor = 1.0;
+                _ = ApplyMobileEmulation();
             };
             core.NewWindowRequested += (_, e) =>
             {
@@ -242,6 +246,7 @@ internal sealed class StackWebHost : Border, IDisposable
                 if (!string.IsNullOrWhiteSpace(e.Uri)) core.Navigate(e.Uri);
             };
 
+            await ApplyMobileEmulation();
             core.Navigate(_data.Url);
             LogService.Write("Stack", $"Web element started: {_data.Title} (isolated={isolated}, template={_data.SourceId})");
         }
@@ -253,6 +258,53 @@ internal sealed class StackWebHost : Border, IDisposable
         finally
         {
             _initializing = false;
+        }
+    }
+
+    private void ScheduleEmulation()
+    {
+        if (_disposed) return;
+        if (_emuTimer == null)
+        {
+            _emuTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(120) };
+            _emuTimer.Tick += (_, __) =>
+            {
+                _emuTimer?.Stop();
+                _ = ApplyMobileEmulation();
+            };
+        }
+        _emuTimer.Stop();
+        _emuTimer.Start();
+    }
+
+    private async Task ApplyMobileEmulation()
+    {
+        try
+        {
+            var view = _view;
+            var core = view?.CoreWebView2;
+            if (_disposed || view == null || core == null || _suspended) return;
+
+            string uaJson = "{\"userAgent\":" + System.Text.Json.JsonSerializer.Serialize(MobileUa)
+                + ",\"userAgentMetadata\":{\"platform\":\"Android\",\"platformVersion\":\"13.0.0\",\"architecture\":\"\",\"model\":\"Pixel 7\",\"mobile\":true,"
+                + "\"brands\":[{\"brand\":\"Chromium\",\"version\":\"122\"},{\"brand\":\"Not(A:Brand\",\"version\":\"24\"}],"
+                + "\"fullVersionList\":[{\"brand\":\"Chromium\",\"version\":\"122.0.0.0\"},{\"brand\":\"Not(A:Brand\",\"version\":\"24.0.0.0\"}]}}";
+            await core.CallDevToolsProtocolMethodAsync("Emulation.setUserAgentOverride", uaJson);
+
+            int w = (int)Math.Round(view.ActualWidth);
+            int h = (int)Math.Round(view.ActualHeight);
+            if (w < 50 || h < 50) return;
+
+            if (view.ZoomFactor != 1.0) view.ZoomFactor = 1.0;
+            string size = w.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            string high = h.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            await core.CallDevToolsProtocolMethodAsync("Emulation.setDeviceMetricsOverride",
+                "{\"width\":" + size + ",\"height\":" + high + ",\"deviceScaleFactor\":0,\"mobile\":true,\"screenWidth\":" + size + ",\"screenHeight\":" + high + "}");
+            await core.CallDevToolsProtocolMethodAsync("Emulation.setTouchEmulationEnabled", "{\"enabled\":true,\"maxTouchPoints\":5}");
+        }
+        catch (Exception ex)
+        {
+            LogService.RecordCrash(ex, "StackWebHost.MobileEmulation");
         }
     }
 
@@ -299,6 +351,7 @@ internal sealed class StackWebHost : Border, IDisposable
         if (_disposed) return;
         _disposed = true;
         _refreshTimer?.Stop();
+        _emuTimer?.Stop();
         ReleaseView();
     }
 }

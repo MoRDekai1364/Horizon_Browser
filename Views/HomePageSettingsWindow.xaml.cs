@@ -25,10 +25,42 @@ public partial class HomePageSettingsWindow : Window
     public HomePageSettingsWindow()
     {
         InitializeComponent();
+        MaxHeight = Math.Min(MaxHeight, Math.Max(MinHeight, SystemParameters.WorkArea.Height - 60.0));
+        SizeChanged += (_, __) => KeepInWorkArea();
         Loaded += HomePageSettingsWindow_Loaded;
         Loaded += (_, __) => BuildGlassBackdrop();
         Loaded += (_, __) => ClampToWorkArea();
         Closed += (_, __) => _detachGlassBackdrop?.Invoke();
+    }
+
+    private void PreSizeTabs()
+    {
+        int keep = Math.Max(0, TabsHomeSettings.SelectedIndex);
+        for (int i = 0; i < TabsHomeSettings.Items.Count; i++)
+        {
+            TabsHomeSettings.SelectedIndex = i;
+            TabsHomeSettings.UpdateLayout();
+        }
+        TabsHomeSettings.SelectedIndex = keep;
+        TabsHomeSettings.UpdateLayout();
+        UpdateLayout();
+
+        double w = ActualWidth;
+        double h = ActualHeight;
+        if (w < 1 || h < 1) return;
+        SizeToContent = SizeToContent.Manual;
+        Width = w;
+        Height = Math.Min(h, MaxHeight);
+    }
+
+    private void KeepInWorkArea()
+    {
+        if (double.IsNaN(Top) || double.IsNaN(Left)) return;
+        var area = SystemParameters.WorkArea;
+        double top = Math.Min(Math.Max(Top, area.Top), Math.Max(area.Top, area.Bottom - ActualHeight));
+        double left = Math.Min(Math.Max(Left, area.Left), Math.Max(area.Left, area.Right - ActualWidth));
+        if (Math.Abs(top - Top) > 0.5) Top = top;
+        if (Math.Abs(left - Left) > 0.5) Left = left;
     }
 
     private void ClampToWorkArea()
@@ -37,6 +69,7 @@ public partial class HomePageSettingsWindow : Window
         var area = SystemParameters.WorkArea;
         MaxWidth = Math.Min(MaxWidth, Math.Max(MinWidth, area.Width - edgeMargin));
         MaxHeight = Math.Min(MaxHeight, Math.Max(MinHeight, area.Height - edgeMargin));
+        PreSizeTabs();
         UpdateLayout();
         Top = Math.Min(Math.Max(Top, area.Top), Math.Max(area.Top, area.Bottom - ActualHeight));
         Left = Math.Min(Math.Max(Left, area.Left), Math.Max(area.Left, area.Right - ActualWidth));
@@ -76,7 +109,7 @@ public partial class HomePageSettingsWindow : Window
 
         void Apply()
         {
-            byte bgAlpha = TintService.Apply(0xD9);
+            byte bgAlpha = (byte)Math.Max((int)TintService.Apply(0xD9), 0xB0);
             Color searchBg = WeatherBridge.ThemeDarkWallpaper
                 ? Color.FromArgb(bgAlpha, 0x1A, 0x1A, 0x1A)
                 : Color.FromArgb(bgAlpha, 0xFF, 0xFF, 0xFF);

@@ -286,8 +286,62 @@ public partial class SettingsWindow : Window
     public SettingsWindow()
     {
         InitializeComponent();
+        Loaded += (_, __) => BuildGlassBackdrop();
+        Closed += (_, __) => _detachGlassBackdrop?.Invoke();
         LoadState();
         LoadVersionDisplay();
+    }
+
+    private Action? _detachGlassBackdrop;
+
+    private void BuildGlassBackdrop()
+    {
+        var wallBrush = new ImageBrush();
+        var wallLayer = new Border
+        {
+            RenderTransformOrigin = new Point(0.5, 0.5),
+            RenderTransform = new ScaleTransform(1.08, 1.08),
+            Background = wallBrush,
+            Effect = new BlurEffect
+            {
+                Radius = 32,
+                KernelType = KernelType.Gaussian,
+                RenderingBias = RenderingBias.Performance
+            }
+        };
+        var tintLayer = new Border();
+        var glassHost = new Grid { Visibility = Visibility.Collapsed };
+        glassHost.Children.Add(wallLayer);
+        glassHost.Children.Add(tintLayer);
+        GlassBackdropHost.Children.Add(glassHost);
+
+        var unbind = WidgetBackdropService.Bind(this, wallBrush, overlap =>
+        {
+            if (overlap == null)
+            {
+                glassHost.Visibility = Visibility.Collapsed;
+                return;
+            }
+            glassHost.Clip = new RectangleGeometry(overlap.Value);
+            glassHost.Visibility = Visibility.Visible;
+        });
+
+        void Apply()
+        {
+            byte bgAlpha = (byte)Math.Max((int)TintService.Apply(0xD9), 0xB0);
+            Color searchBg = WeatherBridge.ThemeDarkWallpaper
+                ? Color.FromArgb(bgAlpha, 0x1A, 0x1A, 0x1A)
+                : Color.FromArgb(bgAlpha, 0xFF, 0xFF, 0xFF);
+            tintLayer.Background = HomePageView.CreateSearchBarBackgroundBrush(searchBg);
+            wallLayer.Opacity = WeatherBridge.ThemeWallpaper != null
+                ? Math.Clamp(0.55 * SettingsService.Current.BackgroundOpacity, 0.0, 1.0)
+                : 0.0;
+        }
+
+        Apply();
+        Action handler = () => Dispatcher.BeginInvoke(new Action(Apply));
+        WeatherBridge.ThemeUpdated += handler;
+        _detachGlassBackdrop = () => { WeatherBridge.ThemeUpdated -= handler; unbind(); };
     }
 
     private void TitleBarRow_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
