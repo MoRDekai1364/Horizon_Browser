@@ -1332,6 +1332,11 @@ public partial class MainWindow : Window
         InitSidebarAmbientGlow();
         InitHeaderWallpaperGlass();
         InitSidebarWallpaperGlass();
+        Horizon.Stealth.Controls.HomeGlassMotion.BlurSettingChanged += () => Dispatcher.BeginInvoke(new Action(() =>
+        {
+            if (!_closedForReal) ApplyNoBlurChrome();
+        }));
+        ApplyNoBlurChrome();
 
         this.Closing += MainWindow_Closing;
         BackgroundKeepAliveService.Initialize(this);
@@ -3273,10 +3278,74 @@ return colors.length > 0 ? colors : null;
         Color fallback = CurrentBrowser?.NativeHomePage.SearchBarTextColor ?? Colors.White;
         Color left  = HomeGlassService.ToGrayscale(SampleWallpaperRegionColor(PnlHeaderNavButtons, fallback));
         Color right = HomeGlassService.ToGrayscale(SampleWallpaperRegionColor(PnlHeaderRightIcons, fallback));
-        _headerWallpaperBWBrush!.GradientStops[0].Color = Color.FromArgb(235, left.R, left.G, left.B);
-        _headerWallpaperBWBrush.GradientStops[1].Color  = Color.FromArgb(0, left.R, left.G, left.B);
-        _headerWallpaperBWBrush.GradientStops[2].Color  = Color.FromArgb(0, right.R, right.G, right.B);
-        _headerWallpaperBWBrush.GradientStops[3].Color  = Color.FromArgb(235, right.R, right.G, right.B);
+        bool flat = SettingsService.Current.DisableBlurEffects;
+        byte edgeAlpha = flat ? (byte)255 : (byte)235;
+        byte midAlpha = flat ? (byte)255 : (byte)0;
+        _headerWallpaperBWBrush!.GradientStops[0].Color = Color.FromArgb(edgeAlpha, left.R, left.G, left.B);
+        _headerWallpaperBWBrush.GradientStops[1].Color  = Color.FromArgb(midAlpha, left.R, left.G, left.B);
+        _headerWallpaperBWBrush.GradientStops[2].Color  = Color.FromArgb(midAlpha, right.R, right.G, right.B);
+        _headerWallpaperBWBrush.GradientStops[3].Color  = Color.FromArgb(edgeAlpha, right.R, right.G, right.B);
+
+        if (flat)
+        {
+            Color side = HomeGlassService.ToGrayscale(SampleWallpaperRegionColor(SidebarContainer, fallback));
+            SidebarWallpaperGlassBlur.Background = new SolidColorBrush(side);
+        }
+    }
+
+    private static System.Windows.Media.Effects.BlurEffect MakeChromeBlur(double radius)
+    {
+        return new System.Windows.Media.Effects.BlurEffect
+        {
+            Radius = radius,
+            KernelType = System.Windows.Media.Effects.KernelType.Gaussian,
+            RenderingBias = System.Windows.Media.Effects.RenderingBias.Performance
+        };
+    }
+
+    private void ApplyNoBlurChrome()
+    {
+        bool flat = SettingsService.Current.DisableBlurEffects;
+
+        HeaderWallpaperGlassBlur.Effect = flat ? null : MakeChromeBlur(HomeGlassService.DefaultEdgeGlassBlurRadius);
+        HeaderSidebarStripBlur.Effect = flat ? null : MakeChromeBlur(HomeGlassService.DefaultEdgeGlassBlurRadius);
+        SidebarWallpaperGlassBlur.Effect = flat ? null : MakeChromeBlur(HomeGlassService.SidebarSearchBarBlurRadius);
+        HeaderAmbientGlow.Effect = flat ? null : MakeChromeBlur(28);
+        SidebarSiteGlowFill.Effect = flat ? null : MakeChromeBlur(60);
+
+        HeaderHomeBlurBleed.Opacity = flat ? 0 : 1;
+        SidebarHomeBlurBleedBorder.Opacity = flat ? 0 : 1;
+
+        HeaderWallpaperGlassBlur.Background = flat ? null : _headerOwnBlurBrush;
+        HeaderSidebarStripBlur.Background = flat ? null : _headerSidebarStripBrush;
+        SidebarWallpaperGlassBlur.Background = flat ? null : _sidebarOwnBlurBrush;
+
+        UpdateHeaderHomeState();
+        UpdateHeaderAmbientGlow(GetCurrentTabViewModel());
+    }
+
+    private void FlattenGlowColors(Color? site)
+    {
+        if (!SettingsService.Current.DisableBlurEffects || _headerGlowBrush == null) return;
+
+        Color bw;
+        if (site.HasValue)
+        {
+            Color s = site.Value;
+            double brightness = (0.299 * s.R + 0.587 * s.G + 0.114 * s.B) / 255.0;
+            bw = brightness >= 0.5 ? Color.FromRgb(0xF5, 0xF5, 0xF5) : Color.FromRgb(0x0A, 0x0A, 0x0A);
+        }
+        else
+        {
+            bw = GetHeaderGlowOuterNeutral();
+        }
+
+        for (int i = 0; i < 3; i++)
+        {
+            _headerGlowBrush.GradientStops[i].Color = Color.FromArgb(255, bw.R, bw.G, bw.B);
+            if (_sidebarGlowBrush != null)
+                _sidebarGlowBrush.GradientStops[i].Color = Color.FromArgb(255, bw.R, bw.G, bw.B);
+        }
     }
 
     private void RefreshHeaderWallpaperCrop()
@@ -3688,6 +3757,7 @@ return colors.length > 0 ? colors : null;
             }
             SetHeaderButtonForeground(null);
             SetSidebarSecondaryAccent(null);
+            FlattenGlowColors(null);
             PlayGlowFade(glowFrom);
             return;
         }
@@ -3708,6 +3778,7 @@ return colors.length > 0 ? colors : null;
 
         SetHeaderButtonForeground(ChooseContrastingBW(main));
         SetSidebarSecondaryAccent(main);
+        FlattenGlowColors(main);
         PlayGlowFade(glowFrom);
     }
 

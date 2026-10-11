@@ -491,6 +491,10 @@ public sealed class HomeGlassInlineLayer
     private bool _refreshQueued;
     private DateTime _motionUntilUtc = DateTime.MinValue;
     private bool _motionHooked;
+    private bool _flat;
+    private readonly SolidColorBrush _flatBrush = new SolidColorBrush(Colors.Black);
+
+    public Func<Color?>? FlatColorProvider { get; set; }
 
     public HomeGlassInlineLayer(Grid root, ImageBrush imageSource, MediaElement video)
     {
@@ -590,15 +594,12 @@ public sealed class HomeGlassInlineLayer
     {
         if (BlurDisabled)
         {
-            StopMotion();
-            _layer.Visibility = Visibility.Collapsed;
             _layer.OpacityMask = null;
             _blur.Background = null;
             _blurVideo = null;
             _maskBrush = null;
             _maskBitmap = null;
             _mode = Mode.None;
-            return;
         }
         QueueRefresh();
     }
@@ -622,7 +623,7 @@ public sealed class HomeGlassInlineLayer
 
     private void OnMotionPulse(int durationMs)
     {
-        if (!_root.IsVisible || BlurDisabled) return;
+        if (!_root.IsVisible) return;
         DateTime until = DateTime.UtcNow.AddMilliseconds(durationMs + 100);
         if (until > _motionUntilUtc) _motionUntilUtc = until;
         if (!_motionHooked)
@@ -706,7 +707,6 @@ public sealed class HomeGlassInlineLayer
 
     private void QueueRefresh()
     {
-        if (BlurDisabled) return;
         if (_refreshQueued) return;
         _refreshQueued = true;
         double elapsedMs = (DateTime.UtcNow - _lastRefreshUtc).TotalMilliseconds;
@@ -734,11 +734,6 @@ public sealed class HomeGlassInlineLayer
     private void Refresh()
     {
         _refreshQueued = false;
-        if (BlurDisabled)
-        {
-            _layer.Visibility = Visibility.Collapsed;
-            return;
-        }
         _lastRefreshUtc = DateTime.UtcNow;
         try
         {
@@ -751,12 +746,21 @@ public sealed class HomeGlassInlineLayer
             double w = _root.ActualWidth;
             double h = _root.ActualHeight;
             var mode = ResolveMode();
-            if (!_root.IsVisible || w <= 0 || h <= 0 || mode == Mode.None || _shapes.Count == 0)
+            bool flat = BlurDisabled;
+            if (!_root.IsVisible || w <= 0 || h <= 0 || (!flat && mode == Mode.None) || _shapes.Count == 0)
             {
                 _layer.Visibility = Visibility.Collapsed;
                 return;
             }
-            ApplySource(mode, w, h);
+            if (flat)
+            {
+                EnterFlat();
+            }
+            else
+            {
+                ExitFlat();
+                ApplySource(mode, w, h);
+            }
             UpdateMask(w, h);
             _layer.Visibility = Visibility.Visible;
         }
@@ -765,6 +769,40 @@ public sealed class HomeGlassInlineLayer
             LogService.Write("HomeGlass", "Inline refresh failed, falling back to transparency: " + ex);
             _layer.Visibility = Visibility.Collapsed;
         }
+    }
+
+    private void EnterFlat()
+    {
+        Color? provided = FlatColorProvider?.Invoke();
+        Color gray = provided ?? Colors.Black;
+        _flatBrush.Color = Color.FromArgb(235, gray.R, gray.G, gray.B);
+
+        if (!_flat)
+        {
+            _flat = true;
+            _layer.OpacityMask = null;
+            _maskBrush = null;
+            _maskBitmap = null;
+            _base.Visibility = Visibility.Collapsed;
+            _blur.Visibility = Visibility.Collapsed;
+            if (!_layer.Children.Contains(_maskCanvas)) _layer.Children.Add(_maskCanvas);
+        }
+
+        foreach (var shape in _shapes.Values)
+        {
+            if (!ReferenceEquals(shape.Background, _flatBrush)) shape.Background = _flatBrush;
+        }
+    }
+
+    private void ExitFlat()
+    {
+        if (!_flat) return;
+        _flat = false;
+        _layer.Children.Remove(_maskCanvas);
+        _base.Visibility = Visibility.Visible;
+        _blur.Visibility = Visibility.Visible;
+        foreach (var shape in _shapes.Values) shape.Background = Brushes.Black;
+        _maskSignature = 0;
     }
 
     private void ApplySource(Mode mode, double w, double h)
@@ -868,6 +906,7 @@ public sealed class HomeGlassInlineLayer
             shape.Visibility = Visibility.Visible;
             if (diag) LogService.Write("PillDiag", $"  -> shape set: opacity={shape.Opacity:0.###} visibility={shape.Visibility} cornerRadius={shape.CornerRadius}");
         }
+        if (_flat) return;
         int signature = ComputeMaskSignature(w, h);
         if (signature == _maskSignature && _maskBitmap != null && ReferenceEquals(_layer.OpacityMask, _maskBrush)) return;
         _maskSignature = signature;

@@ -64,6 +64,9 @@ public partial class HomePageView : UserControl
         _homeGlass.Register(FavBookmarksIslandBorder);
         _homeGlass.Register(PnlBatteryPill);
         _homeGlass.Register(BtnChangeWallpaperBg);
+        _homeGlass.FlatColorProvider = () => _lastAdaptiveAvgColor.HasValue
+            ? (Color?)HomeGlassService.ToGrayscale(_lastAdaptiveAvgColor.Value)
+            : null;
         Loaded += (_, __) => WeatherBridge.SetWallpaperSurface(RootHomeGrid);
         Unloaded += (_, __) =>
         {
@@ -1446,6 +1449,7 @@ public partial class HomePageView : UserControl
     private void ApplyAdaptiveColors(Color avg)
     {
         _lastAdaptiveAvgColor = avg;
+        _homeGlass.Invalidate();
         PublishWeatherTheme(avg);
         RgbToHsl(avg, out double hue, out double sat, out double lum);
         if (IsVisible) PublishWeatherTheme(avg);
