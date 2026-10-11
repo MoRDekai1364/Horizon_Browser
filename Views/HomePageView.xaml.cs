@@ -3620,6 +3620,9 @@ public partial class HomePageView : UserControl
     {
         _startMenuHost.CornerRadius = new CornerRadius(0);
         _startMenuHost.Underlays.Add(GridHomeLayout);
+        _startMenuHost.Underlays.Add(PnlBatteryPill);
+        _startMenuHost.Underlays.Add(BtnHomeSettings);
+        _startMenuHost.Underlays.Add(PnlBottomRightButtons);
         Panel.SetZIndex(_startMenuHost, 100);
         RootHomeGrid.Children.Add(_startMenuHost);
     }
