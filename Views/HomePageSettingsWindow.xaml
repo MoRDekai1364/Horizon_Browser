@@ -182,6 +182,18 @@
                         <CheckBox x:Name="ChkWidgetBattery" Content="Battery indicator" Foreground="White"
                                   Margin="0,0,0,8" Checked="WidgetToggle_Changed" Unchecked="WidgetToggle_Changed"/>
 
+                        <TextBlock Text="Right column" Foreground="{DynamicResource Brush_Accent}" FontSize="13" Margin="0,14,0,10"/>
+                        <CheckBox x:Name="ChkRightColumn" Content="Show right column" Foreground="White"
+                                  Margin="0,0,0,8" Checked="RightColumnToggle_Changed" Unchecked="RightColumnToggle_Changed"/>
+                        <CheckBox x:Name="ChkRightFavorites" Content="Favorites drawer" Foreground="White"
+                                  Margin="20,0,0,8" Checked="RightColumnToggle_Changed" Unchecked="RightColumnToggle_Changed"/>
+                        <CheckBox x:Name="ChkRightBookmarks" Content="Bookmarks drawer" Foreground="White"
+                                  Margin="20,0,0,8" Checked="RightColumnToggle_Changed" Unchecked="RightColumnToggle_Changed"/>
+                        <TextBlock Text="Added elements" Foreground="#888888" FontSize="10" Margin="0,6,0,2"/>
+                        <ListBox x:Name="ListRightElements" Height="90" DisplayMemberPath="Title"/>
+                        <Button x:Name="BtnRightElementRemove" Content="Remove selected" Width="120" Height="26"
+                                HorizontalAlignment="Left" Margin="0,6,0,8" Click="BtnRightElementRemove_Click"/>
+
                         <TextBlock Text="Collapsed group style" Foreground="{DynamicResource Brush_Accent}" FontSize="13" Margin="0,14,0,6"/>
                         <ComboBox x:Name="CmbGroupStyle" Height="28" Margin="0,0,0,8"
                                   SelectionChanged="CmbGroupStyle_SelectionChanged"/>

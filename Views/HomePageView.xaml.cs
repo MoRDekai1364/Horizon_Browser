@@ -103,7 +103,12 @@ public partial class HomePageView : UserControl
                 e.Handled = true;
                 return;
             }
-            if (e.Key == Key.Escape && HomeStack.IsExpanded && !HomeStack.IsOverlayOpen)
+            if (e.Key == Key.Escape && _startMenuHost.IsOpen)
+            {
+                _startMenuHost.Close();
+                e.Handled = true;
+            }
+            else if (e.Key == Key.Escape && HomeStack.IsExpanded && !HomeStack.IsOverlayOpen)
             {
                 CollapseStack();
                 e.Handled = true;
@@ -397,7 +402,7 @@ public partial class HomePageView : UserControl
         }
         else
         {
-            EnterWidgetFocusMode("Favorites");
+            OpenStartMenu(true, sender as FrameworkElement);
         }
     }
 
@@ -410,7 +415,7 @@ public partial class HomePageView : UserControl
         }
         else
         {
-            EnterWidgetFocusMode("Bookmarks");
+            OpenStartMenu(false, sender as FrameworkElement);
         }
     }
 
@@ -2908,12 +2913,55 @@ public partial class HomePageView : UserControl
         SearchBoxBorder.MinWidth = Math.Min(_searchBarWidth, SearchBoxBorder.MaxWidth);
     }
 
+    private double _engineFullWidth;
+    private bool _engineShown = true;
+
+    private void SetEnginePickerShown(bool show, bool animate)
+    {
+        if (_engineFullWidth <= 0 && !double.IsNaN(CmbSearchEngine.Width) && CmbSearchEngine.Width > 0)
+            _engineFullWidth = CmbSearchEngine.Width;
+
+        if (_engineFullWidth <= 0)
+        {
+            CmbSearchEngine.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+            return;
+        }
+
+        _engineShown = show;
+        CmbSearchEngine.ClipToBounds = true;
+        CmbSearchEngine.IsHitTestVisible = show;
+        double toWidth = show ? _engineFullWidth : 0;
+        double toOpacity = show ? 1 : 0;
+
+        if (!animate || !IsLoaded)
+        {
+            CmbSearchEngine.BeginAnimation(FrameworkElement.WidthProperty, null);
+            CmbSearchEngine.BeginAnimation(UIElement.OpacityProperty, null);
+            CmbSearchEngine.Width = toWidth;
+            CmbSearchEngine.Opacity = toOpacity;
+            CmbSearchEngine.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+            return;
+        }
+
+        CmbSearchEngine.Visibility = Visibility.Visible;
+        var duration = TimeSpan.FromSeconds(SnapMotion.Seconds);
+        var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
+        var widthAnimation = new DoubleAnimation { To = toWidth, Duration = duration, EasingFunction = ease };
+        widthAnimation.Completed += (_, _) =>
+        {
+            if (!_engineShown) CmbSearchEngine.Visibility = Visibility.Collapsed;
+        };
+        var opacityAnimation = new DoubleAnimation { To = toOpacity, Duration = duration, EasingFunction = ease };
+        CmbSearchEngine.BeginAnimation(FrameworkElement.WidthProperty, widthAnimation);
+        CmbSearchEngine.BeginAnimation(UIElement.OpacityProperty, opacityAnimation);
+    }
+
     private void ApplySearchModeVisual()
     {
         PnlSearchMode.Visibility = _inFocusMode ? Visibility.Collapsed : Visibility.Visible;
         if (!_inFocusMode)
         {
-            CmbSearchEngine.Visibility = _searchMode == "Search" ? Visibility.Visible : Visibility.Collapsed;
+            SetEnginePickerShown(_searchMode == "Search", _animateModeThumb);
             TxtHomeSearchPlaceholder.Text = _searchMode switch
             {
                 "Favorites" => "Favorites here...",
@@ -3188,6 +3236,7 @@ public partial class HomePageView : UserControl
         win.TintStrengthChanged += RefreshAdaptiveTint;
         win.ShowDialog();
         win.TintStrengthChanged -= RefreshAdaptiveTint;
+        SyncRightColumn();
         if (_inactivityTimer != null)
             _inactivityTimer.Interval = TimeSpan.FromSeconds(SettingsService.Current.HomeInactivityTimeoutSeconds);
         ApplySectionAndWidgetVisibility();
@@ -3328,6 +3377,7 @@ public partial class HomePageView : UserControl
 
     private void BuildHomeStack()
     {
+        BuildStartMenu();
         StackElementBuilders.RegisterBuiltInWidgets();
         StackElementBuilders.RegisterLaunchWidgets();
         StackElementBuilders.RegisterWebElements();
@@ -3343,13 +3393,14 @@ public partial class HomePageView : UserControl
         _bookmarkCards.FolderOpenRequested += CardSheet_Requested;
         _favoriteCards.RowsChanged += ApplyScrollCap;
         _bookmarkCards.RowsChanged += ApplyScrollCap;
-        AddStackEntry("builtin:favorites", "Favorites", _favoritesDrawer);
+        if (SettingsService.Current.HomeRightColumnFavorites) AddStackEntry("builtin:favorites", "Favorites", _favoritesDrawer);
         AddStackEntry("builtin:bookmarks", "Bookmarks", _bookmarksDrawer);
         UpdateFavoritesDrawer();
         UpdateBookmarksDrawer();
         foreach (var stored in StackElementStore.Elements)
             AddStackEntry(stored.Id, stored.Title, StackElementBuilders.Build(stored));
         BuildStackMenu();
+        HomeStack.AddRequested += () => OpenStackWizard(null);
         System.ComponentModel.DependencyPropertyDescriptor
             .FromProperty(ColumnDefinition.WidthProperty, typeof(ColumnDefinition))
             ?.AddValueChanged(ColRightBalance, (_, __) => Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(UpdateHomeStackVisibility)));
@@ -3447,9 +3498,41 @@ public partial class HomePageView : UserControl
         HomeStack.Select(view);
     }
 
+    private void SyncRightColumn()
+    {
+        var s = SettingsService.Current;
+        SyncBuiltinEntry("builtin:favorites", "Favorites", _favoritesDrawer, s.HomeRightColumnFavorites);
+        SyncBuiltinEntry("builtin:bookmarks", "Bookmarks", _bookmarksDrawer, s.HomeRightColumnBookmarks);
+        var storedIds = StackElementStore.Elements.Select(e => e.Id).ToHashSet();
+        for (int i = _stackEntries.Count - 1; i >= 0; i--)
+        {
+            var entry = _stackEntries[i];
+            if (entry.Id.StartsWith("builtin:") || storedIds.Contains(entry.Id)) continue;
+            _stackEntries.RemoveAt(i);
+            HomeStack.RemoveElement(entry.View);
+            if (entry.View is IDisposable removed) removed.Dispose();
+        }
+        UpdateHomeStackVisibility();
+    }
+
+    private void SyncBuiltinEntry(string id, string title, FolderDrawerView? drawer, bool wanted)
+    {
+        if (drawer == null) return;
+        int index = _stackEntries.FindIndex(e => e.Id == id);
+        if (wanted && index < 0)
+        {
+            AddStackEntry(id, title, drawer);
+        }
+        else if (!wanted && index >= 0)
+        {
+            _stackEntries.RemoveAt(index);
+            HomeStack.RemoveElement(drawer);
+        }
+    }
+
     private void UpdateHomeStackVisibility()
     {
-        bool visible = ColRightBalance.ActualWidth >= 260;
+        bool visible = SettingsService.Current.HomeShowRightColumn && ColRightBalance.ActualWidth >= 260;
         HomeStack.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
         if (!visible) CollapseStack();
         ScheduleStackRestSize();
@@ -3529,6 +3612,34 @@ public partial class HomePageView : UserControl
         TxtToggleBookmarks.Text = "▼ Show more";
     }
 
+    private readonly FolderSheetHost _startMenuHost = new();
+    private List<DrawerGroup> _favoriteGroups = new();
+    private List<DrawerGroup> _bookmarkGroups = new();
+
+    private void BuildStartMenu()
+    {
+        _startMenuHost.CornerRadius = new CornerRadius(0);
+        _startMenuHost.Underlays.Add(GridHomeLayout);
+        Panel.SetZIndex(_startMenuHost, 100);
+        RootHomeGrid.Children.Add(_startMenuHost);
+    }
+
+    private void OpenStartMenu(bool favorites, FrameworkElement? origin)
+    {
+        var view = new StartMenuView(favorites ? "Favorites" : "Bookmarks");
+        view.SetGroups(favorites ? _favoriteGroups : _bookmarkGroups);
+        view.CloseRequested += () => _startMenuHost.Close();
+        view.ItemActivated += item =>
+        {
+            _startMenuHost.Close();
+            DrawerItem_Activated(item);
+        };
+        Rect bounds = new Rect(0, 0, 1, 1);
+        if (origin != null && origin.IsLoaded)
+            bounds = origin.TransformToAncestor(RootHomeGrid).TransformBounds(new Rect(0, 0, origin.ActualWidth, origin.ActualHeight));
+        _startMenuHost.Open(view, bounds);
+    }
+
     private FolderDrawerView? _favoritesDrawer;
     private FolderDrawerView? _bookmarksDrawer;
 
@@ -3557,6 +3668,7 @@ public partial class HomePageView : UserControl
                 groups.Add(new DrawerGroup { Name = string.IsNullOrWhiteSpace(name) ? "General" : name, Items = items });
             }
         }
+        _favoriteGroups = groups;
         _favoritesDrawer.SetGroups(groups);
         ApplyCenterCards(true, groups);
     }
@@ -3580,6 +3692,7 @@ public partial class HomePageView : UserControl
                 groups.Add(new DrawerGroup { Name = string.IsNullOrWhiteSpace(name) ? "Bookmarks" : name, Items = items });
             }
         }
+        _bookmarkGroups = groups;
         _bookmarksDrawer.SetGroups(groups);
         ApplyCenterCards(false, groups);
     }

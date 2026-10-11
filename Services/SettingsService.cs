@@ -46,7 +46,7 @@ public static class SettingsService
 
     public static SettingsData Current { get; private set; } = DefaultSettingsService.Apply(new SettingsData());
 
-    public const int CurrentConfigVersion = 1;
+    public const int CurrentConfigVersion = 2;
 
     private static SettingsData? ReadFile(string path)
     {
@@ -74,6 +74,12 @@ public static class SettingsService
     private static void Migrate(SettingsData data)
     {
         if (data.ConfigVersion > CurrentConfigVersion) return;
+        if (data.ConfigVersion < 2)
+        {
+            data.HomeShowRightColumn = true;
+            data.HomeRightColumnFavorites = true;
+            data.HomeRightColumnBookmarks = true;
+        }
         data.ConfigVersion = CurrentConfigVersion;
     }
 
@@ -224,7 +230,7 @@ public class LayoutSet
 
 public class SettingsData
 {
-    public int ConfigVersion { get; set; } = 1;
+    public int ConfigVersion { get; set; } = 2;
 
     [JsonExtensionData]
     public Dictionary<string, JsonElement>? ExtraData { get; set; }
@@ -263,7 +269,10 @@ public class SettingsData
     public bool HomeShowFavoritesWidget { get; set; } = true;
     public bool HomeShowBookmarksWidget { get; set; } = true; 
     public bool HomeShowBatteryWidget   { get; set; } = true; 
-    public bool HomeShowVpnAdBlockWidget { get; set; } = true; 
+    public bool HomeShowVpnAdBlockWidget { get; set; } = true;
+    public bool HomeShowRightColumn { get; set; } = false;
+    public bool HomeRightColumnFavorites { get; set; } = false;
+    public bool HomeRightColumnBookmarks { get; set; } = false; 
 
     public string HomeGroupStyle { get; set; } = "Folder";
     public string HomeBookmarkGrouping { get; set; } = "Domain";

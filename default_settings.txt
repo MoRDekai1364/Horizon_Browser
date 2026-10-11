@@ -321,6 +321,18 @@ HomeShowBatteryWidget=true
 #   type: bool | values: true|false | default: true
 HomeShowVpnAdBlockWidget=true
 
+# [S05.20] Show the right column on the home page
+#   type: bool | values: true|false | default: false
+HomeShowRightColumn=false
+
+# [S05.21] Show the Favorites drawer in the right column
+#   type: bool | values: true|false | default: false
+HomeRightColumnFavorites=false
+
+# [S05.22] Show the Bookmarks drawer in the right column
+#   type: bool | values: true|false | default: false
+HomeRightColumnBookmarks=false
+
 # [S05.12] Tint the home page from the wallpaper colors
 #   type: bool | values: true|false | default: true
 HomeAdaptiveColorsEnabled=true

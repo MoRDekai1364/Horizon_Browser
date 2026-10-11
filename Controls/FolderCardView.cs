@@ -233,6 +233,330 @@ public sealed class FolderCardHost : WrapPanel
     }
 }
 
+public sealed class StartMenuView : UserControl
+{
+    private const int CardGridSize = 2;
+    private const double CardScale = 1.25;
+    private const double DotsH = PagerDots.Cell;
+    private const int AnimationMs = 300;
+
+    private readonly Grid _root;
+    private readonly Grid _viewport;
+    private readonly StackPanel _strip;
+    private readonly TranslateTransform _slide = new();
+    private readonly PagerDots _dots;
+    private readonly TextBox _filter;
+    private readonly FolderSheetHost _sheet = new();
+    private List<DrawerGroup> _all = new();
+    private List<DrawerGroup> _shown = new();
+    private int _page;
+    private int _pageCount;
+    private double _pageWidth;
+    private bool _animating;
+    private bool _queued;
+
+    public event Action<DrawerItem>? ItemActivated;
+    public event Action? CloseRequested;
+
+    public StartMenuView(string titleText)
+    {
+        var title = new TextBlock
+        {
+            Text = titleText,
+            FontSize = 22,
+            FontWeight = FontWeights.SemiBold,
+            VerticalAlignment = VerticalAlignment.Center,
+            TextTrimming = TextTrimming.CharacterEllipsis,
+            Margin = new Thickness(14, 0, 14, 0)
+        };
+        title.SetResourceReference(TextBlock.ForegroundProperty, "HomeTextBrush");
+
+        var back = RoundButton("\u2039", 20, new Thickness(0, -3, 0, 0), "Back", () =>
+        {
+            if (_sheet.IsOpen) _sheet.Close();
+            else CloseRequested?.Invoke();
+        });
+        var close = RoundButton("\u2715", 12, new Thickness(0), "Close", () => CloseRequested?.Invoke());
+
+        _filter = new TextBox
+        {
+            Width = 260,
+            Height = 28,
+            FontSize = 14,
+            Padding = new Thickness(10, 0, 10, 0),
+            VerticalContentAlignment = VerticalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            BorderThickness = new Thickness(1),
+            Background = new SolidColorBrush(Color.FromArgb(0x26, 0xFF, 0xFF, 0xFF)),
+            BorderBrush = new SolidColorBrush(Color.FromArgb(0x33, 0xFF, 0xFF, 0xFF)),
+            Margin = new Thickness(12, 0, 12, 0),
+            ToolTip = "Filter"
+        };
+        _filter.SetResourceReference(TextBox.ForegroundProperty, "HomeTextBrush");
+        _filter.SetResourceReference(TextBox.CaretBrushProperty, "HomeTextBrush");
+        _filter.TextChanged += (_, _) =>
+        {
+            _page = 0;
+            ApplyFilter();
+        };
+
+        var header = new Grid { Height = 36, Margin = new Thickness(0, 0, 0, 14) };
+        header.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        header.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        header.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        header.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        Grid.SetColumn(back, 0);
+        Grid.SetColumn(title, 1);
+        Grid.SetColumn(_filter, 2);
+        Grid.SetColumn(close, 3);
+        header.Children.Add(back);
+        header.Children.Add(title);
+        header.Children.Add(_filter);
+        header.Children.Add(close);
+
+        _strip = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            HorizontalAlignment = HorizontalAlignment.Left,
+            VerticalAlignment = VerticalAlignment.Top,
+            RenderTransform = _slide
+        };
+        _viewport = new Grid { ClipToBounds = true };
+        _viewport.Children.Add(_strip);
+
+        _dots = new PagerDots(Orientation.Horizontal)
+        {
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            Visibility = Visibility.Hidden
+        };
+        _dots.PageRequested += GoTo;
+
+        _root = new Grid { Margin = new Thickness(28, 20, 28, 12) };
+        _root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        _root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+        _root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(DotsH) });
+        Grid.SetRow(header, 0);
+        Grid.SetRow(_viewport, 1);
+        Grid.SetRow(_dots, 2);
+        Grid.SetRow(_sheet, 1);
+        Grid.SetRowSpan(_sheet, 2);
+        _sheet.CornerRadius = new CornerRadius(18);
+        _sheet.Underlays.Add(_viewport);
+        _sheet.Underlays.Add(_dots);
+        _root.Children.Add(header);
+        _root.Children.Add(_viewport);
+        _root.Children.Add(_dots);
+        _root.Children.Add(_sheet);
+        Content = _root;
+
+        _viewport.SizeChanged += (_, _) =>
+        {
+            if (_pageCount == 0)
+            {
+                Relayout();
+                return;
+            }
+            if (_queued) return;
+            _queued = true;
+            Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(() =>
+            {
+                _queued = false;
+                Relayout();
+            }));
+        };
+
+        PreviewMouseWheel += (_, e) =>
+        {
+            if (_sheet.IsOpen) return;
+            e.Handled = true;
+            if (_pageCount <= 1) return;
+            GoTo(_page + (e.Delta < 0 ? 1 : -1));
+        };
+    }
+
+    public void SetGroups(IReadOnlyList<DrawerGroup> groups)
+    {
+        _all = groups.ToList();
+        ApplyFilter();
+    }
+
+    private static Border RoundButton(string glyph, double fontSize, Thickness glyphMargin, string tip, Action onClick)
+    {
+        var text = new TextBlock
+        {
+            Text = glyph,
+            FontSize = fontSize,
+            Margin = glyphMargin,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        text.SetResourceReference(TextBlock.ForegroundProperty, "HomeTextBrush");
+        var button = new Border
+        {
+            Width = 28,
+            Height = 28,
+            CornerRadius = new CornerRadius(14),
+            Background = new SolidColorBrush(Color.FromArgb(0x26, 0xFF, 0xFF, 0xFF)),
+            VerticalAlignment = VerticalAlignment.Center,
+            Cursor = Cursors.Hand,
+            ToolTip = tip,
+            Child = text
+        };
+        button.MouseLeftButtonUp += (_, e) =>
+        {
+            e.Handled = true;
+            onClick();
+        };
+        return button;
+    }
+
+    private void ApplyFilter()
+    {
+        string query = (_filter.Text ?? "").Trim();
+        if (query.Length == 0)
+        {
+            _shown = _all.ToList();
+        }
+        else
+        {
+            var result = new List<DrawerGroup>();
+            foreach (var group in _all)
+            {
+                if (group.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
+                {
+                    result.Add(group);
+                    continue;
+                }
+                var items = group.Items.Where(i => i.Name.Contains(query, StringComparison.OrdinalIgnoreCase)).ToList();
+                if (items.Count > 0) result.Add(new DrawerGroup { Name = group.Name, Items = items });
+            }
+            _shown = result;
+        }
+        _pageCount = 0;
+        Relayout();
+    }
+
+    private void Relayout()
+    {
+        double width = _viewport.ActualWidth;
+        double height = _viewport.ActualHeight;
+        if (width <= 0 || height <= 0) return;
+
+        _slide.BeginAnimation(TranslateTransform.XProperty, null);
+        _animating = false;
+        _strip.Children.Clear();
+        _pageWidth = width;
+
+        if (_shown.Count == 0)
+        {
+            var empty = new TextBlock
+            {
+                Text = "Nothing to show",
+                FontSize = 16,
+                Opacity = 0.6,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            empty.SetResourceReference(TextBlock.ForegroundProperty, "HomeTextBrush");
+            _pageCount = 1;
+            _page = 0;
+            _slide.X = 0;
+            _strip.Children.Add(new Grid { Width = width, Height = height, Children = { empty } });
+            UpdateDots();
+            return;
+        }
+
+        double cellW = 0;
+        double cellH = 0;
+        foreach (var group in _shown)
+        {
+            var size = FolderCardView.CellSize(group.Items.Count, CardGridSize);
+            cellW = Math.Max(cellW, size.W * CardScale);
+            cellH = Math.Max(cellH, size.H * CardScale);
+        }
+
+        int cols = Math.Max(1, (int)Math.Floor(width / cellW));
+        int rows = Math.Max(1, (int)Math.Floor(height / cellH));
+        int perPage = cols * rows;
+        _pageCount = Math.Max(1, (int)Math.Ceiling(_shown.Count / (double)perPage));
+        _page = Math.Min(_page, _pageCount - 1);
+        _slide.X = -_page * width;
+
+        for (int p = 0; p < _pageCount; p++)
+        {
+            var host = new WrapPanel
+            {
+                Width = cols * cellW,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            int start = p * perPage;
+            int end = Math.Min(start + perPage, _shown.Count);
+            for (int i = start; i < end; i++) host.Children.Add(BuildCell(_shown[i], cellW, cellH));
+            _strip.Children.Add(new Grid { Width = width, Height = height, Children = { host } });
+        }
+
+        UpdateDots();
+    }
+
+    private FrameworkElement BuildCell(DrawerGroup group, double cellW, double cellH)
+    {
+        var card = new FolderCardView(group, CardGridSize, true)
+        {
+            LayoutTransform = new ScaleTransform(CardScale, CardScale),
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        card.ItemActivated += item => ItemActivated?.Invoke(item);
+        card.OpenRequested += source => OpenSheet(group, source);
+        return new Grid { Width = cellW, Height = cellH, Children = { card } };
+    }
+
+    private void OpenSheet(DrawerGroup group, FolderCardView source)
+    {
+        var view = new OpenFolderView(group);
+        view.CloseRequested += () => _sheet.Close();
+        view.ItemActivated += item => ItemActivated?.Invoke(item);
+        Point offset = _sheet.TranslatePoint(new Point(0, 0), _root);
+        Rect bounds = source.ClusterBounds(_root);
+        _sheet.Open(view, new Rect(bounds.X - offset.X, bounds.Y - offset.Y, bounds.Width, bounds.Height));
+    }
+
+    private void UpdateDots()
+    {
+        if (_pageCount <= 1)
+        {
+            _dots.Visibility = Visibility.Hidden;
+            return;
+        }
+
+        _dots.Visibility = Visibility.Visible;
+        _dots.SetState(_pageCount, _page);
+    }
+
+    private void GoTo(int target)
+    {
+        target = Math.Clamp(target, 0, Math.Max(_pageCount - 1, 0));
+        if (target == _page || _animating) return;
+
+        _page = target;
+        UpdateDots();
+        _animating = true;
+        var animation = new DoubleAnimation(-_page * _pageWidth, TimeSpan.FromMilliseconds(AnimationMs))
+        {
+            EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut }
+        };
+        animation.Completed += (_, _) =>
+        {
+            _slide.BeginAnimation(TranslateTransform.XProperty, null);
+            _slide.X = -_page * _pageWidth;
+            _animating = false;
+        };
+        _slide.BeginAnimation(TranslateTransform.XProperty, animation);
+    }
+}
+
 internal static class TileFallback
 {
     public static bool NeedsLetter(DrawerItem item) => string.IsNullOrEmpty(item.Emoji) && item.Icon == null;

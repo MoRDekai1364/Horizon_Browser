@@ -38,6 +38,7 @@ public partial class StackHost : UserControl
     public event Action<int>? SelectionChanged;
     public event Action<bool>? ExpandedChanged;
     public event Action? OverlayClosed;
+    public event Action? AddRequested;
 
     public bool WheelSwitchEnabled { get; set; } = true;
     public int Count => _items.Count;
@@ -53,6 +54,7 @@ public partial class StackHost : UserControl
         _pager.PageRequested += target => Go(target, target > _index ? 1 : -1);
         Dots.Children.Add(_pager);
         Loaded += (_, _) => UpdateDots();
+        Viewport.SizeChanged += (_, _) => UpdateEmptyAddSize();
     }
 
     public void AddElement(string title, FrameworkElement content)
@@ -229,6 +231,28 @@ public partial class StackHost : UserControl
         OverlayClosed?.Invoke();
     }
 
+    private void UpdateEmptyAddSize()
+    {
+        double side = Math.Min(Viewport.ActualWidth, Viewport.ActualHeight);
+        double circle = Math.Clamp(side * 0.25, 40, 96);
+        EmptyAddCircle.Width = circle;
+        EmptyAddCircle.Height = circle;
+        EmptyAddPlus.FontSize = circle * 0.55;
+    }
+
+    private void EmptyAdd_Click(object sender, MouseButtonEventArgs e)
+    {
+        e.Handled = true;
+        AddRequested?.Invoke();
+    }
+
+    private void EmptyAdd_Hover(object sender, MouseEventArgs e)
+    {
+        bool over = EmptyAdd.IsMouseOver;
+        EmptyAddOutline.Opacity = over ? 0.9 : 0.45;
+        EmptyAddLabel.Opacity = over ? 1 : 0.8;
+    }
+
     private void Overlay_KeyDown(object sender, KeyEventArgs e)
     {
         if (e.Key != Key.Escape) return;
@@ -382,6 +406,8 @@ public partial class StackHost : UserControl
     private void UpdateDots()
     {
         Dots.Visibility = _items.Count > 1 ? Visibility.Visible : Visibility.Collapsed;
+        EmptyAdd.Visibility = _items.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        UpdateEmptyAddSize();
         _pager.SetState(_items.Count, _index, _items.Select(item => item.Title).ToList());
     }
 

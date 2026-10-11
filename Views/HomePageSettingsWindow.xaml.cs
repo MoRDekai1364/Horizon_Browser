@@ -262,6 +262,12 @@ public partial class HomePageSettingsWindow : Window
         ChkWidgetFavorites.IsChecked = s.HomeShowFavoritesWidget;
         ChkWidgetBookmarks.IsChecked = s.HomeShowBookmarksWidget;
         ChkWidgetBattery.IsChecked   = s.HomeShowBatteryWidget;
+        ChkRightColumn.IsChecked     = s.HomeShowRightColumn;
+        ChkRightFavorites.IsChecked  = s.HomeRightColumnFavorites;
+        ChkRightBookmarks.IsChecked  = s.HomeRightColumnBookmarks;
+        ChkRightFavorites.IsEnabled  = s.HomeShowRightColumn;
+        ChkRightBookmarks.IsEnabled  = s.HomeShowRightColumn;
+        RefreshRightElementsList();
 
         CmbGroupStyle.ItemsSource = GroupStyleChoices;
         int groupStyleIdx = Array.IndexOf(GroupStyleValues, s.HomeGroupStyle);
@@ -295,6 +301,32 @@ public partial class HomePageSettingsWindow : Window
         SettingsService.Current.HomeShowClockWeatherSection = ChkSectionClockWeather.IsChecked == true;
         SettingsService.Current.HomeShowSearchSection       = ChkSectionSearch.IsChecked == true;
         SettingsService.Save();
+    }
+
+    private void RightColumnToggle_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_loadingToggles) return;
+        var s = SettingsService.Current;
+        s.HomeShowRightColumn = ChkRightColumn.IsChecked == true;
+        s.HomeRightColumnFavorites = ChkRightFavorites.IsChecked == true;
+        s.HomeRightColumnBookmarks = ChkRightBookmarks.IsChecked == true;
+        ChkRightFavorites.IsEnabled = s.HomeShowRightColumn;
+        ChkRightBookmarks.IsEnabled = s.HomeShowRightColumn;
+        SettingsService.Save();
+    }
+
+    private void RefreshRightElementsList()
+    {
+        ListRightElements.ItemsSource = StackElementStore.Elements.ToList();
+    }
+
+    private void BtnRightElementRemove_Click(object sender, RoutedEventArgs e)
+    {
+        if (ListRightElements.SelectedItem is not StackElementData data) return;
+        var answer = MessageBox.Show(this, $"Remove \"{data.Title}\"?", "Remove element", MessageBoxButton.YesNo, MessageBoxImage.Question);
+        if (answer != MessageBoxResult.Yes) return;
+        StackElementStore.Remove(data.Id);
+        RefreshRightElementsList();
     }
 
     private void WidgetToggle_Changed(object sender, RoutedEventArgs e)
