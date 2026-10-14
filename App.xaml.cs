@@ -51,6 +51,7 @@ public partial class App : Application
         LogService.Write("BOOT", "Horizon Stealth Browser is starting...");
 
         ConfigService.InitializeFileSystem();
+        ExtensionService.EnsureInstalled();
         _ = Task.Run(() =>
         {
             try { BookmarkService.Initialize(); }

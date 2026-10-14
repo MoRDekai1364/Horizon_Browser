@@ -23,8 +23,6 @@ public static class ConfigService
         Directory.CreateDirectory(LogsRoot);
         Directory.CreateDirectory(UserDataRoot);
         Directory.CreateDirectory(ExtensionsRoot);
-        Directory.CreateDirectory(UBlockPath); 
-        Directory.CreateDirectory(SponsorBlockPath);
 
         string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
         DebugLogFile = Path.Combine(LogsRoot, "debug_" + timestamp + ".log");

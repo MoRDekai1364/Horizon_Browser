@@ -202,7 +202,13 @@ public static class GithubUpdateService
     private static bool MatchesChannel(string nameLower, string channel)
     {
         if (channel != "release") return nameLower.Contains(channel);
-        if (nameLower.Contains("alpha") || nameLower.Contains("beta")) return false;
+        if (nameLower.Contains("alpha") || nameLower.Contains("beta") || nameLower.Contains("rc") || nameLower.Contains("nightly") || nameLower.Contains("dev"))
+            return false;
+
+        string ext = Path.GetExtension(nameLower);
+        if (ext == ".exe" || ext == ".msi" || Array.IndexOf(ArchiveExtensions, ext) >= 0)
+            return true;
+
         return nameLower.Contains("release") || nameLower.Contains("official") || nameLower.Contains("stable") || nameLower.Contains("setup");
     }
 
@@ -232,7 +238,7 @@ public static class GithubUpdateService
     {
         if (string.IsNullOrEmpty(text)) return "";
 
-        var parts = text.Split(new[] { '_', ' ', 'v', 'V' }, StringSplitOptions.RemoveEmptyEntries);
+        var parts = text.Split(new[] { '_', ' ', '-', 'v', 'V' }, StringSplitOptions.RemoveEmptyEntries);
         foreach (var part in parts)
         {
             var nums = part.Split('.');

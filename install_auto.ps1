@@ -11,7 +11,14 @@ function Write-Status($step, $percent) {
     Set-Content -Path $StatusFile -Value @("STEP:$step", "PERCENT:$percent")
 }
 
-Write-Status "Starting installer..." 32
+Write-Status "Closing running Horizon instances..." 31
+Get-Process -Name "Horizon.Browser" -ErrorAction SilentlyContinue | ForEach-Object {
+    try { $_.CloseMainWindow() | Out-Null; Start-Sleep -Milliseconds 300 } catch { }
+    try { if (-not $_.HasExited) { $_.Kill() } } catch { }
+}
+Start-Sleep -Milliseconds 500
+
+Write-Status "Starting installer..." 33
 
 if (-not (Test-Path $InstallerPath)) {
     Write-Status "ERROR: Installer not found at $InstallerPath" 30
@@ -89,38 +96,34 @@ if (-not $portableDone) {
     if ($launchExt -eq ".msi") {
         $proc = Start-Process -FilePath "msiexec.exe" -ArgumentList @("/i", "`"$launchPath`"", "/passive", "/norestart") -PassThru
     } else {
-        $proc = Start-Process -FilePath $launchPath -PassThru
+        # InstallForge supports -silent and -path "<TargetDir>"
+        $argList = @("-silent", "-path", "`"$TargetDir`"")
+        Write-Log "Starting process $launchPath with args: $($argList -join ' ')"
+        $proc = Start-Process -FilePath $launchPath -ArgumentList $argList -PassThru
     }
 }
 
-$autoClickSeconds = 60
+Write-Status "Installing update..." 45
+
+$timeoutSeconds = 300
 $elapsed = 0
-$intervalMs = 1500
-$autoClickActive = $true
+$intervalMs = 1000
 
-Write-Status "Installing (auto)..." 40
-
-while ($proc -and -not $proc.HasExited -and $elapsed -lt $autoClickSeconds) {
+while ($proc -and -not $proc.HasExited) {
     Start-Sleep -Milliseconds $intervalMs
     $elapsed += ($intervalMs / 1000)
 
-    try {
-        $proc.Refresh()
-        if ($proc.MainWindowHandle -ne 0) {
-            [Microsoft.VisualBasic.Interaction]::AppActivate($proc.Id)
-            Start-Sleep -Milliseconds 200
-            [System.Windows.Forms.SendKeys]::SendWait("{ENTER}")
-        }
-    } catch { }
+    $pct = 45 + [math]::Min(40, [int](($elapsed / 30.0) * 40))
+    Write-Status "Installing update..." $pct
 
-    $pct = 40 + [math]::Min(40, [int](($elapsed / $autoClickSeconds) * 40))
-    Write-Status "Installing (auto)..." $pct
+    if ($elapsed -ge $timeoutSeconds) {
+        Write-Log "Installer timed out after $timeoutSeconds seconds"
+        break
+    }
 }
 
-if ($proc -and -not $proc.HasExited) {
-    $autoClickActive = $false
-    Write-Status "Waiting for installer (manual)..." 80
-    $proc.WaitForExit()
+if ($proc) {
+    try { Write-Log "Installer process exited with code $($proc.ExitCode)" } catch { }
 }
 
 if ($stageDir -and (Test-Path $stageDir)) {

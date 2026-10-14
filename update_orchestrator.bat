@@ -20,6 +20,13 @@ if "%INSTALLER_PATH%"=="" (
 )
 start "" mshta.exe "%PROJECT_ROOT%\overlay.hta"
 
+> "%STATUS_FILE%" (
+    echo STEP:Closing running browser instances...
+    echo PERCENT:5
+)
+taskkill /f /im Horizon.Browser.exe >nul 2>&1
+timeout /t 1 /nobreak >nul
+
 call "%PROJECT_ROOT%\backup.bat"
 
 set "TARGET_DIR="

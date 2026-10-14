@@ -85,6 +85,33 @@ if defined DEF_VIDEO (
     )
 )
 
+echo [2c/3] Compiling Session Importer Tool...
+if exist "Tools\Horizon.SessionImporter\Horizon.SessionImporter.csproj" (
+    dotnet publish Tools\Horizon.SessionImporter\Horizon.SessionImporter.csproj -c Release -r win-x64 --self-contained false -o "%OUT_DIR%\Tools" >nul 2>&1
+    if not exist "%OUT_DIR%\Tools\Horizon.SessionImporter.exe" (
+        dotnet build Tools\Horizon.SessionImporter\Horizon.SessionImporter.csproj -c Release >nul 2>&1
+        if not exist "%OUT_DIR%\Tools" mkdir "%OUT_DIR%\Tools"
+        copy /y "Tools\Horizon.SessionImporter\bin\Release\net8.0-windows10.0.19041.0\Horizon.SessionImporter.*" "%OUT_DIR%\Tools\" >nul 2>&1
+    )
+    if exist "%OUT_DIR%\Tools\Horizon.SessionImporter.exe" (
+        echo [INFO] Session Importer tool packaged.
+    )
+)
+
+echo [2d/3] Packaging Extensions...
+if exist "Extensions" (
+    robocopy "Extensions" "%OUT_DIR%\Extensions" /E /R:1 /W:1 /NFL /NDL /NJH /NJS >nul
+    echo [INFO] Extensions folder packaged.
+)
+
+echo [2e/3] Packaging Update and Version Configs...
+if exist "version.txt" copy /y "version.txt" "%OUT_DIR%\" >nul
+if exist "update.txt" copy /y "update.txt" "%OUT_DIR%\" >nul
+for %%F in (update_orchestrator.bat install_auto.ps1 overlay.hta backup.bat restore.bat) do (
+    if exist "%%F" copy /y "%%F" "%OUT_DIR%\" >nul
+)
+echo [INFO] Update scripts and configs packaged.
+
 echo [3/3] Creating desktop shortcut...
 set "SHORTCUT_PATH=%~dp0!START_Horizon_Browser.lnk"
 set "TARGET_PATH=%~dp0%OUT_DIR%\%BIN_NAME%"

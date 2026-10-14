@@ -5027,10 +5027,15 @@ return colors.length > 0 ? colors : null;
         try
         {
             // Look up the browser-assigned extension ID that was stored at load time.
-            // FolderName is the lowercase directory name (e.g. "adguard", "consent-o-matic").
             string? extId = null;
-            if (Controls.BrowserView.LoadedExtensionIds.TryGetValue(ext.FolderName, out var storedId))
-                extId = storedId;
+            if (Controls.BrowserView.LoadedExtensionIds.TryGetValue(ext.FolderName.ToLowerInvariant(), out var s1))
+                extId = s1;
+            else if (Controls.BrowserView.LoadedExtensionIds.TryGetValue(ext.Id.ToLowerInvariant(), out var s2))
+                extId = s2;
+            else if (Controls.BrowserView.LoadedExtensionIds.TryGetValue(ext.Name, out var s3))
+                extId = s3;
+            else if (Controls.BrowserView.LoadedExtensionIds.TryGetValue(ext.Name.ToLowerInvariant(), out var s4))
+                extId = s4;
 
             // Fallback: query the profile live (covers extensions loaded before this session's
             // BrowserView version, or manually installed extensions)
@@ -5038,7 +5043,10 @@ return colors.length > 0 ? colors : null;
             {
                 var wv2Extensions = await browser.MainWebView.CoreWebView2.Profile.GetBrowserExtensionsAsync();
                 var match = wv2Extensions.FirstOrDefault(e =>
-                    e.Name.Equals(ext.Name, StringComparison.OrdinalIgnoreCase));
+                    e.Id.Equals(ext.Id, StringComparison.OrdinalIgnoreCase) ||
+                    e.Name.Equals(ext.Name, StringComparison.OrdinalIgnoreCase) ||
+                    e.Name.IndexOf(ext.Name, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    ext.Name.IndexOf(e.Name, StringComparison.OrdinalIgnoreCase) >= 0);
                 extId = match?.Id;
             }
 
@@ -5073,7 +5081,7 @@ return colors.length > 0 ? colors : null;
     }
 
     /// <summary>
-    /// Reads action.default_popup (MV3) or browser_action.default_popup (MV2) from a manifest.json.
+    /// Reads action.default_popup (MV3) or browser_action.default_popup (MV2) or options page from a manifest.json.
     /// </summary>
     private static string ReadExtensionPopupPath(string manifestPath)
     {
@@ -5083,20 +5091,44 @@ return colors.length > 0 ? colors : null;
             using var doc = System.Text.Json.JsonDocument.Parse(System.IO.File.ReadAllText(manifestPath));
             var root = doc.RootElement;
 
-            // Manifest V3
+            // Manifest V3 action
             if (root.TryGetProperty("action", out var action) &&
                 action.TryGetProperty("default_popup", out var p3))
-                return p3.GetString() ?? string.Empty;
+            {
+                string? s = p3.GetString();
+                if (!string.IsNullOrWhiteSpace(s)) return s;
+            }
 
-            // Manifest V2
+            // Manifest V2 browser_action
             if (root.TryGetProperty("browser_action", out var ba) &&
                 ba.TryGetProperty("default_popup", out var p2))
-                return p2.GetString() ?? string.Empty;
+            {
+                string? s = p2.GetString();
+                if (!string.IsNullOrWhiteSpace(s)) return s;
+            }
 
             // Some extensions use page_action
             if (root.TryGetProperty("page_action", out var pa) &&
                 pa.TryGetProperty("default_popup", out var pp))
-                return pp.GetString() ?? string.Empty;
+            {
+                string? s = pp.GetString();
+                if (!string.IsNullOrWhiteSpace(s)) return s;
+            }
+
+            // Options page fallback (options_ui.page)
+            if (root.TryGetProperty("options_ui", out var optUi) &&
+                optUi.TryGetProperty("page", out var optPage))
+            {
+                string? s = optPage.GetString();
+                if (!string.IsNullOrWhiteSpace(s)) return s;
+            }
+
+            // Options page fallback (options_page)
+            if (root.TryGetProperty("options_page", out var op))
+            {
+                string? s = op.GetString();
+                if (!string.IsNullOrWhiteSpace(s)) return s;
+            }
         }
         catch { }
         return string.Empty;
@@ -5132,7 +5164,8 @@ return colors.length > 0 ? colors : null;
         popupWin.Show();
 
         // Share the same environment (profile) as the main browser — required for extension access
-        await wv.EnsureCoreWebView2Async(CurrentBrowser?.MainWebView?.CoreWebView2?.Environment);
+        var env = CurrentBrowser?.MainWebView?.CoreWebView2?.Environment ?? StealthEnvironment.Instance;
+        await wv.EnsureCoreWebView2Async(env);
 
         wv.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
         wv.CoreWebView2.Settings.AreDefaultScriptDialogsEnabled = true;
@@ -5231,7 +5264,7 @@ return colors.length > 0 ? colors : null;
         chrome.downloads.removeFile  = chrome.downloads.removeFile  || function(id,cb){ if(cb) cb(); };
 
         // ── chrome.storage ──────────────────────────────────────────────────
-        if (!chrome.storage || !chrome.storage._horizonPatched) {
+        if (!chrome.storage) {
             const _store = {};
             const _makeArea = (prefix) => ({
                 get: (keys, cb) => {

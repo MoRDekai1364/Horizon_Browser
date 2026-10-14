@@ -843,7 +843,16 @@ public partial class BrowserView : UserControl
             using var doc = System.Text.Json.JsonDocument.Parse(text);
             var root = doc.RootElement;
 
-            // browser_specific_settings.gecko with an id = definitive Firefox packaging
+            // If it has standard Chromium MV2/MV3 entry points, it is NOT Firefox-only
+            bool hasChromiumFeatures = root.TryGetProperty("action", out _) ||
+                                       root.TryGetProperty("browser_action", out _) ||
+                                       root.TryGetProperty("page_action", out _) ||
+                                       root.TryGetProperty("content_scripts", out _) ||
+                                       root.TryGetProperty("background", out _);
+
+            if (hasChromiumFeatures) return false;
+
+            // browser_specific_settings.gecko with an id = definitive Firefox-only packaging
             if (root.TryGetProperty("browser_specific_settings", out var bss) &&
                 bss.TryGetProperty("gecko", out var gecko) &&
                 gecko.TryGetProperty("id", out _))
@@ -853,10 +862,6 @@ public partial class BrowserView : UserControl
             if (root.TryGetProperty("applications", out var apps) &&
                 apps.TryGetProperty("gecko", out _))
                 return true;
-
-            // XPI packaging: background.scripts without a service_worker is also
-            // common in Firefox MV2 — but that alone isn't conclusive, so only
-            // flag it if BOTH gecko block and no Chrome key are present.
         }
         catch { }
         return false;
@@ -899,6 +904,14 @@ public partial class BrowserView : UserControl
                 LogService.Write("EXT", $"Skipped Firefox-only extension: '{folderName}'");
                 continue;
             }
+
+            var rec = ExtensionService.Find(folderName);
+            if (rec != null && !rec.Enabled)
+            {
+                LogService.Write("EXT", $"Skipped (disabled in catalog): '{folderName}'");
+                continue;
+            }
+
             if (folderName.Contains("consent") && !SettingsService.Current.ConsentOMaticEnabled)
             { LogService.Write("EXT", $"Skipped (disabled): {folderName}"); continue; }
             if (folderName.Contains("adguard") && !SettingsService.Current.AdGuardEnabled)
@@ -918,8 +931,17 @@ public partial class BrowserView : UserControl
             {
                 var ext = await MainWebView.CoreWebView2.Profile.AddBrowserExtensionAsync(item.dir);
                 try { if (!ext.IsEnabled) await ext.EnableAsync(true); } catch { }
-                lock (_extensionLock) _loadedExtensionIds[item.folderName] = ext.Id;
-                LogService.Write("EXT", $"Loaded: '{item.folderName}' → ID={ext.Id}");
+                lock (_extensionLock)
+                {
+                    _loadedExtensionIds[item.folderName] = ext.Id;
+                    _loadedExtensionIds[ext.Id] = ext.Id;
+                    if (!string.IsNullOrEmpty(ext.Name))
+                    {
+                        _loadedExtensionIds[ext.Name] = ext.Id;
+                        _loadedExtensionIds[ext.Name.ToLowerInvariant()] = ext.Id;
+                    }
+                }
+                LogService.Write("EXT", $"Loaded: '{item.folderName}' ('{ext.Name}') → ID={ext.Id}");
                 System.Threading.Interlocked.Increment(ref loaded);
             }
             catch (Exception ex)
