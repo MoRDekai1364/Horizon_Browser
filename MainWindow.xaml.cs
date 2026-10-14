@@ -75,7 +75,7 @@ public partial class MainWindow : Window
         HideImageOverlay();
         
         if (GetCurrentTabViewModel() is TabViewModel current)
-            _tabImageUrls.Remove(current);
+            current.ImageUrl = null;
         
         try
         {
@@ -111,7 +111,7 @@ public partial class MainWindow : Window
         HideImageOverlay();
         if (GetCurrentTabViewModel() is TabViewModel current)
         {
-            _tabImageUrls.Remove(current);
+            current.ImageUrl = null;
         }
     }
     
@@ -140,24 +140,6 @@ public partial class MainWindow : Window
 
     private Dictionary<TabViewModel, Controls.BrowserView> _tabViews = new();
     private Controls.BrowserView? _activeTabView = null;
-
-    private Dictionary<TabViewModel, int>            _mediaTabOriginalIndices    = new();
-    private Dictionary<TabViewModel, string>         _mediaOriginHost            = new();
-    private Dictionary<TabViewModel, DispatcherTimer> _mediaDeactivationTimers   = new();
-    private Dictionary<TabViewModel, DispatcherTimer> _paletteRefreshTimers      = new();
-
-    private Dictionary<TabViewModel, DispatcherTimer> _colorAnimTimers = new();
-    private Dictionary<TabViewModel, double> _colorAnimT = new();
-    private Dictionary<TabViewModel, int> _colorAnimPhase = new();
-    private Dictionary<TabViewModel, double> _colorAnimFade = new();
-    private Dictionary<TabViewModel, List<System.Windows.Media.Color>> _prevPaletteColors = new();
-    private Dictionary<TabViewModel, double> _paletteBlendT = new();
-    private Dictionary<TabViewModel, DispatcherTimer> _loadingTimers = new();
-    private Dictionary<TabViewModel, DispatcherTimer> _volumeDebounceTimers = new();
-
-    private Dictionary<TabViewModel, string> _tabImageUrls = new();
-    private Dictionary<TabViewModel, string> _tabSleepUrls = new();
-    private Dictionary<TabViewModel, string> _mediaArtistCache = new();
 
     private async Task UpdateTabMediaMetadataAsync(TabViewModel tab, Controls.BrowserView browser)
     {
@@ -235,20 +217,16 @@ public partial class MainWindow : Window
                         if (tab.Title != parsedTitle) { tab.Title = parsedTitle; RefitMediaTabWidths(); }
                         ScheduleReflow();
                     }
-                    _mediaArtistCache[tab] = parsedArtist;
+                    tab.MediaArtist = parsedArtist;
                     Dispatcher.Invoke(RefreshWidgetDisplay);
                 }
             }
         }
         catch { }
     }
-    private Dictionary<TabViewModel, int>    _tabCrashCounts = new();
-    private Dictionary<TabViewModel, System.Windows.Media.ImageSource> _tabThumbnails = new();
     private string _currentImageUrl = "";
     private static readonly System.Net.Http.HttpClient _imageHttp = new();
 
-    private Dictionary<TabViewModel, double> _vizTime = new();
-    private Dictionary<TabViewModel, double[]> _vizSmoothedAmps = new();
     private static readonly Random _vizRng = new Random();
 
     private DispatcherTimer _headerTimer = new DispatcherTimer();
@@ -279,8 +257,6 @@ public partial class MainWindow : Window
 
     // ── Sleeping tabs ─────────────────────────────────────────────────
     private readonly DispatcherTimer _sleepTimer = new() { Interval = TimeSpan.FromMinutes(1) };
-    private Dictionary<TabViewModel, DateTime> _tabLastActive = new();
-    private Dictionary<TabViewModel, int>      _tabClickCount = new();
     private const int  SLEEP_PROTECT_N       = 5;
     private const int  SLEEP_MIN_TABS        = 6;
     private const long SLEEP_RAM_HIGH_MB     = 2500;
@@ -562,6 +538,7 @@ public partial class MainWindow : Window
 
     [DllImport("user32.dll")] private static extern IntPtr MonitorFromWindow(IntPtr hwnd, uint flags);
     [DllImport("user32.dll")] private static extern bool   GetMonitorInfo(IntPtr hMonitor, ref WMI lpmi);
+    [DllImport("user32.dll")] private static extern bool   GetWindowRect(IntPtr hWnd, out WRC lpRect);
     [DllImport("user32.dll", CharSet = CharSet.Unicode)] private static extern IntPtr LoadKeyboardLayout(string pwszKLID, uint Flags);
     [DllImport("user32.dll")] private static extern IntPtr ActivateKeyboardLayout(IntPtr hkl, uint Flags);
     [DllImport("user32.dll")] private static extern int    GetKeyboardLayoutList(int nBuff, [Out] IntPtr[] lpList);
@@ -1611,7 +1588,7 @@ public partial class MainWindow : Window
 
     private void StartLoadingAnimation(TabViewModel tab)
     {
-        if (_loadingTimers.ContainsKey(tab)) return;
+        if (tab.LoadingTimer != null) return;
         tab.LoadingOpacity = 0.0;
         tab.LoadingProgress = 0.05;
         var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(40) };
@@ -1622,16 +1599,16 @@ public partial class MainWindow : Window
             if (tab.LoadingProgress < 0.85)
                 tab.LoadingProgress += 0.015;
         };
-        _loadingTimers[tab] = timer;
+        tab.LoadingTimer = timer;
         timer.Start();
     }
 
     private void StopLoadingAnimation(TabViewModel tab)
     {
-        if (_loadingTimers.TryGetValue(tab, out var timer))
+        if (tab.LoadingTimer != null)
         {
-            timer.Stop();
-            _loadingTimers.Remove(tab);
+            tab.LoadingTimer.Stop();
+            tab.LoadingTimer = null;
         }
         tab.LoadingProgress = 1.0;
 
@@ -1641,7 +1618,7 @@ public partial class MainWindow : Window
         var fadeTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(107.5) };
         fadeTimer.Tick += (s, e) =>
         {
-            if (!_tabViews.ContainsKey(tab)) { fadeTimer.Stop(); return; }
+            if (!_tabViews.ContainsKey(tab)) { fadeTimer.Stop(); tab.LoadingTimer = null; return; }
             stepIndex++;
             double alpha = 1.0 - (stepIndex / (double)steps);
             tab.LoadingOpacity = initialOpacity * alpha;
@@ -1649,9 +1626,10 @@ public partial class MainWindow : Window
             {
                 tab.LoadingOpacity = 0;
                 fadeTimer.Stop();
+                tab.LoadingTimer = null;
             }
         };
-        _loadingTimers[tab] = fadeTimer;
+        tab.LoadingTimer = fadeTimer;
         fadeTimer.Start();
     }
     private static double TAB_DEFAULT_WIDTH => Math.Max(90.0, SettingsService.Current.TabDefaultWidth);
@@ -2093,10 +2071,10 @@ public partial class MainWindow : Window
         newTab.DownloadProgressValue = 0;
         newTab.DownloadSpeedMBs      = 0;
         newTab.DownloadEtaSecs       = 0;
-        _mediaTabOriginalIndices.Remove(newTab);
+        newTab.MediaTabOriginalIndex = -1;
         Dispatcher.Invoke(() => {
-                _tabImageUrls.Remove(newTab);
-                _tabThumbnails.Remove(newTab);
+                newTab.ImageUrl = null;
+                newTab.Thumbnail = null;
                 if (GetCurrentTabViewModel() == newTab) HideImageOverlay();
                 StartLoadingAnimation(newTab);
                 ScheduleReflow();
@@ -2127,34 +2105,40 @@ public partial class MainWindow : Window
         
         newTab.Url = url;
 
-        if (newTab.HasEverPlayedAudio && _mediaOriginHost.TryGetValue(newTab, out var mediaOrigin))
+        if (newTab.HasEverPlayedAudio && !string.IsNullOrEmpty(newTab.MediaOriginHost))
         {
             try
             {
                 string newHost = new Uri(url).Host;
-                if (!string.IsNullOrEmpty(newHost) && newHost != mediaOrigin)
+                if (!string.IsNullOrEmpty(newHost) && newHost != newTab.MediaOriginHost)
                 {
-                    if (_mediaDeactivationTimers.TryGetValue(newTab, out var existing))
-                    { existing.Stop(); _mediaDeactivationTimers.Remove(newTab); }
+                    if (newTab.MediaDeactivationTimer != null)
+                    {
+                        newTab.MediaDeactivationTimer.Stop();
+                        newTab.MediaDeactivationTimer = null;
+                    }
 
                     var deactivateTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
                     deactivateTimer.Tick += (_, _) =>
                     {
                         deactivateTimer.Stop();
-                        _mediaDeactivationTimers.Remove(newTab);
-                        _mediaOriginHost.Remove(newTab);
+                        newTab.MediaDeactivationTimer = null;
+                        newTab.MediaOriginHost = null;
                         newTab.HasEverPlayedAudio = false;
                         newTab.MediaTitle = "";
                         StopColorAnimation(newTab, fadeOut: true);
                         ScheduleReflow();
                     };
-                    _mediaDeactivationTimers[newTab] = deactivateTimer;
+                    newTab.MediaDeactivationTimer = deactivateTimer;
                     deactivateTimer.Start();
                 }
-                else if (newHost == mediaOrigin)
+                else if (newHost == newTab.MediaOriginHost)
                 {
-                    if (_mediaDeactivationTimers.TryGetValue(newTab, out var cancel))
-                    { cancel.Stop(); _mediaDeactivationTimers.Remove(newTab); }
+                    if (newTab.MediaDeactivationTimer != null)
+                    {
+                        newTab.MediaDeactivationTimer.Stop();
+                        newTab.MediaDeactivationTimer = null;
+                    }
                 }
             }
             catch { }
@@ -2206,7 +2190,7 @@ public partial class MainWindow : Window
                     if (!string.IsNullOrEmpty(imageUrl))
                     {
                         Dispatcher.Invoke(() => {
-                            _tabImageUrls[newTab] = imageUrl;
+                            newTab.ImageUrl = imageUrl;
                             if (GetCurrentTabViewModel() == newTab)
                                 ShowImageOverlay(imageUrl);
                         });
@@ -2244,8 +2228,7 @@ public partial class MainWindow : Window
 
                         if (args2.ProcessFailedKind == CoreWebView2ProcessFailedKind.BrowserProcessExited)
                         {
-                            _tabCrashCounts.TryGetValue(newTab, out int crashCount);
-                            _tabCrashCounts[newTab] = ++crashCount;
+                            int crashCount = ++newTab.CrashCount;
 
                             if (crashCount > 2)
                             {
@@ -2447,8 +2430,8 @@ return colors.length > 0 ? colors : null;
             // Wake sleeping tab + reset its activity clock
             _mruTabs.Remove(selectedTab);
             _mruTabs.Insert(0, selectedTab);
-            _tabLastActive[selectedTab] = DateTime.UtcNow;
-            _tabClickCount[selectedTab] = _tabClickCount.TryGetValue(selectedTab, out int cc) ? cc + 1 : 1;
+            selectedTab.LastActiveUtc = DateTime.UtcNow;
+            selectedTab.ClickCount++;
             WakeTab(selectedTab);
             if (!string.IsNullOrEmpty(selectedTab.Language))
                 TrySwitchKeyboardLayout(selectedTab.Language);
@@ -2473,9 +2456,9 @@ return colors.length > 0 ? colors : null;
 
         if (selectedTab != null)
         {
-            if (_tabImageUrls.TryGetValue(selectedTab, out string? imgUrl))
+            if (!string.IsNullOrEmpty(selectedTab.ImageUrl))
             {
-                ShowImageOverlay(imgUrl);
+                ShowImageOverlay(selectedTab.ImageUrl);
             }
             else
             {
@@ -2538,9 +2521,6 @@ return colors.length > 0 ? colors : null;
             ApplyFullscreenState(false);
         }
 
-        _tabImageUrls.Remove(tabToClose);
-        _mediaArtistCache.Remove(tabToClose);
-
         if (_multiSelectedTabs.Remove(tabToClose))
             tabToClose.IsMultiSelected = false;
 
@@ -2559,28 +2539,6 @@ return colors.length > 0 ? colors : null;
             _tabViews.Remove(tabToClose);
         }
 
-        if (_colorAnimTimers.TryGetValue(tabToClose, out var animTimer))
-        { animTimer.Stop(); _colorAnimTimers.Remove(tabToClose); }
-        _colorAnimT.Remove(tabToClose);
-        _colorAnimPhase.Remove(tabToClose);
-        _colorAnimFade.Remove(tabToClose);
-        _vizTime.Remove(tabToClose);
-        _vizSmoothedAmps.Remove(tabToClose);
-       _tabLastActive.Remove(tabToClose);
-        _tabClickCount.Remove(tabToClose);
-        _tabSleepUrls.Remove(tabToClose);
-        _tabThumbnails.Remove(tabToClose);
-        _mediaTabOriginalIndices.Remove(tabToClose);
-        if (_loadingTimers.TryGetValue(tabToClose, out var ldTimer))
-        { ldTimer.Stop(); _loadingTimers.Remove(tabToClose); }
-        if (_volumeDebounceTimers.TryGetValue(tabToClose, out var vdTimer))
-        { vdTimer.Stop(); _volumeDebounceTimers.Remove(tabToClose); }
-        if (_mediaDeactivationTimers.TryGetValue(tabToClose, out var medDt))
-        { medDt.Stop(); _mediaDeactivationTimers.Remove(tabToClose); }
-        if (_paletteRefreshTimers.TryGetValue(tabToClose, out var prtClose))
-        { prtClose.Stop(); _paletteRefreshTimers.Remove(tabToClose); }
-        _mediaOriginHost.Remove(tabToClose);
-        _tabCrashCounts.Remove(tabToClose);
         tabToClose.Dispose();
 
         ReflowTabs();
@@ -4001,7 +3959,7 @@ return colors.length > 0 ? colors : null;
         foreach (int i in order)
         {
             if (_tabSwitcherWindow == null) break;
-            if (!_tabThumbnails.ContainsKey(tabs[i]))
+            if (tabs[i].Thumbnail == null)
                 await CaptureTabSnapshotAsync(tabs[i]);
             await Task.Yield();
         }
@@ -4284,7 +4242,7 @@ return colors.length > 0 ? colors : null;
     {
         await Task.Delay(2000);
         if (!_tabViews.ContainsKey(tab) || tab.IsSleeping || tab.IsLoading) return;
-        _tabThumbnails.Remove(tab);
+        tab.Thumbnail = null;
         var diskPath = GetThumbCachePath(tab);
         if (diskPath != null) { try { File.Delete(diskPath); } catch { } }
         await CaptureTabSnapshotAsync(tab);
@@ -4301,7 +4259,7 @@ return colors.length > 0 ? colors : null;
     {
         try
         {
-            if (_tabThumbnails.TryGetValue(tab, out var cached)) return cached;
+            if (tab.Thumbnail != null) return tab.Thumbnail;
 
             var diskPath = GetThumbCachePath(tab);
             if (diskPath != null && File.Exists(diskPath))
@@ -4313,7 +4271,7 @@ return colors.length > 0 ? colors : null;
                 diskBmp.CacheOption  = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
                 diskBmp.EndInit();
                 diskBmp.Freeze();
-                _tabThumbnails[tab] = diskBmp;
+                tab.Thumbnail = diskBmp;
                 return diskBmp;
             }
 
@@ -4343,7 +4301,7 @@ return colors.length > 0 ? colors : null;
             bmp.Freeze();
             ms.Dispose();
 
-            _tabThumbnails[tab] = bmp;
+            tab.Thumbnail = bmp;
 
             if (diskPath != null)
             {
@@ -4410,9 +4368,12 @@ return colors.length > 0 ? colors : null;
             {
                 var mediaUrl = browser.MainWebView?.Source?.ToString();
                 if (!string.IsNullOrEmpty(mediaUrl))
-                    _mediaOriginHost[tab] = new Uri(mediaUrl).Host;
-                if (_mediaDeactivationTimers.TryGetValue(tab, out var cancelDt))
-                { cancelDt.Stop(); _mediaDeactivationTimers.Remove(tab); }
+                    tab.MediaOriginHost = new Uri(mediaUrl).Host;
+                if (tab.MediaDeactivationTimer != null)
+                {
+                    tab.MediaDeactivationTimer.Stop();
+                    tab.MediaDeactivationTimer = null;
+                }
             }
             catch { }
 
@@ -4433,9 +4394,9 @@ return colors.length > 0 ? colors : null;
             }
             catch { }
 
-            if (!_mediaTabOriginalIndices.ContainsKey(tab))
+            if (tab.MediaTabOriginalIndex < 0)
             {
-                _mediaTabOriginalIndices[tab] = _allTabs.IndexOf(tab);
+                tab.MediaTabOriginalIndex = _allTabs.IndexOf(tab);
                 
                 int maxPrimary = GetMaxPrimaryTabs();
                 int currentIndex = _allTabs.IndexOf(tab);
@@ -4510,7 +4471,7 @@ return colors.length > 0 ? colors : null;
                 var extracted = await Core.TabColorPaletteExtractor.ExtractFromBase64Async(b64);
                 if (extracted.Count > 0)
                 {
-                    if (tab.PaletteColors.Count >= 2 && _colorAnimTimers.ContainsKey(tab)) { _prevPaletteColors[tab] = tab.PaletteColors; _paletteBlendT[tab] = 0.0; }
+                    if (tab.PaletteColors.Count >= 2 && tab.ColorAnimTimer != null) { tab.PrevPaletteColors = tab.PaletteColors; tab.PaletteBlendT = 0.0; }
                     tab.PaletteColors = extracted;
                     tab.SingleColorBrush = new SolidColorBrush(extracted[0]);
                 }
@@ -4560,12 +4521,12 @@ return colors.length > 0 ? colors : null;
             var colors = await Core.TabColorPaletteExtractor.ExtractFromImageUrlAsync(imgUrl);
             if (colors.Count < 2) return;
 
-            if (tab.PaletteColors.Count >= 2 && _colorAnimTimers.ContainsKey(tab)) { _prevPaletteColors[tab] = tab.PaletteColors; _paletteBlendT[tab] = 0.0; }
+            if (tab.PaletteColors.Count >= 2 && tab.ColorAnimTimer != null) { tab.PrevPaletteColors = tab.PaletteColors; tab.PaletteBlendT = 0.0; }
             tab.PaletteColors = colors;
             tab.SingleColorBrush = new SolidColorBrush(colors[0]);
 
             // If already animating, swap the palette — blend transition is handled in the tick.
-            if (!_colorAnimTimers.ContainsKey(tab))
+            if (tab.ColorAnimTimer == null)
                 StartColorAnimation(tab);
         }
         catch { }
@@ -4667,14 +4628,14 @@ return colors.length > 0 ? colors : null;
 
     private void StartColorAnimation(TabViewModel tab)
     {
-        if (_colorAnimTimers.ContainsKey(tab)) return;
+        if (tab.ColorAnimTimer != null) return;
         if (tab.PaletteColors.Count < 2) return;
 
-        _colorAnimT[tab]   = 0.0;
-        _colorAnimPhase[tab] = 0;
-        _vizTime[tab]      = 0.0;
-        _vizSmoothedAmps[tab] = new double[3];
-        _colorAnimFade[tab] = 0.0; 
+        tab.ColorAnimT   = 0.0;
+        tab.ColorAnimPhase = 0;
+        tab.VizTime      = 0.0;
+        tab.VizSmoothedAmps = new double[3];
+        tab.ColorAnimFade = 0.0; 
 
         const double phaseStep     = 0.006;
         double ticksPerSample      = PaletteSampleRateSec * 1000.0 / PaletteTickMs;
@@ -4688,48 +4649,47 @@ return colors.length > 0 ? colors : null;
             if (palette.Count < 2) return;
             int n = palette.Count;
 
-            _colorAnimT[tab] += phaseStep;
-            if (_colorAnimT[tab] >= 1.0)
+            tab.ColorAnimT += phaseStep;
+            if (tab.ColorAnimT >= 1.0)
             {
-                _colorAnimT[tab] = 0.0;
-                _colorAnimPhase[tab] = (_colorAnimPhase[tab] + 1) % n;
+                tab.ColorAnimT = 0.0;
+                tab.ColorAnimPhase = (tab.ColorAnimPhase + 1) % n;
             }
 
-            _vizTime[tab] += 1.0; 
+            tab.VizTime += 1.0; 
 
-            if (_colorAnimFade[tab] < 1.0)
+            if (tab.ColorAnimFade < 1.0)
             {
-                _colorAnimFade[tab] = Math.Min(1.0, _colorAnimFade[tab] + fadeStep);
+                tab.ColorAnimFade = Math.Min(1.0, tab.ColorAnimFade + fadeStep);
             }
-            double fadeAlpha = _colorAnimFade[tab];
+            double fadeAlpha = tab.ColorAnimFade;
 
-            double t  = _colorAnimT[tab];
-            double vt = _vizTime[tab];
-            int    p  = _colorAnimPhase[tab];
+            double t  = tab.ColorAnimT;
+            double vt = tab.VizTime;
+            int    p  = tab.ColorAnimPhase;
 
             var baseC0 = LerpColor(palette[p % n],         palette[(p + 1) % n], t);
             var baseC1 = LerpColor(palette[(p + 1) % n],   palette[(p + 2) % n], t);
             var baseC2 = LerpColor(palette[(p + 2) % n],   palette[p % n],       t);
 
-            if (_prevPaletteColors.TryGetValue(tab, out var prevPalette) && prevPalette.Count >= 2)
+            if (tab.PrevPaletteColors != null && tab.PrevPaletteColors.Count >= 2)
             {
-                double bt = _paletteBlendT[tab];
+                double bt = tab.PaletteBlendT;
                 if (bt < 1.0)
                 {
                     bt = Math.Min(1.0, bt + paletteBlendStep);
-                    _paletteBlendT[tab] = bt;
-                    int pn = prevPalette.Count;
-                    var prevC0 = LerpColor(prevPalette[p % pn],         prevPalette[(p + 1) % pn], t);
-                    var prevC1 = LerpColor(prevPalette[(p + 1) % pn],   prevPalette[(p + 2) % pn], t);
-                    var prevC2 = LerpColor(prevPalette[(p + 2) % pn],   prevPalette[p % pn],       t);
+                    tab.PaletteBlendT = bt;
+                    int pn = tab.PrevPaletteColors.Count;
+                    var prevC0 = LerpColor(tab.PrevPaletteColors[p % pn],         tab.PrevPaletteColors[(p + 1) % pn], t);
+                    var prevC1 = LerpColor(tab.PrevPaletteColors[(p + 1) % pn],   tab.PrevPaletteColors[(p + 2) % pn], t);
+                    var prevC2 = LerpColor(tab.PrevPaletteColors[(p + 2) % pn],   tab.PrevPaletteColors[p % pn],       t);
                     baseC0 = LerpColor(prevC0, baseC0, bt);
                     baseC1 = LerpColor(prevC1, baseC1, bt);
                     baseC2 = LerpColor(prevC2, baseC2, bt);
                 }
                 else
                 {
-                    _prevPaletteColors.Remove(tab);
-                    _paletteBlendT.Remove(tab);
+                    tab.PrevPaletteColors = null;
                 }
             }
 
@@ -4738,7 +4698,7 @@ return colors.length > 0 ? colors : null;
             double amp2 = ComputeBandAmplitude(vt, _bandFreq[2], _bandPhase[2]);
 
             const double smoothAlpha = 0.88;
-            var sa = _vizSmoothedAmps[tab];
+            var sa = tab.VizSmoothedAmps;
             sa[0] += (amp0 - sa[0]) * smoothAlpha;
             sa[1] += (amp1 - sa[1]) * smoothAlpha;
             sa[2] += (amp2 - sa[2]) * smoothAlpha;
@@ -4780,9 +4740,9 @@ return colors.length > 0 ? colors : null;
         };
 
         timer.Start();
-        _colorAnimTimers[tab] = timer;
+        tab.ColorAnimTimer = timer;
 
-        if (!_paletteRefreshTimers.ContainsKey(tab))
+        if (tab.PaletteRefreshTimer == null)
         {
             var prt = new DispatcherTimer { Interval = TimeSpan.FromSeconds(PaletteSampleRateSec) };
             prt.Tick += async (_, _) =>
@@ -4793,7 +4753,7 @@ return colors.length > 0 ? colors : null;
                     await UpdateTabMediaMetadataAsync(tab, bv);
             };
             prt.Start();
-            _paletteRefreshTimers[tab] = prt;
+            tab.PaletteRefreshTimer = prt;
         }
     }
 
@@ -4818,15 +4778,15 @@ return colors.length > 0 ? colors : null;
 
     private void StopColorAnimation(TabViewModel tab, bool fadeOut = false)
     {
-        if (!_colorAnimTimers.TryGetValue(tab, out var timer)) return;
-        timer.Stop();
-        _colorAnimTimers.Remove(tab);
-        if (_paletteRefreshTimers.TryGetValue(tab, out var prt)) { prt.Stop(); _paletteRefreshTimers.Remove(tab); }
-        _colorAnimT.Remove(tab);
-        _colorAnimPhase.Remove(tab);
-        _vizTime.Remove(tab);
-        _vizSmoothedAmps.Remove(tab);
-        _colorAnimFade.Remove(tab);
+        if (tab.ColorAnimTimer == null) return;
+        tab.ColorAnimTimer.Stop();
+        tab.ColorAnimTimer = null;
+        if (tab.PaletteRefreshTimer != null)
+        {
+            tab.PaletteRefreshTimer.Stop();
+            tab.PaletteRefreshTimer = null;
+        }
+        tab.PrevPaletteColors = null;
 
         if (fadeOut)
         {
@@ -5524,24 +5484,24 @@ return colors.length > 0 ? colors : null;
             tab.Volume = slider.Value / 100.0;
 
             // FIX #4 – Debounce: coalesce rapid slider drags into one JS call
-            if (_volumeDebounceTimers.TryGetValue(tab, out var existing))
+            if (tab.VolumeDebounceTimer != null)
             {
-                existing.Stop();
-                _volumeDebounceTimers.Remove(tab);
+                tab.VolumeDebounceTimer.Stop();
+                tab.VolumeDebounceTimer = null;
             }
 
             var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(120) };
             timer.Tick += async (s, args) =>
             {
                 timer.Stop();
-                _volumeDebounceTimers.Remove(tab);
+                tab.VolumeDebounceTimer = null;
                 if (browser.MainWebView?.CoreWebView2 != null)
                 {
                     await browser.MainWebView.CoreWebView2.ExecuteScriptAsync(
                         $"(() => {{ const v = document.querySelector('video, audio'); if(v) v.volume = {tab.Volume.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)}; }})()");
                 }
             };
-            _volumeDebounceTimers[tab] = timer;
+            tab.VolumeDebounceTimer = timer;
             timer.Start();
         }
     }
@@ -8438,7 +8398,7 @@ return colors.length > 0 ? colors : null;
         var _mediaVidTab    = _allTabs.FirstOrDefault(t => t.IsPlayingAudio && t.HasVideo && !t.IsAudioOnlyMode);
         var _mediaAudTab    = _allTabs.FirstOrDefault(t => t.IsPlayingAudio && (!t.HasVideo || t.IsAudioOnlyMode));
         var _mediaActiveTab = _mediaVidTab ?? _mediaAudTab ?? _allTabs.FirstOrDefault(t => t.HasEverPlayedAudio);
-        string activeArtist = _mediaActiveTab != null && _mediaArtistCache.TryGetValue(_mediaActiveTab, out var art) ? art : "";
+        string activeArtist = _mediaActiveTab?.MediaArtist ?? "";
         string activeHost = "";
         if (_mediaActiveTab != null && !string.IsNullOrEmpty(_mediaActiveTab.Url) && Uri.TryCreate(_mediaActiveTab.Url, UriKind.Absolute, out var _mediaUri))
             activeHost = _mediaUri.Host;
@@ -12743,15 +12703,14 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
         _sleepTimer.Tick += (s, e) => CheckSleepingTabs();
         _sleepTimer.Start();
         // Mark the initial active tab as recently active
-        if (GetCurrentTabViewModel() is TabViewModel t) _tabLastActive[t] = DateTime.UtcNow;
+        if (GetCurrentTabViewModel() is TabViewModel t) t.LastActiveUtc = DateTime.UtcNow;
     }
 
     private HashSet<TabViewModel> GetProtectedTabs()
     {
-        return _tabClickCount
-            .OrderByDescending(kv => kv.Value)
+        return _allTabs
+            .OrderByDescending(t => t.ClickCount)
             .Take(SLEEP_PROTECT_N)
-            .Select(kv => kv.Key)
             .ToHashSet();
     }
 
@@ -12781,7 +12740,7 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
         {
             if (tab == active || tab.IsPlayingAudio || tab.IsActiveDownload)
             {
-                _tabLastActive[tab] = DateTime.UtcNow;
+                tab.LastActiveUtc = DateTime.UtcNow;
                 WakeTab(tab);
                 continue;
             }
@@ -12795,13 +12754,6 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
 
             if (protect.Contains(tab))
             {
-                if (!_tabLastActive.ContainsKey(tab)) _tabLastActive[tab] = DateTime.UtcNow;
-                continue;
-            }
-
-            if (!_tabLastActive.TryGetValue(tab, out var lastActive))
-            {
-                _tabLastActive[tab] = DateTime.UtcNow;
                 continue;
             }
 
@@ -12815,7 +12767,7 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
             if (tab.SleepRamThresholdMbOverride.HasValue && mb < tab.SleepRamThresholdMbOverride.Value)
                 continue;
 
-            if (DateTime.UtcNow - lastActive > tabThreshold && !tab.IsSleeping)
+            if (DateTime.UtcNow - tab.LastActiveUtc > tabThreshold && !tab.IsSleeping)
                 SleepTab(tab);
         }
 
@@ -12840,11 +12792,8 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
                 if (tab == active || tab.IsSleeping || tab.IsPlayingAudio || tab.IsActiveDownload || protect.Contains(tab) || tab.NeverSleep)
                     return (tab, score: -1.0);
 
-                double idleMin = _tabLastActive.TryGetValue(tab, out var dt)
-                               ? (DateTime.UtcNow - dt).TotalMinutes
-                               : 999.0;
-
-                double clickPenalty  = _tabClickCount.TryGetValue(tab, out int clicks) ? clicks * 0.5 : 0.0;
+                double idleMin = (DateTime.UtcNow - tab.LastActiveUtc).TotalMinutes;
+                double clickPenalty  = tab.ClickCount * 0.5;
                 double positionScore = total > 1 ? (double)idx / (total - 1) : 0.0;
                 double score         = (idleMin * 3.0) + positionScore - clickPenalty;
                 return (tab, score);
@@ -12870,7 +12819,7 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
         {
             if (bv.MainWebView?.CoreWebView2 != null)
             {
-                _tabSleepUrls[tab] = tab.Url;
+                tab.SleepUrl = tab.Url;
                 tab.IsSleeping = true;
 
                 // Attempt soft suspend first — freezes renderer in place,
@@ -12907,7 +12856,7 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
         if (!_tabViews.TryGetValue(tab, out var bv)) return;
         try
         {
-            string wakeUrl = _tabSleepUrls.TryGetValue(tab, out var stored) ? stored : tab.Url;
+            string wakeUrl = !string.IsNullOrEmpty(tab.SleepUrl) ? tab.SleepUrl : tab.Url;
 
             // Guard: if the stored URL is blank (tab was still initialising when
             // sleep fired, or was already on about:blank), fall back to the homepage
@@ -12915,7 +12864,7 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
             if (string.IsNullOrEmpty(wakeUrl) || wakeUrl == "about:blank")
                 wakeUrl = SettingsService.Current.HomePage;
 
-            _tabSleepUrls.Remove(tab);
+            tab.SleepUrl = null;
             tab.IsSleeping = false;
             LogService.Write("SLEEP", $"Tab waking: {tab.Title}");
 
@@ -12925,7 +12874,7 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
                 {
                     // Soft-suspended: resume in place, page state intact, no reload
                     bv.MainWebView.CoreWebView2.Resume();
-                    _tabSleepUrls.Remove(tab);
+                    tab.SleepUrl = null;
                     return;
                 }
                 // Hard-discarded: navigate back to original URL

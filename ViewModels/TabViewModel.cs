@@ -452,6 +452,18 @@ public class TabViewModel : INotifyPropertyChanged, IDisposable
     public ImageSource? Thumbnail { get; set; }
     public int MediaTabOriginalIndex { get; set; } = -1;
     public string? MediaOriginHost { get; set; }
+    public string? MediaArtist { get; set; }
+    public int CrashCount { get; set; }
+    public string? ImageUrl { get; set; }
+
+    // Color Animation & Audio Visualizer Runtime State
+    public double ColorAnimT { get; set; }
+    public int ColorAnimPhase { get; set; }
+    public double ColorAnimFade { get; set; }
+    public double VizTime { get; set; }
+    public double[] VizSmoothedAmps { get; set; } = new double[3];
+    public List<System.Windows.Media.Color>? PrevPaletteColors { get; set; }
+    public double PaletteBlendT { get; set; }
 
     // Timers
     public System.Windows.Threading.DispatcherTimer? ColorAnimTimer { get; set; }
@@ -471,5 +483,6 @@ public class TabViewModel : INotifyPropertyChanged, IDisposable
         try { LoadingTimer?.Stop(); LoadingTimer = null; } catch { }
         try { VolumeDebounceTimer?.Stop(); VolumeDebounceTimer = null; } catch { }
         Thumbnail = null;
+        PrevPaletteColors = null;
     }
 }
