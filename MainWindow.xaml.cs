@@ -2279,7 +2279,7 @@ public partial class MainWindow : Window
                 // Notifications: left to WebView2's native permission flow, same as the main tab handler.
             };
 
-            newBrowser.MainWebView.CoreWebView2.DocumentTitleChanged += async (sender2, args2) =>
+            newBrowser.MainWebView.CoreWebView2.DocumentTitleChanged += (sender2, args2) =>
             {
                 try 
                 {
@@ -2542,6 +2542,7 @@ return colors.length > 0 ? colors : null;
         tabToClose.Dispose();
 
         ReflowTabs();
+        GC.Collect(2, GCCollectionMode.Optimized, false);
 
         if (_allTabs.Count == 0)
         {
@@ -7590,7 +7591,7 @@ return colors.length > 0 ? colors : null;
         _videoWidgetTimer.Start();
     }
     
-    private async void VideoWidgetTimer_Tick(object? sender, EventArgs e)
+    private void VideoWidgetTimer_Tick(object? sender, EventArgs e)
     {
         string mode = CurrentWidgetMode();
         bool isMedia = mode is "Media" or "Music" or "Video";
@@ -12808,7 +12809,10 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
             SleepTab(tab);
 
         if (candidates.Count > 0)
+        {
             LogService.Write("MEM", $"Pressure: {mb} MB — queued {candidates.Count} tab(s) for sleep");
+            GC.Collect(2, GCCollectionMode.Optimized, false);
+        }
     }
 
     private async void SleepTab(TabViewModel tab)

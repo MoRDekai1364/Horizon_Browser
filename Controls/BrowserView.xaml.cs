@@ -349,7 +349,7 @@ public partial class BrowserView : UserControl
                     }
 
                     FluxJanitorService.NotifyDownloadCompleted();
-                    Dispatcher.Invoke(async () =>
+                    await Dispatcher.InvokeAsync(async () =>
                     {
                         DownloadProgressChanged?.Invoke(this, new DownloadInfo(1.0, savePath, true, 0, 0, downloadUrl));
                         LogService.Write("DL", $"CRX saved: {savePath}");
@@ -987,17 +987,20 @@ public partial class BrowserView : UserControl
 
         try
         {
-            string url = MainWebView?.Source?.ToString() ?? string.Empty;
-            // Extract only the meta/og tags — not the full DOM.
-            string rawJson = await MainWebView.CoreWebView2!.ExecuteScriptAsync(
-                @"(function(){
-                    var metas = Array.from(document.querySelectorAll('meta[content]'));
-                    return JSON.stringify(metas.slice(0,30).map(m=>m.outerHTML).join(''));
-                })()");
-            string html = JsonSerializer.Deserialize<string>(rawJson) ?? string.Empty;
-            var colors = await TabColorPaletteExtractor.ExtractAsync(url, html);
-            if (colors.Count >= 2)
-                _tabViewModel.PaletteColors = colors;
+            if (MainWebView?.CoreWebView2 != null)
+            {
+                string url = MainWebView.Source?.ToString() ?? string.Empty;
+                // Extract only the meta/og tags — not the full DOM.
+                string rawJson = await MainWebView.CoreWebView2.ExecuteScriptAsync(
+                    @"(function(){
+                        var metas = Array.from(document.querySelectorAll('meta[content]'));
+                        return JSON.stringify(metas.slice(0,30).map(m=>m.outerHTML).join(''));
+                    })()");
+                string html = JsonSerializer.Deserialize<string>(rawJson) ?? string.Empty;
+                var colors = await TabColorPaletteExtractor.ExtractAsync(url, html);
+                if (colors.Count >= 2)
+                    _tabViewModel.PaletteColors = colors;
+            }
         }
         catch (Exception ex)
         {
@@ -1088,7 +1091,7 @@ public partial class BrowserView : UserControl
         }
     }
 
-    public async Task AttemptActiveRecovery()
+    public Task AttemptActiveRecovery()
     {
         string targetDomain = "twitch.tv";
         try
@@ -1183,6 +1186,7 @@ public partial class BrowserView : UserControl
                 }
             }
         }
+        return Task.CompletedTask;
     }
 
     private int InjectCookieList(List<ExtractedCookie> cookies)
