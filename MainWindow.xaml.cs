@@ -562,9 +562,11 @@ public partial class MainWindow : Window
 
     [DllImport("user32.dll")] private static extern IntPtr MonitorFromWindow(IntPtr hwnd, uint flags);
     [DllImport("user32.dll")] private static extern bool   GetMonitorInfo(IntPtr hMonitor, ref WMI lpmi);
-    [DllImport("user32.dll")] private static extern bool   GetWindowRect(IntPtr hWnd, out WRC lpRect);
     [DllImport("user32.dll", CharSet = CharSet.Unicode)] private static extern IntPtr LoadKeyboardLayout(string pwszKLID, uint Flags);
     [DllImport("user32.dll")] private static extern IntPtr ActivateKeyboardLayout(IntPtr hkl, uint Flags);
+    [DllImport("user32.dll")] private static extern int    GetKeyboardLayoutList(int nBuff, [Out] IntPtr[] lpList);
+    [DllImport("user32.dll", CharSet = CharSet.Auto)] private static extern bool PostMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
+    [DllImport("user32.dll")] private static extern IntPtr GetForegroundWindow();
     [DllImport("user32.dll", CharSet = CharSet.Unicode)]
     private static extern IntPtr FindWindow(string lpClassName, string? lpWindowName);
     [DllImport("shell32.dll")]
@@ -2448,6 +2450,8 @@ return colors.length > 0 ? colors : null;
             _tabLastActive[selectedTab] = DateTime.UtcNow;
             _tabClickCount[selectedTab] = _tabClickCount.TryGetValue(selectedTab, out int cc) ? cc + 1 : 1;
             WakeTab(selectedTab);
+            if (!string.IsNullOrEmpty(selectedTab.Language))
+                TrySwitchKeyboardLayout(selectedTab.Language);
 
             if (activeView.IsHomeActive || activeView.MainWebView?.Source != null)
             {
@@ -2551,7 +2555,7 @@ return colors.length > 0 ? colors : null;
         if (_tabViews.TryGetValue(tabToClose, out var view))
         {
             ViewContainer.Children.Remove(view);
-            try { view.MainWebView?.Dispose(); } catch { }
+            view.Teardown();
             _tabViews.Remove(tabToClose);
         }
 
@@ -2577,6 +2581,7 @@ return colors.length > 0 ? colors : null;
         { prtClose.Stop(); _paletteRefreshTimers.Remove(tabToClose); }
         _mediaOriginHost.Remove(tabToClose);
         _tabCrashCounts.Remove(tabToClose);
+        tabToClose.Dispose();
 
         ReflowTabs();
 
@@ -4977,12 +4982,40 @@ return colors.length > 0 ? colors : null;
         {
             var core = browser.MainWebView?.CoreWebView2;
             if (core == null) return;
-            // Right-click ⏮ = Previous Track
-            // Try platform-specific buttons first, then restart current track as fallback
+            // Right-click ⏮ = Previous Track (Spotify, YouTube Music, YouTube Playlist, SoundCloud, HTML5 fallback)
             await core.ExecuteScriptAsync(@"(() => {
-                const b = document.querySelector('.ytp-prev-button,[data-testid=""previous-button""],.skipControl__previous,tp-yt-paper-icon-button#previous-button,#previous-button,.previous-button,[aria-label=""Previous""],[aria-label=""Previous track""],[title=""Previous""]');
-                if (b) { b.click(); return; }
-                // Generic fallback: restart current track
+                // 1. Spotify Web
+                const spotify = document.querySelector('button[data-testid=""control-button-skip-back""]');
+                if (spotify) { spotify.click(); return; }
+
+                // 2. YouTube Music
+                const ytMusic = document.querySelector('ytmusic-player-bar .previous-button, #previous-button');
+                if (ytMusic) {
+                    (ytMusic.querySelector('button') || ytMusic).click();
+                    return;
+                }
+
+                // 3. YouTube standard playlist previous button
+                const ytp = document.querySelector('.ytp-prev-button');
+                if (ytp && ytp.getAttribute('aria-disabled') !== 'true') {
+                    ytp.click();
+                    return;
+                }
+
+                // 4. SoundCloud & other standard players
+                const b = document.querySelector('.playControls__prev, .skipControl__previous, [data-testid=""previous-button""], [aria-label=""Previous""], [aria-label=""Previous track""], [title=""Previous""]');
+                if (b) {
+                    (b.querySelector('button') || b).click();
+                    return;
+                }
+
+                // 5. If on YouTube without a playlist, history.back navigates to previous video
+                if (window.location.hostname.includes('youtube.com') && window.history.length > 1) {
+                    window.history.back();
+                    return;
+                }
+
+                // 6. Generic media restart
                 const m = document.querySelector('video, audio');
                 if (m) m.currentTime = 0;
             })()");
@@ -4996,11 +5029,27 @@ return colors.length > 0 ? colors : null;
         {
             var core = browser.MainWebView?.CoreWebView2;
             if (core == null) return;
-            // Right-click ⏭ = Next Track
+            // Right-click ⏭ = Next Track (Spotify, YouTube Music, YouTube, SoundCloud)
             await core.ExecuteScriptAsync(@"(() => {
-                const b = document.querySelector('.ytp-next-button,[data-testid=""next-button""],.skipControl__next,tp-yt-paper-icon-button#next-button,#next-button,.next-button,[aria-label=""Next""],[aria-label=""Next track""],[title=""Next""]');
-                if (b) { b.click(); return; }
-                // Generic fallback: skip to end to trigger playlist advance
+                // 1. Spotify Web
+                const spotify = document.querySelector('button[data-testid=""control-button-skip-forward""]');
+                if (spotify) { spotify.click(); return; }
+
+                // 2. YouTube Music
+                const ytMusic = document.querySelector('ytmusic-player-bar .next-button, #next-button');
+                if (ytMusic) {
+                    (ytMusic.querySelector('button') || ytMusic).click();
+                    return;
+                }
+
+                // 3. YouTube & General players
+                const b = document.querySelector('.ytp-next-button, .playControls__next, .skipControl__next, [data-testid=""next-button""], [aria-label=""Next""], [aria-label=""Next track""], [title=""Next""]');
+                if (b) {
+                    (b.querySelector('button') || b).click();
+                    return;
+                }
+
+                // 4. Generic media advance
                 const m = document.querySelector('video, audio');
                 if (m && isFinite(m.duration)) m.currentTime = m.duration - 0.1;
             })()");
@@ -6653,6 +6702,41 @@ return colors.length > 0 ? colors : null;
         {
             if (string.IsNullOrEmpty(languageTag)) return;
             string rootTag = languageTag.Split('-')[0];
+
+            int count = GetKeyboardLayoutList(0, Array.Empty<IntPtr>());
+            if (count > 0)
+            {
+                var layouts = new IntPtr[count];
+                GetKeyboardLayoutList(count, layouts);
+
+                foreach (var hkl in layouts)
+                {
+                    int langId = (int)((long)hkl & 0xFFFF);
+                    try
+                    {
+                        var culture = new System.Globalization.CultureInfo(langId);
+                        if (culture.TwoLetterISOLanguageName.Equals(rootTag, StringComparison.OrdinalIgnoreCase) ||
+                            culture.IetfLanguageTag.Equals(languageTag, StringComparison.OrdinalIgnoreCase))
+                        {
+                            ActivateKeyboardLayout(hkl, 0);
+                            System.Windows.Input.InputLanguageManager.Current.CurrentInputLanguage = culture;
+
+                            IntPtr hWnd = new WindowInteropHelper(this).Handle;
+                            if (hWnd != IntPtr.Zero)
+                                PostMessage(hWnd, 0x0050 /* WM_INPUTLANGCHANGEREQUEST */, IntPtr.Zero, hkl);
+
+                            IntPtr fg = GetForegroundWindow();
+                            if (fg != IntPtr.Zero && fg != hWnd)
+                                PostMessage(fg, 0x0050, IntPtr.Zero, hkl);
+
+                            return;
+                        }
+                    }
+                    catch { }
+                }
+            }
+
+            // Fallback via InputLanguageManager if layout is not yet in the active thread list
             foreach (System.Globalization.CultureInfo culture in
                 System.Windows.Input.InputLanguageManager.Current.AvailableInputLanguages)
             {
@@ -6660,7 +6744,14 @@ return colors.length > 0 ? colors : null;
                     culture.IetfLanguageTag.Equals(languageTag, StringComparison.OrdinalIgnoreCase))
                 {
                     var hkl = LoadKeyboardLayout(culture.LCID.ToString("X8"), 1); // KLF_ACTIVATE
-                    if (hkl != IntPtr.Zero) ActivateKeyboardLayout(hkl, 0);
+                    if (hkl != IntPtr.Zero)
+                    {
+                        ActivateKeyboardLayout(hkl, 0);
+                        System.Windows.Input.InputLanguageManager.Current.CurrentInputLanguage = culture;
+                        IntPtr hWnd = new WindowInteropHelper(this).Handle;
+                        if (hWnd != IntPtr.Zero)
+                            PostMessage(hWnd, 0x0050, IntPtr.Zero, hkl);
+                    }
                     return;
                 }
             }

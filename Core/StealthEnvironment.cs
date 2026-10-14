@@ -81,23 +81,6 @@ public static class StealthEnvironment
         })();
     ";
 
-    private const string SCRIPT_STEALTH_CLOAK = @"
-        (function() {
-            Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
-            
-            const shift = { r: Math.floor(Math.random() * 10) - 5, g: Math.floor(Math.random() * 10) - 5, b: Math.floor(Math.random() * 10) - 5 };
-            
-            const originalToDataURL = HTMLCanvasElement.prototype.toDataURL;
-            HTMLCanvasElement.prototype.toDataURL = function() {
-                const ctx = this.getContext('2d');
-                if (ctx) {
-                    const imageData = ctx.getImageData(0, 0, 1, 1); 
-                }
-                return originalToDataURL.apply(this, arguments);
-            };
-        })();
-    ";
-
     /// <summary>
     /// Idempotent — all callers await the same underlying Task.
     /// Safe to call concurrently from multiple BrowserView instances.
@@ -317,7 +300,6 @@ public static class StealthEnvironment
             webView.Settings.UserAgent = GlobalUserAgent;
             await webView.AddScriptToExecuteOnDocumentCreatedAsync(SCRIPT_YOUTUBE_INTERVENTION);
             await webView.AddScriptToExecuteOnDocumentCreatedAsync(SCRIPT_YOUTUBE_SCROLL_FIX);
-            await webView.AddScriptToExecuteOnDocumentCreatedAsync(SCRIPT_STEALTH_CLOAK);
 
             if (SettingsService.Current.HideSponsoredResults)
                 await webView.AddScriptToExecuteOnDocumentCreatedAsync(SCRIPT_HIDE_SPONSORED_RESULTS);

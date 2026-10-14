@@ -1,4 +1,32 @@
-bin/
-obj/
-redist/
+# Build results
+[Bb]in/
+[Oo]bj/
+[Oo]utput/
+[Rr]edist/
 github_push/
+
+# Visual Studio / Rider / VS Code cache
+.vs/
+.idea/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Backups & local scratch
+*.bak
+*.tmp
+*.log
+logs/
+
+# Machine-specific paths & shortcuts
+path.txt
+*.lnk
+
+# Large temporary media
+last.mp4
+
+# Personal user session data
+cookies.json
+history.json

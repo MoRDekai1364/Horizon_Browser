@@ -101,6 +101,26 @@ internal static class PageDiag
         return sb.Append(" effOp=").Append(effective.ToString("0.###")).ToString();
     }
 
+    private static int CountEffects(DependencyObject node)
+    {
+        int total = node is UIElement { Effect: not null } ? 1 : 0;
+        int count = VisualTreeHelper.GetChildrenCount(node);
+        for (int i = 0; i < count; i++) total += CountEffects(VisualTreeHelper.GetChild(node, i));
+        return total;
+    }
+
+    private static FrameworkElement? FirstTile(FrameworkElement page)
+    {
+        if (page is Grid grid && grid.Children.Count > 0 && grid.Children[0] is Panel host)
+        {
+            foreach (UIElement row in host.Children)
+            {
+                if (row is Panel rowPanel && rowPanel.Children.Count > 0 && rowPanel.Children[0] is FrameworkElement tile) return tile;
+            }
+        }
+        return null;
+    }
+
     public static string Describe(Panel strip, FrameworkElement viewport, double pageWidth, int page, bool animating)
     {
         var sb = new StringBuilder();
@@ -140,9 +160,15 @@ internal static class PageDiag
             sb.Append(" tiles=").Append(tiles).Append(" shown=").Append(shown).Append(" minOp=").Append(minOpacity.ToString("0.##")).Append(']');
         }
         if (strip.Children.Count > count) sb.Append(" +").Append(strip.Children.Count - count).Append(" more");
+        sb.Append(" stripW=").Append(strip.ActualWidth.ToString("0")).Append(" viewport=").Append(viewport.ActualWidth.ToString("0")).Append('x').Append(viewport.ActualHeight.ToString("0"));
         if (page >= 0 && page < strip.Children.Count) sb.Append(Chain(strip.Children[page]));
         if (page >= 0 && page < strip.Children.Count && strip.Children[page] is FrameworkElement activePage)
+        {
             sb.Append(" ink[page=").Append(Ink(activePage)).Append(" viewport=").Append(Ink(viewport)).Append("] imgs=").Append(Images(activePage));
+            sb.Append(" fxInPage=").Append(CountEffects(activePage));
+            if (FirstTile(activePage) is FrameworkElement firstTile)
+                sb.Append(" tile0[ink=").Append(Ink(firstTile)).Append(" size=").Append(firstTile.ActualWidth.ToString("0")).Append('x').Append(firstTile.ActualHeight.ToString("0")).Append(Chain(firstTile)).Append(']');
+        }
         return sb.ToString();
     }
 }

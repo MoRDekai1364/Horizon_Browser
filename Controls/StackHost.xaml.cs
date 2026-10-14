@@ -392,7 +392,11 @@ public partial class StackHost : UserControl
     private void ShowImmediate(int index)
     {
         Incoming.Content = _items[index].Content;
-        Incoming.Opacity = 1;
+        if (!_overlayOpen)
+        {
+            Incoming.BeginAnimation(OpacityProperty, null);
+            Incoming.Opacity = 1;
+        }
         _index = index;
         UpdateDots();
         SelectionChanged?.Invoke(index);

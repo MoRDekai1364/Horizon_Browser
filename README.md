@@ -47,9 +47,6 @@ Before updating to a new version, run **`Update_manager.bat`** and follow the on
 | | Issue |
 |---|---|
 | ⛔ | Secondary installation method may be blocked by antivirus software |
-| ⛔ | Bot detection triggered on some websites (e.g. Claude) due to the custom browser fingerprint |
-| ⛔⛔⛔ | Per-tab language UI switches correctly, but does not change the actual keyboard layout |
-
 
 ---
 
@@ -72,7 +69,9 @@ Before updating to a new version, run **`Update_manager.bat`** and follow the on
 - Drag & drop support for sidebar and tabs
 - Sidebar categories for tab management
 - Tab titles show domain only by default, with full title revealed on hover — reversible in settings
-- Right-click forward/backward media buttons to skip tracks *(note: backward → previous track not yet working)*
+- Right-click forward/backward media buttons to skip tracks (supports Spotify, YouTube Music, YouTube, and SoundCloud)
+- Per-tab Windows keyboard layout switching (activates layout for active tab and WebView2 input)
+- Cloudflare & Claude anti-bot compatibility fix (genuine Client Hints and clean prototype environment)
 - Copy, preview, cut & paste file operations in the downloads sidebar
 - Shift-click / Ctrl-click tab multi-selection
 - Improved cookie blocking

@@ -29,15 +29,23 @@ public sealed class FolderCardView : StackPanel
 
     public static int FullLimit(int count, int n)
     {
-        if (count <= OneRowMax || count <= n * n) return count;
-        return n * n - 1;
+        return Dims(count, n).FullCount;
+    }
+
+    public static (int Cols, int Rows, int FullCount) Dims(int count, int n)
+    {
+        if (count <= OneRowMax) return (count, 1, count);
+        if (count <= n * n)
+        {
+            int cols = Math.Min(count == 4 ? 2 : n, n);
+            return (cols, (int)Math.Ceiling(count / (double)cols), count);
+        }
+        return (n, n, n * n - 1);
     }
 
     public static (double W, double H) CellSize(int count, int n)
     {
-        bool oneRow = count <= OneRowMax;
-        int cols = oneRow ? count : n;
-        int rows = oneRow ? 1 : n;
+        var (cols, rows, _) = Dims(count, n);
         double w = cols * Tile + (cols - 1) * Gap + CardChrome + CellMargin * 2;
         double h = rows * Tile + (rows - 1) * Gap + CardChrome + NameGap + NameH + CellMargin * 2;
         return (w, h);
@@ -47,10 +55,7 @@ public sealed class FolderCardView : StackPanel
     {
         Group = group;
         int count = group.Items.Count;
-        bool oneRow = count <= OneRowMax;
-        int cols = oneRow ? count : n;
-        int rows = oneRow ? 1 : n;
-        int fullLimit = oneRow ? count : n * n - 1;
+        var (cols, rows, fullLimit) = Dims(count, n);
         int full = Math.Min(count, fullLimit);
 
         double width = cols * Tile + (cols - 1) * Gap;
@@ -65,7 +70,7 @@ public sealed class FolderCardView : StackPanel
             canvas.Children.Add(tile);
         }
 
-        if (!oneRow && count > fullLimit)
+        if (count > fullLimit)
         {
             int extra = Math.Min(ClusterMax, count - fullLimit);
             var cluster = new Canvas { Width = Tile, Height = Tile, IsHitTestVisible = false };
@@ -88,8 +93,8 @@ public sealed class FolderCardView : StackPanel
                 Canvas.SetTop(mini, (k / 2) * (MiniTile + MiniGap));
                 cluster.Children.Add(mini);
             }
-            Canvas.SetLeft(cluster, (n - 1) * (Tile + Gap));
-            Canvas.SetTop(cluster, (n - 1) * (Tile + Gap));
+            Canvas.SetLeft(cluster, (cols - 1) * (Tile + Gap));
+            Canvas.SetTop(cluster, (rows - 1) * (Tile + Gap));
             canvas.Children.Add(cluster);
         }
 

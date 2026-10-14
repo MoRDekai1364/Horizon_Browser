@@ -492,6 +492,7 @@ public partial class HomePageView : UserControl
             PnlSearchArea.MaxWidth = maxMobileWidth;
             SearchBoxBorder.MaxWidth = Math.Min(900.0, maxMobileWidth);
             ApplySearchRowLayout(true);
+            SetSwitchIconMode(false);
             SyncSearchBarMinWidth();
             UpdateSearchAreaMaxHeight();
             return;
@@ -536,7 +537,10 @@ public partial class HomePageView : UserControl
         double maxAllowedWidth = Math.Max(240.0, availableMiddleWidth - 20.0);
         PnlSearchArea.MaxWidth = maxAllowedWidth;
 
-        double searchMax = Math.Max(240.0, Math.Min(900.0, maxAllowedWidth));
+        bool iconSwitch = maxAllowedWidth - 2.0 * _switchTextSlotWidth < SearchBarMinFloor;
+        SetSwitchIconMode(iconSwitch);
+        double switchSlot = iconSwitch ? SwitchIconSlotWidth : _switchTextSlotWidth;
+        double searchMax = Math.Max(200.0, Math.Min(900.0, maxAllowedWidth - 2.0 * switchSlot));
         SearchBoxBorder.MaxWidth = searchMax;
         ApplySearchRowLayout(false);
         SyncSearchBarMinWidth();
@@ -2927,6 +2931,33 @@ public partial class HomePageView : UserControl
     }
 
     private const double SearchBarMinFloor = 360;
+    private const double SwitchIconSlotWidth = 58;
+    private double _switchTextSlotWidth = 124;
+    private bool? _switchIconMode;
+
+    private void SetSwitchIconMode(bool icons)
+    {
+        if (_switchIconMode == icons) return;
+        if (_switchIconMode != true && _searchRowCompact == false && SwitchSlot.ActualWidth > 40)
+            _switchTextSlotWidth = SwitchSlot.ActualWidth;
+        _switchIconMode = icons;
+
+        var parts = new (TextBlock Label, Border Segment, string Icon, string Text)[]
+        {
+            (TxtModeFavorites, SegModeFavorites, "\u2605", "Favorites"),
+            (TxtModeSearch, SegModeSearch, "\U0001F50D", "Search"),
+            (TxtModeBookmarks, SegModeBookmarks, "\U0001F516", "Bookmarks")
+        };
+        foreach (var part in parts)
+        {
+            part.Label.Text = icons ? part.Icon : part.Text;
+            part.Label.FontSize = icons ? 16 : 13;
+            if (icons) part.Label.FontFamily = new FontFamily("Segoe UI Symbol");
+            else part.Label.ClearValue(TextBlock.FontFamilyProperty);
+            part.Segment.Padding = icons ? new Thickness(11, 0, 11, 0) : new Thickness(14, 0, 14, 0);
+        }
+        ApplySearchModeVisual();
+    }
 
     private bool? _searchRowCompact;
 

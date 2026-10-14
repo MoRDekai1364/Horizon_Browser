@@ -202,6 +202,70 @@ public static class ExtensionInstaller
         }
     }
 
+    /// <summary>
+    /// Installs a local .crx file directly into Horizon's extension directory and registers it in the catalog.
+    /// </summary>
+    public static async Task<ExtensionRecord?> InstallFromCrxFileAsync(
+        string crxPath,
+        string? suggestedName = null,
+        IProgress<string>? progress = null)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                if (!File.Exists(crxPath)) return null;
+
+                progress?.Report("Extracting CRX package…");
+                string extId = Path.GetFileNameWithoutExtension(crxPath)
+                                   .ToLowerInvariant()
+                                   .Replace(' ', '_');
+
+                foreach (var ch in Path.GetInvalidFileNameChars()) extId = extId.Replace(ch, '_');
+                if (extId.Length > 64) extId = extId[..64];
+
+                string destFolder = Path.Combine(ConfigService.ExtensionsRoot, extId);
+                if (Directory.Exists(destFolder))
+                {
+                    try { Directory.Delete(destFolder, recursive: true); } catch { }
+                }
+                Directory.CreateDirectory(destFolder);
+
+                ExtractCrx(crxPath, destFolder);
+
+                string manifestPath = Path.Combine(destFolder, "manifest.json");
+                string name = File.Exists(manifestPath)
+                    ? ExtensionService.ReadManifestName(manifestPath, suggestedName ?? extId)
+                    : (suggestedName ?? extId);
+
+                string version = File.Exists(manifestPath)
+                    ? ExtensionService.ReadManifestVersion(manifestPath)
+                    : "1.0.0";
+
+                var record = new ExtensionRecord
+                {
+                    Id          = extId,
+                    Name        = name,
+                    Description = string.Empty,
+                    Version     = version,
+                    Source      = ExtensionSource.ChromeStore,
+                    Enabled     = true,
+                    InstalledAt = DateTime.Now
+                };
+
+                ExtensionService.Register(record);
+                progress?.Report($"Extension '{name}' successfully installed!");
+                return record;
+            }
+            catch (Exception ex)
+            {
+                LogService.RecordCrash(ex, "ExtensionInstaller.InstallFromCrxFileAsync");
+                progress?.Report($"Installation failed: {ex.Message}");
+                return null;
+            }
+        });
+    }
+
     // ── CRX download URLs ─────────────────────────────────────────────────────
 
     private static string BuildChromeCrxUrl(string id) =>

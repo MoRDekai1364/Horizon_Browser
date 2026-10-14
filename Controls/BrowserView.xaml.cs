@@ -349,17 +349,43 @@ public partial class BrowserView : UserControl
                     }
 
                     FluxJanitorService.NotifyDownloadCompleted();
-                    Dispatcher.Invoke(() =>
+                    Dispatcher.Invoke(async () =>
                     {
                         DownloadProgressChanged?.Invoke(this, new DownloadInfo(1.0, savePath, true, 0, 0, downloadUrl));
                         LogService.Write("DL", $"CRX saved: {savePath}");
 
-                        System.Windows.MessageBox.Show(
-                            $"CRX downloaded successfully:\n{savePath}\n\n" +
-                            "To install it in Horizon, use the Extensions sidebar → Install from file.",
-                            "CRX Download Complete",
-                            System.Windows.MessageBoxButton.OK,
-                            System.Windows.MessageBoxImage.Information);
+                        var promptResult = System.Windows.MessageBox.Show(
+                            $"Extension downloaded:\n{pageTitle}\n\nWould you like to install and activate it into Horizon Browser now?",
+                            "Install Extension",
+                            System.Windows.MessageBoxButton.YesNo,
+                            System.Windows.MessageBoxImage.Question);
+
+                        if (promptResult == System.Windows.MessageBoxResult.Yes)
+                        {
+                            var record = await ExtensionInstaller.InstallFromCrxFileAsync(savePath, pageTitle);
+                            if (record != null)
+                            {
+                                try
+                                {
+                                    string installDir = ExtensionService.GetInstallFolder(record.FolderName);
+                                    if (MainWebView?.CoreWebView2?.Profile != null)
+                                    {
+                                        var ext = await MainWebView.CoreWebView2.Profile.AddBrowserExtensionAsync(installDir);
+                                        if (ext != null && !ext.IsEnabled)
+                                            await ext.EnableAsync(true);
+                                    }
+                                    System.Windows.MessageBox.Show(
+                                        $"Extension '{record.Name}' is now installed and active!",
+                                        "Extension Installed",
+                                        System.Windows.MessageBoxButton.OK,
+                                        System.Windows.MessageBoxImage.Information);
+                                }
+                                catch (Exception loadEx)
+                                {
+                                    LogService.RecordCrash(loadEx, "CRX.AutoInstall.ProfileLoad");
+                                }
+                            }
+                        }
                     });
                 }
                 catch (Exception ex)
@@ -634,9 +660,12 @@ public partial class BrowserView : UserControl
 
                 MainWebView.CoreWebView2.WebResourceRequested += (s, e) =>
                 {
-                    e.Request.Headers.RemoveHeader("Sec-CH-UA");
-                    e.Request.Headers.RemoveHeader("Sec-CH-UA-Mobile");
-                    e.Request.Headers.RemoveHeader("Sec-CH-UA-Platform");
+                    if (!e.Request.Headers.Contains("Sec-CH-UA"))
+                        e.Request.Headers.SetHeader("Sec-CH-UA", "\"Chromium\";v=\"122\", \"Not(A:Brand\";v=\"24\", \"Google Chrome\";v=\"122\"");
+                    if (!e.Request.Headers.Contains("Sec-CH-UA-Mobile"))
+                        e.Request.Headers.SetHeader("Sec-CH-UA-Mobile", "?0");
+                    if (!e.Request.Headers.Contains("Sec-CH-UA-Platform"))
+                        e.Request.Headers.SetHeader("Sec-CH-UA-Platform", "\"Windows\"");
                     if (!e.Request.Headers.Contains("Accept"))
                         e.Request.Headers.SetHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8");
                     if (!e.Request.Headers.Contains("Accept-Language"))
@@ -2505,6 +2534,34 @@ public partial class BrowserView : UserControl
         catch (Exception ex)
         {
             LogService.RecordCrash(ex, "BrowserView.RecoverFromCrashAsync");
+        }
+    }
+
+    /// <summary>
+    /// Explicit teardown for the tab view: unsubscribes CoreWebView2 events,
+    /// stops pending navigations, and disposes the underlying WebView2 control.
+    /// </summary>
+    public void Teardown()
+    {
+        try
+        {
+            if (MainWebView?.CoreWebView2 != null)
+            {
+                MainWebView.CoreWebView2.NewWindowRequested -= CoreWebView2_NewWindowRequested;
+                MainWebView.CoreWebView2.DownloadStarting -= CoreWebView2_DownloadStarting;
+                MainWebView.CoreWebView2.NavigationCompleted -= CoreWebView2_NavigationCompleted;
+                MainWebView.CoreWebView2.PermissionRequested -= CoreWebView2_PermissionRequested;
+                MainWebView.CoreWebView2.ContextMenuRequested -= CoreWebView2_ContextMenuRequested;
+                MainWebView.CoreWebView2.NavigationStarting -= CoreWebView2_NavigationStarting;
+                MainWebView.CoreWebView2.NotificationReceived -= CoreWebView2_NotificationReceived;
+                MainWebView.CoreWebView2.HistoryChanged -= CoreWebView2_HistoryChanged;
+            }
+            MainWebView?.Stop();
+            MainWebView?.Dispose();
+        }
+        catch (Exception ex)
+        {
+            LogService.RecordCrash(ex, "BrowserView.Teardown");
         }
     }
 }

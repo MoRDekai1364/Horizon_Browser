@@ -8,7 +8,7 @@ using System.IO;
 
 namespace Horizon.Stealth.ViewModels;
 
-public class TabViewModel : INotifyPropertyChanged
+public class TabViewModel : INotifyPropertyChanged, IDisposable
 {
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -443,5 +443,33 @@ public class TabViewModel : INotifyPropertyChanged
         else if (h < 300) { r = x; g = 0; b = c; }
         else              { r = c; g = 0; b = x; }
         return Color.FromRgb((byte)((r + m) * 255), (byte)((g + m) * 255), (byte)((b + m) * 255));
+    }
+
+    // ── Encapsulated Lifecycle & Runtime State ──
+    public DateTime LastActiveUtc { get; set; } = DateTime.UtcNow;
+    public int ClickCount { get; set; }
+    public string? SleepUrl { get; set; }
+    public ImageSource? Thumbnail { get; set; }
+    public int MediaTabOriginalIndex { get; set; } = -1;
+    public string? MediaOriginHost { get; set; }
+
+    // Timers
+    public System.Windows.Threading.DispatcherTimer? ColorAnimTimer { get; set; }
+    public System.Windows.Threading.DispatcherTimer? PaletteRefreshTimer { get; set; }
+    public System.Windows.Threading.DispatcherTimer? MediaDeactivationTimer { get; set; }
+    public System.Windows.Threading.DispatcherTimer? LoadingTimer { get; set; }
+    public System.Windows.Threading.DispatcherTimer? VolumeDebounceTimer { get; set; }
+
+    /// <summary>
+    /// Explicitly stops any active timers and cleans up unmanaged / bitmap references.
+    /// </summary>
+    public void Dispose()
+    {
+        try { ColorAnimTimer?.Stop(); ColorAnimTimer = null; } catch { }
+        try { PaletteRefreshTimer?.Stop(); PaletteRefreshTimer = null; } catch { }
+        try { MediaDeactivationTimer?.Stop(); MediaDeactivationTimer = null; } catch { }
+        try { LoadingTimer?.Stop(); LoadingTimer = null; } catch { }
+        try { VolumeDebounceTimer?.Stop(); VolumeDebounceTimer = null; } catch { }
+        Thumbnail = null;
     }
 }
