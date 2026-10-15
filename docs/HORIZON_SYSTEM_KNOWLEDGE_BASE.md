@@ -117,3 +117,25 @@
    - Search bar area is width-capped (`MaxWidth = 1100`) for ultrawide monitors and adapts down to mobile screens.
    - Folders with 1–4 items (no cluster canvas) are directly clickable on card body and title.
 4. **Preserve Code Structure**: Do not remove existing event handlers or refactor unrelated logic.
+
+---
+
+## 7. Homepage Animation Pipeline & Right-Column Architecture
+
+1. **HomeGlass Exclude & Motion Pulse**:
+   - `HomeGlassInlineLayer` provides acrylic-style blurring behind homepage elements.
+   - Any container with many moving sub-elements (`FolderDrawerView`, `StartMenuView`, `OpenFolderView`, `FolderCardView`, `FolderSheetHost`, `StackHost.Overlay`) MUST set `HomeGlass.SetExclude(this, true)`.
+   - `HomeGlassInlineLayer.RegisterSubtree` checks `HomeGlass.GetExclude(fe)` and aborts recursion early, preventing deep tree registration and 60 FPS CPU `RenderTargetBitmap` invalidations.
+   - `HomeGlassMotion.Pulse(ms)` MUST NOT be called in paging/scroll animations (`SlideToPage`, `GoTo`, `StackHost.Go`); smooth animations are handled by WPF hardware composition, with `HomeGlass.Invalidate()` called once on `Completed`.
+2. **StartMenu Grid Centering**:
+   - `StartMenuView.Relayout` arranges folder cards into row `StackPanel`s centered horizontally (`HorizontalAlignment.Center`) inside a vertical `StackPanel` centered vertically (`VerticalAlignment.Center`), ensuring items remain centered regardless of total item or column count.
+3. **Favicon Loading & Notification**:
+   - `FaviconConverter.Convert` returns a placeholder URL string when querying remote domains.
+   - `DrawerIconOf` handles both `ImageSource` instances and remote URL strings by initializing a `BitmapImage(UriSource)` with `BitmapCacheOption.OnLoad`.
+   - `FaviconConverter.IconDownloaded` notifies subscribers when an icon has been saved to disk, prompting `UpdateFavoritesDrawer()` and `UpdateBookmarksDrawer()` to refresh icons asynchronously.
+   - `BookmarkItem.AsPin` passes `IconPath = this.IconPath` so custom bookmark icons are preserved.
+4. **Background Tab Synchronization**:
+   - `HomePageView.IsVisibleChanged` synchronizes `_searchMode` with `SettingsService.Current.HomeSearchMode` when a background tab becomes active.
+   - `TabViewModel.DomainTitle` maps `horizon://home` and the `horizon` scheme to `"Home"`.
+   - `MainWindow.CreateNewTab` initializes `newTab.Title = "Home"` when navigating to `HomeSentinel`, avoiding title desync.
+
