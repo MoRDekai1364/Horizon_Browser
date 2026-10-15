@@ -46,7 +46,7 @@ public static class SettingsService
 
     public static SettingsData Current { get; private set; } = DefaultSettingsService.Apply(new SettingsData());
 
-    public const int CurrentConfigVersion = 2;
+    public const int CurrentConfigVersion = 3;
 
     private static SettingsData? ReadFile(string path)
     {
@@ -84,7 +84,7 @@ public static class SettingsService
         }
 
         if (data.ConfigVersion > CurrentConfigVersion) return;
-        if (data.ConfigVersion < 2)
+        if (data.ConfigVersion < 3)
         {
             data.HomeShowRightColumn = true;
             data.HomeRightColumnFavorites = true;
@@ -280,9 +280,9 @@ public class SettingsData
     public bool HomeShowBookmarksWidget { get; set; } = true; 
     public bool HomeShowBatteryWidget   { get; set; } = true; 
     public bool HomeShowVpnAdBlockWidget { get; set; } = true;
-    public bool HomeShowRightColumn { get; set; } = false;
-    public bool HomeRightColumnFavorites { get; set; } = false;
-    public bool HomeRightColumnBookmarks { get; set; } = false; 
+    public bool HomeShowRightColumn { get; set; } = true;
+    public bool HomeRightColumnFavorites { get; set; } = true;
+    public bool HomeRightColumnBookmarks { get; set; } = true; 
 
     public string HomeGroupStyle { get; set; } = "Folder";
     public string HomeBookmarkGrouping { get; set; } = "Domain";

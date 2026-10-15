@@ -1859,7 +1859,11 @@ public partial class HomePageView : UserControl
             string bookmarksSig = groupingMode + "\u0003" + SettingsService.Current.HomeGroupStyle + "\u0003" + string.Join("\u0001", ordered.Select(b => b.GroupKey + "\u0002" + b.Name + "\u0002" + b.Url + "\u0002" + b.IconPath));
             bool rowsMode = !_inFocusMode && !_bookmarksFallback;
             bookmarksSig = (rowsMode ? "R" : "G") + "\u0003" + string.Join(",", ordered.Select(b => b.OpenCount)) + "\u0003" + bookmarksSig;
-            if (bookmarksSig == _bookmarksSig && IcnBookmarks.ItemsSource != null) return;
+            if (bookmarksSig == _bookmarksSig && IcnBookmarks.ItemsSource != null)
+            {
+                UpdateBookmarksDrawer();
+                return;
+            }
             _bookmarksSig = bookmarksSig;
 
             var bookmarksView = new CollectionViewSource { Source = ordered }.View;
@@ -3628,8 +3632,8 @@ public partial class HomePageView : UserControl
     private void SyncBuiltinStackPages()
     {
         var s = SettingsService.Current;
-        SyncBuiltinEntry("builtin:favorites", "Favorites", _favoritesDrawer, s.HomeRightColumnFavorites && _favoriteGroups.Count > 0);
-        SyncBuiltinEntry("builtin:bookmarks", "Bookmarks", _bookmarksDrawer, s.HomeRightColumnBookmarks && _bookmarkGroups.Count > 0);
+        SyncBuiltinEntry("builtin:favorites", "Favorites", _favoritesDrawer, s.HomeRightColumnFavorites);
+        SyncBuiltinEntry("builtin:bookmarks", "Bookmarks", _bookmarksDrawer, s.HomeRightColumnBookmarks);
     }
 
     private void SyncBuiltinEntry(string id, string title, FolderDrawerView? drawer, bool wanted)
@@ -3799,7 +3803,7 @@ public partial class HomePageView : UserControl
     {
         if (_favoritesDrawer == null) return;
         var groups = new List<DrawerGroup>();
-        if (_favoritesFullView is ICollectionView view && view.Groups != null)
+        if (_favoritesFullView is ICollectionView view && view.Groups != null && view.Groups.Count > 0)
         {
             foreach (CollectionViewGroup group in view.Groups)
             {
@@ -3815,6 +3819,23 @@ public partial class HomePageView : UserControl
                 groups.Add(new DrawerGroup { Name = string.IsNullOrWhiteSpace(name) ? "General" : name, Items = items });
             }
         }
+        if (groups.Count == 0 && SettingsService.Current.PinnedUrls != null && SettingsService.Current.PinnedUrls.Count > 0)
+        {
+            var grouped = SettingsService.Current.PinnedUrls
+                .GroupBy(p => string.IsNullOrWhiteSpace(p.Category) ? "General" : p.Category);
+            foreach (var g in grouped)
+            {
+                var items = g.Select(pin => new DrawerItem
+                {
+                    Name = pin.Name,
+                    Emoji = pin.IconEmoji,
+                    Icon = string.IsNullOrEmpty(pin.IconEmoji) ? DrawerIconOf(pin) : null,
+                    Source = pin
+                }).ToList();
+                if (items.Count == 0) continue;
+                groups.Add(new DrawerGroup { Name = string.IsNullOrWhiteSpace(g.Key) ? "General" : g.Key, Items = items });
+            }
+        }
         _favoriteGroups = groups;
         _favoritesDrawer.SetGroups(groups);
         ApplyCenterCards(true, groups);
@@ -3825,7 +3846,7 @@ public partial class HomePageView : UserControl
     {
         if (_bookmarksDrawer == null) return;
         var groups = new List<DrawerGroup>();
-        if (_bookmarksFullView is ICollectionView view && view.Groups != null)
+        if (_bookmarksFullView is ICollectionView view && view.Groups != null && view.Groups.Count > 0)
         {
             foreach (CollectionViewGroup group in view.Groups)
             {
@@ -3838,6 +3859,30 @@ public partial class HomePageView : UserControl
                 if (items.Count == 0) continue;
                 string name = group.Name as string ?? "";
                 groups.Add(new DrawerGroup { Name = string.IsNullOrWhiteSpace(name) ? "Bookmarks" : name, Items = items });
+            }
+        }
+        if (groups.Count == 0 && BookmarkService.Items != null && BookmarkService.Items.Count > 0)
+        {
+            var itemsList = BookmarkService.Items.ToList();
+            var domainCounts = itemsList
+                .GroupBy(b => DomainOf(b.Url))
+                .ToDictionary(g => g.Key, g => g.Count());
+
+            var grouped = itemsList
+                .GroupBy(b => !string.IsNullOrWhiteSpace(b.GroupKey)
+                    ? b.GroupKey
+                    : (domainCounts.TryGetValue(DomainOf(b.Url), out int count) && count > 1 ? DomainOf(b.Url) : "Bookmarks"));
+
+            foreach (var g in grouped)
+            {
+                var items = g.Select(bookmark => new DrawerItem
+                {
+                    Name = bookmark.Name,
+                    Icon = DrawerIconOf(bookmark.AsPin),
+                    Source = bookmark
+                }).ToList();
+                if (items.Count == 0) continue;
+                groups.Add(new DrawerGroup { Name = string.IsNullOrWhiteSpace(g.Key) ? "Bookmarks" : g.Key, Items = items });
             }
         }
         _bookmarkGroups = groups;

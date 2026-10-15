@@ -139,3 +139,38 @@
    - `TabViewModel.DomainTitle` maps `horizon://home` and the `horizon` scheme to `"Home"`.
    - `MainWindow.CreateNewTab` initializes `newTab.Title = "Home"` when navigating to `HomeSentinel`, avoiding title desync.
 
+---
+
+## 8. Right-Column Defaults, Stack Calendar Widget & Settings Localization
+
+1. **Right-Column Enabled by Default**:
+   - `SettingsService.CurrentConfigVersion` bumped to `3`.
+   - `HomeShowRightColumn`, `HomeRightColumnFavorites`, `HomeRightColumnBookmarks` default to `true` in `SettingsData` and `default_settings.txt`.
+   - `SettingsService.Migrate` upgrades any config where `ConfigVersion < 3` to enable these options.
+
+2. **Bookmarks & Favorites Drawers Robustness**:
+   - `FolderDrawerView` defines `MinHeight = 180` and `MinWidth = 200`.
+   - When `_groups.Count == 0`, `Relayout()` renders a centered empty-state placeholder (`"Nothing to show"` / `"Няма елементи за показване"`), preventing the viewport from collapsing to 0 height with only the title visible.
+   - `HomePageView.xaml.cs` provides direct fallbacks to group from `SettingsService.Current.PinnedUrls` and `BookmarkService.Items` when collection views are not yet grouped.
+   - `RefreshBookmarks()` always calls `UpdateBookmarksDrawer()` before early return.
+   - `SyncBuiltinStackPages()` retains entries based on user settings without purging when groups are temporarily empty.
+
+3. **Adapted Calendar Widget for Right Column Stack**:
+   - `Controls/StackCalendarWidget.cs` implements an interactive, responsive monthly calendar designed for the stack (~280–320px width).
+   - Features:
+     - Header with previous/next month navigation and clickable month/year label to reset to current month.
+     - 7-column weekday row with language-aware abbreviations (e.g. Пн..Нд in Bulgarian, Mo..Su in English/German).
+     - 6-row × 7-col day grid highlighting today with theme accent (`WeatherBridge.ThemeAccent`), dimming out-of-month days, and placing green/accent dots on days with events.
+     - Event preview footer bar displaying selected day events or next upcoming event from `CalendarBridge.GetNextEvent()`.
+     - Direct click / double-click invokes `MainWindow.OpenCalendarWindow()` without reflection.
+     - Live reactive updates via `CalendarBridge.Updated` and `LocalizationService.Instance.LanguageChanged`.
+   - Registered in `StackElementBuilders.RegisterLaunchWidgets()` for `"calendar"`.
+
+4. **Comprehensive Dynamic Settings Localization**:
+   - `SettingsWindow.xaml.cs` implements `LocalizeElementTree()` in `ApplyLocalization()`.
+   - Automatically traverses all elements in the window and all TabItems (including tabs not yet rendered).
+   - Caches original English strings in `_originalTexts`, `_originalToolTips`, `_originalLabels`, `_originalDescriptions` to ensure lossless multi-language switching.
+   - Localizes `TextBlock.Text`, `ContentControl.Content` (CheckBoxes, RadioButtons, Buttons), `ToolTip`, `SearchIndex.Label`, and `SearchIndex.Description`.
+   - Invalidates `_searchIndexCache = null` on language change, enabling real-time search in Bulgarian and all other languages.
+   - Expanded language dictionaries (`Languages/bg.json`, `en.json`, `de.json`, `fr.json`, `it.json`, `ru.json`, `es.json`) with over 380 settings strings.
+

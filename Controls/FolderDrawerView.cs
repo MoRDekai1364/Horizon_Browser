@@ -370,6 +370,8 @@ public sealed class FolderDrawerView : UserControl
     public FolderDrawerView()
     {
         HomeGlass.SetExclude(this, true);
+        MinHeight = 180;
+        MinWidth = 200;
         _title = new TextBlock
         {
             FontSize = 18,
@@ -555,6 +557,38 @@ public sealed class FolderDrawerView : UserControl
         double width = _viewport.ActualWidth;
         double height = _viewport.ActualHeight;
         if (width <= 0 || height <= 0) return;
+
+        if (_groups.Count == 0)
+        {
+            _slide.BeginAnimation(TranslateTransform.XProperty, null);
+            _animating = false;
+            _strip.Children.Clear();
+            _pageWidth = width;
+            _pageCount = 0;
+            _page = 0;
+            _slide.X = 0;
+            UpdateDots();
+
+            var emptyPanel = new StackPanel
+            {
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+                Opacity = 0.55
+            };
+            var emptyText = new TextBlock
+            {
+                Text = LocalizationService.Instance.GetString("Homepage.NothingToShow", "Nothing to show"),
+                FontSize = 13,
+                HorizontalAlignment = HorizontalAlignment.Center
+            };
+            emptyText.SetResourceReference(TextBlock.ForegroundProperty, "HomeTextBrush");
+            emptyPanel.Children.Add(emptyText);
+
+            var page = new Grid { Width = width, Height = height };
+            page.Children.Add(emptyPanel);
+            _strip.Children.Add(page);
+            return;
+        }
 
         var plan = Plan(width, height);
         double pageHeight = Math.Max(1, plan.Paged ? height - DotsH : height);

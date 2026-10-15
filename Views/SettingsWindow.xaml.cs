@@ -1144,6 +1144,114 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
         if (BtnCancel != null) BtnCancel.Content = loc.GetString("Common.Cancel", "CANCEL").ToUpperInvariant();
         if (BtnSave != null) BtnSave.Content = loc.GetString("Settings.SaveApply", "SAVE & APPLY");
         if (ChkResetWipeData != null) ChkResetWipeData.Content = loc.GetString("Settings.AlsoDeleteData", "Also delete data");
+
+        LocalizeElementTree();
+    }
+
+    private readonly Dictionary<object, string> _originalTexts = new();
+    private readonly Dictionary<FrameworkElement, string> _originalToolTips = new();
+    private readonly Dictionary<FrameworkElement, string> _originalLabels = new();
+    private readonly Dictionary<FrameworkElement, string> _originalDescriptions = new();
+
+    private void LocalizeElementTree()
+    {
+        var loc = LocalizationService.Instance;
+        var elementsToLocalize = new HashSet<FrameworkElement>();
+
+        // Gather window descendants
+        foreach (var el in FindDescendantsAggressive<FrameworkElement>(this))
+            elementsToLocalize.Add(el);
+
+        // Explicitly gather from each tab item's content in case not yet rendered in visual tree
+        if (TabsMain != null)
+        {
+            foreach (var item in TabsMain.Items)
+            {
+                if (item is TabItem tab)
+                {
+                    elementsToLocalize.Add(tab);
+                    if (tab.Content is DependencyObject contentDo)
+                    {
+                        foreach (var el in FindDescendantsAggressive<FrameworkElement>(contentDo))
+                            elementsToLocalize.Add(el);
+                    }
+                }
+            }
+        }
+
+        foreach (var el in elementsToLocalize)
+        {
+            // SearchIndex.Label
+            string lbl = SearchIndex.GetLabel(el);
+            if (!string.IsNullOrWhiteSpace(lbl))
+            {
+                if (!_originalLabels.TryGetValue(el, out var origLbl))
+                {
+                    origLbl = lbl;
+                    _originalLabels[el] = origLbl;
+                }
+                string trans = loc.GetString(origLbl, origLbl);
+                if (trans != lbl) SearchIndex.SetLabel(el, trans);
+            }
+
+            // SearchIndex.Description
+            string desc = SearchIndex.GetDescription(el);
+            if (!string.IsNullOrWhiteSpace(desc))
+            {
+                if (!_originalDescriptions.TryGetValue(el, out var origDesc))
+                {
+                    origDesc = desc;
+                    _originalDescriptions[el] = origDesc;
+                }
+                string trans = loc.GetString(origDesc, origDesc);
+                if (trans != desc) SearchIndex.SetDescription(el, trans);
+            }
+
+            // ToolTip
+            if (el.ToolTip is string tt && !string.IsNullOrWhiteSpace(tt))
+            {
+                if (!_originalToolTips.TryGetValue(el, out var origTt))
+                {
+                    origTt = tt;
+                    _originalToolTips[el] = origTt;
+                }
+                string trans = loc.GetString(origTt, origTt);
+                if (trans != tt) el.ToolTip = trans;
+            }
+
+            // TextBlock
+            if (el is TextBlock tb && !string.IsNullOrWhiteSpace(tb.Text))
+            {
+                if (tb.GetBindingExpression(TextBlock.TextProperty) == null)
+                {
+                    if (!_originalTexts.TryGetValue(tb, out var origText))
+                    {
+                        origText = tb.Text;
+                        _originalTexts[tb] = origText;
+                    }
+                    string trans = loc.GetString(origText, origText);
+                    if (trans != tb.Text) tb.Text = trans;
+                }
+            }
+
+            // ContentControl (CheckBox, RadioButton, Button, etc.)
+            if (el is ContentControl cc && cc.Content is string contentStr && !string.IsNullOrWhiteSpace(contentStr))
+            {
+                if (cc.GetBindingExpression(ContentControl.ContentProperty) == null)
+                {
+                    if (!_originalTexts.TryGetValue(cc, out var origContent))
+                    {
+                        origContent = contentStr;
+                        _originalTexts[cc] = origContent;
+                    }
+                    string trans = loc.GetString(origContent, origContent);
+                    if (trans != contentStr) cc.Content = trans;
+                }
+            }
+        }
+
+        // Invalidate search index so searching immediately uses active language!
+        _searchIndexCache = null;
     }
 
     private void BtnSave_Click(object sender, RoutedEventArgs e)

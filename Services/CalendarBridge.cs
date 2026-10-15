@@ -8,6 +8,7 @@ public static class CalendarBridge
 {
     private static List<CalendarEvent> _events = new();
 
+    public static IReadOnlyList<CalendarEvent> Events => _events;
     public static event Action? Updated;
 
     public static void Publish(IEnumerable<CalendarEvent> events)

@@ -411,15 +411,7 @@ public static class StackElementBuilders
         RegisterSource(StackElementKind.Widget, "calculator", d => BuildOpenCard(d, "Standard, scientific and AI calculator", null, 0));
         RegisterSource(StackElementKind.Widget, "converter", d => BuildOpenCard(d, "Unit and currency converter", null, 0));
 
-        RegisterSource(StackElementKind.Widget, "calendar", d => BuildOpenCard(d, "No upcoming events", () =>
-        {
-            var next = CalendarBridge.GetNextEvent();
-            var previous = CalendarBridge.GetPreviousEvent();
-            var lines = new List<string>();
-            if (next != null) lines.Add("Next: " + next.Start.ToString("ddd HH:mm") + "  " + next.Title);
-            if (previous != null) lines.Add("Last: " + previous.Start.ToString("ddd HH:mm") + "  " + previous.Title);
-            return string.Join("\n", lines);
-        }, 30000));
+        RegisterSource(StackElementKind.Widget, "calendar", d => new StackCalendarWidget(d));
     }
 
     private static FrameworkElement BuildOpenCard(StackElementData data, string hint, Func<string>? read, int intervalMs)

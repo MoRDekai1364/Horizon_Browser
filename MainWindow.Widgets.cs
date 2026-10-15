@@ -530,7 +530,7 @@ public partial class MainWindow
 
     private static Color CalAccent => WeatherBridge.ThemeAccent;
 
-    private void OpenCalendarWindow()
+    internal void OpenCalendarWindow()
     {
         var win = new Window
         {
