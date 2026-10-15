@@ -121,12 +121,18 @@ public sealed class FolderCardView : StackPanel
             Margin = new Thickness(0, NameGap, 0, 0)
         };
         name.SetResourceReference(TextBlock.ForegroundProperty, "HomeTextBrush");
+        name.Cursor = Cursors.Hand;
+        name.MouseLeftButtonUp += (_, e) =>
+        {
+            e.Handled = true;
+            OpenRequested?.Invoke(this);
+        };
 
         Margin = new Thickness(CellMargin);
         Background = Brushes.Transparent;
         Children.Add(card);
         Children.Add(name);
-        if (!clusterOnly)
+        if (!clusterOnly || count <= fullLimit)
         {
             Cursor = Cursors.Hand;
             MouseLeftButtonUp += (_, e) =>
@@ -139,7 +145,17 @@ public sealed class FolderCardView : StackPanel
 
     public Rect ClusterBounds(Visual relativeTo)
     {
-        if (_cluster == null) return new Rect(0, 0, 1, 1);
+        if (_cluster == null)
+        {
+            try
+            {
+                return TransformToAncestor(relativeTo).TransformBounds(new Rect(0, 0, ActualWidth, ActualHeight));
+            }
+            catch
+            {
+                return new Rect(0, 0, 1, 1);
+            }
+        }
         return _cluster.TransformToAncestor(relativeTo).TransformBounds(new Rect(0, 0, _cluster.Width, _cluster.Height));
     }
 
@@ -489,24 +505,30 @@ public sealed class StartMenuView : UserControl
 
         int cols = Math.Max(1, (int)Math.Floor(width / cellW));
         int rows = Math.Max(1, (int)Math.Floor(height / cellH));
-        int perPage = cols * rows;
-        _pageCount = Math.Max(1, (int)Math.Ceiling(_shown.Count / (double)perPage));
-        _page = Math.Min(_page, _pageCount - 1);
-        _slide.X = -_page * width;
+        int perPage = Math.Max(1, cols * rows);
+        int targetPages = Math.Max(1, (int)Math.Ceiling(_shown.Count / (double)perPage));
 
-        for (int p = 0; p < _pageCount; p++)
+        for (int p = 0; p < targetPages; p++)
         {
+            int start = p * perPage;
+            if (start >= _shown.Count) break;
+            int end = Math.Min(start + perPage, _shown.Count);
+            if (start >= end) break;
+
             var host = new WrapPanel
             {
                 Width = cols * cellW,
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center
             };
-            int start = p * perPage;
-            int end = Math.Min(start + perPage, _shown.Count);
             for (int i = start; i < end; i++) host.Children.Add(BuildCell(_shown[i], cellW, cellH));
-            _strip.Children.Add(new Grid { Width = width, Height = height, Children = { host } });
+            if (host.Children.Count > 0)
+                _strip.Children.Add(new Grid { Width = width, Height = height, Children = { host } });
         }
+
+        _pageCount = _strip.Children.Count;
+        _page = Math.Clamp(_page, 0, Math.Max(_pageCount - 1, 0));
+        _slide.X = -_page * width;
 
         UpdateDots();
     }

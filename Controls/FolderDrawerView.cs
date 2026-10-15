@@ -45,27 +45,13 @@ public sealed class OpenFolderView : UserControl
     private double _pageWidth;
     private bool _animating;
     private int _relayouts;
-    private DispatcherTimer? _watch;
-    private string _watchState = "";
 
     public event Action<DrawerItem>? ItemActivated;
     public event Action? CloseRequested;
 
     public string DebugInfo()
     {
-        return PageProbe()
-            + " viewport=" + _viewport.ActualWidth.ToString("0") + "x" + _viewport.ActualHeight.ToString("0")
-            + " strip=" + _strip.Children.Count
-            + " opacity=" + Opacity.ToString("0.##")
-            + PageDiag.Describe(_strip, _viewport, _pageWidth, _page, _animating);
-    }
-
-    private string PageProbe()
-    {
-        string content = "none";
-        if (_page >= 0 && _page < _strip.Children.Count && _strip.Children[_page] is Grid pageGrid && pageGrid.Children.Count > 0 && pageGrid.Children[0] is StackPanel host)
-            content = host.ActualWidth.ToString("0") + "x" + host.ActualHeight.ToString("0") + " rows=" + host.Children.Count;
-        return "page=" + _page + "/" + _pageCount + " slideX=" + _slide.X.ToString("0") + " pageContent=" + content;
+        return $"page={_page}/{_pageCount} slideX={_slide.X:0} strip={_strip.Children.Count} viewport={_viewport.ActualWidth:0}x{_viewport.ActualHeight:0}";
     }
 
     public OpenFolderView(DrawerGroup group)
@@ -172,7 +158,7 @@ public sealed class OpenFolderView : UserControl
         layout.Children.Add(_dots);
         Content = layout;
 
-        _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(90) };
+        _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(60) };
         _timer.Tick += (_, _) =>
         {
             _timer.Stop();
@@ -180,24 +166,15 @@ public sealed class OpenFolderView : UserControl
         };
         _viewport.SizeChanged += (_, _) =>
         {
-            _timer.Stop();
-            _timer.Start();
-        };
-        bool queued = false;
-        _viewport.SizeChanged += (_, _) =>
-        {
             if (_pageCount == 0)
             {
                 Relayout();
-                return;
             }
-            if (queued) return;
-            queued = true;
-            Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(() =>
+            else
             {
-                queued = false;
-                Relayout();
-            }));
+                _timer.Stop();
+                _timer.Start();
+            }
         };
         PreviewMouseWheel += Folder_PreviewMouseWheel;
     }
@@ -208,26 +185,40 @@ public sealed class OpenFolderView : UserControl
         double height = _viewport.ActualHeight;
         if (width <= 0 || height <= 0) return;
 
+        int count = _group.Items.Count;
+        if (count == 0)
+        {
+            _slide.BeginAnimation(TranslateTransform.XProperty, null);
+            _animating = false;
+            _strip.Children.Clear();
+            _pageWidth = width;
+            _pageCount = 0;
+            _page = 0;
+            _slide.X = 0;
+            UpdateDots();
+            return;
+        }
+
         int cols = Math.Max(1, (int)Math.Floor(width / MinCell));
         double cell = width / cols;
         int rows = Math.Max(1, (int)Math.Floor(height / RowH));
-        int perPage = cols * rows;
-        int count = _group.Items.Count;
+        int perPage = Math.Max(1, cols * rows);
 
         _slide.BeginAnimation(TranslateTransform.XProperty, null);
         _animating = false;
         _strip.Children.Clear();
         _pageWidth = width;
-        _pageCount = Math.Max(1, (int)Math.Ceiling(count / (double)perPage));
+        int targetPages = Math.Max(1, (int)Math.Ceiling(count / (double)perPage));
         _relayouts++;
-        _page = Math.Min(_page, _pageCount - 1);
-        _slide.X = -_page * width;
 
-        for (int p = 0; p < _pageCount; p++)
+        for (int p = 0; p < targetPages; p++)
         {
-            var rowsHost = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
             int start = p * perPage;
+            if (start >= count) break;
             int end = Math.Min(start + perPage, count);
+            if (start >= end) break;
+
+            var rowsHost = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
             for (int rowStart = start; rowStart < end; rowStart += cols)
             {
                 var rowPanel = new StackPanel
@@ -236,43 +227,23 @@ public sealed class OpenFolderView : UserControl
                     HorizontalAlignment = HorizontalAlignment.Center
                 };
                 int rowEnd = Math.Min(rowStart + cols, end);
-                for (int i = rowStart; i < rowEnd; i++) rowPanel.Children.Add(BuildTile(_group.Items[i], cell));
-                rowsHost.Children.Add(rowPanel);
+                for (int i = rowStart; i < rowEnd; i++)
+                    rowPanel.Children.Add(BuildTile(_group.Items[i], cell));
+
+                if (rowPanel.Children.Count > 0)
+                    rowsHost.Children.Add(rowPanel);
             }
-            _strip.Children.Add(new Grid { Width = width, Height = height, Children = { rowsHost } });
+
+            if (rowsHost.Children.Count > 0)
+            {
+                _strip.Children.Add(new Grid { Width = width, Height = height, Children = { rowsHost } });
+            }
         }
 
+        _pageCount = _strip.Children.Count;
+        _page = Math.Clamp(_page, 0, Math.Max(0, _pageCount - 1));
+        _slide.X = -_page * width;
         UpdateDots();
-    }
-
-    private void StartWatch()
-    {
-        if (_watch != null) return;
-        _watch = new DispatcherTimer(DispatcherPriority.Background) { Interval = TimeSpan.FromMilliseconds(200) };
-        _watch.Tick += (_, _) => WatchTick();
-        _watch.Start();
-    }
-
-    private void StopWatch()
-    {
-        _watch?.Stop();
-        _watch = null;
-    }
-
-    private void WatchTick()
-    {
-        string ink = _page >= 0 && _page < _strip.Children.Count && _strip.Children[_page] is FrameworkElement activePage ? PageDiag.Ink(activePage) : "none";
-        string state = "ink=" + ink
-            + " relayouts=" + _relayouts
-            + " strip=" + _strip.Children.Count
-            + " page=" + _page
-            + " slideX=" + _slide.X.ToString("0")
-            + " vp=" + _viewport.ActualWidth.ToString("0.#") + "x" + _viewport.ActualHeight.ToString("0.#")
-            + " visible=" + IsVisible
-            + " loaded=" + IsLoaded;
-        if (state == _watchState) return;
-        _watchState = state;
-        Horizon.Stealth.Services.LogService.Write("FolderBlank", state);
     }
 
     private FrameworkElement BuildTile(DrawerItem item, double cell)
@@ -369,7 +340,6 @@ public sealed class FolderDrawerView : UserControl
     private const int MaxN = 6;
     private const int OneRowMax = FolderCardView.OneRowMax;
     private int _sizeEvents;
-    private bool _relayoutQueued;
     private int _relayoutDone;
     private const double DotsH = PagerDots.Cell;
     private const int AnimationMs = 300;
@@ -446,7 +416,7 @@ public sealed class FolderDrawerView : UserControl
             Child = layout
         };
 
-        _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(90) };
+        _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(60) };
         _timer.Tick += (_, _) =>
         {
             _timer.Stop();
@@ -454,49 +424,23 @@ public sealed class FolderDrawerView : UserControl
         };
         _viewport.SizeChanged += (_, _) =>
         {
-            _timer.Stop();
-            _timer.Start();
-        };
-        _viewport.SizeChanged += (_, _) =>
-        {
             _sizeEvents++;
             if (_pageCount == 0)
             {
                 Relayout();
-                return;
             }
-            if (_relayoutQueued) return;
-            _relayoutQueued = true;
-            Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(() =>
+            else
             {
-                _relayoutQueued = false;
-                Relayout();
-            }));
+                _timer.Stop();
+                _timer.Start();
+            }
         };
         PreviewMouseWheel += Drawer_PreviewMouseWheel;
     }
 
-    private string PageProbe()
-    {
-        string content = "none";
-        if (_page >= 0 && _page < _strip.Children.Count && _strip.Children[_page] is Grid pageGrid && pageGrid.Children.Count > 0 && pageGrid.Children[0] is StackPanel host)
-            content = host.ActualWidth.ToString("0") + "x" + host.ActualHeight.ToString("0") + " rows=" + host.Children.Count;
-        return "page=" + _page + "/" + _pageCount + " slideX=" + _slide.X.ToString("0") + " pageContent=" + content;
-    }
-
     public string DebugInfo()
     {
-        return "groups=" + _groups.Count
-            + " items=" + _groups.Sum(g => g.Items.Count)
-            + " viewport=" + _viewport.ActualWidth.ToString("0") + "x" + _viewport.ActualHeight.ToString("0")
-            + " pages=" + _pageCount
-            + " stripChildren=" + _strip.Children.Count
-            + " visible=" + IsVisible
-            + " opacity=" + Opacity.ToString("0.##")
-            + " sizeEvents=" + _sizeEvents
-            + " relayouts=" + _relayoutDone
-            + " " + PageProbe()
-            + PageDiag.Describe(_strip, _viewport, _pageWidth, _page, _animating);
+        return $"groups={_groups.Count} items={_groups.Sum(g => g.Items.Count)} viewport={_viewport.ActualWidth:0}x{_viewport.ActualHeight:0} pages={_pageCount} stripChildren={_strip.Children.Count} visible={IsVisible}";
     }
 
     public void SetGroups(IReadOnlyList<DrawerGroup> groups)
@@ -569,6 +513,8 @@ public sealed class FolderDrawerView : UserControl
     private (int[] Sizes, List<List<List<int>>> Pages, bool Paged) Plan(double width, double height)
     {
         int count = _groups.Count;
+        if (count == 0) return (Array.Empty<int>(), new List<List<List<int>>>(), false);
+
         var ns = Enumerable.Repeat(MinN, count).ToArray();
         var cells = new (double W, double H)[count];
         for (int i = 0; i < count; i++) cells[i] = CellSize(_groups[i].Items.Count, ns[i]);
@@ -581,12 +527,13 @@ public sealed class FolderDrawerView : UserControl
             return (ns, new List<List<List<int>>> { rows }, false);
         }
 
-        double pageHeight = height - DotsH;
+        double pageHeight = Math.Max(1, height - DotsH);
         var pages = new List<List<List<int>>>();
         var page = new List<List<int>>();
         double used = 0;
         foreach (var row in rows)
         {
+            if (row.Count == 0) continue;
             double rowHeight = row.Max(i => cells[i].H);
             if (page.Count > 0 && used + rowHeight > pageHeight)
             {
@@ -598,7 +545,7 @@ public sealed class FolderDrawerView : UserControl
             used += rowHeight;
         }
         if (page.Count > 0) pages.Add(page);
-        return (ns, pages, true);
+        return (ns, pages, pages.Count > 1);
     }
 
     private void Relayout()
@@ -615,26 +562,34 @@ public sealed class FolderDrawerView : UserControl
         _strip.Children.Clear();
         _pageWidth = width;
         _relayoutDone++;
-        _pageCount = plan.Pages.Count;
-        _page = Math.Min(_page, Math.Max(_pageCount - 1, 0));
-        _slide.X = -_page * width;
 
         foreach (var pageRows in plan.Pages)
         {
+            if (pageRows.Count == 0 || pageRows.All(r => r.Count == 0)) continue;
             var rowsHost = new StackPanel { VerticalAlignment = VerticalAlignment.Top };
             foreach (var row in pageRows)
             {
+                if (row.Count == 0) continue;
                 var rowPanel = new StackPanel
                 {
                     Orientation = Orientation.Horizontal,
                     HorizontalAlignment = HorizontalAlignment.Center
                 };
-                foreach (int index in row) rowPanel.Children.Add(CreateCard(_groups[index], plan.Sizes[index]));
-                rowsHost.Children.Add(rowPanel);
+                foreach (int index in row)
+                {
+                    if (index >= 0 && index < _groups.Count)
+                        rowPanel.Children.Add(CreateCard(_groups[index], plan.Sizes[index]));
+                }
+                if (rowPanel.Children.Count > 0)
+                    rowsHost.Children.Add(rowPanel);
             }
-            _strip.Children.Add(new Grid { Width = width, Height = pageHeight, Children = { rowsHost } });
+            if (rowsHost.Children.Count > 0)
+                _strip.Children.Add(new Grid { Width = width, Height = pageHeight, Children = { rowsHost } });
         }
 
+        _pageCount = _strip.Children.Count;
+        _page = Math.Clamp(_page, 0, Math.Max(0, _pageCount - 1));
+        _slide.X = -_page * width;
         UpdateDots();
     }
 

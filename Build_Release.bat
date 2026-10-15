@@ -118,6 +118,12 @@ if exist "Extensions" (
     echo [INFO] Extensions folder packaged.
 )
 
+echo [2d2/3] Packaging Languages...
+if exist "Languages" (
+    robocopy "Languages" "%OUT_DIR%\Languages" /E /R:1 /W:1 /NFL /NDL /NJH /NJS >nul
+    echo [INFO] Languages folder packaged.
+)
+
 echo [2e/3] Packaging Update and Version Configs...
 if exist "version.txt" copy /y "version.txt" "%OUT_DIR%\" >nul
 if exist "update.txt" copy /y "update.txt" "%OUT_DIR%\" >nul

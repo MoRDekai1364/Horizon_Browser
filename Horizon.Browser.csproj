@@ -39,6 +39,7 @@
 
   <ItemGroup>
     <None Include="Extensions\**" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Languages\**" CopyToOutputDirectory="PreserveNewest" />
     <None Include="start_videos\**" CopyToOutputDirectory="PreserveNewest" />
     <None Include="default_settings.txt" CopyToOutputDirectory="PreserveNewest" Condition="Exists('default_settings.txt')" />
   </ItemGroup>

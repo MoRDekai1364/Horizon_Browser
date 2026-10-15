@@ -1064,6 +1064,17 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
         ChkPerTabLang.IsChecked = s.PerTabLanguageEnabled;
         SelectComboBoxByTag(CboDefaultLanguage, s.DefaultLanguage);
 
+        CboAppLanguage.Items.Clear();
+        foreach (var lang in LocalizationService.Instance.AvailableLanguages)
+        {
+            CboAppLanguage.Items.Add(new ComboBoxItem
+            {
+                Content = $"{lang.DisplayName} ({lang.EnglishName})",
+                Tag = lang.Code
+            });
+        }
+        SelectComboBoxByTag(CboAppLanguage, s.AppLanguage);
+
         TxtMicrosoftClientId.Text  = s.MicrosoftClientId;
         LoadVpnSettings();
 
@@ -1165,6 +1176,13 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
         s.PerTabLanguageEnabled = ChkPerTabLang.IsChecked == true;
         if (CboDefaultLanguage.SelectedItem is ComboBoxItem li)
             s.DefaultLanguage = li.Tag?.ToString() ?? "en";
+
+        if (CboAppLanguage.SelectedItem is ComboBoxItem ali)
+        {
+            string chosenLang = ali.Tag?.ToString() ?? "bg";
+            s.AppLanguage = chosenLang;
+            LocalizationService.Instance.SetLanguage(chosenLang, persistSetting: false);
+        }
 
         s.ScrollSpeedMultiplier = SliderScrollSpeed.Value;
         if (CboTabSwitcherOrder.SelectedItem is ComboBoxItem tsoItem && int.TryParse(tsoItem.Tag?.ToString(), out int tsoVal))

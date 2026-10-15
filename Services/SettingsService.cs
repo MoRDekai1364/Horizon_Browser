@@ -78,6 +78,11 @@ public static class SettingsService
             data.DismissedInstallationPaths = new List<string>();
         }
 
+        if (string.IsNullOrWhiteSpace(data.AppLanguage))
+        {
+            data.AppLanguage = "bg";
+        }
+
         if (data.ConfigVersion > CurrentConfigVersion) return;
         if (data.ConfigVersion < 2)
         {
@@ -331,6 +336,7 @@ public class SettingsData
 
     public bool   PerTabLanguageEnabled { get; set; } = true;
     public string DefaultLanguage       { get; set; } = "en";
+    public string AppLanguage           { get; set; } = "bg";
     public int    TabsPerRow            { get; set; } = 10;
 
     // ── Extension toggles ────────────────────────────────────────────────────

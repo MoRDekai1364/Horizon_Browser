@@ -166,6 +166,9 @@ public partial class App : Application
             try { SettingsService.Load(); }
             catch (Exception ex) { LogService.RecordCrash(ex, "Startup Settings Load"); }
 
+            try { LocalizationService.Instance.SetLanguage(SettingsService.Current.AppLanguage); }
+            catch (Exception ex) { LogService.RecordCrash(ex, "Startup Localization Load"); }
+
             _ = StealthEnvironment.InitializeAsync();
             GeoIpService.KickOffBackgroundRefresh();
             VpnThroughputHistoryService.Start();

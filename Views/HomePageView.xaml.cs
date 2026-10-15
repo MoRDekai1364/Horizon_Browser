@@ -491,6 +491,7 @@ public partial class HomePageView : UserControl
             double maxMobileWidth = Math.Max(200.0, totalWidth - 20.0);
             PnlSearchArea.MaxWidth = maxMobileWidth;
             SearchBoxBorder.MaxWidth = Math.Min(900.0, maxMobileWidth);
+            GridFavBookmarksIsland.MaxWidth = maxMobileWidth;
             ApplySearchRowLayout(true);
             SetSwitchIconMode(false);
             SyncSearchBarMinWidth();
@@ -535,12 +536,14 @@ public partial class HomePageView : UserControl
         }
 
         double maxAllowedWidth = Math.Max(240.0, availableMiddleWidth - 20.0);
-        PnlSearchArea.MaxWidth = maxAllowedWidth;
+        double maxCenterContentWidth = Math.Min(1100.0, maxAllowedWidth);
+        PnlSearchArea.MaxWidth = maxCenterContentWidth;
+        GridFavBookmarksIsland.MaxWidth = maxCenterContentWidth;
 
-        bool iconSwitch = maxAllowedWidth - 2.0 * _switchTextSlotWidth < SearchBarMinFloor;
+        bool iconSwitch = maxCenterContentWidth - 2.0 * _switchTextSlotWidth < SearchBarMinFloor;
         SetSwitchIconMode(iconSwitch);
         double switchSlot = iconSwitch ? SwitchIconSlotWidth : _switchTextSlotWidth;
-        double searchMax = Math.Max(200.0, Math.Min(900.0, maxAllowedWidth - 2.0 * switchSlot));
+        double searchMax = Math.Max(200.0, Math.Min(900.0, maxCenterContentWidth - 2.0 * switchSlot));
         SearchBoxBorder.MaxWidth = searchMax;
         ApplySearchRowLayout(false);
         SyncSearchBarMinWidth();
@@ -2358,9 +2361,10 @@ public partial class HomePageView : UserControl
         var cardOwner = OwnerItemsControl(card);
         if (!FolderFor(cardOwner)) return;
         var folderPanel = FindFirstOf<AutoGridPanel>(card);
-        if (folderPanel == null || folderPanel.Mode != GroupCollapseMode.Folder || folderPanel.ClusterRect.IsEmpty) return;
-        if (!folderPanel.ClusterRect.Contains(e.GetPosition(folderPanel))) return;
-        if (!StackAvailable) return;
+        if (folderPanel == null || folderPanel.Mode != GroupCollapseMode.Folder) return;
+        bool isClusterHit = !folderPanel.ClusterRect.IsEmpty && folderPanel.ClusterRect.Contains(e.GetPosition(folderPanel));
+        bool isCardBodyHit = folderPanel.ClusterRect.IsEmpty && e.OriginalSource is DependencyObject orig && (ReferenceEquals(orig, card) || ReferenceEquals(orig, folderPanel) || orig is Border || orig is TextBlock);
+        if (!isClusterHit && !isCardBodyHit) return;
         DependencyObject? node = card;
         GroupItem? groupItem = null;
         while (node != null && groupItem == null)
@@ -2382,7 +2386,28 @@ public partial class HomePageView : UserControl
         string groupName = source.Name as string ?? "";
         var drawerGroup = new DrawerGroup { Name = string.IsNullOrWhiteSpace(groupName) ? (favorites ? "General" : "Bookmarks") : groupName, Items = drawerItems };
         e.Handled = true;
-        DrawerFolder_Requested(drawerGroup, new Rect(0, 0, HomeStack.ActualWidth, HomeStack.ActualHeight));
+        if (StackAvailable)
+        {
+            DrawerFolder_Requested(drawerGroup, new Rect(0, 0, HomeStack.ActualWidth, HomeStack.ActualHeight));
+        }
+        else
+        {
+            Point host = _centerSheet.TranslatePoint(new Point(0, 0), GridFavBookmarksIsland);
+            Rect bounds = new Rect(0, 0, 120, 120);
+            if (card is FrameworkElement fe)
+            {
+                try { bounds = fe.TransformToAncestor(GridFavBookmarksIsland).TransformBounds(new Rect(0, 0, fe.ActualWidth, fe.ActualHeight)); }
+                catch { }
+            }
+            var view = new OpenFolderView(drawerGroup);
+            view.CloseRequested += () => _centerSheet.Close();
+            view.ItemActivated += item =>
+            {
+                _centerSheet.Close();
+                DrawerItem_Activated(item);
+            };
+            _centerSheet.Open(view, new Rect(bounds.X - host.X, bounds.Y - host.Y, bounds.Width, bounds.Height));
+        }
         
     }
 
@@ -3444,8 +3469,13 @@ public partial class HomePageView : UserControl
         StackElementBuilders.RegisterBuiltInWidgets();
         StackElementBuilders.RegisterLaunchWidgets();
         StackElementBuilders.RegisterWebElements();
-        _favoritesDrawer = new FolderDrawerView { Title = "Favorites" };
-        _bookmarksDrawer = new FolderDrawerView { Title = "Bookmarks" };
+        _favoritesDrawer = new FolderDrawerView { Title = Horizon.Stealth.Services.LocalizationService.Instance["HomeFavorites"] };
+        _bookmarksDrawer = new FolderDrawerView { Title = Horizon.Stealth.Services.LocalizationService.Instance["HomeBookmarks"] };
+        Horizon.Stealth.Services.LocalizationService.Instance.LanguageChanged += () =>
+        {
+            if (_favoritesDrawer != null) _favoritesDrawer.Title = Horizon.Stealth.Services.LocalizationService.Instance["HomeFavorites"];
+            if (_bookmarksDrawer != null) _bookmarksDrawer.Title = Horizon.Stealth.Services.LocalizationService.Instance["HomeBookmarks"];
+        };
         _favoritesDrawer.ItemActivated += DrawerItem_Activated;
         _bookmarksDrawer.ItemActivated += DrawerItem_Activated;
         _favoritesDrawer.FolderOpenRequested += DrawerFolder_Requested;
@@ -3635,8 +3665,16 @@ public partial class HomePageView : UserControl
         double width = Math.Min(StackRestMaxWidth, Math.Max(0, ColRightBalance.ActualWidth - StackSideMargin));
         double marginTop = Math.Max(0, top);
         double height = Math.Min(Math.Max(StackMinRestHeight, bottom - top), Math.Max(0, HomeBottomBoundary() - marginTop));
-        HomeStack.Margin = new Thickness(0, marginTop, StackSideMargin, 0);
-        HomeStack.SetRestSize(width, height);
+
+        var currentMargin = HomeStack.Margin;
+        if (Math.Abs(currentMargin.Top - marginTop) > 1 || Math.Abs(currentMargin.Right - StackSideMargin) > 1)
+        {
+            HomeStack.Margin = new Thickness(0, marginTop, StackSideMargin, 0);
+        }
+        if (Math.Abs(HomeStack.Width - width) > 1 || Math.Abs(HomeStack.Height - height) > 1)
+        {
+            HomeStack.SetRestSize(width, height);
+        }
     }
 
     private (double Width, double Height) StackExpandedSize()
