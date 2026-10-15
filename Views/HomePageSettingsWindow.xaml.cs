@@ -30,27 +30,27 @@ public partial class HomePageSettingsWindow : Window
         Loaded += HomePageSettingsWindow_Loaded;
         Loaded += (_, __) => BuildGlassBackdrop();
         Loaded += (_, __) => ClampToWorkArea();
-        Closed += (_, __) => _detachGlassBackdrop?.Invoke();
+        Loaded += (_, __) => ApplyLocalization();
+        LocalizationService.Instance.LanguageChanged += OnLanguageChanged;
+        Closed += (_, __) =>
+        {
+            LocalizationService.Instance.LanguageChanged -= OnLanguageChanged;
+            _detachGlassBackdrop?.Invoke();
+        };
+    }
+
+    private void OnLanguageChanged()
+    {
+        Dispatcher.InvokeAsync(ApplyLocalization);
     }
 
     private void PreSizeTabs()
     {
-        int keep = Math.Max(0, TabsHomeSettings.SelectedIndex);
-        for (int i = 0; i < TabsHomeSettings.Items.Count; i++)
-        {
-            TabsHomeSettings.SelectedIndex = i;
-            TabsHomeSettings.UpdateLayout();
-        }
-        TabsHomeSettings.SelectedIndex = keep;
-        TabsHomeSettings.UpdateLayout();
-        UpdateLayout();
-
-        double w = ActualWidth;
-        double h = ActualHeight;
-        if (w < 1 || h < 1) return;
         SizeToContent = SizeToContent.Manual;
-        Width = w;
-        Height = Math.Min(h, MaxHeight);
+        var area = SystemParameters.WorkArea;
+        Width = Math.Min(Math.Max(Width, 780), Math.Max(MinWidth, area.Width - 60.0));
+        Height = Math.Min(Math.Max(Height, 640), Math.Max(MinHeight, area.Height - 60.0));
+        UpdateLayout();
     }
 
     private void KeepInWorkArea()
@@ -158,6 +158,196 @@ public partial class HomePageSettingsWindow : Window
     private static readonly string[] VisualizerScopeChoices = { "Everywhere", "Media Tab Only", "Selected Websites" };
     private static readonly string[] VisualizerScopeValues  = { "Everywhere", "MediaTabOnly", "SelectedWebsites" };
 
+    private static readonly string[] WallpaperCustomOrderChoices = { "Sequential", "Random" };
+    private static readonly string[] WallpaperCustomOrderValues  = { "Sequential", "Random" };
+
+    private readonly Dictionary<object, string> _originalTexts = new();
+    private readonly Dictionary<FrameworkElement, string> _originalToolTips = new();
+
+    private void ApplyLocalization()
+    {
+        var loc = LocalizationService.Instance;
+
+        // Window title
+        if (!_originalTexts.TryGetValue(this, out var origTitle))
+        {
+            origTitle = Title;
+            _originalTexts[this] = origTitle;
+        }
+        Title = loc.GetString(origTitle, origTitle);
+
+        LocalizeElementTree();
+        ReloadLocalizedComboBoxes();
+    }
+
+    private static IEnumerable<DependencyObject> GetChildrenAggressive(DependencyObject parent)
+    {
+        if (parent == null) yield break;
+        if (parent is ContentControl cc && cc.Content is DependencyObject cDo) yield return cDo;
+        else if (parent is Decorator dec && dec.Child is DependencyObject dChild) yield return dChild;
+        else if (parent is Panel p) { foreach (UIElement child in p.Children) yield return child; }
+        else if (parent is ItemsControl ic) { foreach (var item in ic.Items) if (item is DependencyObject iDo) yield return iDo; }
+
+        foreach (var child in LogicalTreeHelper.GetChildren(parent))
+            if (child is DependencyObject d) yield return d;
+    }
+
+    private static IEnumerable<T> FindDescendantsAggressive<T>(DependencyObject root, HashSet<DependencyObject>? visited = null) where T : DependencyObject
+    {
+        visited ??= new HashSet<DependencyObject>();
+        if (root == null || !visited.Add(root)) yield break;
+
+        if (root is T match) yield return match;
+
+        foreach (var child in GetChildrenAggressive(root))
+        {
+            foreach (var descendant in FindDescendantsAggressive<T>(child, visited))
+                yield return descendant;
+        }
+    }
+
+    private void LocalizeElementTree()
+    {
+        var loc = LocalizationService.Instance;
+        var elementsToLocalize = new HashSet<FrameworkElement>();
+
+        foreach (var el in FindDescendantsAggressive<FrameworkElement>(this))
+            elementsToLocalize.Add(el);
+
+        if (TabsHomeSettings != null)
+        {
+            foreach (var item in TabsHomeSettings.Items)
+            {
+                if (item is TabItem tab)
+                {
+                    elementsToLocalize.Add(tab);
+                    if (tab.Content is DependencyObject contentDo)
+                    {
+                        foreach (var el in FindDescendantsAggressive<FrameworkElement>(contentDo))
+                            elementsToLocalize.Add(el);
+                    }
+                }
+            }
+        }
+
+        foreach (var el in elementsToLocalize)
+        {
+            // ToolTip
+            if (el.ToolTip is string tt && !string.IsNullOrWhiteSpace(tt))
+            {
+                if (!_originalToolTips.TryGetValue(el, out var origTt))
+                {
+                    origTt = tt;
+                    _originalToolTips[el] = origTt;
+                }
+                string trans = loc.GetString(origTt, origTt);
+                if (trans != tt) el.ToolTip = trans;
+            }
+
+            // TabItem Header
+            if (el is TabItem tabItem && tabItem.Header is string headerStr && !string.IsNullOrWhiteSpace(headerStr))
+            {
+                if (!_originalTexts.TryGetValue(tabItem, out var origHeader))
+                {
+                    origHeader = headerStr;
+                    _originalTexts[tabItem] = origHeader;
+                }
+                string trans = loc.GetString(origHeader, origHeader);
+                if (trans != headerStr) tabItem.Header = trans;
+            }
+
+            // TextBlock
+            if (el is TextBlock tb && !string.IsNullOrWhiteSpace(tb.Text))
+            {
+                if (tb != TblTintStrengthValue && tb != TblInactivityTimeoutValue && tb != TblWallpaperFolderPath)
+                {
+                    if (tb.GetBindingExpression(TextBlock.TextProperty) == null)
+                    {
+                        if (!_originalTexts.TryGetValue(tb, out var origText))
+                        {
+                            origText = tb.Text;
+                            _originalTexts[tb] = origText;
+                        }
+                        string trans = loc.GetString(origText, origText);
+                        if (trans != tb.Text) tb.Text = trans;
+                    }
+                }
+            }
+
+            // ContentControl (CheckBox, RadioButton, Button)
+            if (el is ContentControl cc && cc.Content is string contentStr && !string.IsNullOrWhiteSpace(contentStr))
+            {
+                if (cc.GetBindingExpression(ContentControl.ContentProperty) == null)
+                {
+                    if (!_originalTexts.TryGetValue(cc, out var origContent))
+                    {
+                        origContent = contentStr;
+                        _originalTexts[cc] = origContent;
+                    }
+                    string trans = loc.GetString(origContent, origContent);
+                    if (trans != contentStr) cc.Content = trans;
+                }
+            }
+
+            // ContextMenu items
+            if (el.ContextMenu != null)
+            {
+                foreach (var item in el.ContextMenu.Items)
+                {
+                    if (item is MenuItem mi && mi.Header is string miHeader && !string.IsNullOrWhiteSpace(miHeader))
+                    {
+                        if (!_originalTexts.TryGetValue(mi, out var origMi))
+                        {
+                            origMi = miHeader;
+                            _originalTexts[mi] = origMi;
+                        }
+                        string trans = loc.GetString(origMi, origMi);
+                        if (trans != miHeader) mi.Header = trans;
+                    }
+                }
+            }
+        }
+    }
+
+    private void ReloadLocalizedComboBoxes()
+    {
+        var loc = LocalizationService.Instance;
+        bool prevLoading = _loadingToggles;
+        bool prevLoadingWp = _loadingWallpaperUi;
+        _loadingToggles = true;
+        _loadingWallpaperUi = true;
+
+        var s = SettingsService.Current;
+
+        int prevGroupStyle = CmbGroupStyle.SelectedIndex;
+        CmbGroupStyle.ItemsSource = GroupStyleChoices.Select(c => loc.GetString(c, c)).ToList();
+        CmbGroupStyle.SelectedIndex = prevGroupStyle >= 0 ? prevGroupStyle : 0;
+
+        int prevBookmarkGrouping = CmbBookmarkGrouping.SelectedIndex;
+        CmbBookmarkGrouping.ItemsSource = BookmarkGroupingChoices.Select(c => loc.GetString(c, c)).ToList();
+        CmbBookmarkGrouping.SelectedIndex = prevBookmarkGrouping >= 0 ? prevBookmarkGrouping : 0;
+
+        int prevFolderOpenMode = CmbFolderOpenMode.SelectedIndex;
+        CmbFolderOpenMode.ItemsSource = FolderOpenModeChoices.Select(c => loc.GetString(c, c)).ToList();
+        CmbFolderOpenMode.SelectedIndex = prevFolderOpenMode >= 0 ? prevFolderOpenMode : 0;
+
+        int prevVisualizerScope = CmbVisualizerScope.SelectedIndex;
+        CmbVisualizerScope.ItemsSource = VisualizerScopeChoices.Select(c => loc.GetString(c, c)).ToList();
+        CmbVisualizerScope.SelectedIndex = prevVisualizerScope >= 0 ? prevVisualizerScope : 0;
+
+        int prevWallpaperOrder = CmbWallpaperCustomOrder.SelectedIndex;
+        CmbWallpaperCustomOrder.ItemsSource = WallpaperCustomOrderChoices.Select(c => loc.GetString(c, c)).ToList();
+        CmbWallpaperCustomOrder.SelectedIndex = prevWallpaperOrder >= 0 ? prevWallpaperOrder : 0;
+
+        if (string.IsNullOrWhiteSpace(s.WallpaperFolderPath))
+        {
+            TblWallpaperFolderPath.Text = loc.GetString("Default (app folder)", "Default (app folder)");
+        }
+
+        _loadingToggles = prevLoading;
+        _loadingWallpaperUi = prevLoadingWp;
+    }
+
     private void LoadAppearanceUi()
     {
         _loadingToggles = true;
@@ -176,7 +366,8 @@ public partial class HomePageSettingsWindow : Window
 
         ChkVisualizerEnabled.IsChecked = SettingsService.Current.HomeVisualizerEnabled;
 
-        CmbVisualizerScope.ItemsSource = VisualizerScopeChoices;
+        var loc = LocalizationService.Instance;
+        CmbVisualizerScope.ItemsSource = VisualizerScopeChoices.Select(c => loc.GetString(c, c)).ToList();
         int scopeIdx = Array.IndexOf(VisualizerScopeValues, SettingsService.Current.HomeVisualizerScope);
         CmbVisualizerScope.SelectedIndex = scopeIdx >= 0 ? scopeIdx : 0;
 
@@ -302,11 +493,12 @@ public partial class HomePageSettingsWindow : Window
         ChkRightBookmarks.IsEnabled  = s.HomeShowRightColumn;
         RefreshRightElementsList();
 
-        CmbGroupStyle.ItemsSource = GroupStyleChoices;
+        var loc = LocalizationService.Instance;
+        CmbGroupStyle.ItemsSource = GroupStyleChoices.Select(c => loc.GetString(c, c)).ToList();
         int groupStyleIdx = Array.IndexOf(GroupStyleValues, s.HomeGroupStyle);
         CmbGroupStyle.SelectedIndex = groupStyleIdx >= 0 ? groupStyleIdx : 0;
 
-        CmbBookmarkGrouping.ItemsSource = BookmarkGroupingChoices;
+        CmbBookmarkGrouping.ItemsSource = BookmarkGroupingChoices.Select(c => loc.GetString(c, c)).ToList();
         int bookmarkGroupingIdx = Array.IndexOf(BookmarkGroupingValues, s.HomeBookmarkGrouping);
         CmbBookmarkGrouping.SelectedIndex = bookmarkGroupingIdx >= 0 ? bookmarkGroupingIdx : 0;
 
@@ -321,7 +513,7 @@ public partial class HomePageSettingsWindow : Window
         int folderThresholdIdx = Array.IndexOf(FolderThresholdValues, s.HomeFolderThreshold);
         CmbFolderThreshold.SelectedIndex = folderThresholdIdx >= 0 ? folderThresholdIdx : 2;
 
-        CmbFolderOpenMode.ItemsSource = FolderOpenModeChoices;
+        CmbFolderOpenMode.ItemsSource = FolderOpenModeChoices.Select(c => loc.GetString(c, c)).ToList();
         int folderOpenModeIdx = Array.IndexOf(FolderOpenModeValues, s.HomeFolderOpenMode);
         CmbFolderOpenMode.SelectedIndex = folderOpenModeIdx >= 0 ? folderOpenModeIdx : 0;
 
@@ -356,7 +548,11 @@ public partial class HomePageSettingsWindow : Window
     private void BtnRightElementRemove_Click(object sender, RoutedEventArgs e)
     {
         if (ListRightElements.SelectedItem is not StackElementData data) return;
-        var answer = MessageBox.Show(this, $"Remove \"{data.Title}\"?", "Remove element", MessageBoxButton.YesNo, MessageBoxImage.Question);
+        var loc = LocalizationService.Instance;
+        string prompt = LocalizationService.Format("Remove \"{0}\"?", data.Title);
+        if (prompt == "Remove \"{0}\"?") prompt = $"Remove \"{data.Title}\"?";
+        string title = loc.GetString("Remove element", "Remove element");
+        var answer = MessageBox.Show(this, prompt, title, MessageBoxButton.YesNo, MessageBoxImage.Question);
         if (answer != MessageBoxResult.Yes) return;
         StackElementStore.Remove(data.Id);
         RefreshRightElementsList();
@@ -533,13 +729,15 @@ public partial class HomePageSettingsWindow : Window
         var s = SettingsService.Current;
         CmbWallpaperFixedFile.SelectedItem = files.FirstOrDefault(f => f == s.WallpaperFileName);
 
-        CmbWallpaperCustomOrder.ItemsSource = new[] { "Sequential", "Random" };
-        CmbWallpaperCustomOrder.SelectedItem = s.WallpaperOrder;
+        var loc = LocalizationService.Instance;
+        CmbWallpaperCustomOrder.ItemsSource = WallpaperCustomOrderChoices.Select(c => loc.GetString(c, c)).ToList();
+        int orderIdx = Array.IndexOf(WallpaperCustomOrderValues, s.WallpaperOrder);
+        CmbWallpaperCustomOrder.SelectedIndex = orderIdx >= 0 ? orderIdx : 0;
 
         ListWallpaperCustom.ItemsSource = s.WallpaperCustomList.ToList();
 
         TblWallpaperFolderPath.Text = string.IsNullOrWhiteSpace(s.WallpaperFolderPath)
-            ? "Default (app folder)"
+            ? loc.GetString("Default (app folder)", "Default (app folder)")
             : s.WallpaperFolderPath;
 
         switch (s.WallpaperMode)
@@ -623,10 +821,11 @@ public partial class HomePageSettingsWindow : Window
 
     private void CmbWallpaperCustomOrder_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
     {
-        if (_loadingWallpaperUi) return;
-        if (CmbWallpaperCustomOrder.SelectedItem is string order)
+        if (_loadingWallpaperUi || _loadingToggles) return;
+        int idx = CmbWallpaperCustomOrder.SelectedIndex;
+        if (idx >= 0 && idx < WallpaperCustomOrderValues.Length)
         {
-            SettingsService.Current.WallpaperOrder = order;
+            SettingsService.Current.WallpaperOrder = WallpaperCustomOrderValues[idx];
             SettingsService.Save();
             WallpaperChanged = true;
         }
@@ -668,7 +867,7 @@ public partial class HomePageSettingsWindow : Window
         {
             SettingsService.Current.SavedHomepages[_editingHomepageIndex] = text;
             _editingHomepageIndex = -1;
-            BtnSaveHomepage.Content = "Save as New Homepage";
+            BtnSaveHomepage.Content = LocalizationService.Instance.GetString("Save as New Homepage", "Save as New Homepage");
         }
         else if (!SettingsService.Current.SavedHomepages.Contains(text))
         {
@@ -687,7 +886,7 @@ public partial class HomePageSettingsWindow : Window
         {
             _editingHomepageIndex = SettingsService.Current.SavedHomepages.IndexOf(selected);
             CmbHomepage.Text = selected;
-            BtnSaveHomepage.Content = "Update Homepage";
+            BtnSaveHomepage.Content = LocalizationService.Instance.GetString("Update Homepage", "Update Homepage");
         }
     }
 
