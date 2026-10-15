@@ -73,6 +73,11 @@ public static class SettingsService
 
     private static void Migrate(SettingsData data)
     {
+        if (data.DismissedInstallationPaths == null)
+        {
+            data.DismissedInstallationPaths = new List<string>();
+        }
+
         if (data.ConfigVersion > CurrentConfigVersion) return;
         if (data.ConfigVersion < 2)
         {

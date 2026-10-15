@@ -459,6 +459,18 @@ public static class InstallationDiscoveryService
 
                 progress?.Invoke("Restoration completed successfully!", 100);
                 LogService.Write("RESTORE", $"Restored data from existing installation at {source.Path} ({source.FullVersionString})");
+
+                try
+                {
+                    string normSource = NormalizePath(source.Path);
+                    if (!SettingsService.Current.DismissedInstallationPaths.Any(p => string.Equals(NormalizePath(p), normSource, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        SettingsService.Current.DismissedInstallationPaths.Add(normSource);
+                    }
+                    SettingsService.Save();
+                }
+                catch { }
+
                 return true;
             }
             catch (Exception ex)
@@ -516,7 +528,7 @@ public static class InstallationDiscoveryService
         }
     }
 
-    private static string NormalizePath(string path)
+    public static string NormalizePath(string path)
     {
         if (string.IsNullOrWhiteSpace(path)) return string.Empty;
         try

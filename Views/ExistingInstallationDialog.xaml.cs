@@ -119,7 +119,7 @@ public partial class ExistingInstallationDialog : Window
         // Action Button
         var btnRestore = new Button
         {
-            Content = $"RESTORE DATA FROM VERSION {inst.Version}",
+            Content = $"Restore Data from Version {inst.Version}",
             Background = new SolidColorBrush(Color.FromRgb(0x00, 0xD9, 0xFF)),
             Foreground = new SolidColorBrush(Color.FromRgb(0x0B, 0x0F, 0x1A)),
             FontWeight = FontWeights.Bold,
@@ -175,6 +175,18 @@ public partial class ExistingInstallationDialog : Window
 
         if (confirm != MessageBoxResult.Yes) return;
 
+        // Dismiss this installation so it is never prompted again
+        try
+        {
+            string normPath = InstallationDiscoveryService.NormalizePath(inst.Path);
+            if (!SettingsService.Current.DismissedInstallationPaths.Any(p => string.Equals(InstallationDiscoveryService.NormalizePath(p), normPath, StringComparison.OrdinalIgnoreCase)))
+            {
+                SettingsService.Current.DismissedInstallationPaths.Add(normPath);
+                SettingsService.Save();
+            }
+        }
+        catch { }
+
         // 1. Prefer reliable out-of-process restore engine (releases all WebView2 locks)
         if (BackupService.LaunchExternalRestore(inst.Path))
         {
@@ -220,9 +232,10 @@ public partial class ExistingInstallationDialog : Window
     {
         foreach (var inst in _installations)
         {
-            if (!SettingsService.Current.DismissedInstallationPaths.Contains(inst.Path, StringComparer.OrdinalIgnoreCase))
+            string normPath = InstallationDiscoveryService.NormalizePath(inst.Path);
+            if (!SettingsService.Current.DismissedInstallationPaths.Any(p => string.Equals(InstallationDiscoveryService.NormalizePath(p), normPath, StringComparison.OrdinalIgnoreCase)))
             {
-                SettingsService.Current.DismissedInstallationPaths.Add(inst.Path);
+                SettingsService.Current.DismissedInstallationPaths.Add(normPath);
             }
         }
         SettingsService.Save();

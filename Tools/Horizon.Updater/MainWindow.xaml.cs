@@ -4,6 +4,8 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Windows;
 using System.Windows.Input;
 
@@ -46,13 +48,13 @@ public partial class MainWindow : Window
     {
         if (!string.IsNullOrEmpty(_restoreSource))
         {
-            TxtHeaderTitle.Text = "RESTORING HORIZON DATA";
+            TxtHeaderTitle.Text = "Restoring Horizon Data";
             TxtHeaderSubtitle.Text = "Data Recovery & Profile Migration Engine";
             await RunRestoreSequenceAsync();
         }
         else
         {
-            TxtHeaderTitle.Text = "UPDATING HORIZON BROWSER";
+            TxtHeaderTitle.Text = "Updating Horizon Browser";
             TxtHeaderSubtitle.Text = "Professional Update Engine";
             await RunUpdateSequenceAsync();
         }
@@ -207,6 +209,91 @@ public partial class MainWindow : Window
             CopyDirectoryFiltered(srcFavicons, Path.Combine(appDataTarget, "FaviconCache"));
             CopyDirectoryFiltered(srcFavicons, Path.Combine(localTargetData, "FaviconCache"));
         }
+
+        // 8. Prevent restored installation from triggering startup warning dialog
+        DismissSourceInstallationInConfigs(sourceDir, localTargetData, appDataTarget, targetDir);
+    }
+
+    private static void DismissSourceInstallationInConfigs(string sourceDir, string localTargetData, string appDataTarget, string targetDir)
+    {
+        try
+        {
+            var pathsToDismiss = new List<string>();
+            string normSource = Path.GetFullPath(sourceDir).TrimEnd('\\', '/');
+            pathsToDismiss.Add(normSource);
+
+            if (Path.GetFileName(normSource).Equals("HorizonData", StringComparison.OrdinalIgnoreCase))
+            {
+                var parent = Directory.GetParent(normSource)?.FullName?.TrimEnd('\\', '/');
+                if (!string.IsNullOrEmpty(parent))
+                {
+                    pathsToDismiss.Add(parent);
+                }
+            }
+
+            string[] configFiles = new[]
+            {
+                Path.Combine(localTargetData, "config.json"),
+                Path.Combine(appDataTarget, "config.json"),
+                Path.Combine(targetDir, "settings.json")
+            };
+
+            foreach (var cfg in configFiles)
+            {
+                AddDismissedPathsToJsonConfig(cfg, pathsToDismiss);
+            }
+        }
+        catch { }
+    }
+
+    private static void AddDismissedPathsToJsonConfig(string configPath, List<string> pathsToDismiss)
+    {
+        try
+        {
+            if (!File.Exists(configPath)) return;
+
+            string json = File.ReadAllText(configPath);
+            var root = JsonNode.Parse(json);
+            if (root is not JsonObject obj) return;
+
+            JsonArray dismissedArray;
+            if (obj.TryGetPropertyValue("DismissedInstallationPaths", out var existingNode) && existingNode is JsonArray arr)
+            {
+                dismissedArray = arr;
+            }
+            else
+            {
+                dismissedArray = new JsonArray();
+                obj["DismissedInstallationPaths"] = dismissedArray;
+            }
+
+            bool modified = false;
+            foreach (var path in pathsToDismiss)
+            {
+                bool present = false;
+                foreach (var item in dismissedArray)
+                {
+                    if (item != null && string.Equals(item.GetValue<string>()?.TrimEnd('\\', '/'), path, StringComparison.OrdinalIgnoreCase))
+                    {
+                        present = true;
+                        break;
+                    }
+                }
+
+                if (!present)
+                {
+                    dismissedArray.Add(JsonValue.Create(path));
+                    modified = true;
+                }
+            }
+
+            if (modified)
+            {
+                var options = new JsonSerializerOptions { WriteIndented = true };
+                File.WriteAllText(configPath, obj.ToJsonString(options));
+            }
+        }
+        catch { }
     }
 
     private static void SafeCopy(string src, string dest)

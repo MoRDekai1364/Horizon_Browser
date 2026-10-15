@@ -1462,8 +1462,11 @@ public partial class MainWindow : Window
             if (detected.Count == 0) return;
 
             var unprompted = detected.Where(d =>
-                !SettingsService.Current.DismissedInstallationPaths.Contains(d.Path, StringComparer.OrdinalIgnoreCase)
-            ).ToList();
+            {
+                string normD = InstallationDiscoveryService.NormalizePath(d.Path);
+                return !SettingsService.Current.DismissedInstallationPaths.Any(p =>
+                    string.Equals(InstallationDiscoveryService.NormalizePath(p), normD, StringComparison.OrdinalIgnoreCase));
+            }).ToList();
 
             if (unprompted.Count > 0)
             {

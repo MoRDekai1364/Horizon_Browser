@@ -65,7 +65,7 @@
                 <TextBlock Grid.Column="0" Text="⚠️" FontSize="32" VerticalAlignment="Center" Margin="0,0,16,0"/>
 
                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                    <TextBlock Text="EXISTING HORIZON INSTALLATION DETECTED"
+                    <TextBlock Text="Existing Horizon Installation Detected"
                                FontSize="16" FontWeight="Bold"
                                Foreground="#FFB800"/>
                     <TextBlock Text="Multiple installations found on this computer. Running separate instances may lead to data fragmentation or profile desynchronization. You can migrate your passwords, bookmarks, cookies, and profile data below."
@@ -94,7 +94,7 @@
                         Background="Transparent" BorderBrush="#253550" Foreground="#7E93AE" HorizontalAlignment="Left" Padding="12,6"/>
 
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                    <Button x:Name="BtnClose" Content="CLOSE" Click="BtnClose_Click" Padding="20,6"/>
+                    <Button x:Name="BtnClose" Content="Close" Click="BtnClose_Click" Padding="20,6"/>
                 </StackPanel>
             </Grid>
         </StackPanel>
