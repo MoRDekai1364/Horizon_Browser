@@ -166,11 +166,11 @@
 
                         <TextBlock Text="Maintenance" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" Margin="0,15,0,5"/>
                         <StackPanel Orientation="Horizontal">
-                            <Button Content="BACKUP &amp; UPDATE" Click="BtnBackupUpdate_Click" 
-                                    local:SearchIndex.Label="Backup &amp; Update" local:SearchIndex.Description="Runs Update_manager.bat to check for updates and backup project data."
+                            <Button Content="BACKUP &amp; RESTORE" Click="BtnBackupUpdate_Click" 
+                                    local:SearchIndex.Label="Backup &amp; Restore" local:SearchIndex.Description="Opens the native Backup &amp; Restore Manager to snapshot and restore your profile and settings."
                                     Style="{StaticResource Style_StealthButton}" 
                                     Height="35" HorizontalAlignment="Left" Width="200"
-                                    ToolTip="Runs Update_manager.bat to check for updates and backup project data."/>
+                                    ToolTip="Opens the native Backup &amp; Restore Manager to snapshot and restore your profile and settings."/>
                             <Button x:Name="BtnCheckForUpdates" Content="CHECK FOR UPDATES" Click="BtnCheckForUpdates_Click" 
                                     local:SearchIndex.Label="Check for Updates" local:SearchIndex.Description="Checks GitHub for a newer release matching your current update channel."
                                     Style="{StaticResource Style_StealthButton}" 

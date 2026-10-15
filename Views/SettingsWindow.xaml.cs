@@ -2165,9 +2165,8 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
 
     private void BtnBackupUpdate_Click(object sender, RoutedEventArgs e)
     {
-        string? target = ResolvePath("Update_manager.bat");
-        if (target != null) Process.Start(new ProcessStartInfo(target) { UseShellExecute = true, WorkingDirectory = Path.GetDirectoryName(target) });
-        else MessageBox.Show("Update_manager.bat not found.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        var dialog = new BackupRestoreDialog { Owner = this };
+        dialog.ShowDialog();
     }
 
     private async void BtnCheckForUpdates_Click(object sender, RoutedEventArgs e)

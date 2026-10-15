@@ -14,10 +14,8 @@ if not exist "Horizon.Browser.exe" (
 
 call :WRITE_STATUS "Closing Horizon..." 12
 taskkill /F /IM Horizon.Browser.exe 2>nul
-taskkill /F /IM msedgewebview2.exe /T 2>nul
 
 if not defined LOCALAPPDATA set "LOCALAPPDATA=%USERPROFILE%\AppData\Local"
-if not defined PROGRAMFILES set "PROGRAMFILES=C:\Program Files"
 
 set "HORIZON_APPDATA=%LOCALAPPDATA%\Horizon_Browser"
 set "HORIZON_DATA=%PROJECT_ROOT%\HorizonData"
@@ -52,7 +50,7 @@ call :WRITE_STATUS "Backup complete" 25
 exit /b 0
 
 :RESOLVE_BACKUP_LOCATION
-set "BACKUP_DIR=C:\Program Files\Horizon_Browser\Backup"
+set "BACKUP_DIR=%LOCALAPPDATA%\Horizon_Browser\Backups\pre_update_backup"
 if not exist "%BACKUP_DIR%" mkdir "%BACKUP_DIR%"
 exit /b
 

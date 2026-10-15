@@ -1179,42 +1179,80 @@ public partial class MainWindow : Window
         }
 
         var confirm = MessageBox.Show(
-            "Horizon will close, back up your data, install the update, then restore and relaunch automatically.\n\nContinue?",
+            "Horizon will close, install the update package, protect your settings, and relaunch automatically.\n\nContinue?",
             "Install Update", MessageBoxButton.YesNo, MessageBoxImage.Question);
         if (confirm != MessageBoxResult.Yes) return;
 
-        string? orchestratorPath = ResolveStartupFilePath("update_orchestrator.bat");
-        if (orchestratorPath == null)
-        {
-            MessageBox.Show("update_orchestrator.bat not found.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            return;
-        }
+        string baseDir = AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\', '/');
+        int currentPid = Environment.ProcessId;
 
-        WriteCurrentPathFile();
-
-        try
+        // 1. Prefer professional native Horizon.Updater.exe
+        string[] updaterCandidates = new[]
         {
-            var psi = new ProcessStartInfo
+            Path.Combine(baseDir, "Horizon.Updater.exe"),
+            Path.Combine(baseDir, "Tools", "Horizon.Updater.exe"),
+            Path.Combine(baseDir, "Tools", "Horizon.Updater", "Horizon.Updater.exe"),
+            Path.Combine(baseDir, "..", "..", "..", "Tools", "Horizon.Updater", "bin", "Release", "net8.0-windows10.0.19041.0", "Horizon.Updater.exe")
+        };
+
+        string? updaterExe = updaterCandidates.FirstOrDefault(File.Exists);
+
+        if (updaterExe != null)
+        {
+            try
             {
-                FileName = orchestratorPath,
-                Arguments = $"\"{_pendingUpdateInstallerPath}\"",
-                WorkingDirectory = Path.GetDirectoryName(orchestratorPath),
-                UseShellExecute = true,
-                WindowStyle = ProcessWindowStyle.Hidden
-            };
-            Process.Start(psi);
+                var psi = new ProcessStartInfo
+                {
+                    FileName = updaterExe,
+                    Arguments = $"--installer \"{_pendingUpdateInstallerPath}\" --target \"{baseDir}\" --pid {currentPid}",
+                    WorkingDirectory = Path.GetDirectoryName(updaterExe),
+                    UseShellExecute = true
+                };
+                Process.Start(psi);
+
+                SettingsService.Current.PendingUpdateInstallerPath = "";
+                SettingsService.Save();
+
+                Application.Current.Shutdown();
+                return;
+            }
+            catch (Exception ex)
+            {
+                LogService.RecordCrash(ex, "Launching Horizon.Updater.exe");
+            }
         }
-        catch (Exception ex)
+
+        // 2. Fallback to orchestrator if updater exe not available
+        string? orchestratorPath = ResolveStartupFilePath("update_orchestrator.bat");
+        if (orchestratorPath != null)
         {
-            LogService.RecordCrash(ex, "Launching update_orchestrator.bat");
-            MessageBox.Show($"Could not start the update: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            return;
+            WriteCurrentPathFile();
+            try
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName = orchestratorPath,
+                    Arguments = $"\"{_pendingUpdateInstallerPath}\"",
+                    WorkingDirectory = Path.GetDirectoryName(orchestratorPath),
+                    UseShellExecute = true,
+                    WindowStyle = ProcessWindowStyle.Hidden
+                };
+                Process.Start(psi);
+
+                SettingsService.Current.PendingUpdateInstallerPath = "";
+                SettingsService.Save();
+
+                Application.Current.Shutdown();
+                return;
+            }
+            catch (Exception ex)
+            {
+                LogService.RecordCrash(ex, "Launching update_orchestrator.bat");
+            }
         }
 
-        SettingsService.Current.PendingUpdateInstallerPath = "";
-        SettingsService.Save();
-
-        Application.Current.Shutdown();
+        MessageBox.Show("Could not find updater utility to launch the installation.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        return;
     }
 
     private static void WriteCurrentPathFile()

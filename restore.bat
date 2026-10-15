@@ -11,18 +11,17 @@ set "BACKUP_DIR="
 if exist "%PROJECT_ROOT%\last_backup_path.txt" (
     set /p BACKUP_DIR=<"%PROJECT_ROOT%\last_backup_path.txt"
 )
-if not defined BACKUP_DIR set "BACKUP_DIR=C:\Program Files\Horizon_Browser\Backup"
+if not defined LOCALAPPDATA set "LOCALAPPDATA=%USERPROFILE%\AppData\Local"
+if not defined BACKUP_DIR set "BACKUP_DIR=%LOCALAPPDATA%\Horizon_Browser\Backups\pre_update_backup"
 
 if not exist "%BACKUP_DIR%" (
     call :WRITE_STATUS "ERROR: No backup found at %BACKUP_DIR%" 90
     exit /b 1
 )
 
-if not defined LOCALAPPDATA set "LOCALAPPDATA=%USERPROFILE%\AppData\Local"
 set "HORIZON_DATA=%PROJECT_ROOT%\HorizonData"
 
 taskkill /F /IM Horizon.Browser.exe 2>nul
-taskkill /F /IM msedgewebview2.exe /T 2>nul
 
 call :WRITE_STATUS "Restoring exports..." 93
 if exist "%BACKUP_DIR%\vault.dat" copy /Y "%BACKUP_DIR%\vault.dat" . >nul

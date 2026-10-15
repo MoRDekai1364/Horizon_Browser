@@ -98,6 +98,20 @@ if exist "Tools\Horizon.SessionImporter\Horizon.SessionImporter.csproj" (
     )
 )
 
+echo [2c2/3] Compiling Standalone Updater Tool...
+if exist "Tools\Horizon.Updater\Horizon.Updater.csproj" (
+    dotnet publish Tools\Horizon.Updater\Horizon.Updater.csproj -c Release -r win-x64 --self-contained false -o "%OUT_DIR%\Tools" >nul 2>&1
+    if not exist "%OUT_DIR%\Tools\Horizon.Updater.exe" (
+        dotnet build Tools\Horizon.Updater\Horizon.Updater.csproj -c Release >nul 2>&1
+        if not exist "%OUT_DIR%\Tools" mkdir "%OUT_DIR%\Tools"
+        copy /y "Tools\Horizon.Updater\bin\Release\net8.0-windows10.0.19041.0\Horizon.Updater.*" "%OUT_DIR%\Tools\" >nul 2>&1
+    )
+    if exist "%OUT_DIR%\Tools\Horizon.Updater.exe" (
+        copy /y "%OUT_DIR%\Tools\Horizon.Updater.*" "%OUT_DIR%\" >nul 2>&1
+        echo [INFO] Standalone Updater tool packaged.
+    )
+)
+
 echo [2d/3] Packaging Extensions...
 if exist "Extensions" (
     robocopy "Extensions" "%OUT_DIR%\Extensions" /E /R:1 /W:1 /NFL /NDL /NJH /NJS >nul

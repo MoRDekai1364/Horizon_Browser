@@ -27,6 +27,8 @@
   <ItemGroup>
     <Compile Remove="Tools\**" />
     <None Remove="Tools\**" />
+    <Page Remove="Tools\**" />
+    <ApplicationDefinition Remove="Tools\**" />
   </ItemGroup>
 
   <ItemGroup>

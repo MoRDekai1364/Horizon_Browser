@@ -14,34 +14,28 @@ if "%INSTALLER_PATH%"=="" (
     exit /b 1
 )
 
-> "%STATUS_FILE%" (
-    echo STEP:Starting...
-    echo PERCENT:0
-)
-start "" mshta.exe "%PROJECT_ROOT%\overlay.hta"
-
-> "%STATUS_FILE%" (
-    echo STEP:Closing running browser instances...
-    echo PERCENT:5
-)
-taskkill /f /im Horizon.Browser.exe >nul 2>&1
-timeout /t 1 /nobreak >nul
-
-call "%PROJECT_ROOT%\backup.bat"
-
 set "TARGET_DIR="
 if exist "%PROJECT_ROOT%\path.txt" (
     set /p TARGET_DIR=<"%PROJECT_ROOT%\path.txt"
 )
 if not defined TARGET_DIR set "TARGET_DIR=%PROJECT_ROOT%"
 
-> "%STATUS_FILE%" (
-    echo STEP:Launching installer...
-    echo PERCENT:30
+rem 1. Check for professional native Horizon.Updater.exe
+if exist "%PROJECT_ROOT%\Tools\Horizon.Updater.exe" (
+    start "" "%PROJECT_ROOT%\Tools\Horizon.Updater.exe" --installer "%INSTALLER_PATH%" --target "%TARGET_DIR%"
+    exit /b 0
+)
+if exist "%PROJECT_ROOT%\Horizon.Updater.exe" (
+    start "" "%PROJECT_ROOT%\Horizon.Updater.exe" --installer "%INSTALLER_PATH%" --target "%TARGET_DIR%"
+    exit /b 0
 )
 
-powershell -NoProfile -ExecutionPolicy Bypass -File "%PROJECT_ROOT%\install_auto.ps1" -InstallerPath "%INSTALLER_PATH%" -TargetDir "%TARGET_DIR%" -StatusFile "%STATUS_FILE%"
+rem 2. Fallback execution without MSHTA
+taskkill /f /im Horizon.Browser.exe >nul 2>&1
+timeout /t 1 /nobreak >nul
 
+call "%PROJECT_ROOT%\backup.bat"
+powershell -NoProfile -ExecutionPolicy Bypass -File "%PROJECT_ROOT%\install_auto.ps1" -InstallerPath "%INSTALLER_PATH%" -TargetDir "%TARGET_DIR%" -StatusFile "%PROJECT_ROOT%\update_status.txt"
 call "%PROJECT_ROOT%\restore.bat"
 
 exit /b 0
