@@ -3662,9 +3662,9 @@ public partial class HomePageView : UserControl
         ScheduleStackRestSize();
     }
 
-    private const double StackRestMaxWidth = 320;
+    private const double StackRestMaxWidth = 360;
     private const double StackSideMargin = 40;
-    private const double StackMinRestHeight = 160;
+    private const double StackMinRestHeight = 260;
     private bool _stackRestPending;
 
     private bool StackAvailable => HomeStack.Visibility == Visibility.Visible && _favoritesDrawer != null && _bookmarksDrawer != null;

@@ -93,9 +93,9 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
-                        <ScrollViewer Grid.Row="0" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled"
+                        <ScrollViewer Grid.Row="0" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled"
                                       PanningMode="HorizontalOnly">
-                            <TabPanel IsItemsHost="True" Background="Transparent"/>
+                            <StackPanel IsItemsHost="True" Orientation="Horizontal" Background="Transparent"/>
                         </ScrollViewer>
                         <ContentPresenter Grid.Row="1" ContentSource="SelectedContent" Margin="0,4,0,0"/>
                     </Grid>
@@ -196,7 +196,7 @@
                         <Button Content="RESET PDF OPEN PREFERENCE" Click="BtnResetPdfPref_Click"
                                 local:SearchIndex.Label="Reset PDF Open Preference" local:SearchIndex.Description="Clears the saved choice so you are asked again next time a PDF is opened."
                                 Style="{StaticResource Style_StealthButton}"
-                                Height="35" HorizontalAlignment="Left" Width="240"
+                                Height="35" HorizontalAlignment="Left" MinWidth="240" Padding="14,0"
                                 ToolTip="Clears the saved choice so you are asked again next time a PDF is opened."/>
 
                         <TextBlock Text="System Integration" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" Margin="0,15,0,5"/>
@@ -205,12 +205,12 @@
                                 local:SearchIndex.Label="Set as Default Browser" local:SearchIndex.Description="Registers Horizon in the Windows registry and opens Default Apps settings."
                                 Background="#0D1A0D" Foreground="#00FF00"
                                 BorderBrush="#005500" BorderThickness="1"
-                                Height="35" HorizontalAlignment="Left" Width="230" Cursor="Hand"
+                                Height="35" HorizontalAlignment="Left" MinWidth="230" Padding="14,0" Cursor="Hand"
                                 ToolTip="Registers Horizon in the Windows registry and opens Default Apps settings.">
                             <Button.Template>
                                 <ControlTemplate TargetType="Button">
                                     <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="4">
-                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" TextElement.FontWeight="Bold"/>
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}" TextElement.FontWeight="Bold"/>
                                     </Border>
                                     <ControlTemplate.Triggers>
                                         <Trigger Property="IsMouseOver" Value="True">
@@ -1196,13 +1196,13 @@
 
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
             <CheckBox x:Name="ChkResetWipeData" Content="Also delete data" VerticalAlignment="Center" Foreground="{DynamicResource Brush_SoftText}" Margin="0,0,10,0" ToolTip="Also clears accounts, API keys, tokens, pins, session URLs, saved homepages, layouts, notes and favorites."/>
-            <Button x:Name="BtnResetAll" Content="RESET ALL" Click="BtnResetAll_Click" Style="{StaticResource Style_StealthButton}" Width="100" Height="35" Margin="0,0,30,0"/>
-            <Button x:Name="BtnCancel" Content="CANCEL" Click="BtnCancel_Click" Style="{StaticResource Style_StealthButton}" Width="100" Height="35" Margin="0,0,10,0"/>
-            <Button x:Name="BtnSave" Content="SAVE &amp; APPLY" Click="BtnSave_Click" Background="{StaticResource Brush_Accent}" Foreground="Black" FontWeight="Bold" Width="120" Height="35">
+            <Button x:Name="BtnResetAll" Content="RESET ALL" Click="BtnResetAll_Click" Style="{StaticResource Style_StealthButton}" MinWidth="100" Padding="12,0" Height="35" Margin="0,0,30,0"/>
+            <Button x:Name="BtnCancel" Content="CANCEL" Click="BtnCancel_Click" Style="{StaticResource Style_StealthButton}" MinWidth="100" Padding="12,0" Height="35" Margin="0,0,10,0"/>
+            <Button x:Name="BtnSave" Content="SAVE &amp; APPLY" Click="BtnSave_Click" Background="{StaticResource Brush_Accent}" Foreground="Black" FontWeight="Bold" MinWidth="120" Padding="14,0" Height="35">
                 <Button.Template>
                     <ControlTemplate TargetType="Button">
                         <Border Background="{TemplateBinding Background}" CornerRadius="4">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
                         </Border>
                     </ControlTemplate>
                 </Button.Template>

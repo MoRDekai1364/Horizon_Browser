@@ -348,6 +348,7 @@ public partial class StackHost : UserControl
         Outgoing.Content = previous;
         Incoming.Content = _items[index].Content;
 
+        Outgoing.Visibility = Visibility.Visible;
         Outgoing.Opacity = 1;
         outgoingMove.Y = 0;
         Incoming.Opacity = 0;
@@ -360,11 +361,18 @@ public partial class StackHost : UserControl
         var duration = new Duration(TimeSpan.FromMilliseconds(AnimationMs));
         var ease = new SineEase { EasingMode = EasingMode.EaseInOut };
 
-        var fadeOut = new DoubleAnimation(0, duration) { EasingFunction = ease };
-        fadeOut.Completed += (_, _) => FinishSwitch();
+        var fadeOut = new DoubleAnimation(0, new Duration(TimeSpan.FromMilliseconds(150))) { EasingFunction = ease };
+        fadeOut.Completed += (_, _) =>
+        {
+            Outgoing.Visibility = Visibility.Collapsed;
+            Outgoing.Content = null;
+        };
+
+        var fadeIn = new DoubleAnimation(1, duration) { EasingFunction = ease };
+        fadeIn.Completed += (_, _) => FinishSwitch();
 
         Outgoing.BeginAnimation(OpacityProperty, fadeOut);
-        Incoming.BeginAnimation(OpacityProperty, new DoubleAnimation(1, duration) { EasingFunction = ease });
+        Incoming.BeginAnimation(OpacityProperty, fadeIn);
         outgoingMove.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(-direction * offset, duration) { EasingFunction = ease });
         incomingMove.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(0, duration) { EasingFunction = ease });
     }
@@ -383,6 +391,7 @@ public partial class StackHost : UserControl
         incomingMove.BeginAnimation(TranslateTransform.YProperty, null);
 
         Outgoing.Content = null;
+        Outgoing.Visibility = Visibility.Collapsed;
         Outgoing.Opacity = 1;
         Incoming.Opacity = 1;
         outgoingMove.Y = 0;

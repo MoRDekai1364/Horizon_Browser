@@ -370,7 +370,7 @@ public sealed class FolderDrawerView : UserControl
     public FolderDrawerView()
     {
         HomeGlass.SetExclude(this, true);
-        MinHeight = 180;
+        MinHeight = 250;
         MinWidth = 200;
         _title = new TextBlock
         {
@@ -392,23 +392,26 @@ public sealed class FolderDrawerView : UserControl
         _dots = new PagerDots(Orientation.Horizontal)
         {
             HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Bottom,
+            VerticalAlignment = VerticalAlignment.Center,
             Height = DotsH,
+            Margin = new Thickness(0, 6, 0, 0),
             Visibility = Visibility.Collapsed
         };
         _dots.PageRequested += GoTo;
 
         _viewport = new Grid { ClipToBounds = true };
         _viewport.Children.Add(_strip);
-        _viewport.Children.Add(_dots);
 
         var layout = new Grid();
         layout.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         layout.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+        layout.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         Grid.SetRow(_title, 0);
         Grid.SetRow(_viewport, 1);
+        Grid.SetRow(_dots, 2);
         layout.Children.Add(_title);
         layout.Children.Add(_viewport);
+        layout.Children.Add(_dots);
 
         Content = new Border
         {
@@ -531,7 +534,7 @@ public sealed class FolderDrawerView : UserControl
             return (ns, new List<List<List<int>>> { rows }, false);
         }
 
-        double pageHeight = Math.Max(1, height - DotsH);
+        double pageHeight = height;
         var pages = new List<List<List<int>>>();
         var page = new List<List<int>>();
         double used = 0;
@@ -591,7 +594,7 @@ public sealed class FolderDrawerView : UserControl
         }
 
         var plan = Plan(width, height);
-        double pageHeight = Math.Max(1, plan.Paged ? height - DotsH : height);
+        double pageHeight = height;
 
         _slide.BeginAnimation(TranslateTransform.XProperty, null);
         _animating = false;
@@ -602,7 +605,7 @@ public sealed class FolderDrawerView : UserControl
         foreach (var pageRows in plan.Pages)
         {
             if (pageRows.Count == 0 || pageRows.All(r => r.Count == 0)) continue;
-            var rowsHost = new StackPanel { VerticalAlignment = VerticalAlignment.Top };
+            var rowsHost = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
             foreach (var row in pageRows)
             {
                 if (row.Count == 0) continue;
