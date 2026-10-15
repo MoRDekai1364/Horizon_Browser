@@ -766,6 +766,20 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
             TabsMain.SelectedIndex = savedIndex;
 
         _isRestoringTab = false;
+
+        _ = Task.Run(() =>
+        {
+            var detected = InstallationDiscoveryService.DiscoverInstallations();
+            if (detected.Count > 0)
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    BtnDetectedInstallations.Visibility = Visibility.Visible;
+                    BtnDetectedInstallations.Content = $"EXISTING INSTALLS ({detected.Count})";
+                    BtnDetectedInstallations.Tag = detected;
+                });
+            }
+        });
     }
 
     private void TabsMain_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -1175,9 +1189,9 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
         SettingsService.Save();
         FluxJanitorService.Initialize();
 
-        MessageBox.Show("Configuration Saved.", "Horizon", MessageBoxButton.OK, MessageBoxImage.Information);
         SettingsApplied?.Invoke();
         Close();
+        App.Restart();
     }
 
     private void ChkMediaWidgetAutoShowOnMinimize_Changed(object sender, RoutedEventArgs e)
@@ -2167,6 +2181,13 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
     {
         var dialog = new BackupRestoreDialog { Owner = this };
         dialog.ShowDialog();
+    }
+
+    private void BtnDetectedInstallations_Click(object sender, RoutedEventArgs e)
+    {
+        var detected = BtnDetectedInstallations.Tag as List<HorizonInstallationInfo> ?? InstallationDiscoveryService.DiscoverInstallations();
+        var dlg = new ExistingInstallationDialog(detected) { Owner = this };
+        dlg.ShowDialog();
     }
 
     private async void BtnCheckForUpdates_Click(object sender, RoutedEventArgs e)

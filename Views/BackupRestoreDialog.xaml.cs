@@ -9,10 +9,47 @@ namespace Horizon.Stealth.Views;
 
 public partial class BackupRestoreDialog : Window
 {
+    private List<HorizonInstallationInfo> _detectedInstallations = new();
+
     public BackupRestoreDialog()
     {
         InitializeComponent();
         RefreshBackupsList();
+        CheckDetectedInstallations();
+    }
+
+    private void CheckDetectedInstallations()
+    {
+        _detectedInstallations = InstallationDiscoveryService.DiscoverInstallations();
+        if (_detectedInstallations.Count > 0)
+        {
+            BorderDetectedInstallations.Visibility = Visibility.Visible;
+            PanelDetectedSummary.Children.Clear();
+            foreach (var inst in _detectedInstallations)
+            {
+                var row = new TextBlock
+                {
+                    Text = $"• {inst.DisplayName} (v{inst.FullVersionString}) – {inst.Path} [{inst.SummaryText}]",
+                    FontSize = 11,
+                    Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0xEA, 0xF6, 0xFF)),
+                    Margin = new Thickness(0, 2, 0, 2),
+                    TextTrimming = TextTrimming.CharacterEllipsis,
+                    ToolTip = inst.Path
+                };
+                PanelDetectedSummary.Children.Add(row);
+            }
+        }
+        else
+        {
+            BorderDetectedInstallations.Visibility = Visibility.Collapsed;
+        }
+    }
+
+    private void BtnOpenDetectedDialog_Click(object sender, RoutedEventArgs e)
+    {
+        var dlg = new ExistingInstallationDialog(_detectedInstallations) { Owner = this };
+        dlg.ShowDialog();
+        CheckDetectedInstallations();
     }
 
     private void RefreshBackupsList()
@@ -123,10 +160,11 @@ public partial class BackupRestoreDialog : Window
         {
             await BackupService.RestoreBackupAsync(folderPath, progress);
             MessageBox.Show(
-                "Backup successfully restored!\n\nPlease restart Horizon Browser for all profile changes to take effect.",
+                "Backup successfully restored!\n\nHorizon will now restart to apply all profile changes.",
                 "Restore Complete",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information);
+            App.Restart();
         }
         catch (Exception ex)
         {

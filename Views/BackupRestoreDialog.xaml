@@ -121,6 +121,26 @@
                         </StackPanel>
                     </StackPanel>
                 </Border>
+
+                <!-- Detected Existing Installations Card -->
+                <Border x:Name="BorderDetectedInstallations" Background="#141B2D" BorderBrush="#FFB800" BorderThickness="1" CornerRadius="6" Padding="16" Margin="0,16,0,0" Visibility="Collapsed">
+                    <StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="Detected Existing Horizon Installations" FontSize="14" FontWeight="Bold" Foreground="#FFB800"/>
+                                <TextBlock Text="Found other installations on this computer. You can migrate your profile data from them."
+                                           FontSize="11" Foreground="#7E93AE" Margin="0,2,0,8"/>
+                            </StackPanel>
+                            <Button Grid.Column="1" x:Name="BtnOpenDetectedDialog" Content="VIEW &amp; MIGRATE" Click="BtnOpenDetectedDialog_Click"
+                                    Background="#FFB800" Foreground="#0B0F1A" FontWeight="Bold" Padding="12,6" VerticalAlignment="Center"/>
+                        </Grid>
+                        <StackPanel x:Name="PanelDetectedSummary" Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Border>
             </StackPanel>
         </ScrollViewer>
 

@@ -548,4 +548,28 @@ public partial class App : Application
             MessageBoxButton.OK, 
             MessageBoxImage.Error);
     }
+
+    public static void Restart()
+    {
+        try
+        {
+            Controls.BrowserView.SaveSessionBeforeRestart?.Invoke();
+        }
+        catch { }
+
+        try
+        {
+            string? exe = Environment.ProcessPath ?? System.Diagnostics.Process.GetCurrentProcess().MainModule?.FileName;
+            if (!string.IsNullOrEmpty(exe))
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(exe) { UseShellExecute = true });
+            }
+        }
+        catch (Exception ex)
+        {
+            LogService.RecordCrash(ex, "App.Restart");
+        }
+
+        Current?.Dispatcher.Invoke(() => Current.Shutdown());
+    }
 }

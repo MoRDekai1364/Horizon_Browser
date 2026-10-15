@@ -1459,20 +1459,10 @@ public partial class BrowserView : UserControl
     private static bool _restartPending = false;
     public static bool IsRestartPending => _restartPending;
 
-    private static void RestartApp()
+    public static void RestartApp()
     {
         _restartPending = true;
-        try { SaveSessionBeforeRestart?.Invoke(); } catch { }
-
-        try
-        {
-            string exe = System.Diagnostics.Process.GetCurrentProcess().MainModule!.FileName;
-            System.Diagnostics.Process.Start(
-                new System.Diagnostics.ProcessStartInfo(exe) { UseShellExecute = true });
-        }
-        catch { }
-        System.Windows.Application.Current.Dispatcher.Invoke(() =>
-            System.Windows.Application.Current.Shutdown());
+        App.Restart();
     }
 
     private async Task DisableScriptForCurrentSiteAsync()

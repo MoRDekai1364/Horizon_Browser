@@ -1,0 +1,102 @@
+<Window x:Class="Horizon.Stealth.Views.ExistingInstallationDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Existing Horizon Installation Detected"
+        Width="680" Height="520"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Background="#0B0F1A"
+        Foreground="#EAF6FF"
+        FontFamily="Segoe UI">
+
+    <Window.Resources>
+        <Style TargetType="Button">
+            <Setter Property="Background" Value="#1A2235"/>
+            <Setter Property="Foreground" Value="#00D9FF"/>
+            <Setter Property="BorderBrush" Value="#2A3855"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="4">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#25334D"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="#00D9FF"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#00D9FF"/>
+                                <Setter Property="Foreground" Value="#0B0F1A"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.4"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Background="#1A1505" BorderBrush="#FFB800" BorderThickness="1" CornerRadius="6" Padding="16" Margin="0,0,0,16">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" Text="⚠️" FontSize="32" VerticalAlignment="Center" Margin="0,0,16,0"/>
+
+                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                    <TextBlock Text="EXISTING HORIZON INSTALLATION DETECTED"
+                               FontSize="16" FontWeight="Bold"
+                               Foreground="#FFB800"/>
+                    <TextBlock Text="Multiple installations found on this computer. Running separate instances may lead to data fragmentation or profile desynchronization. You can migrate your passwords, bookmarks, cookies, and profile data below."
+                               FontSize="11" Foreground="#C9D1D9" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Installations List -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel x:Name="PanelInstallations">
+                <!-- Dynamically populated installation cards -->
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Progress and Actions Footer -->
+        <StackPanel Grid.Row="2" Margin="0,16,0,0">
+            <!-- Progress Section -->
+            <StackPanel x:Name="PanelProgress" Visibility="Collapsed" Margin="0,0,0,12">
+                <ProgressBar x:Name="ProgressBarRestore" Height="8" Background="#1C273D" Foreground="#00D9FF" BorderThickness="0" Margin="0,0,0,6"/>
+                <TextBlock x:Name="TxtProgressStatus" Text="Restoring data..." FontSize="11" Foreground="#00D9FF"/>
+            </StackPanel>
+
+            <Grid>
+                <Button x:Name="BtnDontAskAgain" Content="Don't Ask Again" Click="BtnDontAskAgain_Click"
+                        Background="Transparent" BorderBrush="#253550" Foreground="#7E93AE" HorizontalAlignment="Left" Padding="12,6"/>
+
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button x:Name="BtnClose" Content="CLOSE" Click="BtnClose_Click" Padding="20,6"/>
+                </StackPanel>
+            </Grid>
+        </StackPanel>
+    </Grid>
+</Window>

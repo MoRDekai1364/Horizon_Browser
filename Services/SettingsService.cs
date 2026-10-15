@@ -470,4 +470,7 @@ public class SettingsData
     // "Sequential" | "Random" — only applies to Custom mode
     public string       StartupVideoOrder         { get; set; } = "Sequential";
     public int          StartupVideoCustomIndex   { get; set; } = -1;
+
+    // ── Existing Installation Warnings ───────────────────────────────────────
+    public List<string> DismissedInstallationPaths { get; set; } = new();
 }

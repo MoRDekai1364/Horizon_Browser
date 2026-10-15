@@ -1449,7 +1449,32 @@ public partial class MainWindow : Window
         this.Loaded += (s, e) => InitWidget();
         this.Loaded += (s, e) => InitNotificationsWidget();
         this.Loaded += (s, e) => InitSleepingTabs();
+        this.Loaded += (s, e) => CheckExistingInstallationsWarning();
         
+    }
+
+    private async void CheckExistingInstallationsWarning()
+    {
+        try
+        {
+            await Task.Delay(2000);
+            var detected = await Task.Run(() => InstallationDiscoveryService.DiscoverInstallations());
+            if (detected.Count == 0) return;
+
+            var unprompted = detected.Where(d =>
+                !SettingsService.Current.DismissedInstallationPaths.Contains(d.Path, StringComparer.OrdinalIgnoreCase)
+            ).ToList();
+
+            if (unprompted.Count > 0)
+            {
+                var dlg = new ExistingInstallationDialog(unprompted) { Owner = this };
+                dlg.ShowDialog();
+            }
+        }
+        catch (Exception ex)
+        {
+            LogService.RecordCrash(ex, "MainWindow.CheckExistingInstallationsWarning");
+        }
     }
 
     private void UpdateCurrentTabInfo(string title, string url)
