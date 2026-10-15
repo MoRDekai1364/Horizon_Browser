@@ -93,6 +93,13 @@ public partial class HomePageView : UserControl
         IsVisibleChanged += (_, e) =>
         {
             if (!IsVisible) return;
+            string targetMode = (SettingsService.Current.HomeSearchMode is "Favorites" or "Bookmarks") ? SettingsService.Current.HomeSearchMode : "Search";
+            if (_searchMode != targetMode)
+            {
+                _searchMode = targetMode;
+                _animateModeThumb = false;
+                ApplySearchModeVisual();
+            }
             RefreshSearchEngineList();
             RefreshFavorites();
             RefreshBookmarks();
@@ -141,7 +148,6 @@ public partial class HomePageView : UserControl
             Duration = new Duration(duration),
             EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
         };
-        anim.CurrentTimeInvalidated += (_, _) => _homeGlass.Invalidate();
         anim.Completed += (_, _) => _homeGlass.Invalidate();
         target.BeginAnimation(UIElement.OpacityProperty, anim);
     }
@@ -690,7 +696,6 @@ public partial class HomePageView : UserControl
             Duration = new Duration(duration),
             EasingFunction = easing
         };
-        anim.CurrentTimeInvalidated += (_, _) => _homeGlass.Invalidate();
         anim.Completed += (_, _) => _homeGlass.Invalidate();
         target.BeginAnimation(prop, anim);
     }
@@ -3495,6 +3500,14 @@ public partial class HomePageView : UserControl
         _bookmarkCards.RowsChanged += ApplyScrollCap;
         UpdateFavoritesDrawer();
         UpdateBookmarksDrawer();
+        Horizon.Stealth.Controls.FaviconConverter.IconDownloaded += _ =>
+        {
+            Dispatcher.InvokeAsync(() =>
+            {
+                UpdateFavoritesDrawer();
+                UpdateBookmarksDrawer();
+            }, DispatcherPriority.Background);
+        };
         foreach (var stored in StackElementStore.Elements)
             AddStackEntry(stored.Id, stored.Title, StackElementBuilders.Build(stored));
         BuildStackMenu();
@@ -3763,7 +3776,23 @@ public partial class HomePageView : UserControl
 
     private static System.Windows.Media.ImageSource? DrawerIconOf(PinItem pin)
     {
-        return new PinIconConverter().Convert(pin, typeof(System.Windows.Media.ImageSource), null!, System.Globalization.CultureInfo.InvariantCulture) as System.Windows.Media.ImageSource;
+        try
+        {
+            var res = new PinIconConverter().Convert(pin, typeof(System.Windows.Media.ImageSource), null!, System.Globalization.CultureInfo.InvariantCulture);
+            if (res is System.Windows.Media.ImageSource img) return img;
+            if (res is string uriStr && Uri.TryCreate(uriStr, UriKind.Absolute, out var uri))
+            {
+                var bmp = new System.Windows.Media.Imaging.BitmapImage();
+                bmp.BeginInit();
+                bmp.UriSource = uri;
+                bmp.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
+                bmp.CreateOptions = System.Windows.Media.Imaging.BitmapCreateOptions.IgnoreColorProfile;
+                bmp.EndInit();
+                return bmp;
+            }
+        }
+        catch { }
+        return null;
     }
 
     private void UpdateFavoritesDrawer()
@@ -3973,7 +4002,6 @@ public partial class HomePageView : UserControl
                 Duration = new Duration(duration),
                 EasingFunction = ease
             };
-            anim.CurrentTimeInvalidated += (_, _) => _homeGlass.Invalidate();
             anim.Completed += (_, _) => _homeGlass.Invalidate();
             ClockWeatherIslandBorder.BeginAnimation(UIElement.OpacityProperty, anim);
         }

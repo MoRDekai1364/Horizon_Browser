@@ -5,6 +5,7 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
+using Horizon.Stealth.Services;
 
 namespace Horizon.Stealth.Controls;
 
@@ -56,6 +57,7 @@ public sealed class OpenFolderView : UserControl
 
     public OpenFolderView(DrawerGroup group)
     {
+        HomeGlass.SetExclude(this, true);
         _group = group;
 
         var title = new TextBlock
@@ -323,7 +325,6 @@ public sealed class OpenFolderView : UserControl
             _animating = false;
         };
         _slide.BeginAnimation(TranslateTransform.XProperty, animation);
-        HomeGlassMotion.Pulse(AnimationMs);
     }
 
     private void Folder_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
@@ -368,6 +369,7 @@ public sealed class FolderDrawerView : UserControl
 
     public FolderDrawerView()
     {
+        HomeGlass.SetExclude(this, true);
         _title = new TextBlock
         {
             FontSize = 18,
@@ -624,7 +626,6 @@ public sealed class FolderDrawerView : UserControl
             _animating = false;
         };
         _slide.BeginAnimation(TranslateTransform.XProperty, animation);
-        HomeGlassMotion.Pulse(AnimationMs);
     }
 
     private void Drawer_PreviewMouseWheel(object sender, MouseWheelEventArgs e)

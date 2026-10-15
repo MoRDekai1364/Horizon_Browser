@@ -548,6 +548,7 @@ public sealed class HomeGlassInlineLayer
 
     public void Register(FrameworkElement el)
     {
+        if (HomeGlass.GetExclude(el)) return;
         if (_shapes.ContainsKey(el)) return;
         var shape = new Border { Background = Brushes.Black, IsHitTestVisible = false, Visibility = Visibility.Collapsed };
         _shapes[el] = shape;
@@ -573,8 +574,12 @@ public sealed class HomeGlassInlineLayer
 
     public void RegisterSubtree(DependencyObject node)
     {
-        if (node is FrameworkElement fe && !ReferenceEquals(fe, _root) && HomeGlassService.IsGlassEligible(fe))
-            Register(fe);
+        if (node is FrameworkElement fe)
+        {
+            if (HomeGlass.GetExclude(fe)) return;
+            if (!ReferenceEquals(fe, _root) && HomeGlassService.IsGlassEligible(fe))
+                Register(fe);
+        }
 
         int count = VisualTreeHelper.GetChildrenCount(node);
         for (int i = 0; i < count; i++)

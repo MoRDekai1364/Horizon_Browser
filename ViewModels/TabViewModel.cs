@@ -253,7 +253,14 @@ public class TabViewModel : INotifyPropertyChanged, IDisposable
             try
             {
                 if (!string.IsNullOrEmpty(_url) && Uri.TryCreate(_url, UriKind.Absolute, out var uri))
+                {
+                    if (string.Equals(_url, "horizon://home", StringComparison.OrdinalIgnoreCase) ||
+                        string.Equals(uri.Scheme, "horizon", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return "Home";
+                    }
                     return uri.Host;
+                }
             }
             catch { }
             return _title;

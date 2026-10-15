@@ -54,6 +54,7 @@ public sealed class FolderCardView : StackPanel
 
     public FolderCardView(DrawerGroup group, int n, bool clusterOnly = false)
     {
+        HomeGlass.SetExclude(this, true);
         Group = group;
         int count = group.Items.Count;
         var (cols, rows, fullLimit) = Dims(count, n);
@@ -288,6 +289,7 @@ public sealed class StartMenuView : UserControl
 
     public StartMenuView(string titleText)
     {
+        HomeGlass.SetExclude(this, true);
         var title = new TextBlock
         {
             Text = titleText,
@@ -516,15 +518,28 @@ public sealed class StartMenuView : UserControl
             int end = Math.Min(start + perPage, _shown.Count);
             if (start >= end) break;
 
-            var host = new WrapPanel
+            var rowsHost = new StackPanel
             {
-                Width = cols * cellW,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center
+                VerticalAlignment = VerticalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Center
             };
-            for (int i = start; i < end; i++) host.Children.Add(BuildCell(_shown[i], cellW, cellH));
-            if (host.Children.Count > 0)
-                _strip.Children.Add(new Grid { Width = width, Height = height, Children = { host } });
+            for (int rowStart = start; rowStart < end; rowStart += cols)
+            {
+                var rowPanel = new StackPanel
+                {
+                    Orientation = Orientation.Horizontal,
+                    HorizontalAlignment = HorizontalAlignment.Center
+                };
+                int rowEnd = Math.Min(rowStart + cols, end);
+                for (int i = rowStart; i < rowEnd; i++)
+                    rowPanel.Children.Add(BuildCell(_shown[i], cellW, cellH));
+
+                if (rowPanel.Children.Count > 0)
+                    rowsHost.Children.Add(rowPanel);
+            }
+
+            if (rowsHost.Children.Count > 0)
+                _strip.Children.Add(new Grid { Width = width, Height = height, Children = { rowsHost } });
         }
 
         _pageCount = _strip.Children.Count;
@@ -588,7 +603,6 @@ public sealed class StartMenuView : UserControl
             _animating = false;
         };
         _slide.BeginAnimation(TranslateTransform.XProperty, animation);
-        HomeGlassMotion.Pulse(AnimationMs);
     }
 }
 

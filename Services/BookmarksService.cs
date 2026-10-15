@@ -21,7 +21,7 @@ public class BookmarkItem
     public string GroupKey { get; set; } = "";
 
     [System.Text.Json.Serialization.JsonIgnore]
-    public PinItem AsPin => new PinItem { Name = this.Name, Url = this.Url, IconEmoji = "" };
+    public PinItem AsPin => new PinItem { Name = this.Name, Url = this.Url, IconPath = this.IconPath, IconEmoji = "" };
 }
 
 public static class BookmarkService

@@ -367,7 +367,6 @@ public partial class StackHost : UserControl
         Incoming.BeginAnimation(OpacityProperty, new DoubleAnimation(1, duration) { EasingFunction = ease });
         outgoingMove.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(-direction * offset, duration) { EasingFunction = ease });
         incomingMove.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(0, duration) { EasingFunction = ease });
-        HomeGlassMotion.Pulse(AnimationMs);
     }
 
     private void FinishSwitch()

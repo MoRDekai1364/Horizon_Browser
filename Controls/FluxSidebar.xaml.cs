@@ -301,6 +301,8 @@ public class HistoryItemViewModel : System.ComponentModel.INotifyPropertyChanged
 
 public class FaviconConverter : IValueConverter
 {
+    public static event Action<string>? IconDownloaded;
+
     // ── Static disk cache ────────────────────────────────────────────────────
     private static readonly string _cacheDir =
         Path.Combine(Horizon.Stealth.Services.ConfigService.UserDataRoot, "FaviconCache");
@@ -405,6 +407,7 @@ public class FaviconConverter : IValueConverter
 
             // Evict the placeholder so next binding cycle loads the real BitmapImage
             _memCache.TryRemove(key, out _);
+            IconDownloaded?.Invoke(key);
         }
         catch { /* silently discard — favicon is cosmetic */ }
     }

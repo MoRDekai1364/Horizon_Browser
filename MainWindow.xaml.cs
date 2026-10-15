@@ -2069,7 +2069,9 @@ public partial class MainWindow : Window
     string targetUrl = !string.IsNullOrEmpty(initialUrl) ? initialUrl : SettingsService.Current.HomePage;
     if (string.IsNullOrEmpty(targetUrl)) targetUrl = "https://alohafind.com";
 
-    var newTab = new TabViewModel { Title = "New Tab", MediaTitle = "", Url = targetUrl };
+    string initialTitle = string.Equals(targetUrl, Controls.BrowserView.HomeSentinel, StringComparison.OrdinalIgnoreCase)
+        ? "Home" : "New Tab";
+    var newTab = new TabViewModel { Title = initialTitle, MediaTitle = "", Url = targetUrl };
     var newBrowser = new Controls.BrowserView();
 
     newBrowser.NewTabRequested += (s, url) => CreateNewTab(url);
@@ -2079,6 +2081,10 @@ public partial class MainWindow : Window
         {
             newTab.Title = "Home";
             newTab.Url = Controls.BrowserView.HomeSentinel;
+        }
+        else if (newTab.Title == "Home")
+        {
+            newTab.Title = "New Tab";
         }
         if (CurrentBrowser == newBrowser)
         {
