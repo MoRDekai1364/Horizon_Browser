@@ -262,7 +262,7 @@
                         <Button x:Name="BtnForward" Content="🠖" Click="BtnForward_Click" MouseRightButtonUp="BtnForward_RightClick"
                                 Style="{StaticResource Style_StealthButton}" Width="42" Height="42" FontSize="20"
                                 ToolTip="Go Forward (Alt + Right) · Right-click for history"/>
-                        <Button Content="↻" Click="BtnReload_Click" Style="{StaticResource Style_StealthButton}" Width="42" Height="42" FontSize="20"
+                        <Button x:Name="BtnReload" Content="↻" Click="BtnReload_Click" Style="{StaticResource Style_StealthButton}" Width="42" Height="42" FontSize="20"
                                 ToolTip="Reload (F5 / Ctrl + R)"/>
                     </StackPanel>
 
@@ -1039,9 +1039,9 @@
                                     MouseRightButtonUp="BtnWidgetNav_RightClick"
                                     ToolTip="Next widget (right-click to pick)"/>
                         </StackPanel>
-                        <Button Content="&#x2795;" Click="BtnNewTab_Click" Style="{StaticResource Style_StealthButton}" Width="42" Height="42" FontSize="18"
+                        <Button x:Name="BtnNewTab" Content="&#x2795;" Click="BtnNewTab_Click" Style="{StaticResource Style_StealthButton}" Width="42" Height="42" FontSize="18"
                                 ToolTip="New Tab (Ctrl + T)"/>
-                        <Button Content="&#x2699;&#xFE0E;" Click="BtnSettings_Click" Style="{StaticResource Style_StealthButton}" Width="42" Height="42" FontSize="18"
+                        <Button x:Name="BtnSettings" Content="&#x2699;&#xFE0E;" Click="BtnSettings_Click" Style="{StaticResource Style_StealthButton}" Width="42" Height="42" FontSize="18"
                                 ToolTip="Configuration"/>
                         <Button Content="&#x25EB;&#xFE0E;" Click="ToggleSidebar_Click" Style="{StaticResource Style_StealthButton}" Width="42" Height="42" FontSize="18"
                                 ToolTip="Toggle Sidebar"/>
@@ -1112,7 +1112,7 @@
                                 Style="{StaticResource Style_StealthButton}"
                                 Width="38" Height="38" FontSize="18"
                                 ToolTip="Forward"/>
-                        <Button Content="↻" Click="BtnReload_Click"
+                        <Button x:Name="MBtnReload" Content="↻" Click="BtnReload_Click"
                                 Style="{StaticResource Style_StealthButton}"
                                 Width="38" Height="38" FontSize="18"
                                 ToolTip="Reload"/>
@@ -1135,11 +1135,11 @@
 
                     <!-- Right: actions + window chrome -->
                     <StackPanel Grid.Column="3" Orientation="Horizontal" Margin="0,0,8,0">
-                        <Button Content="&#x2795;" Click="BtnNewTab_Click"
+                        <Button x:Name="MBtnNewTab" Content="&#x2795;" Click="BtnNewTab_Click"
                                 Style="{StaticResource Style_StealthButton}"
                                 Width="38" Height="38" FontSize="16"
                                 ToolTip="New Tab"/>
-                        <Button Content="&#x2699;&#xFE0E;" Click="BtnSettings_Click"
+                        <Button x:Name="MBtnSettings" Content="&#x2699;&#xFE0E;" Click="BtnSettings_Click"
                                 Style="{StaticResource Style_StealthButton}"
                                 Width="38" Height="38" FontSize="16"
                                 ToolTip="Settings"/>

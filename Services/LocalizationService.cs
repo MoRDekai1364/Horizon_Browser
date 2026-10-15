@@ -201,7 +201,10 @@ public sealed class LocalizationService : INotifyPropertyChanged
         string[] searchPaths = new[]
         {
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Horizon_Browser", "Languages", $"{code}.json"),
-            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Languages", $"{code}.json")
+            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Languages", $"{code}.json"),
+            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "Languages", $"{code}.json"),
+            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "Languages", $"{code}.json"),
+            Path.Combine(Environment.CurrentDirectory, "Languages", $"{code}.json")
         };
 
         foreach (var path in searchPaths)
@@ -212,13 +215,36 @@ public sealed class LocalizationService : INotifyPropertyChanged
                 {
                     string json = File.ReadAllText(path);
                     FlattenJson(json, target);
-                    return;
+                    if (target.Count > 0) return;
                 }
                 catch (Exception ex)
                 {
-                    LogService.RecordCrash(ex, $"LoadDictionaryInto({code})");
+                    LogService.RecordCrash(ex, $"LoadDictionaryInto({code}) from {path}");
                 }
             }
+        }
+
+        // Fallback to assembly embedded resource
+        try
+        {
+            var asm = typeof(LocalizationService).Assembly;
+            var resourceName = asm.GetManifestResourceNames()
+                .FirstOrDefault(n => n.EndsWith($".Languages.{code}.json", StringComparison.OrdinalIgnoreCase)
+                                  || n.EndsWith($"Languages.{code}.json", StringComparison.OrdinalIgnoreCase));
+            if (resourceName != null)
+            {
+                using var stream = asm.GetManifestResourceStream(resourceName);
+                if (stream != null)
+                {
+                    using var reader = new StreamReader(stream);
+                    string json = reader.ReadToEnd();
+                    FlattenJson(json, target);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            LogService.RecordCrash(ex, $"LoadDictionaryInto({code}) from embedded resource");
         }
     }
 

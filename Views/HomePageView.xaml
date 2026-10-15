@@ -582,7 +582,7 @@
                         </VisualBrush>
                     </Border.OpacityMask>
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="16,0,16,0">
-                        <TextBlock Text="Change Wallpaper" FontSize="11" FontWeight="SemiBold" Foreground="White"
+                        <TextBlock x:Name="TxtChangeWallpaper" Text="Change Wallpaper" FontSize="11" FontWeight="SemiBold" Foreground="White"
                                    VerticalAlignment="Center">
                             <TextBlock.Effect>
                                 <DropShadowEffect Color="Black" Direction="270" ShadowDepth="1" BlurRadius="3" Opacity="0.85" RenderingBias="Performance"/>

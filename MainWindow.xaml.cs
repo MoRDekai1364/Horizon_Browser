@@ -1354,6 +1354,11 @@ public partial class MainWindow : Window
             if (!_closedForReal) ApplyNoBlurChrome();
         }));
         ApplyNoBlurChrome();
+        ApplyLocalization();
+        Services.LocalizationService.Instance.LanguageChanged += () => Dispatcher.BeginInvoke(new Action(() =>
+        {
+            if (!_closedForReal) ApplyLocalization();
+        }));
 
         this.Closing += MainWindow_Closing;
         BackgroundKeepAliveService.Initialize(this);
@@ -3352,6 +3357,24 @@ return colors.length > 0 ? colors : null;
 
         UpdateHeaderHomeState();
         UpdateHeaderAmbientGlow(GetCurrentTabViewModel());
+    }
+
+    private void ApplyLocalization()
+    {
+        var loc = Services.LocalizationService.Instance;
+        if (BtnBack != null) BtnBack.ToolTip = loc.GetString("Navigation.Back", "Back") + " (Alt + Left) \u2022 " + loc.GetString("Navigation.History", "Right-click for history");
+        if (BtnForward != null) BtnForward.ToolTip = loc.GetString("Navigation.Forward", "Forward") + " (Alt + Right) \u2022 " + loc.GetString("Navigation.History", "Right-click for history");
+        if (BtnReload != null) BtnReload.ToolTip = loc.GetString("Navigation.Reload", "Reload") + " (F5 / Ctrl + R)";
+        if (BtnNewTab != null) BtnNewTab.ToolTip = loc.GetString("Navigation.NewTab", "New Tab") + " (Ctrl + T)";
+        if (BtnSettings != null) BtnSettings.ToolTip = loc.GetString("Common.Settings", "Configuration");
+        if (OmniboxControl != null) OmniboxControl.ToolTip = loc.GetString("Omnibox.SearchPlaceholder", "Search or enter web address...");
+
+        if (MBtnBack != null) MBtnBack.ToolTip = loc.GetString("Navigation.Back", "Back");
+        if (MBtnForward != null) MBtnForward.ToolTip = loc.GetString("Navigation.Forward", "Forward");
+        if (MBtnReload != null) MBtnReload.ToolTip = loc.GetString("Navigation.Reload", "Reload");
+        if (MBtnNewTab != null) MBtnNewTab.ToolTip = loc.GetString("Navigation.NewTab", "New Tab");
+        if (MBtnSettings != null) MBtnSettings.ToolTip = loc.GetString("Common.Settings", "Settings");
+        if (MobileOmniboxControl != null) MobileOmniboxControl.ToolTip = loc.GetString("Omnibox.SearchPlaceholder", "Search or enter web address...");
     }
 
     private void FlattenGlowColors(Color? site)

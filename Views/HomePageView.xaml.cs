@@ -86,6 +86,10 @@ public partial class HomePageView : UserControl
         PnlClockWeather.SizeChanged += (_, __) => ApplyScrollCap();
         BuildModeThumb();
         BuildCenterSheet();
+        Horizon.Stealth.Services.LocalizationService.Instance.LanguageChanged += () =>
+        {
+            Dispatcher.InvokeAsync(ApplyLocalization);
+        };
         IsVisibleChanged += (_, e) =>
         {
             if (!IsVisible) return;
@@ -247,7 +251,7 @@ public partial class HomePageView : UserControl
                 PuzzlePanel.SetViewportBudget(ScvFavorites, 0);
                 ScvFavorites.MaxHeight = ComputeExpandedScrollMaxHeight();
             }
-            TxtToggleFavorites.Text = "▲ Show less";
+            TxtToggleFavorites.Text = GetShowLessLabel();
             RefreshFavorites();
         }
         else
@@ -260,14 +264,16 @@ public partial class HomePageView : UserControl
                 PuzzlePanel.SetViewportBudget(ScvBookmarks, 0);
                 ScvBookmarks.MaxHeight = ComputeExpandedScrollMaxHeight();
             }
-            TxtToggleBookmarks.Text = "▲ Show less";
+            TxtToggleBookmarks.Text = GetShowLessLabel();
             RefreshBookmarks();
         }
 
         CmbSearchEngine.Visibility = Visibility.Collapsed;
         PnlSearchMode.Visibility = Visibility.Collapsed;
         CmbCategoryFilter.Visibility = Visibility.Visible;
-        TxtHomeSearchPlaceholder.Text = "Search " + widgetName.ToLower() + "...";
+        var searchLoc = Horizon.Stealth.Services.LocalizationService.Instance;
+        string widgetLabel = widgetName == "Favorites" ? searchLoc.GetString("Homepage.Favorites", "Favorites") : searchLoc.GetString("Homepage.Bookmarks", "Bookmarks");
+        TxtHomeSearchPlaceholder.Text = $"{searchLoc.GetString("Common.Search", "Search")} {widgetLabel.ToLowerInvariant()}...";
         TxtHomeSearch.Text = "";
 
         var categories = new List<string> { "All Categories" };
@@ -385,8 +391,8 @@ public partial class HomePageView : UserControl
         _favoritesExpanded = false;
         _bookmarksExpanded = false;
         ApplyScrollCap();
-        if (TxtToggleFavorites != null) TxtToggleFavorites.Text = "▼ Show more";
-        if (TxtToggleBookmarks != null) TxtToggleBookmarks.Text = "▼ Show more";
+        if (TxtToggleFavorites != null) TxtToggleFavorites.Text = GetShowMoreLabel();
+        if (TxtToggleBookmarks != null) TxtToggleBookmarks.Text = GetShowMoreLabel();
 
         CmbSearchEngine.Visibility = Visibility.Visible;
         CmbCategoryFilter.Visibility = Visibility.Collapsed;
@@ -556,6 +562,7 @@ public partial class HomePageView : UserControl
         UpdateSearchAreaLayout();
         _searchMode = (SettingsService.Current.HomeSearchMode is "Favorites" or "Bookmarks") ? SettingsService.Current.HomeSearchMode : "Search";
         ApplySearchModeVisual();
+        ApplyLocalization();
         if (!_winStateHooked)
         {
             var win = Window.GetWindow(this);
@@ -1794,7 +1801,7 @@ public partial class HomePageView : UserControl
             if (focusBookmarks)
             {
                 BtnToggleBookmarks.Visibility = Visibility.Visible;
-                TxtToggleBookmarks.Text = _bookmarksExpanded ? "▲ Show less" : "▼ Show more";
+                TxtToggleBookmarks.Text = _bookmarksExpanded ? GetShowLessLabel() : GetShowMoreLabel();
             }
             else
             {
@@ -1841,7 +1848,7 @@ public partial class HomePageView : UserControl
             if (_bookmarksFallback)
             {
                 BtnToggleBookmarks.Visibility = Visibility.Visible;
-                TxtToggleBookmarks.Text = _bookmarksExpanded ? "▲ Show less" : "▼ Show more";
+                TxtToggleBookmarks.Text = _bookmarksExpanded ? GetShowLessLabel() : GetShowMoreLabel();
             }
 
             string bookmarksSig = groupingMode + "\u0003" + SettingsService.Current.HomeGroupStyle + "\u0003" + string.Join("\u0001", ordered.Select(b => b.GroupKey + "\u0002" + b.Name + "\u0002" + b.Url + "\u0002" + b.IconPath));
@@ -2474,7 +2481,7 @@ public partial class HomePageView : UserControl
             if (_favoritesFallback || (_inFocusMode && _focusWidgetName == "Favorites"))
             {
                 BtnToggleFavorites.Visibility = Visibility.Visible;
-                TxtToggleFavorites.Text = _favoritesExpanded ? "▲ Show less" : "▼ Show more";
+                TxtToggleFavorites.Text = _favoritesExpanded ? GetShowLessLabel() : GetShowMoreLabel();
             }
             else
             {
@@ -3469,12 +3476,12 @@ public partial class HomePageView : UserControl
         StackElementBuilders.RegisterBuiltInWidgets();
         StackElementBuilders.RegisterLaunchWidgets();
         StackElementBuilders.RegisterWebElements();
-        _favoritesDrawer = new FolderDrawerView { Title = Horizon.Stealth.Services.LocalizationService.Instance["HomeFavorites"] };
-        _bookmarksDrawer = new FolderDrawerView { Title = Horizon.Stealth.Services.LocalizationService.Instance["HomeBookmarks"] };
+        _favoritesDrawer = new FolderDrawerView { Title = Horizon.Stealth.Services.LocalizationService.Instance.GetString("Homepage.Favorites", "Favorites") };
+        _bookmarksDrawer = new FolderDrawerView { Title = Horizon.Stealth.Services.LocalizationService.Instance.GetString("Homepage.Bookmarks", "Bookmarks") };
         Horizon.Stealth.Services.LocalizationService.Instance.LanguageChanged += () =>
         {
-            if (_favoritesDrawer != null) _favoritesDrawer.Title = Horizon.Stealth.Services.LocalizationService.Instance["HomeFavorites"];
-            if (_bookmarksDrawer != null) _bookmarksDrawer.Title = Horizon.Stealth.Services.LocalizationService.Instance["HomeBookmarks"];
+            if (_favoritesDrawer != null) _favoritesDrawer.Title = Horizon.Stealth.Services.LocalizationService.Instance.GetString("Homepage.Favorites", "Favorites");
+            if (_bookmarksDrawer != null) _bookmarksDrawer.Title = Horizon.Stealth.Services.LocalizationService.Instance.GetString("Homepage.Bookmarks", "Bookmarks");
         };
         _favoritesDrawer.ItemActivated += DrawerItem_Activated;
         _bookmarksDrawer.ItemActivated += DrawerItem_Activated;
@@ -3694,8 +3701,8 @@ public partial class HomePageView : UserControl
         HomeStack.ExpandTo(width, height);
         _favoritesExpanded = favorites;
         _bookmarksExpanded = !favorites;
-        TxtToggleFavorites.Text = favorites ? "▲ Show less" : "▼ Show more";
-        TxtToggleBookmarks.Text = favorites ? "▼ Show more" : "▲ Show less";
+        TxtToggleFavorites.Text = favorites ? GetShowLessLabel() : GetShowMoreLabel();
+        TxtToggleBookmarks.Text = favorites ? GetShowMoreLabel() : GetShowLessLabel();
         return true;
     }
 
@@ -3716,8 +3723,8 @@ public partial class HomePageView : UserControl
         HomeStack.Collapse();
         _favoritesExpanded = false;
         _bookmarksExpanded = false;
-        TxtToggleFavorites.Text = "▼ Show more";
-        TxtToggleBookmarks.Text = "▼ Show more";
+        TxtToggleFavorites.Text = GetShowMoreLabel();
+        TxtToggleBookmarks.Text = GetShowMoreLabel();
     }
 
     private readonly FolderSheetHost _startMenuHost = new();
@@ -4254,5 +4261,53 @@ public partial class HomePageView : UserControl
             };
             pp.Closed += closedHandler;
         }
+    }
+
+    private string GetShowMoreLabel() => "▼ " + Horizon.Stealth.Services.LocalizationService.Instance.GetString("Homepage.ShowMore", "Show more").TrimStart('▼', '▲', ' ');
+    private string GetShowLessLabel() => "▲ " + Horizon.Stealth.Services.LocalizationService.Instance.GetString("Homepage.ShowLess", "Show less").TrimStart('▼', '▲', ' ');
+
+    private void ApplyLocalization()
+    {
+        var loc = Horizon.Stealth.Services.LocalizationService.Instance;
+
+        if (TxtHomeSearchPlaceholder != null)
+            TxtHomeSearchPlaceholder.Text = loc.GetString("Homepage.SearchPlaceholder", "Search here ...");
+
+        if (TxtModeFavorites != null)
+            TxtModeFavorites.Text = loc.GetString("Homepage.Favorites", "Favorites");
+        if (TxtModeSearch != null)
+            TxtModeSearch.Text = loc.GetString("Common.Search", "Search");
+        if (TxtModeBookmarks != null)
+            TxtModeBookmarks.Text = loc.GetString("Homepage.Bookmarks", "Bookmarks");
+
+        if (SegModeFavorites != null)
+            SegModeFavorites.ToolTip = loc.GetString("Homepage.Favorites", "Favorites");
+        if (SegModeSearch != null)
+            SegModeSearch.ToolTip = loc.GetString("Common.Search", "Search");
+        if (SegModeBookmarks != null)
+            SegModeBookmarks.ToolTip = loc.GetString("Homepage.Bookmarks", "Bookmarks");
+
+        if (TxtChangeWallpaper != null)
+            TxtChangeWallpaper.Text = loc.GetString("Homepage.ChangeWallpaper", "Change Wallpaper");
+        if (BtnChangeWallpaper != null)
+            BtnChangeWallpaper.ToolTip = loc.GetString("Homepage.ChangeWallpaper", "Change wallpaper");
+
+        if (TxtToggleFavorites != null)
+            TxtToggleFavorites.Text = _favoritesExpanded ? GetShowLessLabel() : GetShowMoreLabel();
+
+        if (TxtToggleBookmarks != null)
+            TxtToggleBookmarks.Text = _bookmarksExpanded ? GetShowLessLabel() : GetShowMoreLabel();
+
+        if (_favoritesDrawer != null)
+            _favoritesDrawer.Title = loc.GetString("Homepage.Favorites", "Favorites");
+        if (_bookmarksDrawer != null)
+            _bookmarksDrawer.Title = loc.GetString("Homepage.Bookmarks", "Bookmarks");
+
+        if (RbEditNormal != null)
+            RbEditNormal.Content = loc.GetString("Homepage.NormalLayout", "Normal Layout");
+        if (RbEditInactivity != null)
+            RbEditInactivity.Content = loc.GetString("Homepage.InactivityLayout", "Inactivity Layout");
+        if (BtnExitEditMode != null)
+            BtnExitEditMode.Content = loc.GetString("Homepage.SaveAndExit", "SAVE & EXIT");
     }
 }

@@ -42,7 +42,7 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <TextBlock Grid.Column="0" Text="CONFIGURATION //" Foreground="{DynamicResource Brush_Accent}" FontSize="20" FontWeight="Bold" VerticalAlignment="Center"/>
+            <TextBlock x:Name="TxtSettingsTitle" Grid.Column="0" Text="CONFIGURATION //" Foreground="{DynamicResource Brush_Accent}" FontSize="20" FontWeight="Bold" VerticalAlignment="Center"/>
             <Grid Grid.Column="1" Margin="24,-10,24,0" VerticalAlignment="Top" MaxWidth="320" Height="30">
                 <Border Background="#22FFFFFF" BorderBrush="{DynamicResource Brush_Accent}" BorderThickness="1" CornerRadius="15"/>
                 <TextBox x:Name="TxtSettingsSearch" 
@@ -1196,9 +1196,9 @@
 
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
             <CheckBox x:Name="ChkResetWipeData" Content="Also delete data" VerticalAlignment="Center" Foreground="{DynamicResource Brush_SoftText}" Margin="0,0,10,0" ToolTip="Also clears accounts, API keys, tokens, pins, session URLs, saved homepages, layouts, notes and favorites."/>
-            <Button Content="RESET ALL" Click="BtnResetAll_Click" Style="{StaticResource Style_StealthButton}" Width="100" Height="35" Margin="0,0,30,0"/>
-            <Button Content="CANCEL" Click="BtnCancel_Click" Style="{StaticResource Style_StealthButton}" Width="100" Height="35" Margin="0,0,10,0"/>
-            <Button Content="SAVE &amp; APPLY" Click="BtnSave_Click" Background="{StaticResource Brush_Accent}" Foreground="Black" FontWeight="Bold" Width="120" Height="35">
+            <Button x:Name="BtnResetAll" Content="RESET ALL" Click="BtnResetAll_Click" Style="{StaticResource Style_StealthButton}" Width="100" Height="35" Margin="0,0,30,0"/>
+            <Button x:Name="BtnCancel" Content="CANCEL" Click="BtnCancel_Click" Style="{StaticResource Style_StealthButton}" Width="100" Height="35" Margin="0,0,10,0"/>
+            <Button x:Name="BtnSave" Content="SAVE &amp; APPLY" Click="BtnSave_Click" Background="{StaticResource Brush_Accent}" Foreground="Black" FontWeight="Bold" Width="120" Height="35">
                 <Button.Template>
                     <ControlTemplate TargetType="Button">
                         <Border Background="{TemplateBinding Background}" CornerRadius="4">

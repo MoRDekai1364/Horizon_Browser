@@ -4,6 +4,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
+using Horizon.Stealth.Services;
 
 namespace Horizon.Stealth.Controls;
 
@@ -697,11 +698,14 @@ public sealed class FolderSheetHost : Grid
         Focusable = true;
         FocusVisualStyle = null;
 
+        HomeGlass.SetExclude(this, true);
+
         _scrim = new Border
         {
             Background = new SolidColorBrush(Color.FromArgb(0x66, 0, 0, 0)),
             Opacity = 0
         };
+        HomeGlass.SetExclude(_scrim, true);
 
         _sheet = new Border
         {
@@ -709,6 +713,7 @@ public sealed class FolderSheetHost : Grid
             ClipToBounds = true,
             RenderTransformOrigin = new Point(0, 0)
         };
+        HomeGlass.SetExclude(_sheet, true);
         _sheet.SetResourceReference(Border.BackgroundProperty, "SharedSearchBgBrush");
         _sheet.SetResourceReference(Border.BorderBrushProperty, "SharedSearchBorderBrush");
         var transforms = new TransformGroup();
@@ -781,7 +786,6 @@ public sealed class FolderSheetHost : Grid
             underlay.BeginAnimation(OpacityProperty, new DoubleAnimation(0, TimeSpan.FromSeconds(0.2)));
         }
         Focus();
-        HomeGlassMotion.Pulse((int)(OpenSeconds * 1000));
     }
 
     public void Close()
@@ -811,11 +815,11 @@ public sealed class FolderSheetHost : Grid
             Finish();
         };
         _scrim.BeginAnimation(OpacityProperty, fade);
-        HomeGlassMotion.Pulse((int)(OpenSeconds * 1000));
     }
 
     private void Finish()
     {
+        Visibility = Visibility.Collapsed;
         ClearAnimations();
         foreach (var underlay in Underlays)
         {
@@ -823,7 +827,6 @@ public sealed class FolderSheetHost : Grid
             underlay.Opacity = 1;
             underlay.IsHitTestVisible = true;
         }
-        Visibility = Visibility.Collapsed;
         _sheet.Child = null;
         _open = false;
         _closing = false;
@@ -838,8 +841,8 @@ public sealed class FolderSheetHost : Grid
         _move.BeginAnimation(TranslateTransform.YProperty, null);
         _sheet.BeginAnimation(OpacityProperty, null);
         _scrim.BeginAnimation(OpacityProperty, null);
-        _sheet.Opacity = 1;
-        _scrim.Opacity = 1;
+        _sheet.Opacity = 0;
+        _scrim.Opacity = 0;
         _scale.ScaleX = 1;
         _scale.ScaleY = 1;
         _move.X = 0;

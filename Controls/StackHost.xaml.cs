@@ -5,6 +5,7 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Effects;
 using System.Windows.Shapes;
+using Horizon.Stealth.Services;
 
 namespace Horizon.Stealth.Controls;
 
@@ -49,6 +50,9 @@ public partial class StackHost : UserControl
     public StackHost()
     {
         InitializeComponent();
+        HomeGlass.SetExclude(Overlay, true);
+        HomeGlass.SetExclude(OverlayBackdrop, true);
+        HomeGlass.SetExclude(OverlayContent, true);
         Outgoing.RenderTransform = new TranslateTransform();
         Incoming.RenderTransform = new TranslateTransform();
         _pager.PageRequested += target => Go(target, target > _index ? 1 : -1);
@@ -137,7 +141,6 @@ public partial class StackHost : UserControl
         var ease = new SineEase { EasingMode = EasingMode.EaseInOut };
         Incoming.BeginAnimation(OpacityProperty, new DoubleAnimation(0, duration) { EasingFunction = ease });
         Overlay.BeginAnimation(OpacityProperty, new DoubleAnimation(1, duration) { EasingFunction = ease });
-        HomeGlassMotion.Pulse(AnimationMs);
         Overlay.Focus();
     }
 
@@ -152,8 +155,8 @@ public partial class StackHost : UserControl
         if (_switching) FinishSwitch();
         double width = Math.Max(1, Viewport.ActualWidth);
         double height = Math.Max(1, Viewport.ActualHeight);
-        double startX = Math.Max(0.05, origin.Width / width);
-        double startY = Math.Max(0.05, origin.Height / height);
+        double startX = Math.Clamp(origin.Width / width, 0.05, 1);
+        double startY = Math.Clamp(origin.Height / height, 0.05, 1);
         _overlayOpen = true;
         _inPlace = true;
         _inPlaceOrigin = origin;
@@ -176,7 +179,6 @@ public partial class StackHost : UserControl
         _inPlaceMove.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(origin.Y, 0, duration) { EasingFunction = ease });
         OverlayContent.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, duration) { EasingFunction = ease });
         OverlayBackdrop.BeginAnimation(OpacityProperty, new DoubleAnimation(0, InPlaceDim, duration) { EasingFunction = ease });
-        HomeGlassMotion.Pulse(AnimationMs);
         Incoming.BeginAnimation(OpacityProperty, new DoubleAnimation(0, duration) { EasingFunction = ease });
         Overlay.Focus();
     }
@@ -188,8 +190,8 @@ public partial class StackHost : UserControl
         var ease = new SineEase { EasingMode = EasingMode.EaseInOut };
         double width = Math.Max(1, Viewport.ActualWidth);
         double height = Math.Max(1, Viewport.ActualHeight);
-        _inPlaceScale.BeginAnimation(ScaleTransform.ScaleXProperty, new DoubleAnimation(Math.Max(0.05, _inPlaceOrigin.Width / width), duration) { EasingFunction = ease });
-        _inPlaceScale.BeginAnimation(ScaleTransform.ScaleYProperty, new DoubleAnimation(Math.Max(0.05, _inPlaceOrigin.Height / height), duration) { EasingFunction = ease });
+        _inPlaceScale.BeginAnimation(ScaleTransform.ScaleXProperty, new DoubleAnimation(Math.Clamp(_inPlaceOrigin.Width / width, 0.05, 1), duration) { EasingFunction = ease });
+        _inPlaceScale.BeginAnimation(ScaleTransform.ScaleYProperty, new DoubleAnimation(Math.Clamp(_inPlaceOrigin.Height / height, 0.05, 1), duration) { EasingFunction = ease });
         _inPlaceMove.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation(_inPlaceOrigin.X, duration) { EasingFunction = ease });
         _inPlaceMove.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(_inPlaceOrigin.Y, duration) { EasingFunction = ease });
         OverlayContent.BeginAnimation(OpacityProperty, new DoubleAnimation(0, duration) { EasingFunction = ease });
@@ -199,6 +201,9 @@ public partial class StackHost : UserControl
         restore.Completed += (_, _) =>
         {
             if (_overlayOpen) return;
+            Overlay.Visibility = Visibility.Collapsed;
+            Overlay.Opacity = 0;
+            OverlayContent.Content = null;
             Incoming.BeginAnimation(OpacityProperty, null);
             Incoming.Opacity = 1;
             _inPlaceScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
@@ -206,13 +211,10 @@ public partial class StackHost : UserControl
             _inPlaceMove.BeginAnimation(TranslateTransform.XProperty, null);
             _inPlaceMove.BeginAnimation(TranslateTransform.YProperty, null);
             OverlayContent.BeginAnimation(OpacityProperty, null);
-            OverlayContent.Opacity = 1;
+            OverlayContent.Opacity = 0;
             OverlayContent.RenderTransform = null;
             OverlayBackdrop.BeginAnimation(OpacityProperty, null);
-            OverlayBackdrop.Opacity = 1;
-            Overlay.Opacity = 0;
-            Overlay.Visibility = Visibility.Collapsed;
-            OverlayContent.Content = null;
+            OverlayBackdrop.Opacity = 0;
         };
         Incoming.BeginAnimation(OpacityProperty, restore);
     }
@@ -221,7 +223,6 @@ public partial class StackHost : UserControl
     {
         if (!_overlayOpen) return;
         _overlayOpen = false;
-        HomeGlassMotion.Pulse(AnimationMs);
         if (_inPlace)
         {
             CloseInPlace();
@@ -237,9 +238,9 @@ public partial class StackHost : UserControl
         fade.Completed += (_, _) =>
         {
             if (_overlayOpen) return;
+            Overlay.Visibility = Visibility.Collapsed;
             Overlay.BeginAnimation(OpacityProperty, null);
             Overlay.Opacity = 0;
-            Overlay.Visibility = Visibility.Collapsed;
             OverlayContent.Content = null;
             Incoming.BeginAnimation(OpacityProperty, null);
             Incoming.Opacity = 1;

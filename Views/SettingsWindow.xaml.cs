@@ -286,10 +286,15 @@ public partial class SettingsWindow : Window
     public SettingsWindow()
     {
         InitializeComponent();
-        Loaded += (_, __) => BuildGlassBackdrop();
+        Loaded += (_, __) =>
+        {
+            BuildGlassBackdrop();
+            ApplyLocalization();
+        };
         Closed += (_, __) => _detachGlassBackdrop?.Invoke();
         LoadState();
         LoadVersionDisplay();
+        CboAppLanguage.SelectionChanged += CboAppLanguage_SelectionChanged;
     }
 
     private Action? _detachGlassBackdrop;
@@ -1064,6 +1069,7 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
         ChkPerTabLang.IsChecked = s.PerTabLanguageEnabled;
         SelectComboBoxByTag(CboDefaultLanguage, s.DefaultLanguage);
 
+        _isPopulatingLanguages = true;
         CboAppLanguage.Items.Clear();
         foreach (var lang in LocalizationService.Instance.AvailableLanguages)
         {
@@ -1074,6 +1080,7 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
             });
         }
         SelectComboBoxByTag(CboAppLanguage, s.AppLanguage);
+        _isPopulatingLanguages = false;
 
         TxtMicrosoftClientId.Text  = s.MicrosoftClientId;
         LoadVpnSettings();
@@ -1095,6 +1102,48 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
 
         // Build dynamic extension cards (replaces the old ChkConsentOMatic / ChkAdGuard)
         BuildInstalledExtensionsList();
+    }
+
+    private bool _isPopulatingLanguages;
+
+    private void CboAppLanguage_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_isPopulatingLanguages) return;
+        if (CboAppLanguage.SelectedItem is ComboBoxItem item && item.Tag is string code && !string.IsNullOrWhiteSpace(code))
+        {
+            LocalizationService.Instance.SetLanguage(code, persistSetting: true);
+            ApplyLocalization();
+        }
+    }
+
+    public void ApplyLocalization()
+    {
+        var loc = LocalizationService.Instance;
+        Title = loc.GetString("Settings.Title", "Settings");
+
+        if (TxtSettingsTitle != null)
+            TxtSettingsTitle.Text = loc.GetString("Settings.Title", "CONFIGURATION").ToUpperInvariant() + " //";
+
+        if (TxtSettingsSearch != null)
+            TxtSettingsSearch.Tag = loc.GetString("Common.Search", "Search here...") + "...";
+
+        if (TabsMain != null && TabsMain.Items.Count >= 9)
+        {
+            if (TabsMain.Items[0] is TabItem t0) t0.Header = loc.GetString("Settings.General", "GENERAL").ToUpperInvariant();
+            if (TabsMain.Items[1] is TabItem t1) t1.Header = loc.GetString("Settings.Visuals", "VISUALS").ToUpperInvariant();
+            if (TabsMain.Items[2] is TabItem t2) t2.Header = loc.GetString("Settings.HomepageTab", "HOMEPAGE").ToUpperInvariant();
+            if (TabsMain.Items[3] is TabItem t3) t3.Header = loc.GetString("Settings.Input", "INPUT").ToUpperInvariant();
+            if (TabsMain.Items[4] is TabItem t4) t4.Header = loc.GetString("Settings.ContentExtensions", "CONTENT & EXTENSIONS").ToUpperInvariant();
+            if (TabsMain.Items[5] is TabItem t5) t5.Header = loc.GetString("Settings.ImportSync", "IMPORT & SYNC").ToUpperInvariant();
+            if (TabsMain.Items[6] is TabItem t6) t6.Header = loc.GetString("Settings.Performance", "PERFORMANCE").ToUpperInvariant();
+            if (TabsMain.Items[7] is TabItem t7) t7.Header = loc.GetString("Settings.Developer", "DEVELOPER").ToUpperInvariant();
+            if (TabsMain.Items[8] is TabItem t8) t8.Header = loc.GetString("Settings.HelpShortcuts", "HELP & SHORTCUTS").ToUpperInvariant();
+        }
+
+        if (BtnResetAll != null) BtnResetAll.Content = loc.GetString("Settings.ResetAll", "RESET ALL");
+        if (BtnCancel != null) BtnCancel.Content = loc.GetString("Common.Cancel", "CANCEL").ToUpperInvariant();
+        if (BtnSave != null) BtnSave.Content = loc.GetString("Settings.SaveApply", "SAVE & APPLY");
+        if (ChkResetWipeData != null) ChkResetWipeData.Content = loc.GetString("Settings.AlsoDeleteData", "Also delete data");
     }
 
     private void BtnSave_Click(object sender, RoutedEventArgs e)
