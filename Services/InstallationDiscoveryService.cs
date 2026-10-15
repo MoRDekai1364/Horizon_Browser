@@ -391,37 +391,55 @@ public static class InstallationDiscoveryService
                 string currentDataDir = Path.Combine(currentBaseDir, "HorizonData");
                 string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
                 string currentAppDataDir = Path.Combine(localAppData, "Horizon_Browser");
+                string currentAppDataHorizonData = Path.Combine(currentAppDataDir, "HorizonData");
 
                 Directory.CreateDirectory(currentDataDir);
                 Directory.CreateDirectory(currentAppDataDir);
+                Directory.CreateDirectory(currentAppDataHorizonData);
 
                 progress?.Invoke("Restoring vault and credentials...", 25);
-                CopyFileIfExists(Path.Combine(source.Path, "vault.dat"), Path.Combine(currentBaseDir, "vault.dat"));
-                CopyFileIfExists(Path.Combine(source.Path, "HorizonData", "vault.dat"), Path.Combine(currentDataDir, "vault.dat"));
-                if (!File.Exists(Path.Combine(currentDataDir, "vault.dat")) && File.Exists(Path.Combine(source.Path, "vault.dat")))
+                string srcVault = File.Exists(Path.Combine(source.Path, "vault.dat"))
+                    ? Path.Combine(source.Path, "vault.dat")
+                    : Path.Combine(source.Path, "HorizonData", "vault.dat");
+                if (File.Exists(srcVault))
                 {
-                    CopyFileIfExists(Path.Combine(source.Path, "vault.dat"), Path.Combine(currentDataDir, "vault.dat"));
+                    CopyFileIfExists(srcVault, Path.Combine(currentBaseDir, "vault.dat"));
+                    CopyFileIfExists(srcVault, Path.Combine(currentDataDir, "vault.dat"));
+                    CopyFileIfExists(srcVault, Path.Combine(currentAppDataHorizonData, "vault.dat"));
                 }
 
                 progress?.Invoke("Restoring bookmarks...", 40);
-                CopyFileIfExists(Path.Combine(source.Path, "bookmarks.json"), Path.Combine(currentBaseDir, "bookmarks.json"));
-                CopyFileIfExists(Path.Combine(source.Path, "HorizonData", "bookmarks.json"), Path.Combine(currentDataDir, "bookmarks.json"));
-                if (!File.Exists(Path.Combine(currentDataDir, "bookmarks.json")) && File.Exists(Path.Combine(source.Path, "bookmarks.json")))
+                string srcBookmarks = File.Exists(Path.Combine(source.Path, "bookmarks.json"))
+                    ? Path.Combine(source.Path, "bookmarks.json")
+                    : Path.Combine(source.Path, "HorizonData", "bookmarks.json");
+                if (File.Exists(srcBookmarks))
                 {
-                    CopyFileIfExists(Path.Combine(source.Path, "bookmarks.json"), Path.Combine(currentDataDir, "bookmarks.json"));
+                    CopyFileIfExists(srcBookmarks, Path.Combine(currentBaseDir, "bookmarks.json"));
+                    CopyFileIfExists(srcBookmarks, Path.Combine(currentDataDir, "bookmarks.json"));
+                    CopyFileIfExists(srcBookmarks, Path.Combine(currentAppDataHorizonData, "bookmarks.json"));
                 }
 
                 progress?.Invoke("Restoring cookies and session state...", 55);
-                CopyFileIfExists(Path.Combine(source.Path, "cookies.json"), Path.Combine(currentBaseDir, "cookies.json"));
-                CopyFileIfExists(Path.Combine(source.Path, "HorizonData", "cookies.json"), Path.Combine(currentDataDir, "cookies.json"));
-                if (!File.Exists(Path.Combine(currentDataDir, "cookies.json")) && File.Exists(Path.Combine(source.Path, "cookies.json")))
+                string srcCookies = File.Exists(Path.Combine(source.Path, "cookies.json"))
+                    ? Path.Combine(source.Path, "cookies.json")
+                    : Path.Combine(source.Path, "HorizonData", "cookies.json");
+                if (File.Exists(srcCookies))
                 {
-                    CopyFileIfExists(Path.Combine(source.Path, "cookies.json"), Path.Combine(currentDataDir, "cookies.json"));
+                    CopyFileIfExists(srcCookies, Path.Combine(currentBaseDir, "cookies.json"));
+                    CopyFileIfExists(srcCookies, Path.Combine(currentDataDir, "cookies.json"));
+                    CopyFileIfExists(srcCookies, Path.Combine(currentAppDataHorizonData, "cookies.json"));
                 }
 
                 progress?.Invoke("Restoring configuration...", 70);
-                CopyFileIfExists(Path.Combine(source.Path, "settings.json"), Path.Combine(currentBaseDir, "settings.json"));
-                CopyFileIfExists(Path.Combine(source.Path, "HorizonData", "config.json"), Path.Combine(currentDataDir, "config.json"));
+                string srcConfig = File.Exists(Path.Combine(source.Path, "HorizonData", "config.json"))
+                    ? Path.Combine(source.Path, "HorizonData", "config.json")
+                    : Path.Combine(source.Path, "settings.json");
+                if (File.Exists(srcConfig))
+                {
+                    CopyFileIfExists(srcConfig, Path.Combine(currentBaseDir, "settings.json"));
+                    CopyFileIfExists(srcConfig, Path.Combine(currentDataDir, "config.json"));
+                    CopyFileIfExists(srcConfig, Path.Combine(currentAppDataHorizonData, "config.json"));
+                }
 
                 string srcNotes = Path.Combine(source.Path, "Notes");
                 if (Directory.Exists(srcNotes))
@@ -436,6 +454,7 @@ public static class InstallationDiscoveryService
                 {
                     progress?.Invoke("Restoring browser profile and storage...", 85);
                     CopyDirectoryFiltered(srcHorizonData, currentDataDir);
+                    CopyDirectoryFiltered(srcHorizonData, currentAppDataHorizonData);
                 }
 
                 progress?.Invoke("Restoration completed successfully!", 100);

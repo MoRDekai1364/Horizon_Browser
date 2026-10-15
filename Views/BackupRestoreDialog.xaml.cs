@@ -145,6 +145,13 @@ public partial class BackupRestoreDialog : Window
 
     private async System.Threading.Tasks.Task PerformRestoreAsync(string folderPath)
     {
+        // 1. Prefer reliable out-of-process restore engine (releases all WebView2 locks)
+        if (BackupService.LaunchExternalRestore(folderPath))
+        {
+            return;
+        }
+
+        // 2. Fallback to in-process restore
         PanelProgress.Visibility = Visibility.Visible;
         ProgressBarStatus.Value = 0;
         BtnCreateBackup.IsEnabled = false;

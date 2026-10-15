@@ -164,6 +164,59 @@ public static class BackupService
         });
     }
 
+    public static bool LaunchExternalRestore(string backupFolderPath)
+    {
+        try
+        {
+            string baseDir = AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\', '/');
+            int currentPid = Environment.ProcessId;
+
+            string[] candidates = new[]
+            {
+                Path.Combine(baseDir, "Horizon.Updater.exe"),
+                Path.Combine(baseDir, "Tools", "Horizon.Updater.exe"),
+                Path.Combine(baseDir, "Tools", "Horizon.Updater", "Horizon.Updater.exe"),
+                Path.Combine(baseDir, "..", "..", "..", "Tools", "Horizon.Updater", "bin", "Release", "net8.0-windows10.0.19041.0", "Horizon.Updater.exe")
+            };
+
+            string? updaterExe = candidates.FirstOrDefault(File.Exists);
+            if (updaterExe != null)
+            {
+                var psi = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = updaterExe,
+                    Arguments = $"--restore \"{backupFolderPath}\" --target \"{baseDir}\" --pid {currentPid}",
+                    UseShellExecute = true
+                };
+                System.Diagnostics.Process.Start(psi);
+                System.Windows.Application.Current.Shutdown();
+                return true;
+            }
+
+            string batPath = Path.Combine(baseDir, "restore.bat");
+            if (File.Exists(batPath))
+            {
+                try { File.WriteAllText(Path.Combine(baseDir, "last_backup_path.txt"), backupFolderPath); } catch { }
+                var psi = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = "cmd.exe",
+                    Arguments = $"/c \"{batPath}\"",
+                    WorkingDirectory = baseDir,
+                    UseShellExecute = true
+                };
+                System.Diagnostics.Process.Start(psi);
+                System.Windows.Application.Current.Shutdown();
+                return true;
+            }
+        }
+        catch (Exception ex)
+        {
+            LogService.RecordCrash(ex, "BackupService.LaunchExternalRestore");
+        }
+
+        return false;
+    }
+
     public static async Task<bool> RestoreBackupAsync(
         string backupFolderPath,
         IProgress<(string step, int percent)>? progress = null)
@@ -180,15 +233,21 @@ public static class BackupService
                 string localAppData = Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                     "Horizon_Browser");
+                string appDataHorizonData = Path.Combine(localAppData, "HorizonData");
                 Directory.CreateDirectory(localAppData);
-                string appDir = AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\', '/');
+                Directory.CreateDirectory(appDataHorizonData);
 
-                // 1. Restore core user files
+                string appDir = AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\', '/');
+                string appDirHorizonData = Path.Combine(appDir, "HorizonData");
+                Directory.CreateDirectory(appDirHorizonData);
+
+                // 1. Restore core user files to BOTH LocalAppData and AppDir
                 progress?.Report(("Restoring settings and security vault...", 30));
                 string[] filesToRestore = new[]
                 {
                     "vault.dat",
                     "settings.json",
+                    "config.json",
                     "cookies.json",
                     "bookmarks.json",
                     "history.json",
@@ -197,26 +256,29 @@ public static class BackupService
 
                 foreach (var file in filesToRestore)
                 {
-                    string src = Path.Combine(backupFolderPath, file);
-                    if (File.Exists(src))
+                    string rootSrc = Path.Combine(backupFolderPath, file);
+                    string dataSrc = Path.Combine(backupFolderPath, "HorizonData", file);
+                    string? chosenSrc = File.Exists(rootSrc) ? rootSrc : (File.Exists(dataSrc) ? dataSrc : null);
+
+                    if (chosenSrc != null)
                     {
-                        try { File.Copy(src, Path.Combine(localAppData, file), overwrite: true); } catch { }
-                        try
-                        {
-                            if (Directory.Exists(appDir) && Path.GetDirectoryName(appDir) != null)
-                                File.Copy(src, Path.Combine(appDir, file), overwrite: true);
-                        }
-                        catch { }
+                        try { File.Copy(chosenSrc, Path.Combine(localAppData, file), overwrite: true); } catch { }
+                        try { File.Copy(chosenSrc, Path.Combine(appDataHorizonData, file), overwrite: true); } catch { }
+                        try { File.Copy(chosenSrc, Path.Combine(appDir, file), overwrite: true); } catch { }
+                        try { File.Copy(chosenSrc, Path.Combine(appDirHorizonData, file), overwrite: true); } catch { }
                     }
                 }
 
-                // 2. Restore profile
+                // 2. Restore profile (EBWebView) to BOTH LocalAppData and AppDir
                 progress?.Report(("Restoring browser profile data...", 60));
                 string profileSrc = Path.Combine(backupFolderPath, "HorizonData");
+                if (!Directory.Exists(profileSrc) && Directory.Exists(Path.Combine(backupFolderPath, "EBWebView")))
+                    profileSrc = backupFolderPath;
+
                 if (Directory.Exists(profileSrc))
                 {
-                    string profileDest = Path.Combine(localAppData, "HorizonData");
-                    CopyDirectoryFiltered(profileSrc, profileDest);
+                    CopyDirectoryFiltered(profileSrc, appDataHorizonData);
+                    CopyDirectoryFiltered(profileSrc, appDirHorizonData);
                 }
 
                 // 3. Restore WebApps

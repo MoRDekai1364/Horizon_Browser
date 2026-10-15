@@ -10,6 +10,7 @@ public partial class App : Application
         base.OnStartup(e);
 
         string installerPath = "";
+        string restoreSource = "";
         string targetDir = "";
         int parentPid = 0;
         bool silent = false;
@@ -19,6 +20,8 @@ public partial class App : Application
             string arg = e.Args[i];
             if (arg.Equals("--installer", StringComparison.OrdinalIgnoreCase) && i + 1 < e.Args.Length)
                 installerPath = e.Args[++i];
+            else if (arg.Equals("--restore", StringComparison.OrdinalIgnoreCase) && i + 1 < e.Args.Length)
+                restoreSource = e.Args[++i];
             else if (arg.Equals("--target", StringComparison.OrdinalIgnoreCase) && i + 1 < e.Args.Length)
                 targetDir = e.Args[++i];
             else if (arg.Equals("--pid", StringComparison.OrdinalIgnoreCase) && i + 1 < e.Args.Length)
@@ -27,7 +30,7 @@ public partial class App : Application
                 silent = true;
         }
 
-        var win = new MainWindow(installerPath, targetDir, parentPid, silent);
+        var win = new MainWindow(installerPath, restoreSource, targetDir, parentPid, silent);
         if (!silent)
         {
             win.Show();

@@ -52,10 +52,10 @@
 
         <!-- Header -->
         <StackPanel Grid.Row="0">
-            <TextBlock Text="UPDATING HORIZON BROWSER"
+            <TextBlock x:Name="TxtHeaderTitle" Text="UPDATING HORIZON BROWSER"
                        FontSize="22" FontWeight="Bold"
                        Foreground="#00D9FF"/>
-            <TextBlock Text="Professional Update Engine"
+            <TextBlock x:Name="TxtHeaderSubtitle" Text="Professional Update Engine"
                        FontSize="11" Foreground="#6C7F99"
                        FontWeight="SemiBold"
                        Margin="0,2,0,0"/>

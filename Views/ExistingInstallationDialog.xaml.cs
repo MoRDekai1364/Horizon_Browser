@@ -175,6 +175,13 @@ public partial class ExistingInstallationDialog : Window
 
         if (confirm != MessageBoxResult.Yes) return;
 
+        // 1. Prefer reliable out-of-process restore engine (releases all WebView2 locks)
+        if (BackupService.LaunchExternalRestore(inst.Path))
+        {
+            return;
+        }
+
+        // 2. Fallback to in-process restore
         _isRestoring = true;
         PanelProgress.Visibility = Visibility.Visible;
         BtnClose.IsEnabled = false;
