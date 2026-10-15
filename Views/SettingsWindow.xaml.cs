@@ -1336,7 +1336,7 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
 
         if (CboAppLanguage.SelectedItem is ComboBoxItem ali)
         {
-            string chosenLang = ali.Tag?.ToString() ?? "bg";
+            string chosenLang = ali.Tag?.ToString() ?? "en";
             s.AppLanguage = chosenLang;
             LocalizationService.Instance.SetLanguage(chosenLang, persistSetting: false);
         }

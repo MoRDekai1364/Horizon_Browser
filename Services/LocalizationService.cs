@@ -55,7 +55,7 @@ public sealed class LocalizationService : INotifyPropertyChanged
             string osLang = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName.ToLowerInvariant();
             desiredLang = _availableLanguages.Any(l => l.Code.Equals(osLang, StringComparison.OrdinalIgnoreCase))
                 ? osLang
-                : "bg"; // Default to Bulgarian as requested by project requirements
+                : "en"; // Default to English
         }
 
         SetLanguage(desiredLang, persistSetting: false);
@@ -67,8 +67,8 @@ public sealed class LocalizationService : INotifyPropertyChanged
 
         var knownDefaults = new List<LanguageInfo>
         {
-            new() { Code = "bg", DisplayName = "Български", EnglishName = "Bulgarian" },
             new() { Code = "en", DisplayName = "English", EnglishName = "English" },
+            new() { Code = "bg", DisplayName = "Български", EnglishName = "Bulgarian" },
             new() { Code = "de", DisplayName = "Deutsch", EnglishName = "German" },
             new() { Code = "it", DisplayName = "Italiano", EnglishName = "Italian" },
             new() { Code = "fr", DisplayName = "Français", EnglishName = "French" },

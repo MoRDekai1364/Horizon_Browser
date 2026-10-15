@@ -93,6 +93,10 @@ SearchEngineUrl=https://alohafind.com/search/?q={query}
 #   type: string | values: Horizon|Light|Redmond | default: Horizon
 Theme=Horizon
 
+# [S02.04b] Application UI language
+#   type: string | values: language code, example en | default: en
+AppLanguage=en
+
 # [S02.05] Default page language
 #   type: string | values: language code, example en | default: en
 DefaultLanguage=en

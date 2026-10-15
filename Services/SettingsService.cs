@@ -46,7 +46,7 @@ public static class SettingsService
 
     public static SettingsData Current { get; private set; } = DefaultSettingsService.Apply(new SettingsData());
 
-    public const int CurrentConfigVersion = 3;
+    public const int CurrentConfigVersion = 4;
 
     private static SettingsData? ReadFile(string path)
     {
@@ -80,7 +80,7 @@ public static class SettingsService
 
         if (string.IsNullOrWhiteSpace(data.AppLanguage))
         {
-            data.AppLanguage = "bg";
+            data.AppLanguage = "en";
         }
 
         if (data.ConfigVersion > CurrentConfigVersion) return;
@@ -89,6 +89,10 @@ public static class SettingsService
             data.HomeShowRightColumn = true;
             data.HomeRightColumnFavorites = true;
             data.HomeRightColumnBookmarks = true;
+        }
+        if (data.ConfigVersion < 4)
+        {
+            data.AppLanguage = "en";
         }
         data.ConfigVersion = CurrentConfigVersion;
     }
@@ -336,7 +340,7 @@ public class SettingsData
 
     public bool   PerTabLanguageEnabled { get; set; } = true;
     public string DefaultLanguage       { get; set; } = "en";
-    public string AppLanguage           { get; set; } = "bg";
+    public string AppLanguage           { get; set; } = "en";
     public int    TabsPerRow            { get; set; } = 10;
 
     // ── Extension toggles ────────────────────────────────────────────────────
