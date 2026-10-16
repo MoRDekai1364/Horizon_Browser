@@ -669,6 +669,9 @@
             </Border>
 
             <StackPanel x:Name="PnlClockWeather" Grid.Row="0" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="40,50,40,0">
+                <StackPanel.LayoutTransform>
+                    <ScaleTransform x:Name="ClockWeatherScale" ScaleX="1.0" ScaleY="1.0"/>
+                </StackPanel.LayoutTransform>
                 <StackPanel x:Name="PnlClockWeatherSub" Tag="ClockWeather" RenderTransformOrigin="0,0" Background="Transparent" Cursor="Hand" MouseLeftButtonUp="WidgetClockWeather_Click" PreviewMouseLeftButtonDown="Widget_PreviewMouseLeftButtonDown" MouseMove="Widget_MouseMove">
                     <StackPanel.RenderTransform>
                         <TransformGroup>

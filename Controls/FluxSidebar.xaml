@@ -6,8 +6,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"
              mc:Ignorable="po"
-             Background="Transparent"
-             Width="320">
+             Background="Transparent">
 
     <UserControl.Resources>
         <ResourceDictionary>
@@ -322,15 +321,15 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <TabControl Grid.Row="1" Background="Transparent" BorderThickness="0" Margin="0" Padding="0">
+        <TabControl x:Name="SidebarTabControl" Grid.Row="1" Background="Transparent" BorderThickness="0" Margin="0" Padding="0">
             <TabControl.Template>
                 <ControlTemplate TargetType="TabControl">
                     <Grid>
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="100"/>
+                            <RowDefinition x:Name="RowTabHeader" Height="100"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
-                        <UniformGrid Grid.Row="0" Columns="3" Rows="2" IsItemsHost="True"/>
+                        <UniformGrid x:Name="TabHeaderGrid" Grid.Row="0" Columns="3" Rows="2" IsItemsHost="True"/>
                         <ContentPresenter Grid.Row="1"
                                           Content="{TemplateBinding SelectedContent}"
                                           ContentTemplate="{TemplateBinding SelectedContentTemplate}"/>
@@ -882,6 +881,7 @@
         <Popup x:Name="PinsContextPopup" StaysOpen="False" AllowsTransparency="True" Placement="MousePoint">
             <Border Background="#1e1e1e" BorderBrush="#333" BorderThickness="1" CornerRadius="6" Padding="4">
                 <Border.Effect><DropShadowEffect BlurRadius="10" ShadowDepth="3" Opacity="0.6"/></Border.Effect>
+                <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="380">
                 <StackPanel MinWidth="200">
                     <Border Background="#141414" BorderBrush="#2a2a2a" BorderThickness="1" CornerRadius="4" Margin="0,0,0,4">
                         <Grid>
@@ -913,12 +913,14 @@
                     <Button Content="🔖  Send to Bookmarks" Click="CtxPinSendToBookmarks_Click"
                             Style="{StaticResource Style.CtxBtn}" Foreground="#AADDAA"/>
                 </StackPanel>
+                </ScrollViewer>
             </Border>
         </Popup>
 
         <Popup x:Name="BookmarksContextPopup" StaysOpen="False" AllowsTransparency="True" Placement="MousePoint">
             <Border Background="#1e1e1e" BorderBrush="#333" BorderThickness="1" CornerRadius="6" Padding="4">
                 <Border.Effect><DropShadowEffect BlurRadius="10" ShadowDepth="3" Opacity="0.6"/></Border.Effect>
+                <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="380">
                 <StackPanel MinWidth="200">
                     <Border Background="#141414" BorderBrush="#2a2a2a" BorderThickness="1" CornerRadius="4" Margin="0,0,0,4">
                         <Grid>
@@ -949,12 +951,14 @@
                     <Button Content="⭐  Send to Favourites" Click="CtxBmSendToFavourites_Click"
                             Style="{StaticResource Style.CtxBtn}" Foreground="#AADDAA"/>
                 </StackPanel>
+                </ScrollViewer>
             </Border>
         </Popup>
 
         <Popup x:Name="HistoryContextPopup" StaysOpen="False" AllowsTransparency="True" Placement="MousePoint">
             <Border Background="#1e1e1e" BorderBrush="#333" BorderThickness="1" CornerRadius="6" Padding="4">
                 <Border.Effect><DropShadowEffect BlurRadius="10" ShadowDepth="3" Opacity="0.6"/></Border.Effect>
+                <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="380">
                 <StackPanel MinWidth="200">
                     <Border Background="#141414" BorderBrush="#2a2a2a" BorderThickness="1" CornerRadius="4" Margin="0,0,0,4">
                         <Grid>
@@ -977,6 +981,7 @@
                     <Button Content="🗑  Delete Entry"     Click="BtnHistoryDelete_Click"
                             Style="{StaticResource Style.CtxBtn}" Foreground="{StaticResource Brush.Alert}"/>
                 </StackPanel>
+                </ScrollViewer>
             </Border>
         </Popup>
 
@@ -998,6 +1003,7 @@
         <Popup x:Name="FluxContextPopup" StaysOpen="False" AllowsTransparency="True" Placement="MousePoint">
             <Border Background="#1e1e1e" BorderBrush="#333" BorderThickness="1" CornerRadius="6" Padding="4">
                 <Border.Effect><DropShadowEffect BlurRadius="10" ShadowDepth="3" Opacity="0.6"/></Border.Effect>
+                <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="380">
                 <StackPanel MinWidth="200">
                     <Border Background="#141414" BorderBrush="#2a2a2a" BorderThickness="1" CornerRadius="4" Margin="0,0,0,4">
                         <Grid>
@@ -1049,12 +1055,14 @@
                     <Button Content="🗑  Delete File"      Click="BtnFluxDelete_Click"
                             Style="{StaticResource Style.CtxBtn}" Foreground="{StaticResource Brush.Alert}"/>
                 </StackPanel>
+                </ScrollViewer>
             </Border>
         </Popup>
 
         <Popup x:Name="ExtContextPopup" StaysOpen="False" AllowsTransparency="True" Placement="MousePoint">
             <Border Background="#1e1e1e" BorderBrush="#333" BorderThickness="1" CornerRadius="6" Padding="4">
                 <Border.Effect><DropShadowEffect BlurRadius="10" ShadowDepth="3" Opacity="0.6"/></Border.Effect>
+                <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="380">
                 <StackPanel MinWidth="200">
                     <Border Background="#141414" BorderBrush="#2a2a2a" BorderThickness="1" CornerRadius="4" Margin="0,0,0,4">
                         <Grid>
@@ -1077,6 +1085,7 @@
                     <Button Content="🗑  Uninstall"       Click="CtxExtUninstall_Click"
                             Style="{StaticResource Style.CtxBtn}" Foreground="{StaticResource Brush.Alert}"/>
                 </StackPanel>
+                </ScrollViewer>
             </Border>
         </Popup>
 

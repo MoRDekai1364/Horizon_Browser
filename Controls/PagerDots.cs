@@ -94,6 +94,9 @@ public sealed class PagerDots : Grid
         }
     }
 
+    private double _activeCell = Cell;
+    private double _activeThumb = Thumb;
+
     public void SetState(int count, int index, IReadOnlyList<string>? tips = null)
     {
         bool rebuilt = count != _count;
@@ -108,7 +111,7 @@ public sealed class PagerDots : Grid
         bool animate = !rebuilt && IsLoaded && _index >= 0 && index != _index;
         _index = index;
 
-        double target = index * Cell + (Cell - Thumb) / 2;
+        double target = index * _activeCell + (_activeCell - _activeThumb) / 2;
         var moveProperty = _orientation == Orientation.Horizontal ? TranslateTransform.XProperty : TranslateTransform.YProperty;
         var stretchProperty = _orientation == Orientation.Horizontal ? ScaleTransform.ScaleXProperty : ScaleTransform.ScaleYProperty;
 
@@ -129,14 +132,21 @@ public sealed class PagerDots : Grid
     private void Rebuild(int count)
     {
         _count = count;
+        _activeCell = count <= 10 ? Cell : Math.Clamp(Math.Floor(240.0 / count), 8.0, Cell);
+        double activeDot = count <= 10 ? Dot : Math.Clamp(_activeCell - 4.0, 4.0, Dot);
+        _activeThumb = count <= 10 ? Thumb : Math.Clamp(_activeCell - 2.0, 6.0, Thumb);
+        _thumb.Width = _activeThumb;
+        _thumb.Height = _activeThumb;
+        PlaceThumbOnCrossAxis();
+
         _cells.Children.Clear();
         for (int i = 0; i < count; i++)
         {
             int target = i;
             var dot = new Ellipse
             {
-                Width = Dot,
-                Height = Dot,
+                Width = activeDot,
+                Height = activeDot,
                 Opacity = 0.35,
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center,
@@ -145,7 +155,7 @@ public sealed class PagerDots : Grid
             dot.SetResourceReference(Shape.FillProperty, "HomeTextBrush");
             var cell = new Border
             {
-                Width = Cell,
+                Width = _activeCell,
                 Height = Cell,
                 Background = Brushes.Transparent,
                 Cursor = Cursors.Hand,
@@ -162,7 +172,7 @@ public sealed class PagerDots : Grid
 
     private void PlaceThumbOnCrossAxis()
     {
-        double offset = (Cell - Thumb) / 2;
+        double offset = (Cell - _activeThumb) / 2;
         Canvas.SetLeft(_thumb, _orientation == Orientation.Horizontal ? 0 : offset);
         Canvas.SetTop(_thumb, _orientation == Orientation.Horizontal ? offset : 0);
         _move.X = 0;

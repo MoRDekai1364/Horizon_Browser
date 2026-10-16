@@ -324,7 +324,8 @@ public static class HomeRowLimits
 
     public static int Ceiling(double availableHeight)
     {
-        int fit = (int)Math.Floor(Math.Max(0, availableHeight - ReservedHeight) / RowHeight);
+        double reserved = availableHeight < 580 ? Math.Min(ReservedHeight, Math.Max(160, availableHeight * 0.42)) : ReservedHeight;
+        int fit = (int)Math.Floor(Math.Max(0, availableHeight - reserved) / RowHeight);
         return Math.Clamp(fit, MinTotalRows, MaxTotalRows);
     }
 
@@ -359,7 +360,7 @@ public static class FolderFallback
 
 public class RowsPanel : Panel
 {
-    public const int MinColumns = 3;
+    public const int MinColumns = 2;
     public const int MaxColumns = 6;
     public const double CellWidth = 131;
 
@@ -615,8 +616,10 @@ public class AutoGridPanel : Panel
         {
             double folderHeight = 0;
             var folderConstraint = new Size(FolderCellWidth, double.PositiveInfinity);
-            foreach (UIElement child in InternalChildren)
+            int maxMeasure = Math.Min(count, FolderFullTiles + FolderClusterMax);
+            for (int i = 0; i < maxMeasure; i++)
             {
+                UIElement child = InternalChildren[i];
                 child.Measure(folderConstraint);
                 folderHeight = Math.Max(folderHeight, child.DesiredSize.Height);
             }
@@ -628,16 +631,24 @@ public class AutoGridPanel : Panel
         double cellWidth = 0;
         double cellHeight = 0;
         var infinite = new Size(double.PositiveInfinity, double.PositiveInfinity);
+        bool mini = Mode == GroupCollapseMode.Mini && count > MiniThreshold;
+        int limit = Mode == GroupCollapseMode.Stack
+            ? Math.Min(count, StackDepth)
+            : mini
+                ? Math.Min(count, MiniFullTiles + MiniClusterMax)
+                : Mode == GroupCollapseMode.FirstRow
+                    ? Math.Min(count, 6)
+                    : count;
 
-        foreach (UIElement child in InternalChildren)
+        for (int i = 0; i < limit; i++)
         {
+            UIElement child = InternalChildren[i];
             child.Measure(infinite);
             cellWidth = Math.Max(cellWidth, child.DesiredSize.Width);
             cellHeight = Math.Max(cellHeight, child.DesiredSize.Height);
         }
 
         _cell = new Size(cellWidth, cellHeight);
-        bool mini = Mode == GroupCollapseMode.Mini && count > MiniThreshold;
         _columns = mini ? 3 : ColumnsFor(count);
 
         if (!mini && !double.IsInfinity(availableSize.Width) && cellWidth > 0)

@@ -46,7 +46,7 @@ public static class SettingsService
 
     public static SettingsData Current { get; private set; } = DefaultSettingsService.Apply(new SettingsData());
 
-    public const int CurrentConfigVersion = 4;
+    public const int CurrentConfigVersion = 5;
 
     private static SettingsData? ReadFile(string path)
     {
@@ -94,6 +94,11 @@ public static class SettingsService
         {
             data.AppLanguage = "en";
         }
+        if (data.ConfigVersion < 5)
+        {
+            if (data.NarrowWindowThresholdPx <= 600)
+                data.NarrowWindowThresholdPx = 700;
+        }
         data.ConfigVersion = CurrentConfigVersion;
     }
 
@@ -130,7 +135,7 @@ public static class SettingsService
         // v2 migration: old default (1270) was nearly identical to the default window width
         // (1280). Any saved value ≥ 1000 was the broken value — reset to the correct default.
         if (Current.NarrowWindowThresholdPx >= 1000)
-            Current.NarrowWindowThresholdPx = 600;
+            Current.NarrowWindowThresholdPx = 700;
     }
 
     // Shared source of truth for the built-in engines, so SettingsWindow and HomePageView
@@ -447,7 +452,7 @@ public class SettingsData
     public List<SyncAccount> SyncAccounts { get; set; } = new();
 
     public int NarrowWindowMode        { get; set; } = 1;
-    public int NarrowWindowThresholdPx { get; set; } = 600;
+    public int NarrowWindowThresholdPx { get; set; } = 700;
 
     // ── Settings window UX ───────────────────────────────────────────────────
     public int LastSettingsTabIndex { get; set; } = 0;

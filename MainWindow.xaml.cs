@@ -1430,6 +1430,11 @@ public partial class MainWindow : Window
             if (ActualWidth < 100) return;
             ScheduleReflow();
             ApplyNarrowWindowMode();
+            if (SidebarContainer.Width > 10)
+            {
+                SidebarContainer.BeginAnimation(FrameworkElement.WidthProperty, null);
+                SidebarContainer.Width = GetTargetSidebarWidth();
+            }
         };
         ListTabs.SizeChanged += (s, e) =>
         {
@@ -2705,7 +2710,7 @@ return colors.length > 0 ? colors : null;
         }
         else
         {
-            SidebarContainer.Width = 320;
+            SidebarContainer.Width = GetTargetSidebarWidth();
             ColSidebar.Width = GridLength.Auto;
             Grid.SetColumn(SidebarContainer, 1);
             Grid.SetColumnSpan(SidebarContainer, 1);
@@ -2713,6 +2718,11 @@ return colors.length > 0 ? colors : null;
             Panel.SetZIndex(SidebarContainer, 0);
         }
     }
+
+    private double GetTargetSidebarWidth() =>
+        ActualWidth > 100 && ActualWidth < 960
+            ? Math.Clamp(Math.Round(ActualWidth * 0.34), 236, 320)
+            : 320;
 
     // ── WebApp bar helpers ────────────────────────────────────────────────────
     private readonly Dictionary<string, List<(string Url, string Title)>> _navHistories = new();
@@ -2785,13 +2795,21 @@ return colors.length > 0 ? colors : null;
 
     private void ToggleSidebar(bool isOpen)
     {
-        var storyboardName = isOpen ? "Anim_SidebarOpen" : "Anim_SidebarClose";
         if (isOpen)
         {
             // Expand the column first so the * column shrinks and makes room.
             ColSidebar.Width = GridLength.Auto;
         }
-        var sb = this.FindResource(storyboardName) as System.Windows.Media.Animation.Storyboard;
+        double targetW = isOpen ? GetTargetSidebarWidth() : 0;
+        var anim = new System.Windows.Media.Animation.DoubleAnimation
+        {
+            To = targetW,
+            Duration = TimeSpan.FromMilliseconds(300),
+            EasingFunction = new System.Windows.Media.Animation.CubicEase
+            {
+                EasingMode = System.Windows.Media.Animation.EasingMode.EaseOut
+            }
+        };
         if (!isOpen)
         {
             // After the 300ms close animation, pin ColSidebar to explicit 0 so the
@@ -2804,7 +2822,7 @@ return colors.length > 0 ? colors : null;
             };
             closeTimer.Start();
         }
-        sb?.Begin();
+        SidebarContainer.BeginAnimation(FrameworkElement.WidthProperty, anim);
     }
 
     private void BtnBack_Click(object sender, RoutedEventArgs e)
@@ -10266,13 +10284,14 @@ private sealed class WeatherRetryHandler : DelegatingHandler
     private static Color WxButtonBg     => WxBlend(WxPillOpaque, WxPanel, 0.55);
     private static Color WxButtonBorder => WxBlend(WxPillOpaque, Colors.White, 0.12);
 
-    private static double WxScale(Window w) => w.Tag is true ? 1.0 : 1.12;
+    private static double WxScale(Window w) => w.Tag is true ? 1.34 : 1.44;
     private static double WxPaneWidth(Window w) => w.Tag is true ? 380 : 340;
     private static double WxClosedWidth(Window w) => 400 * WxScale(w);
-    private static double WxOpenWidth(Window w) => 400 * WxScale(w) + WxPaneWidth(w);
+    private static double WxOpenWidth(Window w) => (400 + WxPaneWidth(w)) * WxScale(w);
     private static double WxFavPaneWidth(Window w) => w.Tag is true ? 240 : 200;
     private static double WxTotalWidth(Window w, bool leftOpen, bool rightOpen) =>
-        WxClosedWidth(w) + (leftOpen ? WxFavPaneWidth(w) : 0) + (rightOpen ? WxPaneWidth(w) : 0);
+        Math.Min(SystemParameters.WorkArea.Width - 20,
+            (400 + (leftOpen ? WxFavPaneWidth(w) : 0) + (rightOpen ? WxPaneWidth(w) : 0)) * WxScale(w));
 
     private static Color WxSurface => Color.FromArgb(0x58, 0x00, 0x00, 0x00);
     private static Color WxBorder => Color.FromArgb(0x48, WeatherBridge.ThemeAccent.R, WeatherBridge.ThemeAccent.G, WeatherBridge.ThemeAccent.B);
@@ -10974,29 +10993,29 @@ private sealed class WeatherRetryHandler : DelegatingHandler
 
         win.SizeToContent = SizeToContent.Manual;
         win.MaxHeight = double.PositiveInfinity;
-        win.Height = Math.Min(760, SystemParameters.WorkArea.Height - 40);
-        win.MinWidth = 380;
+        win.Height = Math.Min(980, SystemParameters.WorkArea.Height - 36);
+        win.MinWidth = 460;
         win.WindowStyle = WindowStyle.None;
         win.ResizeMode = ResizeMode.CanResize;
         win.ShowInTaskbar = true;
         win.Background = new SolidColorBrush(WxPanel);
         System.Windows.Shell.WindowChrome.SetWindowChrome(win, new System.Windows.Shell.WindowChrome
         {
-            CaptionHeight = 34,
+            CaptionHeight = 40,
             ResizeBorderThickness = new Thickness(6),
             GlassFrameThickness = new Thickness(0),
             CornerRadius = new CornerRadius(0),
             UseAeroCaptionButtons = false
         });
 
-        var titleBar = new Grid { Height = 34, Background = new SolidColorBrush(Color.FromArgb(0x50, 0x00, 0x00, 0x00)) };
+        var titleBar = new Grid { Height = 40, Background = new SolidColorBrush(Color.FromArgb(0x50, 0x00, 0x00, 0x00)) };
         titleBar.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         titleBar.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         var titleText = new TextBlock
         {
-            Text = "Weather", FontSize = 12,
+            Text = "Weather", FontSize = 15,
             Foreground = new SolidColorBrush(Color.FromArgb(0xE0, 0xFF, 0xFF, 0xFF)),
-            VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(12, 0, 0, 0)
+            VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(14, 0, 0, 0)
         };
         Grid.SetColumn(titleText, 0);
         titleBar.Children.Add(titleText);
@@ -11008,11 +11027,11 @@ private sealed class WeatherRetryHandler : DelegatingHandler
         {
             var glyphTb = new TextBlock
             {
-                Text = glyph, FontFamily = new FontFamily("Segoe MDL2 Assets"), FontSize = 10,
+                Text = glyph, FontFamily = new FontFamily("Segoe MDL2 Assets"), FontSize = 12,
                 Foreground = Brushes.White,
                 HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center
             };
-            var box = new Border { Width = 46, Height = 34, Background = Brushes.Transparent, Cursor = Cursors.Hand, Child = glyphTb };
+            var box = new Border { Width = 50, Height = 40, Background = Brushes.Transparent, Cursor = Cursors.Hand, Child = glyphTb };
             var hover = danger ? Color.FromRgb(0xC4, 0x2B, 0x1C) : Color.FromArgb(0x30, 0xFF, 0xFF, 0xFF);
             box.MouseEnter += (_, _) => box.Background = new SolidColorBrush(hover);
             box.MouseLeave += (_, _) => box.Background = Brushes.Transparent;
@@ -11104,13 +11123,13 @@ private sealed class WeatherRetryHandler : DelegatingHandler
         {
             Background = new SolidColorBrush(Color.FromArgb(0xA0, 0x00, 0x00, 0x00)),
             CornerRadius = new CornerRadius(4),
-            Padding = new Thickness(10, 5, 10, 5),
-            Margin = new Thickness(0, 10, 10, 0),
+            Padding = new Thickness(12, 6, 12, 6),
+            Margin = new Thickness(0, 12, 12, 0),
             HorizontalAlignment = HorizontalAlignment.Right,
             VerticalAlignment = VerticalAlignment.Top,
             Cursor = Cursors.Hand,
             Visibility = Visibility.Collapsed,
-            Child = new TextBlock { Text = "✕  Exit Fullscreen", FontSize = 11, Foreground = Brushes.White }
+            Child = new TextBlock { Text = "✕  Exit Fullscreen", FontSize = 14, Foreground = Brushes.White }
         };
         bgGrid.Children.Add(exitFsBtn);
 
@@ -11137,19 +11156,20 @@ private sealed class WeatherRetryHandler : DelegatingHandler
             if (e.Key == Key.Escape && wxFullscreen) SetFullscreen(false);
         };
 
-        const double WxWideEnter = 900;
-        const double WxWideExit = 840;
+        const double WxWideEnter = 1180;
+        const double WxWideExit = 1100;
         layoutApplying = false;
         wxScale = new ScaleTransform(1, 1);
-        contentHolder.LayoutTransform = wxScale;
+        tabBar.LayoutTransform = wxScale;
+        bodyRoot.LayoutTransform = wxScale;
 
         (var layoutBox, layoutGlyph) = MakeCaptionButton("", false, () => { });
         captionButtons.Children.Remove(layoutBox);
         captionButtons.Children.Insert(0, layoutBox);
-        layoutBox.Width = 76;
+        layoutBox.Width = 90;
         layoutBox.ToolTip = "Layout: click to switch Auto / Compact / Wide";
         layoutGlyph.FontFamily = new FontFamily("Segoe UI");
-        layoutGlyph.FontSize = 11;
+        layoutGlyph.FontSize = 13;
 
         string LayoutMode()
         {

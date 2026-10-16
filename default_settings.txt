@@ -126,8 +126,8 @@ GeoLookupMode=Local
 NarrowWindowMode=1
 
 # [S02.12] Window width in pixels that counts as narrow
-#   type: int | values: 200 to 999 | default: 600
-NarrowWindowThresholdPx=600
+#   type: int | values: 200 to 999 | default: 700
+NarrowWindowThresholdPx=700
 
 # [S02.13] Show the restore-session prompt after a crash or restart
 #   type: bool | values: true|false | default: true

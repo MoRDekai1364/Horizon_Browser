@@ -125,7 +125,8 @@
         </Grid>
 
         <Grid x:Name="OverlayEdit" Background="#AA000000" Visibility="Collapsed">
-            <Border Background="#151515" BorderBrush="#333" BorderThickness="1" CornerRadius="8" VerticalAlignment="Center" HorizontalAlignment="Stretch" Margin="15" Padding="20">
+            <Border Background="#151515" BorderBrush="#333" BorderThickness="1" CornerRadius="8" VerticalAlignment="Center" HorizontalAlignment="Stretch" Margin="12" Padding="16">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel>
                     <TextBlock x:Name="TxtOverlayHeader" Text="EDIT CREDENTIAL" Foreground="{StaticResource Brush.Neon}" FontWeight="Bold" FontSize="10" Margin="0,0,0,15"/>
                     
@@ -158,6 +159,7 @@
                         </Button>
                     </Grid>
                 </StackPanel>
+                </ScrollViewer>
             </Border>
         </Grid>
 

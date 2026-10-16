@@ -13,7 +13,29 @@ public sealed class DrawerItem
 {
     public string Name { get; init; } = "";
     public string Emoji { get; init; } = "";
-    public ImageSource? Icon { get; init; }
+    public Func<ImageSource?>? IconProvider { get; init; }
+
+    private ImageSource? _icon;
+    private bool _iconResolved;
+
+    public ImageSource? Icon
+    {
+        get
+        {
+            if (!_iconResolved && _icon == null && IconProvider != null)
+            {
+                _iconResolved = true;
+                _icon = IconProvider();
+            }
+            return _icon;
+        }
+        init
+        {
+            _icon = value;
+            _iconResolved = value != null;
+        }
+    }
+
     public object? Source { get; init; }
 }
 
@@ -46,6 +68,12 @@ public sealed class OpenFolderView : UserControl
     private double _pageWidth;
     private bool _animating;
     private int _relayouts;
+    private int _cols = 1;
+    private int _perPage = 1;
+    private double _cellWidth = MinCell;
+    private double _activeTile = Tile;
+    private double _activeIcon = IconSize;
+    private double _activeRowGap = RowGap;
 
     public event Action<DrawerItem>? ItemActivated;
     public event Action? CloseRequested;
@@ -201,65 +229,88 @@ public sealed class OpenFolderView : UserControl
             return;
         }
 
-        int cols = Math.Max(1, (int)Math.Floor(width / MinCell));
-        double cell = width / cols;
-        int rows = Math.Max(1, (int)Math.Floor(height / RowH));
-        int perPage = Math.Max(1, cols * rows);
+        bool dense = count > 24 || width < 360 || height < 260;
+        _activeTile = dense ? 56 : Tile;
+        _activeIcon = dense ? 34 : IconSize;
+        _activeRowGap = dense ? 8 : RowGap;
+        double minCell = dense ? 74 : MinCell;
+        double rowH = _activeTile + 6 + LabelH + _activeRowGap;
+
+        _cols = Math.Max(1, (int)Math.Floor(width / minCell));
+        _cellWidth = width / _cols;
+        int rows = Math.Max(1, (int)Math.Floor(height / rowH));
+        _perPage = Math.Max(1, _cols * rows);
 
         _slide.BeginAnimation(TranslateTransform.XProperty, null);
         _animating = false;
         _strip.Children.Clear();
         _pageWidth = width;
-        int targetPages = Math.Max(1, (int)Math.Ceiling(count / (double)perPage));
+        int targetPages = Math.Max(1, (int)Math.Ceiling(count / (double)_perPage));
         _relayouts++;
 
         for (int p = 0; p < targetPages; p++)
         {
-            int start = p * perPage;
+            int start = p * _perPage;
             if (start >= count) break;
-            int end = Math.Min(start + perPage, count);
-            if (start >= end) break;
-
-            var rowsHost = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
-            for (int rowStart = start; rowStart < end; rowStart += cols)
-            {
-                var rowPanel = new StackPanel
-                {
-                    Orientation = Orientation.Horizontal,
-                    HorizontalAlignment = HorizontalAlignment.Center
-                };
-                int rowEnd = Math.Min(rowStart + cols, end);
-                for (int i = rowStart; i < rowEnd; i++)
-                    rowPanel.Children.Add(BuildTile(_group.Items[i], cell));
-
-                if (rowPanel.Children.Count > 0)
-                    rowsHost.Children.Add(rowPanel);
-            }
-
-            if (rowsHost.Children.Count > 0)
-            {
-                _strip.Children.Add(new Grid { Width = width, Height = height, Children = { rowsHost } });
-            }
+            _strip.Children.Add(new Grid { Width = width, Height = height });
         }
 
         _pageCount = _strip.Children.Count;
         _page = Math.Clamp(_page, 0, Math.Max(0, _pageCount - 1));
+        EnsurePageWindowPopulated(_page);
         _slide.X = -_page * width;
         UpdateDots();
+    }
+
+    private void EnsurePageWindowPopulated(int centerPage)
+    {
+        EnsurePagePopulated(centerPage);
+        if (centerPage - 1 >= 0) EnsurePagePopulated(centerPage - 1);
+        if (centerPage + 1 < _pageCount) EnsurePagePopulated(centerPage + 1);
+    }
+
+    private void EnsurePagePopulated(int p)
+    {
+        if (p < 0 || p >= _strip.Children.Count) return;
+        if (_strip.Children[p] is not Grid pageGrid || pageGrid.Children.Count > 0) return;
+
+        int count = _group.Items.Count;
+        int start = p * _perPage;
+        int end = Math.Min(start + _perPage, count);
+        if (start >= end) return;
+
+        var rowsHost = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
+        for (int rowStart = start; rowStart < end; rowStart += _cols)
+        {
+            var rowPanel = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                HorizontalAlignment = HorizontalAlignment.Center
+            };
+            int rowEnd = Math.Min(rowStart + _cols, end);
+            for (int i = rowStart; i < rowEnd; i++)
+                rowPanel.Children.Add(BuildTile(_group.Items[i], _cellWidth));
+
+            if (rowPanel.Children.Count > 0)
+                rowsHost.Children.Add(rowPanel);
+        }
+
+        if (rowsHost.Children.Count > 0)
+            pageGrid.Children.Add(rowsHost);
     }
 
     private FrameworkElement BuildTile(DrawerItem item, double cell)
     {
         var tile = new Border
         {
-            Width = Tile,
-            Height = Tile,
-            CornerRadius = new CornerRadius(16),
+            Width = _activeTile,
+            Height = _activeTile,
+            CornerRadius = new CornerRadius(_activeTile < 60 ? 14 : 16),
             BorderBrush = new SolidColorBrush(Color.FromArgb(0x26, 0xFF, 0xFF, 0xFF)),
             BorderThickness = new Thickness(1),
             HorizontalAlignment = HorizontalAlignment.Center,
             ClipToBounds = true,
-            Child = TileFallback.Glyph(item, IconSize)
+            Child = TileFallback.Glyph(item, _activeIcon)
         };
         TileFallback.Paint(tile, item);
 
@@ -279,7 +330,7 @@ public sealed class OpenFolderView : UserControl
         var holder = new StackPanel
         {
             Width = cell,
-            Margin = new Thickness(0, RowGap / 2, 0, RowGap / 2),
+            Margin = new Thickness(0, _activeRowGap / 2, 0, _activeRowGap / 2),
             Background = Brushes.Transparent,
             Cursor = Cursors.Hand,
             ToolTip = item.Name
@@ -312,6 +363,7 @@ public sealed class OpenFolderView : UserControl
         if (target == _page || _animating) return;
 
         _page = target;
+        EnsurePageWindowPopulated(_page);
         UpdateDots();
         _animating = true;
         var animation = new DoubleAnimation(-_page * _pageWidth, TimeSpan.FromMilliseconds(AnimationMs))
@@ -353,6 +405,7 @@ public sealed class FolderDrawerView : UserControl
     private readonly DispatcherTimer _timer;
 
     private List<DrawerGroup> _groups = new();
+    private (int[] Sizes, List<List<List<int>>> Pages, bool Paged) _currentPlan;
     private int _page;
     private int _pageCount;
     private double _pageWidth;
@@ -370,7 +423,7 @@ public sealed class FolderDrawerView : UserControl
     public FolderDrawerView()
     {
         HomeGlass.SetExclude(this, true);
-        MinHeight = 250;
+        MinHeight = 220;
         MinWidth = 200;
         _title = new TextBlock
         {
@@ -522,7 +575,8 @@ public sealed class FolderDrawerView : UserControl
         int count = _groups.Count;
         if (count == 0) return (Array.Empty<int>(), new List<List<List<int>>>(), false);
 
-        var ns = Enumerable.Repeat(MinN, count).ToArray();
+        int baseN = (count > 4 || width < 420 || height < 340) ? 2 : MinN;
+        var ns = Enumerable.Repeat(baseN, count).ToArray();
         var cells = new (double W, double H)[count];
         for (int i = 0; i < count; i++) cells[i] = CellSize(_groups[i].Items.Count, ns[i]);
 
@@ -593,7 +647,7 @@ public sealed class FolderDrawerView : UserControl
             return;
         }
 
-        var plan = Plan(width, height);
+        _currentPlan = Plan(width, height);
         double pageHeight = height;
 
         _slide.BeginAnimation(TranslateTransform.XProperty, null);
@@ -602,34 +656,51 @@ public sealed class FolderDrawerView : UserControl
         _pageWidth = width;
         _relayoutDone++;
 
-        foreach (var pageRows in plan.Pages)
+        foreach (var pageRows in _currentPlan.Pages)
         {
             if (pageRows.Count == 0 || pageRows.All(r => r.Count == 0)) continue;
-            var rowsHost = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
-            foreach (var row in pageRows)
-            {
-                if (row.Count == 0) continue;
-                var rowPanel = new StackPanel
-                {
-                    Orientation = Orientation.Horizontal,
-                    HorizontalAlignment = HorizontalAlignment.Center
-                };
-                foreach (int index in row)
-                {
-                    if (index >= 0 && index < _groups.Count)
-                        rowPanel.Children.Add(CreateCard(_groups[index], plan.Sizes[index]));
-                }
-                if (rowPanel.Children.Count > 0)
-                    rowsHost.Children.Add(rowPanel);
-            }
-            if (rowsHost.Children.Count > 0)
-                _strip.Children.Add(new Grid { Width = width, Height = pageHeight, Children = { rowsHost } });
+            _strip.Children.Add(new Grid { Width = width, Height = pageHeight });
         }
 
         _pageCount = _strip.Children.Count;
         _page = Math.Clamp(_page, 0, Math.Max(0, _pageCount - 1));
+        EnsureDrawerPageWindowPopulated(_page);
         _slide.X = -_page * width;
         UpdateDots();
+    }
+
+    private void EnsureDrawerPageWindowPopulated(int centerPage)
+    {
+        EnsureDrawerPagePopulated(centerPage);
+        if (centerPage - 1 >= 0) EnsureDrawerPagePopulated(centerPage - 1);
+        if (centerPage + 1 < _pageCount) EnsureDrawerPagePopulated(centerPage + 1);
+    }
+
+    private void EnsureDrawerPagePopulated(int p)
+    {
+        if (p < 0 || p >= _strip.Children.Count || p >= _currentPlan.Pages.Count) return;
+        if (_strip.Children[p] is not Grid pageGrid || pageGrid.Children.Count > 0) return;
+
+        var pageRows = _currentPlan.Pages[p];
+        var rowsHost = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
+        foreach (var row in pageRows)
+        {
+            if (row.Count == 0) continue;
+            var rowPanel = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                HorizontalAlignment = HorizontalAlignment.Center
+            };
+            foreach (int index in row)
+            {
+                if (index >= 0 && index < _groups.Count && index < _currentPlan.Sizes.Length)
+                    rowPanel.Children.Add(CreateCard(_groups[index], _currentPlan.Sizes[index]));
+            }
+            if (rowPanel.Children.Count > 0)
+                rowsHost.Children.Add(rowPanel);
+        }
+        if (rowsHost.Children.Count > 0)
+            pageGrid.Children.Add(rowsHost);
     }
 
     private void UpdateDots()
@@ -650,6 +721,7 @@ public sealed class FolderDrawerView : UserControl
         if (target == _page || _animating) return;
 
         _page = target;
+        EnsureDrawerPageWindowPopulated(_page);
         UpdateDots();
         _animating = true;
         var animation = new DoubleAnimation(-_page * _pageWidth, TimeSpan.FromMilliseconds(AnimationMs))
@@ -687,6 +759,4 @@ public sealed class FolderDrawerView : UserControl
         };
         return card;
     }
-
-
 }

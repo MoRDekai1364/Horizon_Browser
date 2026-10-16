@@ -284,6 +284,11 @@ public sealed class StartMenuView : UserControl
     private bool _animating;
     private bool _queued;
 
+    private int _cols = 1;
+    private int _perPage = 1;
+    private double _cellW;
+    private double _cellH;
+
     public event Action<DrawerItem>? ItemActivated;
     public event Action? CloseRequested;
 
@@ -310,7 +315,9 @@ public sealed class StartMenuView : UserControl
 
         _filter = new TextBox
         {
-            Width = 260,
+            Width = 240,
+            MinWidth = 100,
+            MaxWidth = 260,
             Height = 28,
             FontSize = 14,
             Padding = new Thickness(10, 0, 10, 0),
@@ -382,6 +389,7 @@ public sealed class StartMenuView : UserControl
 
         _viewport.SizeChanged += (_, _) =>
         {
+            _filter.Width = Math.Clamp(_viewport.ActualWidth * 0.34, 110, 260);
             if (_pageCount == 0)
             {
                 Relayout();
@@ -506,47 +514,66 @@ public sealed class StartMenuView : UserControl
             cellH = Math.Max(cellH, size.H * CardScale);
         }
 
-        int cols = Math.Max(1, (int)Math.Floor(width / cellW));
+        _cellW = cellW;
+        _cellH = cellH;
+        _cols = Math.Max(1, (int)Math.Floor(width / cellW));
         int rows = Math.Max(1, (int)Math.Floor(height / cellH));
-        int perPage = Math.Max(1, cols * rows);
-        int targetPages = Math.Max(1, (int)Math.Ceiling(_shown.Count / (double)perPage));
+        _perPage = Math.Max(1, _cols * rows);
+        int targetPages = Math.Max(1, (int)Math.Ceiling(_shown.Count / (double)_perPage));
 
         for (int p = 0; p < targetPages; p++)
         {
-            int start = p * perPage;
+            int start = p * _perPage;
             if (start >= _shown.Count) break;
-            int end = Math.Min(start + perPage, _shown.Count);
-            if (start >= end) break;
-
-            var rowsHost = new StackPanel
-            {
-                VerticalAlignment = VerticalAlignment.Center,
-                HorizontalAlignment = HorizontalAlignment.Center
-            };
-            for (int rowStart = start; rowStart < end; rowStart += cols)
-            {
-                var rowPanel = new StackPanel
-                {
-                    Orientation = Orientation.Horizontal,
-                    HorizontalAlignment = HorizontalAlignment.Center
-                };
-                int rowEnd = Math.Min(rowStart + cols, end);
-                for (int i = rowStart; i < rowEnd; i++)
-                    rowPanel.Children.Add(BuildCell(_shown[i], cellW, cellH));
-
-                if (rowPanel.Children.Count > 0)
-                    rowsHost.Children.Add(rowPanel);
-            }
-
-            if (rowsHost.Children.Count > 0)
-                _strip.Children.Add(new Grid { Width = width, Height = height, Children = { rowsHost } });
+            _strip.Children.Add(new Grid { Width = width, Height = height });
         }
 
         _pageCount = _strip.Children.Count;
         _page = Math.Clamp(_page, 0, Math.Max(_pageCount - 1, 0));
+        EnsureStartMenuPageWindowPopulated(_page);
         _slide.X = -_page * width;
 
         UpdateDots();
+    }
+
+    private void EnsureStartMenuPageWindowPopulated(int centerPage)
+    {
+        EnsureStartMenuPagePopulated(centerPage);
+        if (centerPage - 1 >= 0) EnsureStartMenuPagePopulated(centerPage - 1);
+        if (centerPage + 1 < _pageCount) EnsureStartMenuPagePopulated(centerPage + 1);
+    }
+
+    private void EnsureStartMenuPagePopulated(int p)
+    {
+        if (p < 0 || p >= _strip.Children.Count) return;
+        if (_strip.Children[p] is not Grid pageGrid || pageGrid.Children.Count > 0) return;
+
+        int start = p * _perPage;
+        int end = Math.Min(start + _perPage, _shown.Count);
+        if (start >= end) return;
+
+        var rowsHost = new StackPanel
+        {
+            VerticalAlignment = VerticalAlignment.Center,
+            HorizontalAlignment = HorizontalAlignment.Center
+        };
+        for (int rowStart = start; rowStart < end; rowStart += _cols)
+        {
+            var rowPanel = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                HorizontalAlignment = HorizontalAlignment.Center
+            };
+            int rowEnd = Math.Min(rowStart + _cols, end);
+            for (int i = rowStart; i < rowEnd; i++)
+                rowPanel.Children.Add(BuildCell(_shown[i], _cellW, _cellH));
+
+            if (rowPanel.Children.Count > 0)
+                rowsHost.Children.Add(rowPanel);
+        }
+
+        if (rowsHost.Children.Count > 0)
+            pageGrid.Children.Add(rowsHost);
     }
 
     private FrameworkElement BuildCell(DrawerGroup group, double cellW, double cellH)
@@ -590,6 +617,7 @@ public sealed class StartMenuView : UserControl
         if (target == _page || _animating) return;
 
         _page = target;
+        EnsureStartMenuPageWindowPopulated(_page);
         UpdateDots();
         _animating = true;
         var animation = new DoubleAnimation(-_page * _pageWidth, TimeSpan.FromMilliseconds(AnimationMs))

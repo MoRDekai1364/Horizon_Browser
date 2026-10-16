@@ -845,8 +845,45 @@ public partial class FluxSidebar : UserControl
         InitializeComponent();
         ListFlux.ItemsSource = FluxItems;
         Loaded += FluxSidebar_Loaded;
+        Loaded += (_, _) => ApplyResponsiveSidebarLayout();
+        SizeChanged += (_, _) => ApplyResponsiveSidebarLayout();
         FluxAccentColorConverter.ColorResolved += OnPinAccentColorResolved;
         Unloaded += (_, _) => FluxAccentColorConverter.ColorResolved -= OnPinAccentColorResolved;
+    }
+
+    private void ApplyResponsiveSidebarLayout()
+    {
+        if (SidebarTabControl == null) return;
+        SidebarTabControl.ApplyTemplate();
+        var rowHeader = SidebarTabControl.Template?.FindName("RowTabHeader", SidebarTabControl) as RowDefinition;
+        var headerGrid = SidebarTabControl.Template?.FindName("TabHeaderGrid", SidebarTabControl) as System.Windows.Controls.Primitives.UniformGrid;
+
+        bool compactHeight = ActualHeight > 0 && ActualHeight < 640;
+        if (rowHeader != null && headerGrid != null)
+        {
+            if (compactHeight)
+            {
+                headerGrid.Columns = 6;
+                headerGrid.Rows = 1;
+                rowHeader.Height = new GridLength(48);
+            }
+            else
+            {
+                headerGrid.Columns = 3;
+                headerGrid.Rows = 2;
+                rowHeader.Height = new GridLength(100);
+            }
+        }
+
+        if (ActualWidth > 0 && ActualWidth < 275)
+        {
+            double s = Math.Clamp(ActualWidth / 285.0, 0.82, 1.0);
+            SidebarTabControl.LayoutTransform = new ScaleTransform(s, s);
+        }
+        else if (SidebarTabControl.LayoutTransform != Transform.Identity)
+        {
+            SidebarTabControl.LayoutTransform = Transform.Identity;
+        }
     }
 
     private void OnPinAccentColorResolved()
