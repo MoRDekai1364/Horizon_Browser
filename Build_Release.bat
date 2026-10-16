@@ -68,6 +68,10 @@ if %errorlevel% neq 0 (
     echo [WARN] dotnet exited with non-zero code but binary exists ^(SDK workload logger bug^). Continuing.
 )
 
+if exist "%OUT_DIR%\net8.0-windows10.0.19041.0" (
+    rmdir /s /q "%OUT_DIR%\net8.0-windows10.0.19041.0"
+)
+
 echo [2b/3] Applying default_settings.txt...
 if exist "%DEFAULTS_FILE%" (
     findstr /v /b /c:"@" "%DEFAULTS_FILE%" > "%OUT_DIR%\default_settings.txt"
