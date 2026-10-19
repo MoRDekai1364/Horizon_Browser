@@ -539,6 +539,10 @@
             </Button>
 
             <StackPanel x:Name="PnlBottomRightButtons" Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,16,16">
+                <Button x:Name="BtnCompactInfo" Content="Info" Style="{StaticResource PillButtonStyle}" Visibility="Collapsed" Margin="0,0,8,0"
+                        Height="26" Padding="10,0" Click="BtnCompactInfo_Click"/>
+                <Button x:Name="BtnCompactWidgets" Content="Widgets" Style="{StaticResource PillButtonStyle}" Visibility="Collapsed" Margin="0,0,10,0"
+                        Height="26" Padding="10,0" Click="BtnCompactWidgets_Click"/>
 
                 <Border x:Name="PnlVpnAdBlock" Tag="VpnAdBlock" Background="#991A1A1A" CornerRadius="13" BorderBrush="#80FFFFFF" BorderThickness="1.5"
                         Cursor="Hand" Visibility="Collapsed" Margin="0,0,10,0" Padding="16,4,16,4" VerticalAlignment="Center"
@@ -605,6 +609,10 @@
                     <RowDefinition x:Name="RowSearchArea" Height="*"/>
                 </Grid.RowDefinitions>
 
+            <ScrollViewer x:Name="ClockWeatherScroll" Grid.Row="0" Grid.Column="0" Grid.RowSpan="2"
+                          VerticalAlignment="Top" HorizontalScrollBarVisibility="Disabled"
+                          VerticalScrollBarVisibility="Auto" PanningMode="VerticalOnly" Style="{StaticResource HomeScrollViewerStyle}">
+            <Grid x:Name="ClockWeatherContent">
             <Border x:Name="ClockWeatherIslandBorder" Grid.Row="0" Grid.Column="0"
                     HorizontalAlignment="Left" VerticalAlignment="Top"
                     Margin="30,40,40,0"
@@ -684,6 +692,8 @@
                     <TextBlock x:Name="TblWeatherCity" Text="" FontSize="23" Foreground="#888" HorizontalAlignment="Left" Margin="2,2,0,0"/>
                 </StackPanel>
 
+                <controls:AstronomyWidget x:Name="HomeMoonPhase" Mode="MoonPhase" Compact="True" Visibility="Collapsed" Margin="0,12,0,0"/>
+                <controls:AstronomyWidget x:Name="HomeSunProgress" Mode="SunProgress" Compact="True" Visibility="Collapsed" Margin="0,12,0,0"/>
                 <StackPanel x:Name="PnlCalendar" Tag="Calendar" Margin="0,20,0,0" Background="Transparent" Cursor="Hand" MouseLeftButtonUp="WidgetCalendar_Click" PreviewMouseLeftButtonDown="Widget_PreviewMouseLeftButtonDown" MouseMove="Widget_MouseMove">
                     <StackPanel x:Name="PnlCalendarDate" RenderTransformOrigin="0,0">
                         <StackPanel.RenderTransform>
@@ -760,6 +770,8 @@
                 </StackPanel>
             </StackPanel>
 
+            </Grid>
+            </ScrollViewer>
             <controls:StackHost x:Name="HomeStack" Grid.Row="0" Grid.RowSpan="2" Grid.Column="2"
                                 HorizontalAlignment="Right" VerticalAlignment="Top"
                                 Margin="0,50,40,0" Visibility="Collapsed"/>
@@ -826,7 +838,7 @@
                                            FontSize="18" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="12,12,20,12" IsHitTestVisible="False"/>
                                 <TextBox x:Name="TxtHomeSearch" Background="Transparent" BorderThickness="0" Foreground="{DynamicResource HomeTextBrush}"
                                          CaretBrush="White" FontSize="18" VerticalContentAlignment="Center" HorizontalAlignment="Left" Margin="12,12,20,12"
-                                         MinWidth="{Binding ActualWidth, ElementName=TxtHomeSearchPlaceholder}" MaxWidth="740"
+                                         MinWidth="0" MaxWidth="740"
                                          TextWrapping="Wrap" AcceptsReturn="False" MaxHeight="140" VerticalScrollBarVisibility="Auto"
                                          KeyDown="TxtHomeSearch_KeyDown" TextChanged="TxtHomeSearch_TextChanged"/>
                             </Grid>
@@ -836,7 +848,9 @@
                             Width="{Binding ActualWidth, ElementName=SwitchSlot}"/>
                 </Grid>   
 
-                <Grid x:Name="GridFavBookmarksIsland" Grid.Row="1" Grid.RowSpan="2" HorizontalAlignment="Center">
+                <ScrollViewer x:Name="CenterContentScroll" Grid.Row="1" Grid.RowSpan="2" Padding="16,0,16,16"
+                              HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" PanningMode="VerticalOnly" Style="{StaticResource HomeScrollViewerStyle}">
+                <Grid x:Name="GridFavBookmarksIsland" HorizontalAlignment="Center">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
@@ -845,7 +859,7 @@
                     <!-- Visual-only island: mirrors ClockWeatherIslandBorder so favorites + bookmarks read as one widget -->
                     <Border x:Name="FavBookmarksIslandBorder" Grid.Row="0" Grid.RowSpan="2"
                             HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                            Margin="-15,16,-15,-15"
+                            Margin="0,12,0,0"
                             CornerRadius="{Binding CornerRadius, ElementName=SearchBoxBorder}"
                             Background="{Binding Background, ElementName=SearchBoxBorder}"
                             BorderBrush="{Binding BorderBrush, ElementName=SearchBoxBorder}"
@@ -959,6 +973,7 @@
                     </Button>
                 </StackPanel>
                 </Grid>
+                </ScrollViewer>
             </Grid>
             </Grid>
         </Grid>

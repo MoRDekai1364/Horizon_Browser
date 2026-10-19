@@ -360,7 +360,7 @@ public static class FolderFallback
 
 public class RowsPanel : Panel
 {
-    public const int MinColumns = 2;
+    public const int MinColumns = 1;
     public const int MaxColumns = 6;
     public const double CellWidth = 131;
 

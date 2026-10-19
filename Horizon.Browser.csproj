@@ -45,6 +45,7 @@
     <EmbeddedResource Include="Languages\**" />
     <None Include="start_videos\**" CopyToOutputDirectory="PreserveNewest" />
     <None Include="default_settings.txt" CopyToOutputDirectory="PreserveNewest" Condition="Exists('default_settings.txt')" />
+    <None Update="docs/astronomy-sources.md" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

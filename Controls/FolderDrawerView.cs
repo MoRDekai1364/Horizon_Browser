@@ -422,9 +422,6 @@ public sealed class FolderDrawerView : UserControl
 
     public FolderDrawerView()
     {
-        HomeGlass.SetExclude(this, true);
-        MinHeight = 220;
-        MinWidth = 200;
         _title = new TextBlock
         {
             FontSize = 18,

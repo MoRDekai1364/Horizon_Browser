@@ -26,7 +26,6 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Web.WebView2.Core;
-using WpfAnimatedGif;
 using System.Windows.Media.Imaging;
 
 namespace Horizon.Stealth;
@@ -324,6 +323,7 @@ public partial class MainWindow : Window
         ("Weather",    "⛅  Weather"),     ("Calculator", "🧮  Calculator"),
         ("Notes",      "📝  Notes"),      ("Converter",  "⇄   Converter"),
         ("Calendar",   "📅  Calendar"),
+        ("MoonPhase", "🌙  Moon phase"), ("SunProgress", "☀  Sunrise & sunset"),
         ("Notifications", "🔔  Notifications"), ("Battery", "🔋  Battery"),
     };
 
@@ -7681,7 +7681,7 @@ return colors.length > 0 ? colors : null;
         TxtWidgetCycleSecs.Text    = SettingsService.Current.WidgetCycleSecs == 0
                                      ? "Off" : $"{SettingsService.Current.WidgetCycleSecs}s";
         TxtWeatherCity.Text        = SettingsService.Current.WidgetWeatherCity;
-        PnlWeatherCity.Visibility  = SettingsService.Current.WidgetModes.Contains("Weather")
+        PnlWeatherCity.Visibility  = HasWeatherLocationWidget
                                      ? Visibility.Visible : Visibility.Collapsed;
 
         _clockTimer.Tick += (s, e) => RefreshWidgetDisplay();
@@ -7796,7 +7796,7 @@ return colors.length > 0 ? colors : null;
             LstWidgetOrder.Items.Add(BuildWidgetListItem(key, label, isOn));
         }
 
-        PnlWeatherCity.Visibility = m.Contains("Weather") ? Visibility.Visible : Visibility.Collapsed;
+        PnlWeatherCity.Visibility = HasWeatherLocationWidget ? Visibility.Visible : Visibility.Collapsed;
         ChkWidgetDisableCycle.IsChecked = SettingsService.Current.WidgetDisableCycle;
         PnlWidgetCycle.Visibility = (m.Count > 1 && !SettingsService.Current.WidgetDisableCycle)
                                     ? Visibility.Visible : Visibility.Collapsed;
@@ -7965,6 +7965,8 @@ return colors.length > 0 ? colors : null;
         "Media"      => GetWidgetMediaText(),
         "Music"      => GetWidgetMediaText(),   // legacy alias
         "Weather"    => _weatherCache,
+        "MoonPhase"  => GetMoonWidgetText(),
+        "SunProgress" => GetSunWidgetText(),
         "Notes"      => WidgetTruncate(SettingsService.Current.WidgetNotes, "📝 (empty)"),
         "Calculator" => "🧮  Calculator",
         "Converter"  => "⇄   Converter",
@@ -7973,6 +7975,21 @@ return colors.length > 0 ? colors : null;
         "Battery"    => GetBatteryWidgetText(),
         _            => "--"
     };
+
+    private static bool HasWeatherLocationWidget => SettingsService.Current.WidgetModes.Any(m => m is "Weather" or "MoonPhase" or "SunProgress");
+    private DateTimeOffset _lastAstronomyRefresh;
+
+    private static string GetMoonWidgetText()
+    {
+        var moon = AstronomyService.MoonAt(DateTimeOffset.UtcNow);
+        return $"{moon.Icon} {moon.Illumination:P0}";
+    }
+
+    private static string GetSunWidgetText()
+    {
+        var sun = AstronomyService.SunAt(AstronomyService.Solar, DateTimeOffset.UtcNow);
+        return sun.IsDay && sun.Progress.HasValue ? $"☀ {sun.Progress:P0}" : "☾ " + sun.Status;
+    }
 
     private string GetBatteryWidgetText()
     {
@@ -8540,6 +8557,26 @@ return colors.length > 0 ? colors : null;
     private void RefreshWidgetDisplay()
     {
         string mode = CurrentWidgetMode();
+        if (mode is "MoonPhase" or "SunProgress" or "Weather")
+        {
+            if (DateTimeOffset.UtcNow - _lastAstronomyRefresh > TimeSpan.FromMinutes(1))
+            {
+                _lastAstronomyRefresh = DateTimeOffset.UtcNow;
+                _ = AstronomyService.EnsureAsync(SettingsService.Current.WidgetWeatherCity);
+            }
+        }
+        HeaderSunProgress.Visibility = mode == "SunProgress" ? Visibility.Visible : Visibility.Collapsed;
+        WidgetTextClip.Margin = mode == "SunProgress" ? new Thickness(0, 0, 0, 10) : new Thickness(0);
+        if (mode == "SunProgress")
+        {
+            var sun = AstronomyService.SunAt(AstronomyService.Solar, DateTimeOffset.UtcNow);
+            HeaderSunProgress.SetState(sun.Progress, sun.IsDay);
+            TxtWidget.ToolTip = sun.Detail + $"\n↑ {sun.Sunrise}   ↓ {sun.Sunset}";
+        }
+        else if (mode == "MoonPhase")
+        {
+            TxtWidget.ToolTip = AstronomyService.MoonAt(DateTimeOffset.UtcNow).Name;
+        }
         if (mode != "Media" && mode != "Music") StopMediaWidgetMarquee();
 
         var _mediaVidTab    = _allTabs.FirstOrDefault(t => t.IsPlayingAudio && t.HasVideo && !t.IsAudioOnlyMode);
@@ -8690,6 +8727,7 @@ private sealed class WeatherRetryHandler : DelegatingHandler
 
     private async Task FetchWeatherAsync(string city)
     {
+        _ = AstronomyService.EnsureAsync(city);
         // ── Provider 1: wttr.in (compact format) ─────────────────────────────
         for (int attempt = 0; attempt < 2; attempt++)
         {
@@ -8840,44 +8878,13 @@ private sealed class WeatherRetryHandler : DelegatingHandler
             Margin           = margin ?? new Thickness(0),
         };
 
-    private static string WmoCodeToAnimatedIcon(int code) => code switch
+    private static FrameworkElement BuildWeatherConditionIcon(int wmoCode, double size, Thickness? margin = null)
     {
-        0                    => "sunny.gif",
-        1                    => "mostly_sunny_author_jason_dwayne.gif",
-        2 or 3               => "cloudy.gif",
-        45 or 48             => "foggy.gif",
-        51 or 53 or 55       => "drizzle.gif",
-        56 or 57             => "rain_snow_author_jason_dwayne.gif",
-        61 or 63             => "rainy_author_jason_dwayne.gif",
-        65 or 80 or 81 or 82 => "heavy_rain.gif",
-        66 or 67             => "rain_snow_author_jason_dwayne.gif",
-        71 or 73 or 75 or 77 or 85 or 86 => "snowy_author_jason_dwayne.gif",
-        95                   => "thunderstorm_author_jason_dwayne.gif",
-        96 or 99             => "hail.gif",
-        _                    => "cloudy.gif",
-    };
-
-    private static FrameworkElement BuildAnimatedWeatherIcon(int wmoCode, double size, Thickness? margin = null)
-    {
-        string file = WmoCodeToAnimatedIcon(wmoCode);
-        string path = System.IO.Path.Combine(AppContext.BaseDirectory, "src", "animated_icons", file);
-        var image = new Image
-        {
-            Width = size, Height = size,
-            Stretch = Stretch.Uniform,
-            VerticalAlignment = VerticalAlignment.Center,
-            Margin = margin ?? new Thickness(0),
-        };
-        if (System.IO.File.Exists(path))
-        {
-            ImageBehavior.SetAnimatedSource(image, new BitmapImage(new Uri(path, UriKind.Absolute)));
-            ImageBehavior.SetRepeatBehavior(image, System.Windows.Media.Animation.RepeatBehavior.Forever);
-        }
-        else
-        {
-            return WeatherIconBlock(wmoCode, size * 0.7, margin);
-        }
-        return image;
+        var icon = WeatherIconBlock(wmoCode, size * 0.8, margin);
+        icon.Width = size;
+        icon.Height = size;
+        icon.TextAlignment = TextAlignment.Center;
+        return icon;
     }
 
     // ── Current-conditions row helpers ────────────────────────────────────────
@@ -8920,7 +8927,7 @@ private sealed class WeatherRetryHandler : DelegatingHandler
             rows.Add(new TextBlock
             {
                 Text = string.IsNullOrWhiteSpace(_weatherDetailCache) ? _weatherCache : _weatherDetailCache,
-                Foreground = new SolidColorBrush(WxRowText), FontSize = 12, FontFamily = new FontFamily("Consolas"),
+                Foreground = WeatherAppearance.TextBrush, FontSize = 12, FontFamily = new FontFamily("Consolas"),
                 TextWrapping = TextWrapping.Wrap
             });
             return rows;
@@ -8929,7 +8936,7 @@ private sealed class WeatherRetryHandler : DelegatingHandler
         var mono = new FontFamily("Consolas");
         var emoji = new FontFamily("Segoe UI Emoji");
         var iconBrush = new SolidColorBrush(WeatherBridge.ThemeAccentSubtle);
-        var labelBrush = new SolidColorBrush(WxMuted);
+        var labelBrush = WeatherAppearance.MutedBrush;
 
         TextBlock Icon(string glyph) => new TextBlock
         {
@@ -8939,7 +8946,7 @@ private sealed class WeatherRetryHandler : DelegatingHandler
 
         TextBlock Val(string text, Brush? fg = null, FontWeight? weight = null) => new TextBlock
         {
-            Text = text, FontSize = 12, FontFamily = mono, Foreground = fg ?? new SolidColorBrush(WxRowText),
+            Text = text, FontSize = 12, FontFamily = mono, Foreground = fg ?? WeatherAppearance.TextBrush,
             FontWeight = weight ?? FontWeights.Normal, TextWrapping = TextWrapping.Wrap
         };
 
@@ -9014,7 +9021,7 @@ private sealed class WeatherRetryHandler : DelegatingHandler
             Val(_cachedWxVisM >= 1000 ? $"{_cachedWxVisM / 1000.0:F1} km" : $"{_cachedWxVisM:F0} m"), ""));
         rows.Add(Row(Icon("⏱"), "Pressure", Val($"{_cachedWxPressure:F0} hPa"), WxPressureTip(_cachedWxPressure)));
         rows.Add(Row(Icon("☀"), "UV Index",
-            Val($"{_cachedWxUv:F0}  {WxUvLevel(_cachedWxUv)}", new SolidColorBrush(WxUvColor(_cachedWxUv))),
+            Val($"{_cachedWxUv:F0}  {WxUvLevel(_cachedWxUv)}", WeatherAppearance.SemanticBrush(WxUvColor(_cachedWxUv))),
             WxUvProtection(_cachedWxUv)));
 
         var sun = new StackPanel { Orientation = Orientation.Horizontal };
@@ -9042,6 +9049,8 @@ private sealed class WeatherRetryHandler : DelegatingHandler
             case "Converter":  OpenConverterWindow();      break;
             case "Calendar":   OpenCalendarWindow();       break;
             case "Weather":    OpenWeatherDetailPopup();   break;
+            case "MoonPhase":  OpenAstronomyWindow("MoonPhase"); break;
+            case "SunProgress": OpenAstronomyWindow("SunProgress"); break;
             case "Media":
             case "Music":
             case "Video":      OpenMusicControlsPopup();   break;
@@ -9300,7 +9309,7 @@ private sealed class WeatherRetryHandler : DelegatingHandler
         SliderWidgetCycle.Value   = SettingsService.Current.WidgetCycleSecs;
         TxtWidgetCycleSecs.Text   = $"{SettingsService.Current.WidgetCycleSecs}s";
         TxtWeatherCity.Text       = SettingsService.Current.WidgetWeatherCity;
-        PnlWeatherCity.Visibility = SettingsService.Current.WidgetModes.Contains("Weather")
+        PnlWeatherCity.Visibility = HasWeatherLocationWidget
                                     ? Visibility.Visible : Visibility.Collapsed;
         WidgetContextPopup.IsOpen = true;
         e.Handled = true;
@@ -9339,6 +9348,7 @@ private sealed class WeatherRetryHandler : DelegatingHandler
         if (cb.IsChecked == true)
         {
             if (!modes.Contains(mode)) modes.Add(mode);
+            if (mode is "MoonPhase" or "SunProgress") _ = AstronomyService.EnsureAsync(SettingsService.Current.WidgetWeatherCity);
             if (mode == "Weather")
             {
                 PnlWeatherCity.Visibility = Visibility.Visible;
@@ -9362,6 +9372,7 @@ private sealed class WeatherRetryHandler : DelegatingHandler
             if (_widgetModeIndex >= modes.Count) _widgetModeIndex = 0;
         }
 
+        PnlWeatherCity.Visibility = HasWeatherLocationWidget ? Visibility.Visible : Visibility.Collapsed;
         SettingsService.Save();
         RestartWidgetCycleTimer();
         RefreshWidgetDisplay();
@@ -10275,12 +10286,14 @@ private sealed class WeatherRetryHandler : DelegatingHandler
     private static Color WxPillOpaque =>
         Color.FromRgb(WeatherBridge.ThemePill.R, WeatherBridge.ThemePill.G, WeatherBridge.ThemePill.B);
 
-    private static Color WxPanel        => WeatherBridge.ThemeDarkWallpaper
-        ? WxBlend(WeatherBridge.ThemeAverage, Colors.Black, 0.82)
-        : WxBlend(WeatherBridge.ThemeAverage, Colors.White, 0.82);
-    private static Color WxMuted        => WxBlend(WeatherBridge.ThemeAccentSubtle, WxPanel, 0.35);
-    private static Color WxRowText      => WeatherBridge.ThemeDarkWallpaper ? Colors.White : Color.FromRgb(0x14, 0x14, 0x14);
-    private static Color WxTabInactive  => WxBlend(WeatherBridge.ThemeAccentSubtle, Colors.White, 0.55);
+    private static Controls.AstronomyWidget BuildWeatherAstronomyCard(string mode) => new()
+    {
+        Mode = mode, Compact = true, Embedded = true, OpenOnClick = false, Margin = new Thickness(0, 8, 0, 0)
+    };
+
+    private static Color WxPanel        => WeatherAppearance.PanelColor;
+    private static Color WxMuted        => WeatherAppearance.MutedBrush.Color;
+    private static Color WxRowText      => WeatherAppearance.TextBrush.Color;
     private static Color WxButtonBg     => WxBlend(WxPillOpaque, WxPanel, 0.55);
     private static Color WxButtonBorder => WxBlend(WxPillOpaque, Colors.White, 0.12);
 
@@ -10293,7 +10306,7 @@ private sealed class WeatherRetryHandler : DelegatingHandler
         Math.Min(SystemParameters.WorkArea.Width - 20,
             (400 + (leftOpen ? WxFavPaneWidth(w) : 0) + (rightOpen ? WxPaneWidth(w) : 0)) * WxScale(w));
 
-    private static Color WxSurface => Color.FromArgb(0x58, 0x00, 0x00, 0x00);
+    private static Color WxSurface => WeatherAppearance.CardBrush.Color;
     private static Color WxBorder => Color.FromArgb(0x48, WeatherBridge.ThemeAccent.R, WeatherBridge.ThemeAccent.G, WeatherBridge.ThemeAccent.B);
 
     private static string WxUvLevel(double uv) =>
@@ -10308,7 +10321,7 @@ private sealed class WeatherRetryHandler : DelegatingHandler
 
     private static void WxTabStyle(Button btn, bool active)
     {
-        btn.Foreground      = new SolidColorBrush(active ? WeatherBridge.ThemeAccent : WxTabInactive);
+        btn.Foreground      = active ? WeatherAppearance.AccentBrush : WeatherAppearance.MutedBrush;
         btn.BorderBrush     = new SolidColorBrush(active ? WxPillOpaque : Colors.Transparent);
         btn.BorderThickness = active ? new Thickness(0, 0, 0, 2) : new Thickness(0);
     }
@@ -10377,6 +10390,7 @@ private sealed class WeatherRetryHandler : DelegatingHandler
             Owner = null, ShowInTaskbar = false, Topmost = true,
         };
         ApplyWindowRoundedCorners(win);
+        ContrastGuard.SetMode(win, ContrastMode.Off);
 
         var animBrush = new LinearGradientBrush
         {
@@ -10481,7 +10495,7 @@ private sealed class WeatherRetryHandler : DelegatingHandler
         {
             VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
             Visibility = Visibility.Collapsed,
-            BorderBrush = new SolidColorBrush(WxBorder),
+            BorderBrush = WeatherAppearance.BorderBrush,
             BorderThickness = new Thickness(0, 0, 1, 0)
         };
         Grid.SetColumn(favScroll, 0);
@@ -10492,8 +10506,8 @@ private sealed class WeatherRetryHandler : DelegatingHandler
 
         var cityInput = new TextBox
         {
-            Text = city, Background = new SolidColorBrush(Color.FromArgb(180, 0x10, 0x10, 0x10)),
-            Foreground = new SolidColorBrush(Color.FromRgb(0xcc, 0xcc, 0xcc)),
+            Text = city, Background = WeatherAppearance.InputBrush,
+            Foreground = WeatherAppearance.TextBrush,
             BorderBrush = new SolidColorBrush(Color.FromRgb(0x44, 0x44, 0x44)),
             BorderThickness = new Thickness(1), Padding = new Thickness(4, 3, 4, 3),
             FontSize = 12, Margin = new Thickness(0, 0, 0, 8)
@@ -10506,7 +10520,7 @@ private sealed class WeatherRetryHandler : DelegatingHandler
             conditionsHolder.Children.Add(new TextBlock
             {
                 Text = "Loading…",
-                Foreground = new SolidColorBrush(Color.FromRgb(0x88, 0x99, 0xaa)),
+                Foreground = WeatherAppearance.MutedBrush,
                 FontSize = 11, Margin = new Thickness(0, 4, 0, 4)
             });
         }
@@ -10572,8 +10586,8 @@ private sealed class WeatherRetryHandler : DelegatingHandler
             {
                 var row = new Border
                 {
-                    Background = new SolidColorBrush(WxSurface),
-                    BorderBrush = new SolidColorBrush(WxBorder),
+                    Background = WeatherAppearance.CardBrush,
+                    BorderBrush = WeatherAppearance.BorderBrush,
                     BorderThickness = new Thickness(1),
                     CornerRadius = new CornerRadius(4),
                     Margin = new Thickness(0, 0, 0, 6),
@@ -10594,7 +10608,7 @@ private sealed class WeatherRetryHandler : DelegatingHandler
                 var removeBtn = new TextBlock
                 {
                     Text = "✕", FontSize = 11,
-                    Foreground = new SolidColorBrush(WxMuted),
+                    Foreground = WeatherAppearance.MutedBrush,
                     VerticalAlignment = VerticalAlignment.Center,
                     Margin = new Thickness(8, 0, 0, 0),
                     Cursor = Cursors.Hand
@@ -10603,8 +10617,8 @@ private sealed class WeatherRetryHandler : DelegatingHandler
                 rowGrid.Children.Add(removeBtn);
                 row.Child = rowGrid;
 
-                row.MouseEnter += (_, _) => row.Background = new SolidColorBrush(Color.FromArgb(0x30, 0xFF, 0xFF, 0xFF));
-                row.MouseLeave += (_, _) => row.Background = new SolidColorBrush(WxSurface);
+                row.MouseEnter += (_, _) => row.Background = WeatherAppearance.HoverBrush;
+                row.MouseLeave += (_, _) => row.Background = WeatherAppearance.CardBrush;
                 row.MouseLeftButtonUp += async (_, e) =>
                 {
                     if (e.OriginalSource == removeBtn)
@@ -10626,7 +10640,7 @@ private sealed class WeatherRetryHandler : DelegatingHandler
             hourlyHolder.Children.Clear();
             hourlyHolder.Children.Add(new TextBlock
             {
-                Text = "Loading…", Foreground = new SolidColorBrush(WxMuted), FontSize = 11,
+                Text = "Loading…", Foreground = WeatherAppearance.MutedBrush, FontSize = 11,
                 Margin = new Thickness(2, 6, 0, 6)
             });
             string paneCity = cityInput.Text.Trim();
@@ -10670,9 +10684,9 @@ private sealed class WeatherRetryHandler : DelegatingHandler
         };
         currentInner.Children.Add(cityInput);
         cityInput.Background = new SolidColorBrush(Color.FromArgb(0x70, 0x00, 0x00, 0x00));
-        cityInput.Foreground = Brushes.White;
-        cityInput.BorderBrush = new SolidColorBrush(WxBorder);
-        cityInput.CaretBrush = new SolidColorBrush(WeatherBridge.ThemeAccent);
+        cityInput.Foreground = WeatherAppearance.TextBrush;
+        cityInput.BorderBrush = WeatherAppearance.BorderBrush;
+        cityInput.CaretBrush = WeatherAppearance.AccentBrush;
         cityInput.FontFamily = new FontFamily("Consolas");
         refreshBtn.Margin = new Thickness(0, 12, 0, 0);
 
@@ -10689,6 +10703,9 @@ private sealed class WeatherRetryHandler : DelegatingHandler
         bodyGrid.Children.Add(conditionsHolder);
         bodyGrid.Children.Add(calendarHolder);
         currentInner.Children.Add(bodyGrid);
+        currentInner.Children.Add(BuildWeatherAstronomyCard("MoonPhase"));
+        currentInner.Children.Add(BuildWeatherAstronomyCard("SunProgress"));
+        currentInner.Children.Add(BuildWeatherAstronomyCard("MagneticStorms"));
 
         bool nowSide = false;
         void ArrangeNow()
@@ -10721,7 +10738,7 @@ private sealed class WeatherRetryHandler : DelegatingHandler
             HorizontalAlignment = HorizontalAlignment.Stretch,
             HorizontalContentAlignment = HorizontalAlignment.Left,
             Background = new SolidColorBrush(Color.FromArgb(100, 0x0a, 0x16, 0x28)),
-            Foreground = new SolidColorBrush(Color.FromRgb(0x66, 0xaa, 0xdd)),
+            Foreground = WeatherAppearance.AccentBrush,
             BorderThickness = new Thickness(0, 1, 0, 0),
             BorderBrush = new SolidColorBrush(Color.FromRgb(0x1e, 0x2e, 0x44)),
             FontSize = 11, FontWeight = FontWeights.SemiBold,
@@ -10752,9 +10769,9 @@ private sealed class WeatherRetryHandler : DelegatingHandler
                 await LoadTodayHourly();
             }
         };
-        hourlyToggleBtn.Background = new SolidColorBrush(WxSurface);
-        hourlyToggleBtn.Foreground = new SolidColorBrush(WeatherBridge.ThemeAccentSubtle);
-        hourlyToggleBtn.BorderBrush = new SolidColorBrush(WxBorder);
+        hourlyToggleBtn.Background = WeatherAppearance.CardBrush;
+        hourlyToggleBtn.Foreground = WeatherAppearance.MutedBrush;
+        hourlyToggleBtn.BorderBrush = WeatherAppearance.BorderBrush;
         hourlyToggleBtn.ContextMenu = MakeDefaultOpenMenu(
             () => SettingsService.Current.WeatherRightPaneDefaultOpen,
             v => SettingsService.Current.WeatherRightPaneDefaultOpen = v);
@@ -10777,12 +10794,12 @@ private sealed class WeatherRetryHandler : DelegatingHandler
         {
             var sp = (StackPanel)sv.Content;
             sp.Children.Clear();
-            sp.Children.Add(new TextBlock { Text = "Loading…", Foreground = new SolidColorBrush(WxMuted), FontSize = 11, Margin = new Thickness(0, 6, 0, 6) });
+            sp.Children.Add(new TextBlock { Text = "Loading…", Foreground = WeatherAppearance.MutedBrush, FontSize = 11, Margin = new Thickness(0, 6, 0, 6) });
             string fc = cityInput.Text.Trim();
             if (string.IsNullOrEmpty(fc))
             {
                 sp.Children.Clear();
-                sp.Children.Add(new TextBlock { Text = "Enter a city on the Now tab.", Foreground = new SolidColorBrush(WxMuted), FontSize = 11, Margin = new Thickness(0, 6, 0, 6) });
+                sp.Children.Add(new TextBlock { Text = "Enter a city on the Now tab.", Foreground = WeatherAppearance.MutedBrush, FontSize = 11, Margin = new Thickness(0, 6, 0, 6) });
                 return false;
             }
             var data = await FetchWeatherForecastAsync(fc, days);
@@ -10791,7 +10808,7 @@ private sealed class WeatherRetryHandler : DelegatingHandler
             {
                 var graph = BuildTemperatureGraph(data, 370, 80);
                 sp.Children.Add(graph);
-                sp.Children.Add(new Border { Height = 1, Background = new SolidColorBrush(WxBorder), Margin = new Thickness(0, 4, 0, 6) });
+                sp.Children.Add(new Border { Height = 1, Background = WeatherAppearance.BorderBrush, Margin = new Thickness(0, 4, 0, 6) });
             }
             var rowsHolder = new StackPanel();
             sp.Children.Add(rowsHolder);
@@ -10812,7 +10829,7 @@ private sealed class WeatherRetryHandler : DelegatingHandler
         {
             var sp = (StackPanel)sv.Content;
             sp.Children.Clear();
-            sp.Children.Add(new TextBlock { Text = "Loading…", Foreground = new SolidColorBrush(Color.FromRgb(0x88, 0x99, 0xaa)), FontSize = 11, Margin = new Thickness(0, 6, 0, 6) });
+            sp.Children.Add(new TextBlock { Text = "Loading…", Foreground = WeatherAppearance.MutedBrush, FontSize = 11, Margin = new Thickness(0, 6, 0, 6) });
             string fc = cityInput.Text.Trim();
             if (string.IsNullOrEmpty(fc)) return;
             await EnsureWeatherGeoAsync(fc);
@@ -10825,7 +10842,7 @@ private sealed class WeatherRetryHandler : DelegatingHandler
         {
             var sp = (StackPanel)sv.Content;
             sp.Children.Clear();
-            sp.Children.Add(new TextBlock { Text = "Loading…", Foreground = new SolidColorBrush(Color.FromRgb(0x88, 0x99, 0xaa)), FontSize = 11, Margin = new Thickness(0, 6, 0, 6) });
+            sp.Children.Add(new TextBlock { Text = "Loading…", Foreground = WeatherAppearance.MutedBrush, FontSize = 11, Margin = new Thickness(0, 6, 0, 6) });
             string fc = cityInput.Text.Trim();
             if (string.IsNullOrEmpty(fc)) return;
             await EnsureWeatherGeoAsync(fc);
@@ -10849,7 +10866,7 @@ private sealed class WeatherRetryHandler : DelegatingHandler
         var favSlide = new TranslateTransform();
         favScroll.RenderTransform = favSlide;
         bodyRoot.Children.Add(favScroll);
-        hourlyScroll.BorderBrush = new SolidColorBrush(WxBorder);
+        hourlyScroll.BorderBrush = WeatherAppearance.BorderBrush;
         hourlyScroll.Background = new SolidColorBrush(Color.FromArgb(0x38, 0x00, 0x00, 0x00));
         var paneSlide = new TranslateTransform();
         hourlyScroll.RenderTransform = paneSlide;
@@ -10959,37 +10976,24 @@ private sealed class WeatherRetryHandler : DelegatingHandler
         tabBar.SizeChanged += (_, _) => ApplyTabStretch();
         ApplyTabStretch();
 
-        async Task ReloadTabAsync(int idx)
-        {
-            if (idx == 1) loaded[1] = await LoadForecastTab(panel7, 7);
-            else if (idx == 2) loaded[2] = await LoadForecastTab(panel16, 16);
-            else if (idx == 3) { await LoadMonthlyTab(panelMon); loaded[3] = true; }
-            else if (idx == 4) { await LoadYearlyTab(panelYr); loaded[4] = true; }
-        }
-
         void WxLiveReapply()
         {
             win.Background = new SolidColorBrush(WxPanel);
-            cityInput.BorderBrush = new SolidColorBrush(WxBorder);
+            cityInput.BorderBrush = WeatherAppearance.BorderBrush;
             refreshBtn.Background = new SolidColorBrush(WxButtonBg);
             refreshBtn.BorderBrush = new SolidColorBrush(WxButtonBorder);
-            hourlyToggleBtn.Background = new SolidColorBrush(WxSurface);
-            hourlyToggleBtn.BorderBrush = new SolidColorBrush(WxBorder);
-            hourlyScroll.BorderBrush = new SolidColorBrush(WxBorder);
-            RebuildFavorites();
-            RebuildConditions();
-            int visibleIdx = 0;
+            hourlyToggleBtn.Background = WeatherAppearance.CardBrush;
+            hourlyToggleBtn.BorderBrush = WeatherAppearance.BorderBrush;
+            hourlyScroll.BorderBrush = WeatherAppearance.BorderBrush;
             for (int i = 0; i < tabBtns.Length; i++)
             {
                 bool active = panels[i].Visibility == Visibility.Visible;
                 WxTabStyle(tabBtns[i], active);
-                if (active) visibleIdx = i;
-                if (i != 0 && !active) loaded[i] = false;
             }
-            if (visibleIdx != 0) _ = ReloadTabAsync(visibleIdx);
         }
-        WeatherBridge.ThemeUpdated += WxLiveReapply;
-        win.Closed += (_, _) => WeatherBridge.ThemeUpdated -= WxLiveReapply;
+        Action wxThemeHandler = () => win.Dispatcher.BeginInvoke(new Action(WxLiveReapply));
+        WeatherBridge.ThemeUpdated += wxThemeHandler;
+        win.Closed += (_, _) => WeatherBridge.ThemeUpdated -= wxThemeHandler;
 
         win.SizeToContent = SizeToContent.Manual;
         win.MaxHeight = double.PositiveInfinity;
@@ -11014,7 +11018,7 @@ private sealed class WeatherRetryHandler : DelegatingHandler
         var titleText = new TextBlock
         {
             Text = "Weather", FontSize = 15,
-            Foreground = new SolidColorBrush(Color.FromArgb(0xE0, 0xFF, 0xFF, 0xFF)),
+            Foreground = WeatherAppearance.TextBrush,
             VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(14, 0, 0, 0)
         };
         Grid.SetColumn(titleText, 0);
@@ -11028,7 +11032,7 @@ private sealed class WeatherRetryHandler : DelegatingHandler
             var glyphTb = new TextBlock
             {
                 Text = glyph, FontFamily = new FontFamily("Segoe MDL2 Assets"), FontSize = 12,
-                Foreground = Brushes.White,
+                Foreground = WeatherAppearance.TextBrush,
                 HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center
             };
             var box = new Border { Width = 50, Height = 40, Background = Brushes.Transparent, Cursor = Cursors.Hand, Child = glyphTb };
@@ -11073,7 +11077,7 @@ private sealed class WeatherRetryHandler : DelegatingHandler
                 Header = "Open by default in Wide mode",
                 IsCheckable = true,
                 IsChecked = getter(),
-                Foreground = Brushes.White,
+                Foreground = WeatherAppearance.TextBrush,
                 Background = Brushes.Transparent
             };
             mi.Click += (_, _) =>
@@ -11081,7 +11085,7 @@ private sealed class WeatherRetryHandler : DelegatingHandler
                 setter(mi.IsChecked);
                 SettingsService.Save();
             };
-            var cm = new ContextMenu { Background = new SolidColorBrush(WxPanel), BorderBrush = new SolidColorBrush(WxBorder) };
+            var cm = new ContextMenu { Background = new SolidColorBrush(WxPanel), BorderBrush = WeatherAppearance.BorderBrush };
             cm.Items.Add(mi);
             return cm;
         }
@@ -11447,7 +11451,7 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
 
             var maxLbl = new TextBlock
             {
-                Text = $"{max:F0}°", FontSize = 8, Foreground = new SolidColorBrush(Color.FromRgb(0xff, 0xaa, 0x66)),
+                Text = $"{max:F0}°", FontSize = 8, Foreground = WeatherAppearance.SemanticBrush(Color.FromRgb(0xff, 0xaa, 0x66)),
                 TextAlignment = TextAlignment.Center, Width = barW
             };
             Canvas.SetLeft(maxLbl, x); Canvas.SetTop(maxLbl, Math.Max(0, yMax - 13));
@@ -11458,7 +11462,7 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
                 var dateLbl = new TextBlock
                 {
                     Text = date.ToString("M/d"), FontSize = 7.5,
-                    Foreground = new SolidColorBrush(Color.FromRgb(0x66, 0x88, 0xaa)),
+                    Foreground = WeatherAppearance.MutedBrush,
                     TextAlignment = TextAlignment.Center, Width = barW * 2
                 };
                 Canvas.SetLeft(dateLbl, x - barW * 0.5); Canvas.SetTop(dateLbl, height - padBot + 2);
@@ -11469,7 +11473,7 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
         var border = new System.Windows.Shapes.Rectangle
         {
             Width = width, Height = height,
-            Stroke = new SolidColorBrush(WxBorder),
+            Stroke = WeatherAppearance.BorderBrush,
             StrokeThickness = 1, Fill = Brushes.Transparent, RadiusX = 4, RadiusY = 4
         };
         Canvas.SetLeft(border, 0); Canvas.SetTop(border, 0);
@@ -11487,7 +11491,7 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
             panel.Children.Add(new TextBlock
             {
                 Text = "Could not load forecast.",
-                Foreground = new SolidColorBrush(WxMuted),
+                Foreground = WeatherAppearance.MutedBrush,
                 FontSize = 11, Margin = new Thickness(0, 4, 0, 0)
             });
             return;
@@ -11497,11 +11501,11 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
         {
             var (date, code, max, min, rainPct, precipMm) = item;
             var restBrush = new SolidColorBrush(alt ? Color.FromArgb(0x28, 0x00, 0x00, 0x00) : Color.FromArgb(0x48, 0x00, 0x00, 0x00));
-            var hoverBrush = new SolidColorBrush(Color.FromArgb(0x30, 0xFF, 0xFF, 0xFF));
+            var hoverBrush = WeatherAppearance.HoverBrush;
             var row = new Border
             {
                 Background      = restBrush,
-                BorderBrush     = new SolidColorBrush(WxBorder),
+                BorderBrush     = WeatherAppearance.BorderBrush,
                 BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(4),
                 Margin = new Thickness(0, 2, 0, 2), Padding = new Thickness(8, 5, 8, 5),
                 Cursor = Cursors.Hand
@@ -11525,26 +11529,26 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
             var dayLbl = new TextBlock
             {
                 Text = date.ToString("ddd dd"), FontSize = 11,
-                Foreground = new SolidColorBrush(WeatherBridge.ThemeAccent),
+                Foreground = WeatherAppearance.AccentBrush,
                 VerticalAlignment = VerticalAlignment.Center, FontFamily = new FontFamily("Consolas")
             };
             var iconLbl = WeatherIconBlock(code, 14, new Thickness(2, 0, 2, 0));
             var tempLbl = new TextBlock
             {
                 Text = $"{max:F0}° / {min:F0}°", FontSize = 11,
-                Foreground = Brushes.White,
+                Foreground = WeatherAppearance.TextBrush,
                 VerticalAlignment = VerticalAlignment.Center, FontFamily = new FontFamily("Consolas")
             };
             var rainLbl = new TextBlock
             {
                 Text = rainPct > 0 ? $"💧{rainPct:F0}%" : "",
                 FontSize = 10,
-                Foreground = new SolidColorBrush(rainPct >= 60 ? WxUvColor(3) : WeatherBridge.ThemeAccentSecondary),
+                Foreground = WeatherAppearance.SemanticBrush(rainPct >= 60 ? WxUvColor(3) : WeatherBridge.ThemeAccentSecondary),
                 VerticalAlignment = VerticalAlignment.Center, TextAlignment = TextAlignment.Right
             };
             var arrow = new TextBlock
             {
-                Text = "›", FontSize = 14, Foreground = new SolidColorBrush(WxMuted),
+                Text = "›", FontSize = 14, Foreground = WeatherAppearance.MutedBrush,
                 VerticalAlignment = VerticalAlignment.Center
             };
 
@@ -11661,13 +11665,13 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
         });
         canvas.Children.Add(new System.Windows.Shapes.Polyline
         {
-            Points = pts, Stroke = new SolidColorBrush(accent),
+            Points = pts, Stroke = WeatherAppearance.SemanticBrush(accent),
             StrokeThickness = 2, StrokeLineJoin = PenLineJoin.Round
         });
 
         var baseLine = new System.Windows.Shapes.Rectangle
         {
-            Width = width - padX * 2, Height = 1, Fill = new SolidColorBrush(WxBorder)
+            Width = width - padX * 2, Height = 1, Fill = WeatherAppearance.BorderBrush
         };
         Canvas.SetLeft(baseLine, padX);
         Canvas.SetTop(baseLine, baseY);
@@ -11676,7 +11680,7 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
         var categoryLbl = new TextBlock
         {
             Text = metric.Name, FontSize = 11, FontWeight = FontWeights.Bold,
-            Foreground = new SolidColorBrush(WxMuted)
+            Foreground = WeatherAppearance.MutedBrush
         };
         Canvas.SetLeft(categoryLbl, padX);
         Canvas.SetTop(categoryLbl, 2);
@@ -11687,7 +11691,7 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
             var hourLbl = new TextBlock
             {
                 Text = hourly[i].Time.ToString("HH"), FontSize = 11, FontWeight = FontWeights.SemiBold,
-                Foreground = new SolidColorBrush(WxMuted)
+                Foreground = WeatherAppearance.MutedBrush
             };
             Canvas.SetLeft(hourLbl, padX + i * segW - 8);
             Canvas.SetTop(hourLbl, baseY + 3);
@@ -11700,7 +11704,7 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
             var valueLbl = new TextBlock
             {
                 Text = $"{value:F1}{metric.Unit}", FontSize = 13, FontWeight = FontWeights.Bold,
-                Foreground = new SolidColorBrush(accent)
+                Foreground = WeatherAppearance.SemanticBrush(accent)
             };
             Canvas.SetLeft(valueLbl, Math.Clamp(pts[index].X - 16, 0, width - 40));
             Canvas.SetTop(valueLbl, Math.Max(0, pts[index].Y - 20));
@@ -11718,7 +11722,7 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
         var readout = new TextBlock
         {
             FontSize = 15, FontWeight = FontWeights.Bold,
-            Foreground = Brushes.White,
+            Foreground = WeatherAppearance.TextBrush,
             Effect = new System.Windows.Media.Effects.DropShadowEffect { BlurRadius = 6, ShadowDepth = 0, Opacity = 0.9 }
         };
         canvas.Children.Add(readout);
@@ -11726,7 +11730,7 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
         var dot = new System.Windows.Shapes.Ellipse
         {
             Width = 18, Height = 18, Fill = Brushes.White,
-            Stroke = new SolidColorBrush(accent), StrokeThickness = 3,
+            Stroke = WeatherAppearance.SemanticBrush(accent), StrokeThickness = 3,
             Cursor = Cursors.Hand,
             Effect = new System.Windows.Media.Effects.DropShadowEffect { Color = accent, BlurRadius = 10, ShadowDepth = 0, Opacity = 0.8 }
         };
@@ -11778,24 +11782,24 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
         Dictionary<int, double> uvByHour)
     {
         var mono = new FontFamily("Consolas");
-        var mutedBrush = new SolidColorBrush(WxMuted);
+        var mutedBrush = WeatherAppearance.MutedBrush;
 
         var header = new Grid { Margin = new Thickness(2, 2, 2, 10) };
         header.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         header.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        var headerIcon = BuildAnimatedWeatherIcon(code, 46, new Thickness(0, 0, 12, 0));
+        var headerIcon = BuildWeatherConditionIcon(code, 46, new Thickness(0, 0, 12, 0));
         Grid.SetColumn(headerIcon, 0);
         header.Children.Add(headerIcon);
         var info = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
         info.Children.Add(new TextBlock
         {
-            Text = WmoCodeToDescription(code), Foreground = new SolidColorBrush(WxRowText),
+            Text = WmoCodeToDescription(code), Foreground = WeatherAppearance.TextBrush,
             FontSize = 17, FontWeight = FontWeights.SemiBold
         });
         info.Children.Add(new TextBlock
         {
             Text = $"Hi {max:F1}°C  /  Lo {min:F1}°C", FontFamily = mono, FontSize = 12,
-            Foreground = new SolidColorBrush(WeatherBridge.ThemeAccent)
+            Foreground = WeatherAppearance.AccentBrush
         });
         info.Children.Add(new TextBlock
         {
@@ -11823,14 +11827,14 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
         var prevCatBtn = new TextBlock
         {
             Text = "‹", FontSize = 22, FontWeight = FontWeights.Bold,
-            Foreground = new SolidColorBrush(WeatherBridge.ThemeAccent),
+            Foreground = WeatherAppearance.AccentBrush,
             VerticalAlignment = VerticalAlignment.Center, Cursor = Cursors.Hand,
             Margin = new Thickness(4, 0, 8, 0)
         };
         var nextCatBtn = new TextBlock
         {
             Text = "›", FontSize = 22, FontWeight = FontWeights.Bold,
-            Foreground = new SolidColorBrush(WeatherBridge.ThemeAccent),
+            Foreground = WeatherAppearance.AccentBrush,
             VerticalAlignment = VerticalAlignment.Center, Cursor = Cursors.Hand,
             Margin = new Thickness(8, 0, 4, 0)
         };
@@ -11858,7 +11862,7 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
         panel.Children.Add(curveRow);
         panel.Children.Add(new Border
         {
-            Height = 1, Background = new SolidColorBrush(WxBorder), Margin = new Thickness(0, 4, 0, 8)
+            Height = 1, Background = WeatherAppearance.BorderBrush, Margin = new Thickness(0, 4, 0, 8)
         });
         panel.Children.Add(new TextBlock
         {
@@ -11871,7 +11875,7 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
         {
             bool isNow = date.Date == DateTime.Today && time.Hour == DateTime.Now.Hour;
             var restBrush = new SolidColorBrush(alt ? Color.FromArgb(0x28, 0x00, 0x00, 0x00) : Color.FromArgb(0x48, 0x00, 0x00, 0x00));
-            var hoverBrush = new SolidColorBrush(Color.FromArgb(0x30, 0xFF, 0xFF, 0xFF));
+            var hoverBrush = WeatherAppearance.HoverBrush;
             alt = !alt;
 
             double? tipUv = uvByHour.TryGetValue(time.Hour, out double tipUvVal) ? tipUvVal : (double?)null;
@@ -11880,7 +11884,7 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
                 Background = restBrush, CornerRadius = new CornerRadius(4),
                 Margin = new Thickness(0, 1, 0, 1), Padding = new Thickness(6, 4, 6, 4),
                 BorderThickness = new Thickness(1),
-                BorderBrush = isNow ? new SolidColorBrush(WeatherBridge.ThemeAccent) : Brushes.Transparent,
+                BorderBrush = isNow ? WeatherAppearance.AccentBrush : Brushes.Transparent,
                 Cursor = Cursors.Hand,
                 ToolTip = $"{time:HH:mm} · {WmoCodeToDescription(hWmo)}\n🌡 {temp:F1}°C  ·  💧 Humidity {hum}%  ·  💨 Wind {wind:F0} km/h  ·  🌧 Precip {prec:F1} mm" +
                           (tipUv.HasValue ? $"  ·  ☀ UV {tipUv:F0}" : "")
@@ -11896,13 +11900,13 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
             var timeTb = new TextBlock
             {
                 Text = time.ToString("HH:mm"), FontSize = 13, FontFamily = mono,
-                Foreground = new SolidColorBrush(WxRowText), VerticalAlignment = VerticalAlignment.Center
+                Foreground = WeatherAppearance.TextBrush, VerticalAlignment = VerticalAlignment.Center
             };
             var iconTb = WeatherIconBlock(hWmo, 15, new Thickness(2, 0, 2, 0));
             var tempTb = new TextBlock
             {
                 Text = $"{temp:F1}°C", FontSize = 14, FontFamily = mono,
-                Foreground = new SolidColorBrush(WxTempColor(temp)), VerticalAlignment = VerticalAlignment.Center
+                Foreground = WeatherAppearance.SemanticBrush(WxTempColor(temp)), VerticalAlignment = VerticalAlignment.Center
             };
             var extra = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
             if (prec > 0)
@@ -11910,14 +11914,14 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
                 extra.Children.Add(new TextBlock
                 {
                     Text = $"💧{prec:F1}mm", FontSize = 12,
-                    Foreground = new SolidColorBrush(Color.FromRgb(0x66, 0xAA, 0xDD)),
+                    Foreground = WeatherAppearance.SemanticBrush(Color.FromRgb(0x66, 0xAA, 0xDD)),
                     Margin = new Thickness(0, 0, 8, 0)
                 });
             }
             extra.Children.Add(new TextBlock
             {
                 Text = $"💨{wind:F0}", FontSize = 12,
-                Foreground = new SolidColorBrush(Color.FromRgb(0x88, 0xCC, 0x88))
+                Foreground = WeatherAppearance.SemanticBrush(Color.FromRgb(0x88, 0xCC, 0x88))
             });
 
             Grid.SetColumn(timeTb, 0);
@@ -11951,7 +11955,7 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
             {
                 Text = $"{time:HH:mm} · {WmoCodeToDescription(hWmo)}  ·  🌡 {temp:F1}°C  ·  💧 Humidity {hum}%  ·  💨 Wind {wind:F0} km/h  ·  🌧 Precip {prec:F1} mm" +
                        (tipUv.HasValue ? $"  ·  ☀ UV {tipUv:F0}" : ""),
-                FontSize = 11, Foreground = new SolidColorBrush(WeatherBridge.ThemeAccentSubtle),
+                FontSize = 11, Foreground = WeatherAppearance.MutedBrush,
                 Margin = new Thickness(44, 3, 4, 2), TextWrapping = TextWrapping.Wrap,
                 Visibility = Visibility.Collapsed
             };
@@ -11981,7 +11985,7 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
         sp.Children.Clear();
         sp.Children.Add(new TextBlock
         {
-            Text = "Loading…", Foreground = new SolidColorBrush(WxMuted), FontSize = 11,
+            Text = "Loading…", Foreground = WeatherAppearance.MutedBrush, FontSize = 11,
             Margin = new Thickness(0, 6, 0, 6)
         });
 
@@ -12003,14 +12007,14 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
         var nextBtn = NavBtn("›");
         foreach (var nb in new[] { prevBtn, nextBtn })
         {
-            nb.Background = new SolidColorBrush(WxSurface);
-            nb.BorderBrush = new SolidColorBrush(WxBorder);
+            nb.Background = WeatherAppearance.CardBrush;
+            nb.BorderBrush = WeatherAppearance.BorderBrush;
         }
         var monthLbl = new TextBlock
         {
             Text = month.ToString("MMMM yyyy"),
             HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center,
-            Foreground = Brushes.White, FontSize = 13, FontWeight = FontWeights.Bold
+            Foreground = WeatherAppearance.TextBrush, FontSize = 13, FontWeight = FontWeights.Bold
         };
         Grid.SetColumn(prevBtn, 0);
         Grid.SetColumn(monthLbl, 1);
@@ -12028,7 +12032,7 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
             {
                 Text = dows[di], HorizontalAlignment = HorizontalAlignment.Center, FontSize = 10,
                 FontWeight = FontWeights.Bold,
-                Foreground = new SolidColorBrush(di >= 5 ? WeatherBridge.ThemeAccent : WxMuted)
+                Foreground = (di >= 5 ? WeatherAppearance.AccentBrush : WeatherAppearance.MutedBrush)
             });
         }
         sp.Children.Add(dowRow);
@@ -12045,8 +12049,8 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
                 var d2 = startDate.AddDays(dn - 1);
                 bool isTd = d2.Date == DateTime.Today;
                 bool isWk = d2.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday;
-                var restBrush = new SolidColorBrush(isTd ? WxBlend(WxPillOpaque, WxPanel, 0.35) : WxSurface);
-                var hoverBrush = new SolidColorBrush(isTd ? WxBlend(WxPillOpaque, WxPanel, 0.2) : Color.FromArgb(0x40, 0xFF, 0xFF, 0xFF));
+                var restBrush = (isTd ? WeatherAppearance.HighlightBrush : WeatherAppearance.CardBrush);
+                var hoverBrush = (isTd ? WeatherAppearance.HighlightBrush : WeatherAppearance.HoverBrush);
                 cell.Background = restBrush;
                 cell.BorderBrush = new SolidColorBrush(isTd ? WxPillOpaque : WxBorder);
                 cell.BorderThickness = new Thickness(1);
@@ -12058,7 +12062,7 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
                     Text = dn.ToString(), FontSize = 11,
                     FontWeight = isTd ? FontWeights.Bold : FontWeights.Normal,
                     HorizontalAlignment = HorizontalAlignment.Center,
-                    Foreground = isTd ? Brushes.White : new SolidColorBrush(isWk ? WeatherBridge.ThemeAccent : Color.FromRgb(0xDD, 0xDD, 0xDD))
+                    Foreground = (isWk ? WeatherAppearance.AccentBrush : WeatherAppearance.TextBrush)
                 });
 
                 bool hasDay = dataDict.TryGetValue(d2.Date, out var dd);
@@ -12071,7 +12075,7 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
                     {
                         Text = $"{dd.Max:F0}/{dd.Min:F0}", FontSize = 8.5,
                         HorizontalAlignment = HorizontalAlignment.Center,
-                        Foreground = new SolidColorBrush(WeatherBridge.ThemeAccentSubtle)
+                        Foreground = WeatherAppearance.MutedBrush
                     });
                 }
                 cell.Child = content;
@@ -12111,13 +12115,13 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
         var yLbl  = new TextBlock
         {
             Text = year.ToString(), HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center, Foreground = Brushes.White, FontSize = 16, FontWeight = FontWeights.Bold
+            VerticalAlignment = VerticalAlignment.Center, Foreground = WeatherAppearance.TextBrush, FontSize = 16, FontWeight = FontWeights.Bold
         };
         Grid.SetColumn(yPrev, 0); Grid.SetColumn(yLbl, 1); Grid.SetColumn(yNext, 2);
         yearNav.Children.Add(yPrev); yearNav.Children.Add(yLbl); yearNav.Children.Add(yNext);
         sp.Children.Add(yearNav);
 
-        sp.Children.Add(new TextBlock { Text = "Loading yearly data…", Foreground = new SolidColorBrush(WxMuted), FontSize = 11, Margin = new Thickness(0, 0, 0, 8) });
+        sp.Children.Add(new TextBlock { Text = "Loading yearly data…", Foreground = WeatherAppearance.MutedBrush, FontSize = 11, Margin = new Thickness(0, 0, 0, 8) });
 
         var startY = new DateTime(year, 1, 1);
         var endY   = new DateTime(year, 12, 31);
@@ -12135,7 +12139,7 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
             var mBorder = new Border
             {
                 Background      = new SolidColorBrush(Color.FromArgb(0x38, 0x00, 0x00, 0x00)),
-                BorderBrush     = new SolidColorBrush(WxBorder),
+                BorderBrush     = WeatherAppearance.BorderBrush,
                 BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(4),
                 Padding = new Thickness(8, 5, 8, 5), Margin = new Thickness(0, 1, 0, 1),
                 Cursor = Cursors.Hand
@@ -12153,21 +12157,21 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
             double avgHi = hasData ? mDays!.Average(d => d.Max) : 0;
             double avgLo = hasData ? mDays!.Average(d => d.Min) : 0;
 
-            var mNameLbl = new TextBlock { Text = monthNames[m - 1], Foreground = Brushes.White, FontSize = 12, VerticalAlignment = VerticalAlignment.Center };
+            var mNameLbl = new TextBlock { Text = monthNames[m - 1], Foreground = WeatherAppearance.TextBrush, FontSize = 12, VerticalAlignment = VerticalAlignment.Center };
             var mIconLbl = WeatherIconBlock(domCode, 14, new Thickness(4, 0, 4, 0));
             var mTempLbl = new TextBlock
             {
                 Text = hasData ? $"avg {avgHi:F0}° / {avgLo:F0}°" : "No data",
-                Foreground = new SolidColorBrush(Color.FromRgb(0xdd, 0xdd, 0xdd)), FontSize = 11,
+                Foreground = WeatherAppearance.TextBrush, FontSize = 11,
                 VerticalAlignment = VerticalAlignment.Center, FontFamily = new FontFamily("Consolas")
             };
             var mDaysLbl = new TextBlock
             {
                 Text = hasData ? $"{mDays!.Count} days" : "",
-                Foreground = new SolidColorBrush(WxMuted), FontSize = 10,
+                Foreground = WeatherAppearance.MutedBrush, FontSize = 10,
                 VerticalAlignment = VerticalAlignment.Center, TextAlignment = TextAlignment.Right
             };
-            var mArrow = new TextBlock { Text = "›", FontSize = 14, Foreground = new SolidColorBrush(WxMuted), VerticalAlignment = VerticalAlignment.Center };
+            var mArrow = new TextBlock { Text = "›", FontSize = 14, Foreground = WeatherAppearance.MutedBrush, VerticalAlignment = VerticalAlignment.Center };
 
             Grid.SetColumn(mNameLbl, 0); Grid.SetColumn(mIconLbl, 1); Grid.SetColumn(mTempLbl, 2); Grid.SetColumn(mDaysLbl, 3); Grid.SetColumn(mArrow, 4);
             mg.Children.Add(mNameLbl); mg.Children.Add(mIconLbl); mg.Children.Add(mTempLbl); mg.Children.Add(mDaysLbl); mg.Children.Add(mArrow);
@@ -12176,7 +12180,7 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
 
             bool expanded = false;
             var mBorderRest = new SolidColorBrush(Color.FromArgb(0x38, 0x00, 0x00, 0x00));
-            var mBorderHover = new SolidColorBrush(Color.FromArgb(0x30, 0xFF, 0xFF, 0xFF));
+            var mBorderHover = WeatherAppearance.HoverBrush;
             mBorder.MouseEnter += (_, _) => mBorder.Background = mBorderHover;
             mBorder.MouseLeave += (_, _) => mBorder.Background = mBorderRest;
             mBorder.MouseLeftButtonUp += async (_, _) =>
@@ -12189,7 +12193,7 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
                     var subSp  = new StackPanel();
                     subSv.Content = subSp;
                     mPanel.Children.Add(subSv);
-                    subSp.Children.Add(new TextBlock { Text = "Loading…", Foreground = new SolidColorBrush(WxMuted), FontSize = 11 });
+                    subSp.Children.Add(new TextBlock { Text = "Loading…", Foreground = WeatherAppearance.MutedBrush, FontSize = 11 });
                     var monthDate = new DateTime(year, mMonth, 1);
                     await BuildMonthCalendarView(subSp, city, monthDate);
                 }

@@ -282,6 +282,8 @@ public class SettingsData
 
     public bool HomeShowClock           { get; set; } = true;
     public bool HomeShowWeather         { get; set; } = true;
+    public bool HomeShowMoonPhase       { get; set; }
+    public bool HomeShowSunProgress     { get; set; }
     public bool HomeShowMediaWidget     { get; set; } = true;
     public bool HomeShowCalendarWidget  { get; set; } = true;
     public bool HomeShowDownloadsWidget { get; set; } = true; 

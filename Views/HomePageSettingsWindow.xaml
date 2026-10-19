@@ -192,6 +192,10 @@
                                   Margin="0,0,0,8" Checked="WidgetToggle_Changed" Unchecked="WidgetToggle_Changed"/>
                         <CheckBox x:Name="ChkWidgetWeather" Content="Weather" Foreground="White"
                                   Margin="0,0,0,8" Checked="WidgetToggle_Changed" Unchecked="WidgetToggle_Changed"/>
+                        <CheckBox x:Name="ChkWidgetMoonPhase" Content="Moon phase" Foreground="White"
+                                  Margin="0,0,0,8" Checked="WidgetToggle_Changed" Unchecked="WidgetToggle_Changed"/>
+                        <CheckBox x:Name="ChkWidgetSunProgress" Content="Sunrise &amp; sunset" Foreground="White"
+                                  Margin="0,0,0,8" Checked="WidgetToggle_Changed" Unchecked="WidgetToggle_Changed"/>
                         <CheckBox x:Name="ChkWidgetMedia" Content="Media controls" Foreground="White"
                                   Margin="0,0,0,8" Checked="WidgetToggle_Changed" Unchecked="WidgetToggle_Changed"/>
                         <CheckBox x:Name="ChkWidgetCalendar" Content="Calendar" Foreground="White"

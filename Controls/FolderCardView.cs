@@ -729,6 +729,9 @@ public sealed class FolderSheetHost : Grid
     private Rect _origin;
     private bool _open;
     private bool _closing;
+    private int _transitionVersion;
+    private IInputElement? _returnFocus;
+    private readonly Dictionary<UIElement, (double Opacity, bool HitTest)> _underlayState = new();
 
     public event Action? Closed;
 
@@ -739,8 +742,6 @@ public sealed class FolderSheetHost : Grid
         Visibility = Visibility.Collapsed;
         Focusable = true;
         FocusVisualStyle = null;
-
-        HomeGlass.SetExclude(this, true);
 
         _scrim = new Border
         {
@@ -755,7 +756,6 @@ public sealed class FolderSheetHost : Grid
             ClipToBounds = true,
             RenderTransformOrigin = new Point(0, 0)
         };
-        HomeGlass.SetExclude(_sheet, true);
         _sheet.SetResourceReference(Border.BackgroundProperty, "SharedSearchBgBrush");
         _sheet.SetResourceReference(Border.BorderBrushProperty, "SharedSearchBorderBrush");
         var transforms = new TransformGroup();
@@ -787,16 +787,14 @@ public sealed class FolderSheetHost : Grid
     public bool IsOpen => _open && !_closing;
 
     public FrameworkElement? Content => _sheet.Child as FrameworkElement;
+    public FrameworkElement GlassSurface => _sheet;
 
     public void Open(FrameworkElement content, Rect origin)
     {
+        _transitionVersion++;
+        bool fresh = !_open;
+        if (fresh) _returnFocus = Keyboard.FocusedElement;
         _closing = false;
-        if (_open)
-        {
-            _sheet.Child = content;
-            return;
-        }
-
         _open = true;
         _origin = origin;
         _sheet.Child = content;
@@ -808,31 +806,37 @@ public sealed class FolderSheetHost : Grid
         double startX = Math.Clamp(origin.Width / width, 0.05, 1);
         double startY = Math.Clamp(origin.Height / height, 0.05, 1);
 
-        ClearAnimations();
-        _scale.ScaleX = startX;
-        _scale.ScaleY = startY;
-        _move.X = origin.X;
-        _move.Y = origin.Y;
-        _sheet.Opacity = 0;
-        _scrim.Opacity = 0;
+        if (fresh)
+        {
+            ClearAnimations();
+            _scale.ScaleX = startX;
+            _scale.ScaleY = startY;
+            _move.X = origin.X;
+            _move.Y = origin.Y;
+            _sheet.Opacity = 0;
+            _scrim.Opacity = 0;
+        }
 
         _scale.BeginAnimation(ScaleTransform.ScaleXProperty, SnapMotion.Move(1));
         _scale.BeginAnimation(ScaleTransform.ScaleYProperty, SnapMotion.Move(1));
         _move.BeginAnimation(TranslateTransform.XProperty, SnapMotion.Move(0));
         _move.BeginAnimation(TranslateTransform.YProperty, SnapMotion.Move(0));
-        _sheet.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromSeconds(0.18)));
-        _scrim.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromSeconds(OpenSeconds)));
+        _sheet.BeginAnimation(OpacityProperty, new DoubleAnimation(_sheet.Opacity, 1, TimeSpan.FromSeconds(0.18)));
+        _scrim.BeginAnimation(OpacityProperty, new DoubleAnimation(_scrim.Opacity, 1, TimeSpan.FromSeconds(OpenSeconds)));
         foreach (var underlay in Underlays)
         {
+            if (fresh) _underlayState[underlay] = (underlay.Opacity, underlay.IsHitTestVisible);
             underlay.IsHitTestVisible = false;
             underlay.BeginAnimation(OpacityProperty, new DoubleAnimation(0, TimeSpan.FromSeconds(0.2)));
         }
         Focus();
+        HomeGlassMotion.Pulse((int)(OpenSeconds * 1000));
     }
 
     public void Close()
     {
         if (!_open || _closing) return;
+        int version = ++_transitionVersion;
         _closing = true;
 
         double width = Math.Max(1, ActualWidth);
@@ -848,15 +852,17 @@ public sealed class FolderSheetHost : Grid
         _move.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(_origin.Y, duration) { EasingFunction = ease });
         _sheet.BeginAnimation(OpacityProperty, new DoubleAnimation(0, duration) { EasingFunction = ease });
         foreach (var underlay in Underlays)
-            underlay.BeginAnimation(OpacityProperty, new DoubleAnimation(1, duration) { EasingFunction = ease });
+            underlay.BeginAnimation(OpacityProperty, new DoubleAnimation(
+                _underlayState.TryGetValue(underlay, out var state) ? state.Opacity : 1, duration) { EasingFunction = ease });
 
         var fade = new DoubleAnimation(0, duration) { EasingFunction = ease };
         fade.Completed += (_, _) =>
         {
-            if (!_closing) return;
+            if (!_closing || version != _transitionVersion) return;
             Finish();
         };
         _scrim.BeginAnimation(OpacityProperty, fade);
+        HomeGlassMotion.Pulse((int)(OpenSeconds * 1000));
     }
 
     private void Finish()
@@ -866,12 +872,18 @@ public sealed class FolderSheetHost : Grid
         foreach (var underlay in Underlays)
         {
             underlay.BeginAnimation(OpacityProperty, null);
-            underlay.Opacity = 1;
-            underlay.IsHitTestVisible = true;
+            if (_underlayState.TryGetValue(underlay, out var state))
+            {
+                underlay.Opacity = state.Opacity;
+                underlay.IsHitTestVisible = state.HitTest;
+            }
         }
+        _underlayState.Clear();
         _sheet.Child = null;
         _open = false;
         _closing = false;
+        if (_returnFocus is UIElement focus && focus.IsVisible && focus.IsEnabled) Keyboard.Focus(focus);
+        _returnFocus = null;
         Closed?.Invoke();
     }
 

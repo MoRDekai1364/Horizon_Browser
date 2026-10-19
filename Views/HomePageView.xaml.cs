@@ -77,6 +77,12 @@ public partial class HomePageView : UserControl
         ScvFavorites.SizeChanged += (_, __) => ApplyScrollerClip(ScvFavorites);
         ScvBookmarks.SizeChanged += (_, __) => ApplyScrollerClip(ScvBookmarks);
         BuildHomeStack();
+        HomeStack.SizeChanged += (_, _) => _homeGlass.RegisterSubtree(HomeStack);
+        HomeStack.SelectionChanged += _ => Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(() => _homeGlass.RegisterSubtree(HomeStack)));
+        HomeStack.OverlayClosed += () =>
+        {
+            if (_stackAutoExpandedForFolder) CollapseStack();
+        };
         SizeChanged += (_, __) =>
         {
             ApplyScrollCap();
@@ -86,6 +92,8 @@ public partial class HomePageView : UserControl
         PnlClockWeather.SizeChanged += (_, __) => ApplyScrollCap();
         BuildModeThumb();
         BuildCenterSheet();
+        RegisterExpandedGlass();
+        Loaded += (_, _) => RegisterExpandedGlass();
         Horizon.Stealth.Services.LocalizationService.Instance.LanguageChanged += () =>
         {
             Dispatcher.InvokeAsync(ApplyLocalization);
@@ -139,6 +147,8 @@ public partial class HomePageView : UserControl
 
     private bool _inFocusMode = false;
     private string _focusWidgetName = "";
+    private int _focusTransitionVersion;
+    private int _searchMoveVersion;
 
     private void AnimateElementOpacity(UIElement target, double to, TimeSpan duration)
     {
@@ -195,11 +205,13 @@ public partial class HomePageView : UserControl
 
         double reserved = topMargin + searchBarHeight + containerTopGap + toggleButtonReserve + bottomBreathingRoom;
         double available = RootHomeGrid.ActualHeight - reserved;
-        return Math.Max(160, available);
+        return Math.Max(1, Math.Min(available, HomeBottomBoundary() - reserved));
     }
 
     private void FadeMoveSearchArea(Action applyNewLayout, TimeSpan duration)
     {
+        int version = ++_searchMoveVersion;
+        HomeGlassMotion.Pulse((int)duration.TotalMilliseconds + 120);
         PnlSearchArea.RenderTransform = null;
 
         var fadeOut = new DoubleAnimation
@@ -211,6 +223,7 @@ public partial class HomePageView : UserControl
 
         fadeOut.Completed += (_, _) =>
         {
+            if (version != _searchMoveVersion) return;
             applyNewLayout();
             PnlSearchArea.UpdateLayout();
 
@@ -231,6 +244,7 @@ public partial class HomePageView : UserControl
         if (_inFocusMode && _focusWidgetName == widgetName) return;
         if (!_inFocusMode && ToggleStackFor(widgetName)) return;
         _inFocusMode = true;
+        int transition = ++_focusTransitionVersion;
         _focusWidgetName = widgetName;
         _inactivityTimer?.Stop();
         UpdateSearchAreaMaxHeight();
@@ -307,13 +321,14 @@ public partial class HomePageView : UserControl
         repositionTimer.Tick += (_, _) =>
         {
             repositionTimer.Stop();
+            if (!_inFocusMode || transition != _focusTransitionVersion) return;
             FadeMoveSearchArea(() =>
             {
                 Grid.SetColumnSpan(PnlSearchArea, 3);
                 Grid.SetColumn(PnlSearchArea, 0);
                 double fullWidth = RootHomeGrid.ActualWidth > 0 ? RootHomeGrid.ActualWidth : ActualWidth;
-                PnlSearchArea.MaxWidth = Math.Max(fullWidth - 40, 900);
-                SearchBoxBorder.MaxWidth = Math.Min(fullWidth - 100, 1100);
+                PnlSearchArea.MaxWidth = Math.Max(1, fullWidth - 40);
+                SearchBoxBorder.MaxWidth = Math.Max(1, Math.Min(fullWidth - 100, 1100));
                 PnlFavoritesContainer.Margin = new Thickness(0, 28, 0, 0);
                 PnlBookmarksContainer.Margin = new Thickness(0, 28, 0, 0);
             }, moveDuration);
@@ -369,6 +384,7 @@ public partial class HomePageView : UserControl
     {
         if (!_inFocusMode) return;
         _inFocusMode = false;
+        _focusTransitionVersion++;
         _focusWidgetName = "";
         _inactivityTimer?.Start();
 
@@ -492,6 +508,26 @@ public partial class HomePageView : UserControl
         double totalWidth = RootHomeGrid.ActualWidth > 0 ? RootHomeGrid.ActualWidth : ActualWidth;
         double totalHeight = RootHomeGrid.ActualHeight > 0 ? RootHomeGrid.ActualHeight : ActualHeight;
         if (totalWidth <= 0) return;
+        CmbSearchEngine.Width = Math.Clamp(totalWidth * 0.20, 64, 120);
+        CmbCategoryFilter.Width = Math.Clamp(totalWidth * 0.23, 64, 140);
+        double boundary = Math.Max(1, HomeBottomBoundary());
+        bool narrow = totalWidth < 760;
+        ClockWeatherScroll.Visibility = PnlClockWeather.Visibility;
+        Grid.SetRowSpan(ClockWeatherScroll, narrow ? 1 : 2);
+        ClockWeatherScroll.MaxWidth = narrow ? Math.Max(1, totalWidth - 20) : Math.Max(1, totalWidth * 0.32);
+        double compactSearchHeight = SearchBoxBorder.MinHeight + SegModeSearch.Height
+            + PnlSearchMode.BorderThickness.Top + PnlSearchMode.BorderThickness.Bottom + 10;
+        ClockWeatherScroll.MaxHeight = narrow ? Math.Max(1, Math.Min(boundary * 0.38, boundary - compactSearchHeight - 28)) : boundary;
+        bool shortNarrow = narrow && totalHeight < 450;
+        BtnCompactInfo.Visibility = shortNarrow && PnlClockWeather.Visibility == Visibility.Visible ? Visibility.Visible : Visibility.Collapsed;
+        if (shortNarrow) ClockWeatherScroll.Visibility = Visibility.Collapsed;
+        string wallpaperLabel = LocalizationService.Instance.GetString("Homepage.ChangeWallpaper", "Change Wallpaper");
+        TxtChangeWallpaper.Text = shortNarrow ? "▧" : wallpaperLabel;
+        BtnChangeWallpaper.ToolTip = wallpaperLabel;
+        TblClock.FontSize = shortNarrow ? 32 : 62;
+        TblWeather.FontSize = shortNarrow ? 19 : 29;
+        TblWeatherCity.FontSize = shortNarrow ? 16 : 23;
+        PnlClockWeather.MaxWidth = Math.Max(1, ClockWeatherScroll.MaxWidth - 48);
 
         double vScale = totalHeight > 0 && totalHeight < 780
             ? Math.Clamp((totalHeight - 60.0) / 720.0, 0.70, 1.0)
@@ -499,6 +535,7 @@ public partial class HomePageView : UserControl
 
         if (totalWidth < 760)
         {
+            ColClockWeather.Width = GridLength.Auto;
             double narrowScale = Math.Min(Math.Clamp(totalWidth / 760.0, 0.72, 0.88), vScale);
             ClockWeatherScale.ScaleX = narrowScale;
             ClockWeatherScale.ScaleY = narrowScale;
@@ -507,8 +544,8 @@ public partial class HomePageView : UserControl
             Grid.SetColumnSpan(PnlSearchArea, 3);
             ColRightBalance.Width = new GridLength(0);
             PnlClockWeather.Margin = new Thickness(16, Math.Round(18 * vScale), 16, 0);
-            PnlSearchArea.Margin = new Thickness(10, Math.Round(14 * vScale), 10, 0);
-            double maxMobileWidth = Math.Max(200.0, totalWidth - 20.0);
+            PnlSearchArea.Margin = new Thickness(10, shortNarrow ? 4 : Math.Round(14 * vScale), 10, 0);
+            double maxMobileWidth = Math.Max(1.0, totalWidth - 20.0);
             PnlSearchArea.MaxWidth = maxMobileWidth;
             SearchBoxBorder.MaxWidth = Math.Min(900.0, maxMobileWidth);
             GridFavBookmarksIsland.MaxWidth = maxMobileWidth;
@@ -534,41 +571,16 @@ public partial class HomePageView : UserControl
         double leftColWidth = 0;
         if (PnlClockWeather.Visibility == Visibility.Visible)
         {
-            double rawCwWidth = PnlClockWeather.ActualWidth > 40 ? PnlClockWeather.ActualWidth * cwScale : 340.0 * cwScale;
-            leftColWidth = rawCwWidth + PnlClockWeather.Margin.Left + PnlClockWeather.Margin.Right;
+            leftColWidth = Math.Min(ClockWeatherScroll.MaxWidth, StackRestMaxWidth + sideM);
         }
+        ColClockWeather.Width = new GridLength(leftColWidth);
+        double minimumCenter = CmbSearchEngine.Width + SearchBoxBorder.MinHeight * 3 + 20;
+        double rightWidth = Math.Clamp(totalWidth * 0.26, 260, StackRestMaxWidth + StackSideMargin);
+        bool rightFits = SettingsService.Current.HomeShowRightColumn && totalWidth - leftColWidth - rightWidth >= minimumCenter;
+        ColRightBalance.Width = new GridLength(rightFits ? rightWidth : 0);
+        double availableMiddleWidth = Math.Max(1, totalWidth - leftColWidth - (rightFits ? rightWidth : 0));
 
-        const double minMiddleWidth = 480.0;
-        const double fallbackBuffer = 16.0;
-
-        double availableMiddleWidth = totalWidth - leftColWidth - leftColWidth;
-
-        if (availableMiddleWidth >= minMiddleWidth)
-        {
-            ColRightBalance.Width = new GridLength(leftColWidth);
-        }
-        else if (SettingsService.Current.HomeShowRightColumn && totalWidth - leftColWidth >= 660.0)
-        {
-            double rightW = Math.Clamp((totalWidth - leftColWidth) * 0.42, 265.0, Math.Max(265.0, leftColWidth));
-            ColRightBalance.Width = new GridLength(rightW);
-            availableMiddleWidth = totalWidth - leftColWidth - rightW;
-        }
-        else
-        {
-            double remaining = totalWidth - leftColWidth - fallbackBuffer;
-            if (remaining >= 340.0)
-            {
-                ColRightBalance.Width = new GridLength(fallbackBuffer);
-                availableMiddleWidth = remaining;
-            }
-            else
-            {
-                ColRightBalance.Width = new GridLength(0);
-                availableMiddleWidth = Math.Max(220.0, totalWidth - leftColWidth);
-            }
-        }
-
-        double maxAllowedWidth = Math.Max(220.0, availableMiddleWidth - 16.0);
+        double maxAllowedWidth = Math.Max(1.0, availableMiddleWidth - 16.0);
         double maxCenterContentWidth = Math.Min(1100.0, maxAllowedWidth);
         PnlSearchArea.MaxWidth = maxCenterContentWidth;
         GridFavBookmarksIsland.MaxWidth = maxCenterContentWidth;
@@ -585,13 +597,13 @@ public partial class HomePageView : UserControl
             bool iconSwitch = maxCenterContentWidth - 2.0 * _switchTextSlotWidth < SearchBarMinFloor;
             SetSwitchIconMode(iconSwitch);
             double switchSlot = iconSwitch ? SwitchIconSlotWidth : _switchTextSlotWidth;
-            double searchMax = Math.Max(200.0, Math.Min(900.0, maxCenterContentWidth - 2.0 * switchSlot));
+            double searchMax = Math.Max(1.0, Math.Min(900.0, maxCenterContentWidth - 2.0 * switchSlot));
             SearchBoxBorder.MaxWidth = searchMax;
             ApplySearchRowLayout(false);
         }
 
         SyncSearchBarMinWidth();
-        PnlSearchArea.Margin = new Thickness(10, Math.Round(60.0 * vScale), 10, 0);
+        PnlSearchArea.Margin = new Thickness(10, 0, 10, 0);
         UpdateSearchAreaMaxHeight();
         UpdateHomeStackVisibility();
     }
@@ -807,6 +819,8 @@ public partial class HomePageView : UserControl
         var weatherVis = s.HomeShowWeather ? Visibility.Visible : Visibility.Collapsed;
         TblWeather.Visibility = weatherVis;
         TblWeatherCity.Visibility = weatherVis;
+        HomeMoonPhase.Visibility = s.HomeShowMoonPhase ? Visibility.Visible : Visibility.Collapsed;
+        HomeSunProgress.Visibility = s.HomeShowSunProgress ? Visibility.Visible : Visibility.Collapsed;
 
         PnlCalendar.Visibility = s.HomeShowCalendarWidget ? Visibility.Visible : Visibility.Collapsed;
         PnlFavoritesContainer.Visibility = s.HomeShowFavoritesWidget ? Visibility.Visible : Visibility.Collapsed;
@@ -2075,13 +2089,10 @@ public partial class HomePageView : UserControl
             PnlSearchArea.Margin = new Thickness(margin.Left, margin.Top, margin.Right, reserve);
             ScheduleStackRestSize();
         }
-        if (_inFocusMode)
-        {
-            PnlSearchArea.MaxHeight = double.PositiveInfinity;
-            return;
-        }
         double rowOffset = Grid.GetRow(PnlSearchArea) == 0 ? 0 : RowClockWeather.ActualHeight;
-        PnlSearchArea.MaxHeight = Math.Max(SearchBoxBorder.MinHeight, layoutHeight - rowOffset - PnlSearchArea.Margin.Top - reserve);
+        PnlSearchArea.MaxHeight = Math.Max(1, HomeBottomBoundary() - rowOffset - PnlSearchArea.Margin.Top);
+        double searchHeight = Math.Max(SearchBoxBorder.MinHeight, GridSearchRow.ActualHeight);
+        CenterContentScroll.MaxHeight = Math.Max(1, PnlSearchArea.MaxHeight - searchHeight);
     }
 
     private void DumpHomeLayout()
@@ -2208,8 +2219,31 @@ public partial class HomePageView : UserControl
 
     private (int Favorites, int Bookmarks) ResolvedRows()
     {
-        double height = ActualHeight > 0 ? ActualHeight : SystemParameters.WorkArea.Height;
-        return HomeRowLimits.Resolve(SettingsService.Current.HomeFavoriteRows, SettingsService.Current.HomeBookmarkRows, height);
+        double budget = double.IsFinite(CenterContentScroll.MaxHeight) ? CenterContentScroll.MaxHeight : ActualHeight;
+        double chrome = PnlFavoritesContainer.Margin.Top + PnlBookmarksContainer.Margin.Top
+            + BtnToggleFavorites.DesiredSize.Height + BtnToggleBookmarks.DesiredSize.Height
+            + CenterContentScroll.Padding.Top + CenterContentScroll.Padding.Bottom;
+        double pitch = Math.Max(MeasuredRowHeight(IcnColumns), MeasuredRowHeight(IcnBookmarks));
+        int ceiling = Math.Clamp((int)Math.Floor(Math.Max(0, budget - chrome) / pitch), 2, HomeRowLimits.MaxTotalRows);
+        int favorites = Math.Clamp(SettingsService.Current.HomeFavoriteRows, 1, ceiling - 1);
+        int bookmarks = Math.Clamp(SettingsService.Current.HomeBookmarkRows, 1, ceiling - 1);
+        while (favorites + bookmarks > ceiling)
+        {
+            if (favorites >= bookmarks) favorites--;
+            else bookmarks--;
+        }
+        return (favorites, bookmarks);
+    }
+
+    private static double MeasuredRowHeight(ItemsControl owner)
+    {
+        if (FindFirstPanel(owner) is RowsPanel panel)
+        {
+            double measured = panel.Children.Cast<UIElement>().Where(c => c.Visibility == Visibility.Visible)
+                .Select(c => c.DesiredSize.Height).DefaultIfEmpty(0).Max();
+            if (measured > 0) return measured;
+        }
+        return HomeRowLimits.RowHeight;
     }
 
     private double CenterPanelWidth()
@@ -2310,6 +2344,18 @@ public partial class HomePageView : UserControl
         if (_favoritesFallback && ReferenceEquals(ScvFavorites.Content, _favoriteCards)) ScvFavorites.MaxHeight = _favoriteCards.SnapHeight(Math.Max(1, favoriteRows * HomeRowLimits.RowHeight), true);
         if (_bookmarksFallback && ReferenceEquals(ScvBookmarks.Content, _bookmarkCards)) ScvBookmarks.MaxHeight = _bookmarkCards.SnapHeight(Math.Max(1, BookmarksBudget(bookmarkRows)), false);
         UpdateSearchAreaMaxHeight();
+        double remaining = Math.Max(1, CenterContentScroll.MaxHeight - CenterContentScroll.Padding.Bottom
+            - PnlFavoritesContainer.Margin.Top - PnlBookmarksContainer.Margin.Top
+            - BtnToggleFavorites.DesiredSize.Height - BtnToggleBookmarks.DesiredSize.Height);
+        int sections = (PnlFavoritesContainer.Visibility == Visibility.Visible ? 1 : 0)
+            + (PnlBookmarksContainer.Visibility == Visibility.Visible ? 1 : 0);
+        double sectionBudget = Math.Max(1, remaining / Math.Max(1, sections));
+        ScvFavorites.MaxHeight = Math.Min(ScvFavorites.MaxHeight, sectionBudget);
+        ScvBookmarks.MaxHeight = Math.Min(ScvBookmarks.MaxHeight, sectionBudget);
+        ScvFavorites.Visibility = sectionBudget >= MeasuredRowHeight(IcnColumns) ? Visibility.Visible : Visibility.Collapsed;
+        ScvBookmarks.Visibility = sectionBudget >= MeasuredRowHeight(IcnBookmarks) ? Visibility.Visible : Visibility.Collapsed;
+        if (ScvFavorites.Visibility == Visibility.Collapsed && _favoriteGroups.Count > 0) BtnToggleFavorites.Visibility = Visibility.Visible;
+        if (ScvBookmarks.Visibility == Visibility.Collapsed && _bookmarkGroups.Count > 0) BtnToggleBookmarks.Visibility = Visibility.Visible;
     }
 
     private GroupCollapseMode? CollapseModeFromSetting(ItemsControl? owner)
@@ -2967,7 +3013,9 @@ public partial class HomePageView : UserControl
         if (PnlSearchMode.Child is not StackPanel segments) return;
         PnlSearchMode.Child = null;
         var host = new Grid();
-        host.Children.Add(_modeThumbBorder);
+        var thumbLayer = new Canvas { IsHitTestVisible = false };
+        thumbLayer.Children.Add(_modeThumbBorder);
+        host.Children.Add(thumbLayer);
         host.Children.Add(segments);
         PnlSearchMode.Child = host;
         _modeThumb = new SegmentThumb(_modeThumbBorder, host);
@@ -3049,6 +3097,8 @@ public partial class HomePageView : UserControl
     {
         if (_searchRowCompact == compact) return;
         _searchRowCompact = compact;
+        if (SegModeSearch.Parent is StackPanel segments)
+            segments.Orientation = compact ? Orientation.Horizontal : Orientation.Vertical;
         Grid.SetRow(SwitchSlot, 0);
         Grid.SetColumn(SwitchSlot, 0);
         Grid.SetColumnSpan(SwitchSlot, compact ? 3 : 1);
@@ -3699,8 +3749,10 @@ public partial class HomePageView : UserControl
 
     private void UpdateHomeStackVisibility()
     {
+        if (_compactStackOpen) return;
         bool visible = SettingsService.Current.HomeShowRightColumn && ColRightBalance.ActualWidth >= 260;
         HomeStack.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
+        BtnCompactWidgets.Visibility = SettingsService.Current.HomeShowRightColumn && !visible ? Visibility.Visible : Visibility.Collapsed;
         if (!visible) CollapseStack();
         ScheduleStackRestSize();
     }
@@ -3726,6 +3778,7 @@ public partial class HomePageView : UserControl
 
     private void UpdateStackRestSize()
     {
+        if (_compactStackOpen) return;
         if (HomeStack.Visibility != Visibility.Visible || !PnlSearchArea.IsVisible || !GridHomeLayout.IsLoaded) return;
         if (SearchBoxBorder.ActualHeight <= 0 || GridFavBookmarksIsland.ActualHeight <= 0) return;
         double top = SearchBoxBorder.TranslatePoint(new Point(0, 0), GridHomeLayout).Y;
@@ -3733,7 +3786,7 @@ public partial class HomePageView : UserControl
         double sideMargin = ColRightBalance.ActualWidth < 310 ? 16 : StackSideMargin;
         double width = Math.Min(StackRestMaxWidth, Math.Max(230, ColRightBalance.ActualWidth - sideMargin));
         double marginTop = Math.Max(0, top);
-        double availH = Math.Max(220, HomeBottomBoundary() - marginTop);
+        double availH = Math.Max(1, HomeBottomBoundary() - marginTop);
         double targetRestH = Math.Max(bottom - top, Math.Min(430, availH));
         double height = Math.Min(Math.Max(Math.Min(StackMinRestHeight, availH), targetRestH), availH);
 
@@ -3742,17 +3795,19 @@ public partial class HomePageView : UserControl
         {
             HomeStack.Margin = new Thickness(0, marginTop, sideMargin, 0);
         }
-        if (Math.Abs(HomeStack.Width - width) > 1 || Math.Abs(HomeStack.Height - height) > 1)
+        if (double.IsNaN(HomeStack.Width) || double.IsNaN(HomeStack.Height) || Math.Abs(HomeStack.Width - width) > 1 || Math.Abs(HomeStack.Height - height) > 1)
         {
             HomeStack.SetRestSize(width, height);
         }
+        if (HomeStack.IsExpanded) HomeStack.ExpandTo(width, availH);
     }
 
     private (double Width, double Height) StackExpandedSize()
     {
+        if (_compactStackOpen) return (Math.Max(1, HomeStack.ActualWidth), Math.Max(1, HomeStack.ActualHeight));
         double sideMargin = ColRightBalance.ActualWidth < 310 ? 16 : StackSideMargin;
         double width = Math.Max(HomeStack.ActualWidth, ColRightBalance.ActualWidth - sideMargin);
-        double height = Math.Max(220, HomeBottomBoundary() - HomeStack.Margin.Top);
+        double height = Math.Max(1, HomeBottomBoundary() - HomeStack.Margin.Top);
         return (width, height);
     }
 
@@ -3784,6 +3839,12 @@ public partial class HomePageView : UserControl
 
     private void CollapseStack()
     {
+        if (HomeStack.IsOverlayOpen || HomeStack.IsOverlayClosing)
+        {
+            _stackAutoExpandedForFolder = true;
+            HomeStack.CloseOverlay();
+            return;
+        }
         if (!HomeStack.IsExpanded) return;
         _stackAutoExpandedForFolder = false;
         HomeStack.Collapse();
@@ -3794,6 +3855,58 @@ public partial class HomePageView : UserControl
     }
 
     private readonly FolderSheetHost _startMenuHost = new();
+    private bool _compactInfoOpen;
+
+    private void BtnCompactInfo_Click(object sender, RoutedEventArgs e)
+    {
+        if (_compactInfoOpen || _startMenuHost.IsOpen) return;
+        SetClockWeatherScrollMode(false);
+        _compactInfoOpen = true;
+        ClockWeatherScroll.Content = null;
+        var content = new DockPanel { Margin = new Thickness(12) };
+        var close = new Button { Content = LocalizationService.Instance.GetString("Common.Close", "Close"), HorizontalAlignment = HorizontalAlignment.Right, Padding = new Thickness(12, 6, 12, 6), Margin = new Thickness(0, 0, 0, 8) };
+        close.Click += (_, _) => _startMenuHost.Close();
+        DockPanel.SetDock(close, Dock.Top);
+        content.Children.Add(close);
+        content.Children.Add(new ScrollViewer { Content = ClockWeatherContent, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled });
+        _startMenuHost.Open(content, new Rect(0, 0, BtnCompactInfo.ActualWidth, BtnCompactInfo.ActualHeight));
+        _homeGlass.RegisterSubtree(_startMenuHost);
+    }
+    private readonly FolderSheetHost _compactStackHost = new();
+    private bool _compactStackOpen;
+
+    private void RegisterExpandedGlass()
+    {
+        _homeGlass.Register(_startMenuHost.GlassSurface);
+        _homeGlass.Register(_centerSheet.GlassSurface);
+        _homeGlass.Register(_compactStackHost.GlassSurface);
+        _homeGlass.Register(HomeStack.OverlayGlassSurface);
+    }
+
+    private void BtnCompactWidgets_Click(object sender, RoutedEventArgs e)
+    {
+        if (_compactStackOpen) return;
+        CollapseStack();
+        _compactStackOpen = true;
+        GridHomeLayout.Children.Remove(HomeStack);
+        HomeStack.FitToAvailableSpace();
+        HomeStack.Margin = new Thickness(12);
+        HomeStack.HorizontalAlignment = HorizontalAlignment.Stretch;
+        HomeStack.VerticalAlignment = VerticalAlignment.Stretch;
+        HomeStack.Visibility = Visibility.Visible;
+        Grid.SetRow(HomeStack, 1);
+        Grid.SetColumn(HomeStack, 0);
+        Grid.SetRowSpan(HomeStack, 1);
+        var content = new Grid();
+        content.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        content.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+        var close = new Button { Content = "Close widgets", HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(12), Padding = new Thickness(12, 6, 12, 6) };
+        close.Click += (_, _) => _compactStackHost.Close();
+        content.Children.Add(close);
+        content.Children.Add(HomeStack);
+        _compactStackHost.Open(content, new Rect(0, 0, BtnCompactWidgets.ActualWidth, BtnCompactWidgets.ActualHeight));
+        _homeGlass.RegisterSubtree(_compactStackHost);
+    }
     private List<DrawerGroup> _favoriteGroups = new();
     private List<DrawerGroup> _bookmarkGroups = new();
 
@@ -3806,6 +3919,33 @@ public partial class HomePageView : UserControl
         _startMenuHost.Underlays.Add(PnlBottomRightButtons);
         Panel.SetZIndex(_startMenuHost, 100);
         RootHomeGrid.Children.Add(_startMenuHost);
+        _startMenuHost.Closed += () =>
+        {
+            if (!_compactInfoOpen) return;
+            if (ClockWeatherContent.Parent is ScrollViewer scroll) scroll.Content = null;
+            _compactInfoOpen = false;
+            ClockWeatherScroll.Content = ClockWeatherContent;
+            UpdateSearchAreaLayout();
+        };
+        _compactStackHost.Margin = new Thickness(10);
+        _compactStackHost.CornerRadius = new CornerRadius(22);
+        _compactStackHost.Underlays.Add(GridHomeLayout);
+        _compactStackHost.Closed += () =>
+        {
+            HomeStack.CloseOverlay();
+            if (HomeStack.Parent is Panel parent) parent.Children.Remove(HomeStack);
+            _compactStackOpen = false;
+            HomeStack.HorizontalAlignment = HorizontalAlignment.Right;
+            HomeStack.VerticalAlignment = VerticalAlignment.Top;
+            Grid.SetRow(HomeStack, 0);
+            Grid.SetRowSpan(HomeStack, 2);
+            Grid.SetColumn(HomeStack, 2);
+            GridHomeLayout.Children.Add(HomeStack);
+            UpdateSearchAreaLayout();
+            UpdateHomeStackVisibility();
+        };
+        Panel.SetZIndex(_compactStackHost, 110);
+        RootHomeGrid.Children.Add(_compactStackHost);
     }
 
     private void OpenStartMenu(bool favorites, FrameworkElement? origin)
@@ -3822,6 +3962,7 @@ public partial class HomePageView : UserControl
         if (origin != null && origin.IsLoaded)
             bounds = origin.TransformToAncestor(RootHomeGrid).TransformBounds(new Rect(0, 0, origin.ActualWidth, origin.ActualHeight));
         _startMenuHost.Open(view, bounds);
+        _homeGlass.RegisterSubtree(_startMenuHost);
     }
 
     private FolderDrawerView? _favoritesDrawer;
@@ -3942,7 +4083,7 @@ public partial class HomePageView : UserControl
 
     private void BuildCenterSheet()
     {
-        _centerSheet.Margin = new Thickness(-15, 16, -15, -15);
+        _centerSheet.Margin = new Thickness(0, 12, 0, 0);
         _centerSheet.CornerRadius = SearchBoxBorder.CornerRadius;
         Grid.SetRowSpan(_centerSheet, 2);
         Panel.SetZIndex(_centerSheet, 50);
@@ -3963,6 +4104,7 @@ public partial class HomePageView : UserControl
         Point host = _centerSheet.TranslatePoint(new Point(0, 0), GridFavBookmarksIsland);
         Rect bounds = source.ClusterBounds(GridFavBookmarksIsland);
         _centerSheet.Open(view, new Rect(bounds.X - host.X, bounds.Y - host.Y, bounds.Width, bounds.Height));
+        _homeGlass.RegisterSubtree(_centerSheet);
     }
 
     private void CardFolder_Requested(DrawerGroup group, FolderCardView source)
@@ -3997,16 +4139,15 @@ public partial class HomePageView : UserControl
         view.CloseRequested += () =>
         {
             HomeStack.CloseOverlay();
-            if (_stackAutoExpandedForFolder) CollapseStack();
         };
         view.ItemActivated += item =>
         {
             HomeStack.CloseOverlay();
-            if (_stackAutoExpandedForFolder) CollapseStack();
             DrawerItem_Activated(item);
         };
         if (SettingsService.Current.HomeFolderOpenMode == "InPlace") HomeStack.ShowInPlace(view, origin);
         else HomeStack.ShowOverlay(view);
+        Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(() => _homeGlass.RegisterSubtree(HomeStack)));
     }
 
     private void DrawerItem_Activated(DrawerItem item)
@@ -4114,6 +4255,33 @@ public partial class HomePageView : UserControl
 
     private bool _layoutInactive;
 
+    private void SetClockWeatherScrollMode(bool inactive)
+    {
+        if (_compactInfoOpen) return;
+        if (inactive && ClockWeatherScroll.Visibility != Visibility.Visible) return;
+        if (inactive && ReferenceEquals(ClockWeatherScroll.Content, ClockWeatherContent))
+        {
+            ClockWeatherScroll.Width = ClockWeatherScroll.ActualWidth;
+            ClockWeatherScroll.Height = ClockWeatherScroll.ActualHeight;
+            ClockWeatherScroll.Content = null;
+            Grid.SetColumnSpan(ClockWeatherContent, 3);
+            Grid.SetRowSpan(ClockWeatherContent, 2);
+            GridHomeLayout.Children.Add(ClockWeatherContent);
+        }
+        else if (!inactive && ReferenceEquals(ClockWeatherContent.Parent, GridHomeLayout))
+        {
+            GridHomeLayout.Children.Remove(ClockWeatherContent);
+            ClockWeatherScroll.ClearValue(WidthProperty);
+            ClockWeatherScroll.ClearValue(HeightProperty);
+            ClockWeatherScroll.Content = ClockWeatherContent;
+        }
+        Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(() =>
+        {
+            _homeGlass.Register(SearchBlurPill);
+            _homeGlass.Invalidate();
+        }));
+    }
+
     private double GetMediaTopLeftOffsetY(bool forceLayout)
     {
         if (PnlMedia.Visibility != Visibility.Visible) return 0.0;
@@ -4137,6 +4305,7 @@ public partial class HomePageView : UserControl
         var profile = useInactivity ? activeSet.InactivityLayout : activeSet.NormalLayout;
         if (profile == null || profile.Widgets.Count == 0) return;
 
+        SetClockWeatherScrollMode(useInactivity);
         SetClockWeatherIslandVisible(!useInactivity && !_inEditMode && _isContentVisible);
         _layoutInactive = useInactivity;
 
@@ -4406,11 +4575,11 @@ public partial class HomePageView : UserControl
         if (TxtHomeSearchPlaceholder != null)
             TxtHomeSearchPlaceholder.Text = loc.GetString("Homepage.SearchPlaceholder", "Search here ...");
 
-        if (TxtModeFavorites != null)
+        if (TxtModeFavorites != null && _switchIconMode != true)
             TxtModeFavorites.Text = loc.GetString("Homepage.Favorites", "Favorites");
-        if (TxtModeSearch != null)
+        if (TxtModeSearch != null && _switchIconMode != true)
             TxtModeSearch.Text = loc.GetString("Common.Search", "Search");
-        if (TxtModeBookmarks != null)
+        if (TxtModeBookmarks != null && _switchIconMode != true)
             TxtModeBookmarks.Text = loc.GetString("Homepage.Bookmarks", "Bookmarks");
 
         if (SegModeFavorites != null)
@@ -4422,6 +4591,8 @@ public partial class HomePageView : UserControl
 
         if (TxtChangeWallpaper != null)
             TxtChangeWallpaper.Text = loc.GetString("Homepage.ChangeWallpaper", "Change Wallpaper");
+        BtnCompactWidgets.Content = loc.GetString("Astronomy.Widgets", "Widgets");
+        BtnCompactInfo.Content = loc.GetString("Homepage.Info", "Info");
         if (BtnChangeWallpaper != null)
             BtnChangeWallpaper.ToolTip = loc.GetString("Homepage.ChangeWallpaper", "Change wallpaper");
 
@@ -4442,5 +4613,6 @@ public partial class HomePageView : UserControl
             RbEditInactivity.Content = loc.GetString("Homepage.InactivityLayout", "Inactivity Layout");
         if (BtnExitEditMode != null)
             BtnExitEditMode.Content = loc.GetString("Homepage.SaveAndExit", "SAVE & EXIT");
+        UpdateSearchAreaLayout();
     }
 }

@@ -1017,6 +1017,8 @@
                                            Foreground="#888888" FontSize="11" FontFamily="Consolas"
                                            HorizontalAlignment="Right" VerticalAlignment="Bottom"
                                            Margin="0,0,5,3" Text=""/>
+                                <controls:SunProgressView x:Name="HeaderSunProgress" Height="13" Margin="8,0,8,2"
+                                                          VerticalAlignment="Bottom" Visibility="Collapsed" IsHitTestVisible="False"/>
                                 
                                 <!-- Media: video thumbnail display -->
                                 <Image x:Name="WidgetVideoImage"

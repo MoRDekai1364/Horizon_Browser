@@ -373,6 +373,8 @@ public static class StackElementBuilders
 
     public static void RegisterBuiltInWidgets()
     {
+        RegisterSource(StackElementKind.Widget, "moon_phase", _ => new AstronomyWidget { Mode = "MoonPhase" });
+        RegisterSource(StackElementKind.Widget, "sun_progress", _ => new AstronomyWidget { Mode = "SunProgress" });
         RegisterSource(StackElementKind.Widget, "cpu", d => BuildLiveCard(d, () =>
         {
             if (Application.Current?.MainWindow is not MainWindow main) return ("--", "Unavailable");

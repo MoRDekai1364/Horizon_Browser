@@ -24,10 +24,17 @@ public partial class StackHost : UserControl
     private int _index = -1;
     private readonly PagerDots _pager = new(Orientation.Vertical);
     private bool _switching;
+    private int _switchVersion;
     private bool _expanded;
     private double _restWidth = double.NaN;
     private double _restHeight = double.NaN;
     private bool _overlayOpen;
+    private bool _overlayClosing;
+    private IInputElement? _overlayReturnFocus;
+    private int _overlayVersion;
+    private int _sizeVersion;
+    private double _expandedWidth;
+    private double _expandedHeight;
     private double _baseWidth = double.NaN;
     private double _baseHeight = double.NaN;
     private const double InPlaceDim = 0.45;
@@ -46,19 +53,24 @@ public partial class StackHost : UserControl
     public int SelectedIndex => _index;
     public bool IsExpanded => _expanded;
     public bool IsOverlayOpen => _overlayOpen;
+    public bool IsOverlayClosing => _overlayClosing;
+    public FrameworkElement OverlayGlassSurface => OverlayGlass;
 
     public StackHost()
     {
         InitializeComponent();
-        HomeGlass.SetExclude(Overlay, true);
+        Focusable = true;
         HomeGlass.SetExclude(OverlayBackdrop, true);
-        HomeGlass.SetExclude(OverlayContent, true);
         Outgoing.RenderTransform = new TranslateTransform();
         Incoming.RenderTransform = new TranslateTransform();
         _pager.PageRequested += target => Go(target, target > _index ? 1 : -1);
         Dots.Children.Add(_pager);
         Loaded += (_, _) => UpdateDots();
         Viewport.SizeChanged += (_, _) => UpdateEmptyAddSize();
+        Viewport.SizeChanged += (_, _) =>
+        {
+            Viewport.Clip = new RectangleGeometry(new Rect(0, 0, Viewport.ActualWidth, Viewport.ActualHeight), 22, 22);
+        };
     }
 
     public void AddElement(string title, FrameworkElement content)
@@ -133,7 +145,12 @@ public partial class StackHost : UserControl
         }
 
         if (_switching) FinishSwitch();
+        _overlayVersion++;
+        if (!_overlayClosing) _overlayReturnFocus = Keyboard.FocusedElement;
+        ResetOverlayMotion();
+        _inPlace = false;
         _overlayOpen = true;
+        _overlayClosing = false;
         OverlayContent.Content = content;
         Overlay.Visibility = Visibility.Visible;
 
@@ -142,6 +159,7 @@ public partial class StackHost : UserControl
         Incoming.BeginAnimation(OpacityProperty, new DoubleAnimation(0, duration) { EasingFunction = ease });
         Overlay.BeginAnimation(OpacityProperty, new DoubleAnimation(1, duration) { EasingFunction = ease });
         Overlay.Focus();
+        HomeGlassMotion.Pulse(AnimationMs);
     }
 
     public void ShowInPlace(FrameworkElement content, Rect origin)
@@ -153,11 +171,15 @@ public partial class StackHost : UserControl
         }
 
         if (_switching) FinishSwitch();
+        _overlayVersion++;
+        if (!_overlayClosing) _overlayReturnFocus = Keyboard.FocusedElement;
+        ResetOverlayMotion();
         double width = Math.Max(1, Viewport.ActualWidth);
         double height = Math.Max(1, Viewport.ActualHeight);
         double startX = Math.Clamp(origin.Width / width, 0.05, 1);
         double startY = Math.Clamp(origin.Height / height, 0.05, 1);
         _overlayOpen = true;
+        _overlayClosing = false;
         _inPlace = true;
         _inPlaceOrigin = origin;
         OverlayContent.Content = content;
@@ -181,10 +203,12 @@ public partial class StackHost : UserControl
         OverlayBackdrop.BeginAnimation(OpacityProperty, new DoubleAnimation(0, InPlaceDim, duration) { EasingFunction = ease });
         Incoming.BeginAnimation(OpacityProperty, new DoubleAnimation(0, duration) { EasingFunction = ease });
         Overlay.Focus();
+        HomeGlassMotion.Pulse(AnimationMs);
     }
 
     private void CloseInPlace()
     {
+        int version = ++_overlayVersion;
         _inPlace = false;
         var duration = new Duration(TimeSpan.FromMilliseconds(AnimationMs));
         var ease = new SineEase { EasingMode = EasingMode.EaseInOut };
@@ -200,36 +224,57 @@ public partial class StackHost : UserControl
         var restore = new DoubleAnimation(1, duration) { EasingFunction = ease };
         restore.Completed += (_, _) =>
         {
-            if (_overlayOpen) return;
-            Overlay.Visibility = Visibility.Collapsed;
-            Overlay.Opacity = 0;
-            OverlayContent.Content = null;
-            Incoming.BeginAnimation(OpacityProperty, null);
-            Incoming.Opacity = 1;
-            _inPlaceScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
-            _inPlaceScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
-            _inPlaceMove.BeginAnimation(TranslateTransform.XProperty, null);
-            _inPlaceMove.BeginAnimation(TranslateTransform.YProperty, null);
-            OverlayContent.BeginAnimation(OpacityProperty, null);
-            OverlayContent.Opacity = 0;
-            OverlayContent.RenderTransform = null;
-            OverlayBackdrop.BeginAnimation(OpacityProperty, null);
-            OverlayBackdrop.Opacity = 0;
+            if (_overlayOpen || version != _overlayVersion) return;
+            FinishOverlayClose();
         };
         Incoming.BeginAnimation(OpacityProperty, restore);
+    }
+
+    private void ResetOverlayMotion()
+    {
+        Overlay.BeginAnimation(OpacityProperty, null);
+        OverlayContent.BeginAnimation(OpacityProperty, null);
+        OverlayBackdrop.BeginAnimation(OpacityProperty, null);
+        Incoming.BeginAnimation(OpacityProperty, null);
+        _inPlaceScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+        _inPlaceScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+        _inPlaceMove.BeginAnimation(TranslateTransform.XProperty, null);
+        _inPlaceMove.BeginAnimation(TranslateTransform.YProperty, null);
+        _inPlaceScale.ScaleX = _inPlaceScale.ScaleY = 1;
+        _inPlaceMove.X = _inPlaceMove.Y = 0;
+        OverlayContent.RenderTransform = null;
+        OverlayContent.Opacity = 1;
+        OverlayBackdrop.Opacity = 0;
+        Overlay.Opacity = 0;
+        Incoming.Opacity = 1;
+    }
+
+    private void FinishOverlayClose()
+    {
+        _overlayClosing = false;
+        Overlay.Visibility = Visibility.Collapsed;
+        OverlayContent.Content = null;
+        ResetOverlayMotion();
+        Incoming.IsHitTestVisible = true;
+        if (_overlayReturnFocus is UIElement focus && focus.IsVisible && focus.IsEnabled) Keyboard.Focus(focus);
+        else if (IsVisible) Focus();
+        _overlayReturnFocus = null;
+        OverlayClosed?.Invoke();
     }
 
     public void CloseOverlay()
     {
         if (!_overlayOpen) return;
         _overlayOpen = false;
+        _overlayClosing = true;
         if (_inPlace)
         {
             CloseInPlace();
-            OverlayClosed?.Invoke();
+            HomeGlassMotion.Pulse(AnimationMs);
             return;
         }
 
+        int version = ++_overlayVersion;
         var duration = new Duration(TimeSpan.FromMilliseconds(AnimationMs));
         var ease = new SineEase { EasingMode = EasingMode.EaseInOut };
         Incoming.BeginAnimation(OpacityProperty, new DoubleAnimation(1, duration) { EasingFunction = ease });
@@ -237,16 +282,11 @@ public partial class StackHost : UserControl
         var fade = new DoubleAnimation(0, duration) { EasingFunction = ease };
         fade.Completed += (_, _) =>
         {
-            if (_overlayOpen) return;
-            Overlay.Visibility = Visibility.Collapsed;
-            Overlay.BeginAnimation(OpacityProperty, null);
-            Overlay.Opacity = 0;
-            OverlayContent.Content = null;
-            Incoming.BeginAnimation(OpacityProperty, null);
-            Incoming.Opacity = 1;
+            if (_overlayOpen || version != _overlayVersion) return;
+            FinishOverlayClose();
         };
         Overlay.BeginAnimation(OpacityProperty, fade);
-        OverlayClosed?.Invoke();
+        HomeGlassMotion.Pulse(AnimationMs);
     }
 
     private void UpdateEmptyAddSize()
@@ -307,14 +347,28 @@ public partial class StackHost : UserControl
         _baseWidth = width;
         _baseHeight = height;
         if (_expanded) return;
+        _sizeVersion++;
         BeginAnimation(WidthProperty, null);
         BeginAnimation(HeightProperty, null);
         Width = width;
         Height = height;
     }
 
+    public void FitToAvailableSpace()
+    {
+        _expanded = false;
+        _sizeVersion++;
+        BeginAnimation(WidthProperty, null);
+        BeginAnimation(HeightProperty, null);
+        Width = double.NaN;
+        Height = double.NaN;
+    }
+
     public void ExpandTo(double width, double height)
     {
+        if (_expanded && Math.Abs(_expandedWidth - width) < 1 && Math.Abs(_expandedHeight - height) < 1) return;
+        _expandedWidth = width;
+        _expandedHeight = height;
         if (!_expanded)
         {
             _restWidth = ActualWidth;
@@ -329,15 +383,18 @@ public partial class StackHost : UserControl
     {
         if (!_expanded) return;
         _expanded = false;
-        AnimateSize(_restWidth, _restHeight, true);
+        AnimateSize(double.IsNaN(_baseWidth) ? _restWidth : _baseWidth,
+            double.IsNaN(_baseHeight) ? _restHeight : _baseHeight, true);
         ExpandedChanged?.Invoke(false);
     }
 
     private void Go(int index, int direction)
     {
-        if (index < 0 || index >= _items.Count || index == _index || _switching || _overlayOpen) return;
+        if (index < 0 || index >= _items.Count || index == _index || _overlayOpen) return;
+        if (_switching) FinishSwitch();
 
         _switching = true;
+        int version = ++_switchVersion;
         double offset = Math.Max(ActualHeight, 1) * SlideFraction;
 
         var outgoingMove = (TranslateTransform)Outgoing.RenderTransform;
@@ -364,22 +421,25 @@ public partial class StackHost : UserControl
         var fadeOut = new DoubleAnimation(0, new Duration(TimeSpan.FromMilliseconds(150))) { EasingFunction = ease };
         fadeOut.Completed += (_, _) =>
         {
+            if (version != _switchVersion) return;
             Outgoing.Visibility = Visibility.Collapsed;
             Outgoing.Content = null;
         };
 
         var fadeIn = new DoubleAnimation(1, duration) { EasingFunction = ease };
-        fadeIn.Completed += (_, _) => FinishSwitch();
+        fadeIn.Completed += (_, _) => { if (version == _switchVersion) FinishSwitch(); };
 
         Outgoing.BeginAnimation(OpacityProperty, fadeOut);
         Incoming.BeginAnimation(OpacityProperty, fadeIn);
         outgoingMove.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(-direction * offset, duration) { EasingFunction = ease });
         incomingMove.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(0, duration) { EasingFunction = ease });
+        HomeGlassMotion.Pulse(AnimationMs);
     }
 
     private void FinishSwitch()
     {
         if (!_switching) return;
+        _switchVersion++;
         _switching = false;
 
         var outgoingMove = (TranslateTransform)Outgoing.RenderTransform;
@@ -413,6 +473,7 @@ public partial class StackHost : UserControl
 
     private void AnimateSize(double width, double height, bool release)
     {
+        int version = ++_sizeVersion;
         var duration = new Duration(TimeSpan.FromMilliseconds(AnimationMs));
         var ease = new SineEase { EasingMode = EasingMode.EaseInOut };
 
@@ -423,6 +484,7 @@ public partial class StackHost : UserControl
         {
             heightAnimation.Completed += (_, _) =>
             {
+                if (version != _sizeVersion || _expanded) return;
                 BeginAnimation(WidthProperty, null);
                 BeginAnimation(HeightProperty, null);
                 Width = _baseWidth;
@@ -432,6 +494,7 @@ public partial class StackHost : UserControl
 
         BeginAnimation(WidthProperty, widthAnimation);
         BeginAnimation(HeightProperty, heightAnimation);
+        HomeGlassMotion.Pulse(AnimationMs);
     }
 
     private void UpdateDots()

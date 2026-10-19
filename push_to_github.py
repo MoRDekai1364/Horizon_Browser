@@ -5,6 +5,7 @@ import tempfile
 import shutil
 import logging
 import re
+import traceback
 from datetime import datetime
 
 SOURCE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -36,6 +37,10 @@ def fail(message, code=1):
     logger.error(message)
     dest = finalize_log()
     logger.error(f"FAILED. Log path: {dest}")
+    try:
+        input("\nPress Enter to close...")
+    except EOFError:
+        pass
     sys.exit(code)
 
 def print_progress(percent, elapsed_seconds, done, total, prefix=""):
@@ -490,10 +495,21 @@ def main():
         force_push = sync_with_remote(remote_name, branch)
         push_with_progress(remote_name, branch, force=force_push)
     except Exception as e:
+        logger.error(traceback.format_exc())
         fail(f"Error: {e}")
     dest = finalize_log()
     logger.info(f"Done. Remote: {remote_url} Branch: {branch} Log path: {dest}")
 
 if __name__ == "__main__":
-    main()
-    input("\nPress Enter to close...")
+    try:
+        main()
+    except SystemExit:
+        raise
+    except BaseException:
+        logger.error(traceback.format_exc())
+        dest = finalize_log()
+        logger.error(f"FAILED. Log path: {dest}")
+    try:
+        input("\nPress Enter to close...")
+    except EOFError:
+        pass

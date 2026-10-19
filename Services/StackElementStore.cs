@@ -62,7 +62,9 @@ public static class StackElementCatalog
         W("notes", "Notes", "\U0001F4DD"),
         W("calculator", "Calculator", "\U0001F9EE"),
         W("converter", "Converter", "\u21C4"),
-        W("calendar", "Calendar", "\U0001F5D3")
+        W("calendar", "Calendar", "\U0001F5D3"),
+        W("moon_phase", "Moon Phase", "🌙"),
+        W("sun_progress", "Sunrise & Sunset", "☀")
     };
 
     public static IReadOnlyList<StackCatalogEntry> Templates { get; } = new List<StackCatalogEntry>

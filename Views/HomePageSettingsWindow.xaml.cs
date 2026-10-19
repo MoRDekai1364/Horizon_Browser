@@ -480,6 +480,8 @@ public partial class HomePageSettingsWindow : Window
 
         ChkWidgetClock.IsChecked     = s.HomeShowClock;
         ChkWidgetWeather.IsChecked   = s.HomeShowWeather;
+        ChkWidgetMoonPhase.IsChecked = s.HomeShowMoonPhase;
+        ChkWidgetSunProgress.IsChecked = s.HomeShowSunProgress;
         ChkWidgetMedia.IsChecked     = s.HomeShowMediaWidget;
         ChkWidgetCalendar.IsChecked  = s.HomeShowCalendarWidget;
         ChkWidgetDownloads.IsChecked = s.HomeShowDownloadsWidget;
@@ -563,6 +565,8 @@ public partial class HomePageSettingsWindow : Window
         if (_loadingToggles) return;
         SettingsService.Current.HomeShowClock           = ChkWidgetClock.IsChecked == true;
         SettingsService.Current.HomeShowWeather         = ChkWidgetWeather.IsChecked == true;
+        SettingsService.Current.HomeShowMoonPhase = ChkWidgetMoonPhase.IsChecked == true;
+        SettingsService.Current.HomeShowSunProgress = ChkWidgetSunProgress.IsChecked == true;
         SettingsService.Current.HomeShowMediaWidget     = ChkWidgetMedia.IsChecked == true;
         SettingsService.Current.HomeShowCalendarWidget  = ChkWidgetCalendar.IsChecked == true;
         SettingsService.Current.HomeShowDownloadsWidget = ChkWidgetDownloads.IsChecked == true;

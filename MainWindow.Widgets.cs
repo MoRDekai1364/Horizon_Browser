@@ -23,6 +23,55 @@ namespace Horizon.Stealth;
 
 public partial class MainWindow
 {
+    private readonly Dictionary<string, Window> _astronomyWindows = new();
+
+    public void OpenAstronomyWindow(string mode)
+    {
+        if (_astronomyWindows.TryGetValue(mode, out var existing)) { existing.Activate(); return; }
+        string title = mode == "SunProgress" ? AstronomyService.Text("Astronomy.SunProgress", "Sunrise & sunset")
+            : AstronomyService.Text("Astronomy.MoonPhase", "Moon phase");
+        var area = SystemParameters.WorkArea;
+        var win = new Window
+        {
+            Title = title, Owner = this, Width = Math.Min(400, area.Width), Height = Math.Min(450, area.Height),
+            MinWidth = Math.Min(220, area.Width), MinHeight = Math.Min(180, area.Height),
+            MaxWidth = area.Width, MaxHeight = area.Height,
+            WindowStyle = WindowStyle.None, ResizeMode = ResizeMode.CanResizeWithGrip,
+            ShowInTaskbar = false, WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            Background = new SolidColorBrush(WxPanel)
+        };
+        var backdrop = BuildWidgetBackdrop(win);
+        backdrop.Root.IsHitTestVisible = true;
+        ContrastGuard.SetMode(win, ContrastMode.Off);
+        var root = new DockPanel { Margin = new Thickness(12) };
+        var chromeHost = new StackPanel();
+        chromeHost.Children.Add(BuildWidgetTitleBar(win, chromeHost, title));
+        DockPanel.SetDock(chromeHost, Dock.Top);
+        root.Children.Add(chromeHost);
+        var city = new TextBox { Text = SettingsService.Current.WidgetWeatherCity, Margin = new Thickness(0, 8, 0, 8), Padding = new Thickness(6), Foreground = WeatherAppearance.TextBrush, Background = WeatherAppearance.InputBrush };
+        city.ToolTip = AstronomyService.Text("Astronomy.CityHint", "Weather city · press Enter to apply");
+        city.KeyDown += (_, e) =>
+        {
+            if (e.Key != Key.Enter || string.IsNullOrWhiteSpace(city.Text)) return;
+            SettingsService.Current.WidgetWeatherCity = city.Text.Trim();
+            SettingsService.Save();
+            TxtWeatherCity.Text = city.Text.Trim();
+            _ = FetchWeatherAsync(city.Text.Trim());
+            StartWeatherRefreshTimer(city.Text.Trim());
+            _ = AstronomyService.EnsureAsync(city.Text.Trim());
+            e.Handled = true;
+        };
+        DockPanel.SetDock(city, Dock.Top);
+        root.Children.Add(city);
+        root.Children.Add(new Controls.AstronomyWidget { Mode = mode, OpenOnClick = false, UseWeatherPalette = true });
+        backdrop.Root.Children.Add(root);
+        win.Content = backdrop.Root;
+        win.KeyDown += (_, e) => { if (e.Key == Key.Escape) { win.Close(); e.Handled = true; } };
+        win.Closed += (_, _) => { backdrop.Detach(); _astronomyWindows.Remove(mode); };
+        _astronomyWindows[mode] = win;
+        win.Show();
+    }
+
     // ── Calendar event storage (local + synced) ───────────────────────────────
     private readonly List<CalendarEvent> _calendarEvents = new();
     private string _currentNoteTab = "";

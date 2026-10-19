@@ -30,6 +30,8 @@
             <ContentPresenter x:Name="Outgoing" IsHitTestVisible="False"/>
             <ContentPresenter x:Name="Incoming"/>
             <Grid x:Name="Overlay" Visibility="Collapsed" Opacity="0" Focusable="True" FocusVisualStyle="{x:Null}" KeyDown="Overlay_KeyDown">
+                <Border x:Name="OverlayGlass" CornerRadius="22" Background="{DynamicResource SharedSearchBgBrush}"
+                        BorderBrush="{DynamicResource SharedSearchBorderBrush}" BorderThickness="1" IsHitTestVisible="False"/>
                 <Rectangle x:Name="OverlayBackdrop" Fill="Transparent" MouseLeftButtonUp="OverlayBackdrop_Click">
                 </Rectangle>
                 <ContentPresenter x:Name="OverlayContent"/>
