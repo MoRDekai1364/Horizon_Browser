@@ -22,7 +22,7 @@ AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
-DefaultDirName={autopf}\Horizon_Browser_Official_Release
+DefaultDirName={autopf}\Horizon_Browser_Beta
 UninstallDisplayIcon={app}\{#MyAppExeName}
 ; "ArchitecturesAllowed=x64compatible" specifies that Setup cannot run
 ; on anything but x64 and Windows 11 on Arm.
@@ -36,15 +36,15 @@ ArchitecturesInstallIn64BitMode=x64compatible
 ;SetupArchitecture=x64
 ChangesAssociations=yes
 DisableProgramGroupPage=yes
-LicenseFile=E:\Programming\Personal_projects\Horizon_Browser\Horizon_Browser_official_release\LICENSE.txt
-InfoBeforeFile=E:\Programming\Personal_projects\Horizon_Browser\Horizon_Browser_official_release\Hello.txt
-InfoAfterFile=E:\Programming\Personal_projects\Horizon_Browser\Horizon_Browser_official_release\Finish.txt
+LicenseFile=D:\Programming\Personal_projects_D\Horizon_Browser\Horizon_Browser_official_release\LICENSE.txt
+InfoBeforeFile=D:\Programming\Personal_projects_D\Horizon_Browser\Horizon_Browser_official_release\Hello.txt
+InfoAfterFile=D:\Programming\Personal_projects_D\Horizon_Browser\Horizon_Browser_official_release\Finish.txt
 ; Uncomment the following line to run in non administrative install mode (install for current user only).
 ;PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
-OutputDir=E:\Programming\Personal_projects\Horizon_Browser\Horizon_Browser_official_release\Setup_File
+OutputDir=D:\Programming\Personal_projects_D\Horizon_Browser\Horizon_Browser_official_release\Setup_File
 OutputBaseFilename=Setup_Horizon_Browser_Official_Release
-SetupIconFile=E:\Programming\Personal_projects\Horizon_Browser\Horizon_Browser_official_release\src\Gemini_Generated_Image_version2.ico
+SetupIconFile=D:\Programming\Personal_projects_D\Horizon_Browser\Horizon_Browser_official_release\src\Gemini_Generated_Image_version2.ico
 SolidCompression=yes
 WizardStyle=modern stellar
 
@@ -55,7 +55,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "E:\Programming\Personal_projects\Horizon_Browser\Horizon_Browser_official_release\code_files\bin\Release\*"; DestDir: "{app}"; Excludes: "net8.0-windows*,logs\*,*.pdb,test_fixtures\*"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "D:\Programming\Personal_projects_D\Horizon_Browser\Horizon_Browser_official_release\code_files\bin\Release\*"; DestDir: "{app}"; Excludes: "net8.0-windows*,logs\*,*.pdb"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Registry]

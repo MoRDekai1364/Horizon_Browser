@@ -1,4 +1,39 @@
+version 2.7.9
++ integrated native Rust core engine (horizon_core.dll) for SIMD wallpaper luminance, text fitting, and sub-millisecond memory audits
++ added Aegis Resource Governor managing tab lifecycle (Active -> Warm -> Dormant -> Suspended -> Cryo) with emergency RAM shedding
++ added Arc-style Command Bar (Ctrl+T) with instant tab switching, browser commands, .new templates, and custom JS script execution
++ revamped Dynamic Island / Frosted Glass Executive Hub with dual states (resting micro-capsule & expanded 2-row command deck with live badges)
++ added Wave Arc Proximity Glow with fluid cubic Bezier cursor tracking along top and right window boundaries
++ implemented dynamic tab auto-widening with zero text truncation and proportional layout scaling
++ expanded fullscreen Widget Board into a 4-column 15-card matrix (Calculator, Converter, Battery, RAM, Reading List, Clipboard Monitor)
++ introduced Academic & Research Utilities Hub (Citation Builder, DOI Resolver, SSL Inspector, Text Miner, Terminal Launcher)
++ added Multi-World Homepage Theme Engine supporting 9 distinct launcher styles
++ enhanced Bookmarks and Favorites acrylic glass islands with 28px rounded curvature, scroller clip immunity, and right-click context menus
++ unified centered bottom utility dock (VPN/AdBlock, Battery Pill, Wallpaper Selector, Settings)
++ fixed streaming SPA DOM unresponsiveness and added TikTok guest overlay intervention
++ improved high-DPI and tight-window header/sidebar responsiveness with zero-flicker glass curtain animations
+
+version 2.7.8
++ added existing installation detection with automatic profile backup and out-of-process restore engine
++ modernized native WPF updater and automated profile migration system
++ implemented full multilingual localization engine (English default, Bulgarian complete translation)
++ refactored tab architecture with TabViewModel and decoupled tab lifecycle management
++ enhanced homepage folder drawers with spring animation physics and multi-page pagination
++ added dynamic Right Column and StackHost calendar widget
++ decoupled session harvester and added automatic CRX extension installation
++ improved build packaging and installer intermediate file exclusions
+
 version 2.7.7
-+ bugfixes
++ bugfixes and stability improvements
 + redone webapp design & workflow
 + homepage layout changes & optimization
+
+version 2.7.6
++ modernized weather widget interface
++ weather bugfixes
++ set Owner = null on widget window creation points to prevent unwanted browser focus pull
++ added search to settings
++ made all widget windows with rounded corners
++ made changelog.txt show its content in browser settings
++ applied monitor-based visual blur system
++ added VPN relay foundation (in progress)
