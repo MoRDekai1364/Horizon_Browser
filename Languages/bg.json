@@ -72,7 +72,8 @@
     "SaveAndExit": "ЗАПАЗИ И ИЗЛЕЗ",
     "WeatherUnavailable": "⛅ Недостъпно",
     "HomeFavorites": "Любими",
-    "HomeBookmarks": "Отметки"
+    "HomeBookmarks": "Отметки",
+    "Calendar": "Календар"
   },
   "Settings": {
     "Title": "Настройки",
@@ -164,6 +165,8 @@
     "Auto Consent": "Автоматично съгласие за бисквитки",
     "Auto-Hide Header": "Автоматично скриване на заглавната лента",
     "Auto-Hide Sidebar": "Автоматично скриване на страничната лента",
+    "Sidebar Mini Mode (Dock)": "Мини режим на страничната лента (Док)",
+    "Shrinks the sidebar into a slim icon dock on the right side.": "Свива страничната лента в компактен док с икони отдясно.",
     "Auto-restore previous session on startup": "Автоматично възстановяване на предишната сесия при стартиране",
     "Auto-skips sponsors, intros, outros, self-promo and interaction reminders on YouTube": "Автоматично пропуска спонсори, въведения, финали, промоции и напомняния в YouTube",
     "Automatically clicks 'Reject All' on cookie consent popups": "Автоматично избира 'Отказ на всички' при изскачащи прозорци за бисквитки",
@@ -656,6 +659,8 @@
   "Auto Consent": "Автоматично съгласие за бисквитки",
   "Auto-Hide Header": "Автоматично скриване на заглавната лента",
   "Auto-Hide Sidebar": "Автоматично скриване на страничната лента",
+  "Sidebar Mini Mode (Dock)": "Мини режим на страничната лента (Док)",
+  "Shrinks the sidebar into a slim icon dock on the right side.": "Свива страничната лента в компактен док с икони отдясно.",
   "Auto-restore previous session on startup": "Автоматично възстановяване на предишната сесия при стартиране",
   "Auto-skips sponsors, intros, outros, self-promo and interaction reminders on YouTube": "Автоматично пропуска спонсори, въведения, финали, промоции и напомняния в YouTube",
   "Automatically clicks 'Reject All' on cookie consent popups": "Автоматично избира 'Отказ на всички' при изскачащи прозорци за бисквитки",

@@ -6,6 +6,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using Horizon.Stealth.Views;
 
 namespace Horizon.Stealth.Services;
 
@@ -108,10 +109,83 @@ public static class ContrastGuard
         WeatherBridge.SurfaceChanged += RequestRefresh;
     }
 
+    public static bool IsHomePage(DependencyObject? obj)
+    {
+        while (obj != null)
+        {
+            if (obj is Horizon.Stealth.Views.HomePageView) return true;
+            string name = obj.GetType().Name;
+            if (name == "HomePageView") return true;
+
+            DependencyObject? parent = null;
+            if (obj is Visual || obj is System.Windows.Media.Media3D.Visual3D)
+            {
+                try { parent = VisualTreeHelper.GetParent(obj); }
+                catch { }
+            }
+            if (parent == null && obj is FrameworkElement fe)
+            {
+                parent = fe.Parent;
+            }
+            obj = parent;
+        }
+        return false;
+    }
+
+    private static void EvaluateInstant(FrameworkElement fe)
+    {
+        if (!Enabled) return;
+
+        if (fe.IsLoaded && fe.IsVisible && fe.ActualWidth > 0 && fe.ActualHeight > 0)
+        {
+            Evaluate(fe);
+            return;
+        }
+
+        SizeChangedEventHandler? handler = null;
+        handler = (s, e) =>
+        {
+            fe.SizeChanged -= handler;
+            if (Enabled && fe.IsVisible && fe.ActualWidth > 0 && fe.ActualHeight > 0)
+            {
+                Evaluate(fe);
+            }
+        };
+        fe.SizeChanged += handler;
+
+        fe.Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(() =>
+        {
+            fe.SizeChanged -= handler;
+            if (Enabled && fe.IsVisible && fe.ActualWidth > 0 && fe.ActualHeight > 0)
+            {
+                Evaluate(fe);
+            }
+        }));
+    }
+
     public static void RequestRefresh()
     {
         var app = Application.Current;
         if (app == null || !_initialized) return;
+
+        try
+        {
+            foreach (Window w in app.Windows)
+            {
+                if (!w.IsVisible) continue;
+                var sink = new List<FrameworkElement>();
+                CollectTargets(w, sink);
+                foreach (var el in sink)
+                {
+                    if (!IsHomePage(el))
+                    {
+                        Evaluate(el);
+                    }
+                }
+            }
+        }
+        catch { }
+
         app.Dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(() =>
         {
             if (_debounce == null) return;
@@ -139,12 +213,27 @@ public static class ContrastGuard
             fe.IsEnabledChanged += OnStateChanged;
         }
 
-        Enqueue(fe);
+        if (IsHomePage(fe))
+        {
+            Enqueue(fe);
+        }
+        else
+        {
+            EvaluateInstant(fe);
+        }
     }
 
     private static void OnStateChanged(object sender, DependencyPropertyChangedEventArgs e)
     {
-        if (Enabled && sender is FrameworkElement fe && fe.IsLoaded) Enqueue(fe);
+        if (!Enabled || sender is not FrameworkElement fe || !fe.IsLoaded) return;
+        if (IsHomePage(fe))
+        {
+            Enqueue(fe);
+        }
+        else
+        {
+            EvaluateInstant(fe);
+        }
     }
 
     private static void OnMouseChanged(object sender, MouseEventArgs e)
@@ -154,7 +243,17 @@ public static class ContrastGuard
 
         var sink = new List<FrameworkElement>();
         CollectTargets(fe, sink);
-        foreach (var el in sink) Enqueue(el);
+        foreach (var el in sink)
+        {
+            if (IsHomePage(el))
+            {
+                Enqueue(el);
+            }
+            else
+            {
+                EvaluateInstant(el);
+            }
+        }
     }
 
     private static void ApplyWindowDefaults(Window w)
@@ -194,7 +293,17 @@ public static class ContrastGuard
             if (!w.IsVisible) continue;
             var sink = new List<FrameworkElement>();
             CollectTargets(w, sink);
-            foreach (var el in sink) Pending.Add(el);
+            foreach (var el in sink)
+            {
+                if (!IsHomePage(el))
+                {
+                    Evaluate(el);
+                }
+                else
+                {
+                    Pending.Add(el);
+                }
+            }
         }
 
         if (Pending.Count > 0 && !_flushQueued)

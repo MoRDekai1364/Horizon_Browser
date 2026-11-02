@@ -59,7 +59,7 @@
                         <TextBlock Text="{Binding Url}" Foreground="#888" FontSize="9" TextTrimming="CharacterEllipsis" Margin="0,1,0,0"/>
                     </StackPanel>
 
-                    <TextBlock Grid.Column="2" Text="••••••" Foreground="#444" FontSize="10" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                    <TextBlock Grid.Column="2" Text="&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;" Foreground="#444" FontSize="10" VerticalAlignment="Center" Margin="10,0,0,0"/>
                 </Grid>
             </DataTemplate>
         </ResourceDictionary>
@@ -101,11 +101,11 @@
                      MouseDoubleClick="ListVault_MouseDoubleClick"/>
 
             <UniformGrid Grid.Row="3" Rows="1" Columns="5" Margin="0,10,0,5">
-                <Button Content="➕" Click="BtnAddNew_Click" Background="#112211" Foreground="#00AA00" BorderThickness="0" Height="30" Margin="0,0,2,0" ToolTip="Add New Credential"/>
-                <Button Content="👤" Click="BtnCopyUser_Click" Background="#111" Foreground="#AAA" BorderThickness="0" Height="30" Margin="2,0,2,0" ToolTip="Copy Username"/>
-                <Button Content="🔑" Click="BtnCopyPass_Click" Background="#111" Foreground="#AAA" BorderThickness="0" Height="30" Margin="2,0,2,0" ToolTip="Copy Password"/>
-                <Button Content="✎" Click="BtnEdit_Click" Background="#111" Foreground="#AAA" BorderThickness="0" Height="30" Margin="2,0,2,0" ToolTip="Edit Entry"/>
-                <Button Content="🗑" Click="BtnDelete_Click" Background="#331111" Foreground="{StaticResource Brush.Alert}" BorderThickness="0" Height="30" Margin="2,0,0,0" ToolTip="Delete Entry"/>
+                <Button Content="&#x2795;" Click="BtnAddNew_Click" Background="#112211" Foreground="#00AA00" BorderThickness="0" Height="30" Margin="0,0,2,0" ToolTip="Add New Credential"/>
+                <Button Content="&#x1F464;" Click="BtnCopyUser_Click" Background="#111" Foreground="#AAA" BorderThickness="0" Height="30" Margin="2,0,2,0" ToolTip="Copy Username"/>
+                <Button Content="&#x1F511;" Click="BtnCopyPass_Click" Background="#111" Foreground="#AAA" BorderThickness="0" Height="30" Margin="2,0,2,0" ToolTip="Copy Password"/>
+                <Button Content="&#x270E;" Click="BtnEdit_Click" Background="#111" Foreground="#AAA" BorderThickness="0" Height="30" Margin="2,0,2,0" ToolTip="Edit Entry"/>
+                <Button Content="&#x1F5D1;" Click="BtnDelete_Click" Background="#331111" Foreground="{StaticResource Brush.Alert}" BorderThickness="0" Height="30" Margin="2,0,0,0" ToolTip="Delete Entry"/>
             </UniformGrid>
 
             <Grid Grid.Row="4" Margin="0,5,0,0">
@@ -165,7 +165,7 @@
 
         <Grid x:Name="OverlayLocked" Background="#0b0b0b" Visibility="Collapsed">
             <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                <TextBlock Text="🔒" FontSize="48" HorizontalAlignment="Center" Margin="0,0,0,20" Opacity="0.3"/>
+                <TextBlock Text="&#x1F512;" FontSize="48" HorizontalAlignment="Center" Margin="0,0,0,20" Opacity="0.3"/>
                 <TextBlock Text="VAULT ENCRYPTED" Foreground="#444" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,30"/>
                 <Button Content="[ ACCESS SIGNAL ]" Click="BtnUnlock_Click" Style="{StaticResource Style_StealthButton}" Width="160" Height="40" Foreground="{StaticResource Brush.Neon}"/>
             </StackPanel>

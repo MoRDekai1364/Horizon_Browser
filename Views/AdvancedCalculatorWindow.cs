@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
@@ -677,12 +677,13 @@ public class AdvancedCalculatorWindow : Window
         var root = new Grid { ClipToBounds = true, IsHitTestVisible = false };
         var baseLayer = new Border();
         var wallBrush = new ImageBrush();
+        bool isFlat = SettingsService.Current.DisableBlurEffects;
         var wallLayer = new Border
         {
             RenderTransformOrigin = new Point(0.5, 0.5),
             RenderTransform = new ScaleTransform(1.08, 1.08),
             Background = wallBrush,
-            Effect = new System.Windows.Media.Effects.BlurEffect
+            Effect = isFlat ? null : new System.Windows.Media.Effects.BlurEffect
             {
                 Radius = 32,
                 KernelType = System.Windows.Media.Effects.KernelType.Gaussian,
@@ -701,16 +702,21 @@ public class AdvancedCalculatorWindow : Window
         root.Children.Add(baseLayer);
         root.Children.Add(glassHost);
 
-        var unbind = WidgetBackdropService.Bind(owner, wallBrush, overlap =>
+        Rect? lastOverlap = null;
+        void UpdateBackdrop(Rect? overlap)
         {
+            lastOverlap = overlap;
+            bool flat = SettingsService.Current.DisableBlurEffects;
+            wallLayer.Effect = flat ? null : new System.Windows.Media.Effects.BlurEffect
+            {
+                Radius = 32,
+                KernelType = System.Windows.Media.Effects.KernelType.Gaussian,
+                RenderingBias = System.Windows.Media.Effects.RenderingBias.Performance
+            };
             glassHost.Clip = null;
-            glassHost.Visibility = overlap == null ? Visibility.Collapsed : Visibility.Visible;
-        });
-
-        void Apply()
-        {
+            glassHost.Visibility = (flat || overlap == null) ? Visibility.Collapsed : Visibility.Visible;
             baseLayer.Background = new SolidColorBrush(Color.FromArgb(0xEE, 0x1A, 0x1A, 0x1A));
-            wallLayer.Opacity = WeatherBridge.ThemeWallpaper != null
+            wallLayer.Opacity = (!flat && WeatherBridge.ThemeWallpaper != null)
                 ? Math.Clamp(0.55 * SettingsService.Current.BackgroundOpacity, 0.0, 1.0)
                 : 0.0;
             byte bgAlpha = TintService.Apply(0xD9);
@@ -720,10 +726,20 @@ public class AdvancedCalculatorWindow : Window
             tintLayer.Background = HomePageView.CreateSearchBarBackgroundBrush(searchBg);
         }
 
-        Apply();
-        Action handler = () => owner.Dispatcher.BeginInvoke(new Action(Apply));
+        var unbind = WidgetBackdropService.Bind(owner, wallBrush, overlap =>
+        {
+            UpdateBackdrop(overlap);
+        });
+
+        Action handler = () => owner.Dispatcher.BeginInvoke(new Action(() => UpdateBackdrop(lastOverlap)));
         WeatherBridge.ThemeUpdated += handler;
-        return (root, () => { WeatherBridge.ThemeUpdated -= handler; unbind(); });
+        Controls.HomeGlassMotion.BlurSettingChanged += handler;
+        return (root, () =>
+        {
+            WeatherBridge.ThemeUpdated -= handler;
+            Controls.HomeGlassMotion.BlurSettingChanged -= handler;
+            unbind();
+        });
     }
 
     private Grid BuildTitleBar(string title, Action<Window>? onMinimize)

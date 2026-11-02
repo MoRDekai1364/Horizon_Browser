@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Benchmark: Timer-Heavy Background Stress</title>
+    <style>
+        body {
+            font-family: monospace;
+            background: #090d16; color: #00ffcc;
+            padding: 24px;
+        }
+        h2 { color: #ff2d78; }
+        .stat-box {
+            background: #121a29; border: 1px solid #1f2d47;
+            padding: 12px; margin: 10px 0; border-radius: 6px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Horizon Benchmark: Timer-Heavy Background Stress Fixture</h2>
+    <p>Runs 4 concurrent JavaScript timer loops. When in background, unthrottled Chromium executes full-rate; throttled Chromium clamps to &gt;= 1000ms.</p>
+    
+    <div class="stat-box">10ms Loop Ticks: <span id="t10">0</span></div>
+    <div class="stat-box">25ms Loop Ticks: <span id="t25">0</span></div>
+    <div class="stat-box">50ms Loop Ticks: <span id="t50">0</span></div>
+    <div class="stat-box">100ms Loop Ticks: <span id="t100">0</span></div>
+
+    <script>
+        let c10 = 0, c25 = 0, c50 = 0, c100 = 0;
+        let accumulator = 0;
+
+        setInterval(() => {
+            c10++;
+            for (let i = 0; i < 500; i++) accumulator += Math.sin(i);
+            const el = document.getElementById("t10");
+            if (el && c10 % 10 === 0) el.textContent = c10;
+        }, 10);
+
+        setInterval(() => {
+            c25++;
+            for (let i = 0; i < 200; i++) accumulator += Math.cos(i);
+            const el = document.getElementById("t25");
+            if (el && c25 % 4 === 0) el.textContent = c25;
+        }, 25);
+
+        setInterval(() => {
+            c50++;
+            let hash = 0;
+            const str = "benchmark_workload_" + c50;
+            for (let i = 0; i < str.length; i++) hash = (hash << 5) - hash + str.charCodeAt(i);
+            accumulator += hash;
+            const el = document.getElementById("t50");
+            if (el && c50 % 2 === 0) el.textContent = c50;
+        }, 50);
+
+        setInterval(() => {
+            c100++;
+            accumulator = (accumulator % 1000000);
+            const el = document.getElementById("t100");
+            if (el) el.textContent = c100;
+        }, 100);
+    </script>
+</body>
+</html>

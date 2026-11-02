@@ -244,7 +244,16 @@ public class TabViewModel : INotifyPropertyChanged, IDisposable
         set { _tabWidth = value; OnPropertyChanged(); OnPropertyChanged(nameof(TabTextMaxWidth)); }
     }
 
-    public double TabTextMaxWidth => Math.Max(40.0, _tabWidth - 50.0);
+    public double TabTextMaxWidth
+    {
+        get
+        {
+            double overhead = 46.0;
+            if (ContainerBadgeVisibility == Visibility.Visible) overhead += 28.0;
+            if (IsSleeping) overhead += 12.0;
+            return Math.Max(30.0, _tabWidth - overhead);
+        }
+    }
 
     public string DomainTitle
     {
@@ -358,8 +367,41 @@ public class TabViewModel : INotifyPropertyChanged, IDisposable
     public bool IsSleeping
     {
         get => _isSleeping;
-        set { _isSleeping = value; OnPropertyChanged(); OnPropertyChanged(nameof(DisplayTitle)); }
+        set { _isSleeping = value; OnPropertyChanged(); OnPropertyChanged(nameof(DisplayTitle)); OnPropertyChanged(nameof(TabTextMaxWidth)); }
     }
+
+    private Horizon.Stealth.Services.AegisTabTier _aegisTier = Horizon.Stealth.Services.AegisTabTier.Active;
+    public Horizon.Stealth.Services.AegisTabTier AegisTier
+    {
+        get => _aegisTier;
+        set
+        {
+            if (_aegisTier != value)
+            {
+                _aegisTier = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(AegisStatusTooltip));
+            }
+        }
+    }
+
+    private int _estimatedRamSavedMb;
+    public int EstimatedRamSavedMb
+    {
+        get => _estimatedRamSavedMb;
+        set { _estimatedRamSavedMb = value; OnPropertyChanged(); OnPropertyChanged(nameof(AegisStatusTooltip)); }
+    }
+
+    public string AegisStatusTooltip => AegisTier switch
+    {
+        Horizon.Stealth.Services.AegisTabTier.Active => "Aegis: Active",
+        Horizon.Stealth.Services.AegisTabTier.Warm => "Aegis: Warm (Protected Media/Input)",
+        Horizon.Stealth.Services.AegisTabTier.Dormant => $"Aegis: Dormant (Throttled, ~{EstimatedRamSavedMb} MB saved)",
+        Horizon.Stealth.Services.AegisTabTier.Suspended => $"Aegis: Suspended (Sleeping, ~{EstimatedRamSavedMb} MB saved)",
+        Horizon.Stealth.Services.AegisTabTier.Cryo => $"Aegis: Cryo (Dehydrated, ~{EstimatedRamSavedMb} MB saved)",
+        _ => "Aegis: Protected"
+    };
+
 
     // Per-tab sleep overrides — set via the tab right-click context menu.
 
@@ -386,6 +428,56 @@ public class TabViewModel : INotifyPropertyChanged, IDisposable
         get => _sleepRamThresholdMbOverride;
         set { _sleepRamThresholdMbOverride = value; OnPropertyChanged(); }
     }
+
+    // ── Container & Profile Isolation ───────────────────────────────────────
+    private string? _containerId;
+    public string? ContainerId
+    {
+        get => _containerId;
+        set
+        {
+            _containerId = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(IsIsolatedContainer));
+            OnPropertyChanged(nameof(ContainerBadgeText));
+            OnPropertyChanged(nameof(ContainerBadgeVisibility));
+            OnPropertyChanged(nameof(TabTextMaxWidth));
+        }
+    }
+
+    private string? _containerName;
+    public string? ContainerName
+    {
+        get => _containerName;
+        set
+        {
+            _containerName = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(ContainerBadgeText));
+        }
+    }
+
+    private Color? _containerColor;
+    public Color? ContainerColor
+    {
+        get => _containerColor;
+        set
+        {
+            _containerColor = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(ContainerBadgeBrush));
+        }
+    }
+
+    public bool IsIsolatedContainer => !string.IsNullOrEmpty(_containerId) && _containerId != "default";
+
+    public string ContainerBadgeText => !string.IsNullOrEmpty(_containerName) ? _containerName : (IsIsolatedContainer ? "Isolated" : "");
+
+    public Visibility ContainerBadgeVisibility => IsIsolatedContainer ? Visibility.Visible : Visibility.Collapsed;
+
+    public Brush ContainerBadgeBrush => _containerColor.HasValue 
+        ? new SolidColorBrush(_containerColor.Value) 
+        : new SolidColorBrush(Color.FromArgb(0xDD, 0x00, 0xE5, 0xFF));
 
     private string _language = "en";
     public string Language
@@ -456,6 +548,8 @@ public class TabViewModel : INotifyPropertyChanged, IDisposable
     public DateTime LastActiveUtc { get; set; } = DateTime.UtcNow;
     public int ClickCount { get; set; }
     public string? SleepUrl { get; set; }
+    public bool IsDiscarded { get; set; }
+    public Services.TabCapturedState? CapturedState { get; set; }
     public ImageSource? Thumbnail { get; set; }
     public int MediaTabOriginalIndex { get; set; } = -1;
     public string? MediaOriginHost { get; set; }

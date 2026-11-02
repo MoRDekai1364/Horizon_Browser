@@ -49,6 +49,23 @@ if defined ICON_PATH (
 echo [1/3] Cleaning previous builds...
 if exist "%OUT_DIR%" rmdir /s /q "%OUT_DIR%"
 
+echo [2a/3] Compiling Native Rust Core Engine...
+if exist "Native\horizon_core\Cargo.toml" (
+    where cargo >nul 2>&1
+    if %errorlevel% equ 0 (
+        cargo build --release --manifest-path "Native\horizon_core\Cargo.toml"
+    ) else if exist "%USERPROFILE%\.cargo\bin\cargo.exe" (
+        "%USERPROFILE%\.cargo\bin\cargo.exe" build --release --manifest-path "Native\horizon_core\Cargo.toml"
+    )
+    if exist "Native\horizon_core\target\release\horizon_core.dll" (
+        if not exist "%OUT_DIR%" mkdir "%OUT_DIR%"
+        copy /y "Native\horizon_core\target\release\horizon_core.dll" "%OUT_DIR%\" >nul
+        echo [INFO] Native Rust Core engine packaged.
+    ) else (
+        echo [WARN] Native Rust Core DLL not found. Managed fallback will be used.
+    )
+)
+
 echo [2/3] Compiling Release Binary...
 rem Skip workload resolution — prevents 0xe0434352 crash dialog caused by
 rem missing Visual Studio workload manifests. Cleared immediately after build.
@@ -178,4 +195,14 @@ echo ==================================================
 echo   Binary  : %~dp0%OUT_DIR%\%BIN_NAME%
 echo   Shortcut: %~dp0!START_Horizon_Browser.lnk
 echo.
-pause
+echo --------------------------------------------------
+set /p "DEPLOY_CHOICE=Update your Daily Driver (%LOCALAPPDATA%\Programs\Horizon_Browser) now? [y/N]: "
+if /i "%DEPLOY_CHOICE%"=="y" (
+    echo.
+    call "%~dp0Deploy_Daily_Driver.bat"
+) else (
+    echo.
+    echo Daily Driver untouched. You can deploy anytime using Deploy_Daily_Driver.bat
+    echo.
+    pause
+)

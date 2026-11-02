@@ -76,7 +76,7 @@ public partial class MainWindow
         {
             _timerIsRunning = false;
             Dispatcher.BeginInvoke(() =>
-                MessageBox.Show("⏰  Timer finished!", "Horizon", MessageBoxButton.OK, MessageBoxImage.Information));
+                MessageBox.Show("\u23F0  Timer finished!", "Horizon", MessageBoxButton.OK, MessageBoxImage.Information));
             return "00:00";
         }
         return FormatTimeSpan(remaining);
@@ -113,7 +113,7 @@ public partial class MainWindow
 
         var gearGlyph = new TextBlock
         {
-            Text = "⚙", FontSize = 14, Foreground = new SolidColorBrush(Color.FromArgb(0xAA, 0xFF, 0xFF, 0xFF)),
+            Text = "\u2699", FontSize = 14, Foreground = new SolidColorBrush(Color.FromArgb(0xAA, 0xFF, 0xFF, 0xFF)),
             Margin = new Thickness(0, 0, 12, 0), Cursor = Cursors.Hand, VerticalAlignment = VerticalAlignment.Center
         };
         gearGlyph.MouseLeftButtonUp += (s, e) => win.Topmost = !win.Topmost;
@@ -194,15 +194,15 @@ public partial class MainWindow
             Margin = new Thickness(0, 0, 0, 8)
         };
 
-        root.Children.Add(MakeSectionHeader("CLOCK DISPLAY  ⌄"));
+        root.Children.Add(MakeSectionHeader("CLOCK DISPLAY  \u2304"));
 
         var now = DateTime.Now;
         (string Glyph, string Label, string Preview, int Mode)[] modes =
         {
-            ("🕐", "24-hour, with seconds",  now.ToString("HH:mm:ss"), 0),
-            ("🕑", "24-hour, no seconds",     now.ToString("HH:mm"),    1),
-            ("🕒", "12-hour, AM/PM",          now.ToString("hh:mm tt"), 2),
-            ("🕓", "24-hour, seconds corner", now.ToString("HH:mm") + " ˢˢ", 3),
+            ("\U0001F550", "24-hour, with seconds",  now.ToString("HH:mm:ss"), 0),
+            ("\U0001F551", "24-hour, no seconds",     now.ToString("HH:mm"),    1),
+            ("\U0001F552", "12-hour, AM/PM",          now.ToString("hh:mm tt"), 2),
+            ("\U0001F553", "24-hour, seconds corner", now.ToString("HH:mm") + " \u02E2\u02E2", 3),
         };
 
         foreach (var (glyph, label, preview, idx) in modes)
@@ -219,14 +219,14 @@ public partial class MainWindow
         }
 
         root.Children.Add(new Border { Height = 8, Background = Brushes.Transparent });
-        root.Children.Add(MakeSectionHeader("STOPWATCH & TIMER  ⌄"));
+        root.Children.Add(MakeSectionHeader("STOPWATCH & TIMER  \u2304"));
 
-        root.Children.Add(MakeRow("⏱", "Stopwatch Function", "", _clockMode == 4, () =>
+        root.Children.Add(MakeRow("\u23F1", "Stopwatch Function", "", _clockMode == 4, () =>
         {
             _clockMode = 4; SettingsService.Current.ClockMode = 4; SettingsService.Save();
             win.Close(); OpenStopwatchWindow();
         }));
-        root.Children.Add(MakeRow("⏲", "Timer Function", "", _clockMode == 5, () =>
+        root.Children.Add(MakeRow("\u23F2", "Timer Function", "", _clockMode == 5, () =>
         {
             _clockMode = 5; SettingsService.Current.ClockMode = 5; SettingsService.Save();
             win.Close(); OpenTimerWindow();
@@ -259,13 +259,13 @@ public partial class MainWindow
 
         int lapCount = 0;
         var btnRow = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Center };
-        var btnSS    = AccentButton(_swClock.IsRunning ? "⏸  Pause" : "▶  Start", C(0x1a4a1a), C(0x2a7a2a), 88);
-        var btnLap   = AccentButton("⌚  Lap",   C(0x1a3454), C(0x2e6aa0), 76);
-        var btnReset = AccentButton("↺  Reset", C(0x3a2222), C(0x663333), 76);
+        var btnSS    = AccentButton(_swClock.IsRunning ? "\u23F8  Pause" : "\u25B6  Start", C(0x1a4a1a), C(0x2a7a2a), 88);
+        var btnLap   = AccentButton("\u231A  Lap",   C(0x1a3454), C(0x2e6aa0), 76);
+        var btnReset = AccentButton("\u21BA  Reset", C(0x3a2222), C(0x663333), 76);
 
-        btnSS.Click    += (s, e) => { if (_swClock.IsRunning) { _swClock.Stop(); btnSS.Content = "▶  Resume"; } else { _swClock.Start(); btnSS.Content = "⏸  Pause"; } };
+        btnSS.Click    += (s, e) => { if (_swClock.IsRunning) { _swClock.Stop(); btnSS.Content = "\u25B6  Resume"; } else { _swClock.Start(); btnSS.Content = "\u23F8  Pause"; } };
         btnLap.Click   += (s, e) => { lapCount++; lapList.Items.Insert(0, $"Lap {lapCount,2}   {FormatElapsed(_swClock.Elapsed)}"); };
-        btnReset.Click += (s, e) => { _swClock.Reset(); lapList.Items.Clear(); lapCount = 0; display.Text = "00:00.0"; btnSS.Content = "▶  Start"; };
+        btnReset.Click += (s, e) => { _swClock.Reset(); lapList.Items.Clear(); lapCount = 0; display.Text = "00:00.0"; btnSS.Content = "\u25B6  Start"; };
 
         foreach (var b in new[] { btnSS, btnLap, btnReset }) { b.Margin = new Thickness(3, 0, 3, 0); btnRow.Children.Add(b); }
         root.Children.Add(display); root.Children.Add(lapList); root.Children.Add(btnRow);
@@ -315,8 +315,8 @@ public partial class MainWindow
         };
 
         var btnRow = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Center };
-        var btnSS  = AccentButton(_timerIsRunning ? "⏸  Pause" : "▶  Start", C(0x1a4a1a), C(0x2a7a2a), 88);
-        var btnRst = AccentButton("↺  Reset", C(0x3a2222), C(0x663333), 76);
+        var btnSS  = AccentButton(_timerIsRunning ? "\u23F8  Pause" : "\u25B6  Start", C(0x1a4a1a), C(0x2a7a2a), 88);
+        var btnRst = AccentButton("\u21BA  Reset", C(0x3a2222), C(0x663333), 76);
 
         TimeSpan ReadSet()
         {
@@ -326,14 +326,14 @@ public partial class MainWindow
 
         btnSS.Click += (s, e) =>
         {
-            if (_timerIsRunning) { _timerIsRunning = false; btnSS.Content = "▶  Resume"; }
-            else { _timerDuration = ReadSet(); _timerStartedAt = DateTime.Now; _timerIsRunning = true; btnSS.Content = "⏸  Pause"; }
+            if (_timerIsRunning) { _timerIsRunning = false; btnSS.Content = "\u25B6  Resume"; }
+            else { _timerDuration = ReadSet(); _timerStartedAt = DateTime.Now; _timerIsRunning = true; btnSS.Content = "\u23F8  Pause"; }
         };
         btnRst.Click += (s, e) =>
         {
             _timerIsRunning = false; _timerDuration = ReadSet();
             display.Text = FormatTimeSpan(_timerDuration); display.Foreground = Brushes.White;
-            btnSS.Content = "▶  Start";
+            btnSS.Content = "\u25B6  Start";
         };
         btnRow.Children.Add(btnSS); btnRst.Margin = new Thickness(6, 0, 0, 0); btnRow.Children.Add(btnRst);
         root.Children.Add(spinRow); root.Children.Add(presets); root.Children.Add(display); root.Children.Add(btnRow);
@@ -400,7 +400,7 @@ public partial class MainWindow
         };
         var catBox = new ComboBox
         {
-            ItemsSource = new[] { "📏 Length", "⚖ Weight", "🌡 Temperature", "💨 Speed", "📦 Volume", "📐 Area", "💾 Data", "💱 Currency", "⏱ Time" },
+            ItemsSource = new[] { "\U0001F4CF Length", "\u2696 Weight", "\U0001F321 Temperature", "\U0001F4A8 Speed", "\U0001F4E6 Volume", "\U0001F4D0 Area", "\U0001F4BE Data", "\U0001F4B1 Currency", "\u23F1 Time" },
             SelectedIndex = 0,
             Background = Brushes.Transparent, Foreground = Brushes.White, BorderThickness = new Thickness(0),
             Padding = new Thickness(8, 6, 8, 6), FontSize = 14,
@@ -448,7 +448,7 @@ public partial class MainWindow
             Cursor = Cursors.Hand,
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
-            Child = new TextBlock { Text = "⇄", FontSize = 16, Foreground = new SolidColorBrush(convCyan), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center }
+            Child = new TextBlock { Text = "\u21C4", FontSize = 16, Foreground = new SolidColorBrush(convCyan), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center }
         };
 
         TextBox MakeNumBox(Color glow, bool readOnly) => new TextBox
@@ -479,17 +479,17 @@ public partial class MainWindow
 
         var data = new Dictionary<string, (string[] units, Func<double, int, int, double> conv)>
         {
-            ["📏 Length"]      = (new[]{"mm","cm","m","km","in","ft","yd","mi","nmi"}, (v,f,t) => { double[] m={0.001,0.01,1,1000,0.0254,0.3048,0.9144,1609.344,1852}; return v*m[f]/m[t]; }),
-            ["⚖ Weight"]      = (new[]{"mg","g","kg","t","oz","lb","st"},             (v,f,t) => { double[] g={0.001,1,1000,1e6,28.3495,453.592,6350.29}; return v*g[f]/g[t]; }),
-            ["🌡 Temperature"] = (new[]{"°C","°F","K"},
+            ["\U0001F4CF Length"]      = (new[]{"mm","cm","m","km","in","ft","yd","mi","nmi"}, (v,f,t) => { double[] m={0.001,0.01,1,1000,0.0254,0.3048,0.9144,1609.344,1852}; return v*m[f]/m[t]; }),
+            ["\u2696 Weight"]      = (new[]{"mg","g","kg","t","oz","lb","st"},             (v,f,t) => { double[] g={0.001,1,1000,1e6,28.3495,453.592,6350.29}; return v*g[f]/g[t]; }),
+            ["\U0001F321 Temperature"] = (new[]{"\u00B0C","\u00B0F","K"},
                 (v,f,t) => { double c = f switch{0=>v,1=>(v-32)*5/9.0,2=>v-273.15,_=>v}; return t switch{0=>c,1=>c*9/5.0+32,2=>c+273.15,_=>c}; }),
-            ["💨 Speed"]       = (new[]{"m/s","km/h","mph","knots","ft/s","Mach"},    (v,f,t) => { double[] ms={1,1/3.6,0.44704,0.514444,0.3048,340.29}; return v*ms[f]/ms[t]; }),
-            ["📦 Volume"]      = (new[]{"ml","cl","dl","L","fl oz","cup","pt","qt","gal"}, (v,f,t) => { double[] ml={1,10,100,1000,29.5735,236.588,473.176,946.353,3785.41}; return v*ml[f]/ml[t]; }),
-            ["📐 Area"]        = (new[]{"mm²","cm²","m²","km²","in²","ft²","acre","ha","mi²"}, (v,f,t) => { double[] m2={1e-6,1e-4,1,1e6,6.4516e-4,0.092903,4046.86,10000,2589988}; return v*m2[f]/m2[t]; }),
-            ["💾 Data"]        = (new[]{"bit","B","KB","MB","GB","TB","KiB","MiB","GiB","TiB"}, (v,f,t) => { double[] b={1,8,8e3,8e6,8e9,8e12,8192,8388608,8589934592,8796093022208}; return v*b[f]/b[t]; }),
-            ["💱 Currency"]    = (new[]{"USD","EUR","GBP","JPY","CNY","CAD","AUD","CHF","INR","MXN"},
+            ["\U0001F4A8 Speed"]       = (new[]{"m/s","km/h","mph","knots","ft/s","Mach"},    (v,f,t) => { double[] ms={1,1/3.6,0.44704,0.514444,0.3048,340.29}; return v*ms[f]/ms[t]; }),
+            ["\U0001F4E6 Volume"]      = (new[]{"ml","cl","dl","L","fl oz","cup","pt","qt","gal"}, (v,f,t) => { double[] ml={1,10,100,1000,29.5735,236.588,473.176,946.353,3785.41}; return v*ml[f]/ml[t]; }),
+            ["\U0001F4D0 Area"]        = (new[]{"mm\u00B2","cm\u00B2","m\u00B2","km\u00B2","in\u00B2","ft\u00B2","acre","ha","mi\u00B2"}, (v,f,t) => { double[] m2={1e-6,1e-4,1,1e6,6.4516e-4,0.092903,4046.86,10000,2589988}; return v*m2[f]/m2[t]; }),
+            ["\U0001F4BE Data"]        = (new[]{"bit","B","KB","MB","GB","TB","KiB","MiB","GiB","TiB"}, (v,f,t) => { double[] b={1,8,8e3,8e6,8e9,8e12,8192,8388608,8589934592,8796093022208}; return v*b[f]/b[t]; }),
+            ["\U0001F4B1 Currency"]    = (new[]{"USD","EUR","GBP","JPY","CNY","CAD","AUD","CHF","INR","MXN"},
                 (v,f,t) => { double[] u={1,0.92,0.79,149.5,7.24,1.36,1.52,0.89,83.1,17.2}; return v/u[f]*u[t]; }),
-            ["⏱ Time"]        = (new[]{"ms","sec","min","hr","day","wk","mo","yr"},
+            ["\u23F1 Time"]        = (new[]{"ms","sec","min","hr","day","wk","mo","yr"},
                 (v,f,t) => { double[] s={0.001,1,60,3600,86400,604800,2629800,31557600}; return v*s[f]/s[t]; }),
         };
 
@@ -497,12 +497,12 @@ public partial class MainWindow
         {
             if (catBox.SelectedItem is not string cat || !data.TryGetValue(cat, out var d)) return;
             if (fromUnitBox.SelectedIndex < 0 || toUnitBox.SelectedIndex < 0) return;
-            if (!double.TryParse(fromIn.Text.Replace(",","."), NumberStyles.Any, CultureInfo.InvariantCulture, out var v)) { toOut.Text = "—"; return; }
+            if (!double.TryParse(fromIn.Text.Replace(",","."), NumberStyles.Any, CultureInfo.InvariantCulture, out var v)) { toOut.Text = "\u2014"; return; }
             double r = d.conv(v, fromUnitBox.SelectedIndex, toUnitBox.SelectedIndex);
             toOut.Text = r.ToString(Math.Abs(r) > 1e6 || (Math.Abs(r) < 1e-3 && r != 0) ? "G5" : "G8", CultureInfo.InvariantCulture);
             double unit = d.conv(1, fromUnitBox.SelectedIndex, toUnitBox.SelectedIndex);
             formula.Text = $"1 {fromUnitBox.SelectedItem} = {unit.ToString("G5", CultureInfo.InvariantCulture)} {toUnitBox.SelectedItem}";
-            if (cat == "💱 Currency") formula.Text += "  (approx, offline rates)";
+            if (cat == "\U0001F4B1 Currency") formula.Text += "  (approx, offline rates)";
         }
         void UpdateUnits()
         {
@@ -571,7 +571,7 @@ public partial class MainWindow
         var accountsPanel = BuildCalendarAccountsPanel();
 
         Panel[] panels = { calPanel, datePanel, agePanel, accountsPanel };
-        string[] tabs  = { "📅 Calendar", "📊 Date Calc", "🎂 Age Calc", "🔗 Accounts" };
+        string[] tabs  = { "\U0001F4C5 Calendar", "\U0001F4CA Date Calc", "\U0001F382 Age Calc", "\U0001F517 Accounts" };
         var tabBtns    = new Button[4];
 
         for (int i = 0; i < 4; i++)
@@ -681,8 +681,8 @@ public partial class MainWindow
         nav.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         nav.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
-        var prev   = NavBtn("‹");
-        var next   = NavBtn("›");
+        var prev   = NavBtn("\u2039");
+        var next   = NavBtn("\u203A");
         var addBtn = new Button
         {
             Content = "+ Event", FontSize = 10, Height = 24, Padding = new Thickness(8, 0, 8, 0),
@@ -785,7 +785,7 @@ public partial class MainWindow
 
     private void ShowDayEventsPopup(DateTime date, List<CalendarEvent> events, Action refreshCalendar)
     {
-        var popup = MakeToolWindow($"📅  {date:dddd, d MMMM yyyy}", 340);
+        var popup = MakeToolWindow($"\U0001F4C5  {date:dddd, d MMMM yyyy}", 340);
         var root  = new StackPanel { Margin = new Thickness(12) };
 
         if (events.Count == 0)
@@ -809,14 +809,14 @@ public partial class MainWindow
                     Padding = new Thickness(8, 6, 8, 6), Margin = new Thickness(0, 0, 0, 6)
                 };
                 string timeStr = ev.Start.Date == ev.End.Date
-                    ? $"{ev.Start:HH:mm} – {ev.End:HH:mm}"
-                    : $"{ev.Start:d MMM HH:mm} – {ev.End:d MMM HH:mm}";
+                    ? $"{ev.Start:HH:mm} \u2013 {ev.End:HH:mm}"
+                    : $"{ev.Start:d MMM HH:mm} \u2013 {ev.End:d MMM HH:mm}";
 
                 var evStack = new StackPanel();
                 evStack.Children.Add(new TextBlock { Text = ev.Title, FontWeight = FontWeights.SemiBold, Foreground = Brushes.White, FontSize = 12, TextWrapping = TextWrapping.Wrap });
                 evStack.Children.Add(new TextBlock { Text = timeStr, Foreground = new SolidColorBrush(C(0x88ccff)), FontSize = 10, Margin = new Thickness(0, 2, 0, 0) });
                 if (!string.IsNullOrEmpty(ev.Location))
-                    evStack.Children.Add(new TextBlock { Text = "📍 " + ev.Location, Foreground = new SolidColorBrush(C(0x666666)), FontSize = 10, TextWrapping = TextWrapping.Wrap });
+                    evStack.Children.Add(new TextBlock { Text = "\U0001F4CD " + ev.Location, Foreground = new SolidColorBrush(C(0x666666)), FontSize = 10, TextWrapping = TextWrapping.Wrap });
                 if (!string.IsNullOrEmpty(ev.Source))
                     evStack.Children.Add(new TextBlock { Text = ev.Source, Foreground = new SolidColorBrush(C(0x444444)), FontSize = 9, FontStyle = FontStyles.Italic });
 
@@ -825,7 +825,7 @@ public partial class MainWindow
                 {
                     var removeBtn = new Button
                     {
-                        Content = "🗑 Remove", FontSize = 9, Padding = new Thickness(6, 2, 6, 2),
+                        Content = "\U0001F5D1 Remove", FontSize = 9, Padding = new Thickness(6, 2, 6, 2),
                         HorizontalAlignment = HorizontalAlignment.Right,
                         Background = new SolidColorBrush(C(0x3a1a1a)), Foreground = Brushes.White,
                         BorderBrush = new SolidColorBrush(C(0x662222)), BorderThickness = new Thickness(1),
@@ -880,10 +880,10 @@ public partial class MainWindow
         };
         root.Children.Add(datePicker);
 
-        root.Children.Add(FieldLabel("Time  (HH:mm – HH:mm)"));
+        root.Children.Add(FieldLabel("Time  (HH:mm \u2013 HH:mm)"));
         var timeRow = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, 8) };
         var startBox = new TextBox { Text = "09:00", Width = 60, Background = new SolidColorBrush(C(0x1e1e1e)), Foreground = Brushes.White, BorderBrush = new SolidColorBrush(C(0x333333)), BorderThickness = new Thickness(1), Padding = new Thickness(4), FontFamily = new FontFamily("Consolas") };
-        var sepLbl   = new TextBlock { Text = " – ", Foreground = new SolidColorBrush(C(0x666666)), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(4, 0, 4, 0) };
+        var sepLbl   = new TextBlock { Text = " \u2013 ", Foreground = new SolidColorBrush(C(0x666666)), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(4, 0, 4, 0) };
         var endBox   = new TextBox { Text = "10:00", Width = 60, Background = new SolidColorBrush(C(0x1e1e1e)), Foreground = Brushes.White, BorderBrush = new SolidColorBrush(C(0x333333)), BorderThickness = new Thickness(1), Padding = new Thickness(4), FontFamily = new FontFamily("Consolas") };
         timeRow.Children.Add(startBox); timeRow.Children.Add(sepLbl); timeRow.Children.Add(endBox);
         root.Children.Add(timeRow);
@@ -900,7 +900,7 @@ public partial class MainWindow
         var statusBlock = new TextBlock { Foreground = new SolidColorBrush(C(0xff5555)), FontSize = 10, Margin = new Thickness(0, 0, 0, 6) };
         root.Children.Add(statusBlock);
 
-        var saveBtn = SyncButton("💾  Save Event", C(0x1a3a1a), C(0x2a6a2a));
+        var saveBtn = SyncButton("\U0001F4BE  Save Event", C(0x1a3a1a), C(0x2a6a2a));
         saveBtn.Click += (s, e) =>
         {
             if (string.IsNullOrWhiteSpace(titleBox.Text)) { statusBlock.Text = "Title is required."; return; }
@@ -970,7 +970,7 @@ public partial class MainWindow
                 rowInner.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
                 rowInner.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
-                string icon = acc.Provider == "Google" ? "🟢" : "🔵";
+                string icon = acc.Provider == "Google" ? "\U0001F7E2" : "\U0001F535";
                 var info = new StackPanel();
                 info.Children.Add(new TextBlock { Text = $"{icon} {acc.DisplayName}", Foreground = Brushes.White, FontSize = 12 });
                 info.Children.Add(new TextBlock { Text = acc.Email, Foreground = new SolidColorBrush(C(0x666666)), FontSize = 10 });
@@ -980,14 +980,14 @@ public partial class MainWindow
                 var btnStack = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
                 var syncBtn = new Button
                 {
-                    Content = "↻", Width = 26, Height = 24, FontSize = 13,
+                    Content = "\u21BB", Width = 26, Height = 24, FontSize = 13,
                     Background = new SolidColorBrush(C(0x1a3a1a)), Foreground = Brushes.White,
                     BorderBrush = new SolidColorBrush(C(0x2a5a2a)), BorderThickness = new Thickness(1),
                     Cursor = Cursors.Hand, Margin = new Thickness(0, 0, 4, 0), ToolTip = "Sync Calendar"
                 };
                 var removeBtn = new Button
                 {
-                    Content = "✕", Width = 24, Height = 24, FontSize = 11,
+                    Content = "\u2715", Width = 24, Height = 24, FontSize = 11,
                     Background = new SolidColorBrush(C(0x3a1a1a)), Foreground = Brushes.White,
                     BorderBrush = new SolidColorBrush(C(0x662222)), BorderThickness = new Thickness(1),
                     Cursor = Cursors.Hand, ToolTip = "Remove account"
@@ -996,7 +996,7 @@ public partial class MainWindow
                 var captureAcc = acc;
                 syncBtn.Click += async (s, e) =>
                 {
-                    statusBlock.Text = $"Syncing {captureAcc.Email}…";
+                    statusBlock.Text = $"Syncing {captureAcc.Email}\u2026";
                     try
                     {
                         if (captureAcc.Provider == "Google")
@@ -1006,7 +1006,7 @@ public partial class MainWindow
 
                         _calendarEvents.RemoveAll(ev => ev.Source == captureAcc.Email);
                         SettingsService.Save();
-                        statusBlock.Text = $"✓ Synced {captureAcc.Email}";
+                        statusBlock.Text = $"\u2713 Synced {captureAcc.Email}";
                     }
                     catch (Exception ex) { statusBlock.Text = $"Sync failed: {ex.Message}"; }
                 };
@@ -1031,12 +1031,12 @@ public partial class MainWindow
         root.Children.Add(new Separator { Background = new SolidColorBrush(Color.FromArgb(0x30, 0xFF, 0xFF, 0xFF)), Margin = new Thickness(0, 10, 0, 10) });
         root.Children.Add(SectionLabel("ADD ACCOUNT"));
 
-        var btnGoogle = SyncButton("🟢  Add Google Account", C(0x1e3a1e), C(0x2e6a2e));
-        var btnMS     = SyncButton("🔵  Add Microsoft Account", C(0x1a2e54), C(0x2e5aa0));
+        var btnGoogle = SyncButton("\U0001F7E2  Add Google Account", C(0x1e3a1e), C(0x2e6a2e));
+        var btnMS     = SyncButton("\U0001F535  Add Microsoft Account", C(0x1a2e54), C(0x2e5aa0));
 
         btnGoogle.Click += async (s, e) =>
         {
-            statusBlock.Text = "Opening Google sign-in…";
+            statusBlock.Text = "Opening Google sign-in\u2026";
             try
             {
                 var account = await AddAccountViaWebViewAsync("Google");
@@ -1045,7 +1045,7 @@ public partial class MainWindow
                     SettingsService.Current.SyncAccounts.RemoveAll(a => a.Email == account.Email);
                     SettingsService.Current.SyncAccounts.Add(account);
                     SettingsService.Save();
-                    statusBlock.Text = $"✓ Signed in as {account.Email}";
+                    statusBlock.Text = $"\u2713 Signed in as {account.Email}";
                     RefreshAccountsList();
                 }
                 else statusBlock.Text = "Sign-in cancelled.";
@@ -1057,9 +1057,9 @@ public partial class MainWindow
         {
             if (string.IsNullOrEmpty(SettingsService.Current.MicrosoftClientId))
             {
-                statusBlock.Text = "Set Microsoft Client ID in Settings → Integrations first."; return;
+                statusBlock.Text = "Set Microsoft Client ID in Settings \u2192 Integrations first."; return;
             }
-            statusBlock.Text = "Opening Microsoft sign-in…";
+            statusBlock.Text = "Opening Microsoft sign-in\u2026";
             try
             {
                 var account = await AddAccountViaWebViewAsync("Microsoft");
@@ -1068,7 +1068,7 @@ public partial class MainWindow
                     SettingsService.Current.SyncAccounts.RemoveAll(a => a.Email == account.Email);
                     SettingsService.Current.SyncAccounts.Add(account);
                     SettingsService.Save();
-                    statusBlock.Text = $"✓ Signed in as {account.Email}";
+                    statusBlock.Text = $"\u2713 Signed in as {account.Email}";
                     RefreshAccountsList();
                 }
                 else statusBlock.Text = "Sign-in cancelled.";
@@ -1077,13 +1077,13 @@ public partial class MainWindow
         };
 
         // Sync-all
-        var syncAllBtn = BarButton("↻  Sync All Accounts", C(0x1a2a3a), C(0x2e4a6a));
+        var syncAllBtn = BarButton("\u21BB  Sync All Accounts", C(0x1a2a3a), C(0x2e4a6a));
         syncAllBtn.Margin = new Thickness(0, 10, 0, 0);
         syncAllBtn.Click += async (s, e) =>
         {
             var accounts = SettingsService.Current.SyncAccounts;
             if (accounts.Count == 0) { statusBlock.Text = "No accounts to sync."; return; }
-            statusBlock.Text = "Syncing all accounts…";
+            statusBlock.Text = "Syncing all accounts\u2026";
             int total = 0;
             foreach (var acc in accounts.ToList())
             {
@@ -1100,7 +1100,7 @@ public partial class MainWindow
             }
             CalendarBridge.Publish(_calendarEvents);
             SettingsService.Save();
-            statusBlock.Text = $"✓ Synced {total} events across {accounts.Count} account(s)";
+            statusBlock.Text = $"\u2713 Synced {total} events across {accounts.Count} account(s)";
         };
 
         root.Children.Add(btnGoogle);
@@ -1300,7 +1300,7 @@ public partial class MainWindow
         }
     }
 
-    private void OpenNotesWindow()
+    public void OpenNotesWindow()
     {
         var tabs = SettingsService.Current.WidgetNoteTabs;
 
@@ -1357,7 +1357,7 @@ public partial class MainWindow
 
         var backGlyph = new TextBlock
         {
-            Text = "‹", FontSize = 20, FontWeight = FontWeights.Bold,
+            Text = "\u2039", FontSize = 20, FontWeight = FontWeights.Bold,
             Foreground = new SolidColorBrush(notesCyan), Cursor = Cursors.Hand,
             HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Center
         };
@@ -1595,7 +1595,7 @@ public partial class MainWindow
         }
         // (end AutoLinkifyNotes)
 
-        // ── Tab bar builder ───────────────────────────────────────────────────
+        // \u2500\u2500 Tab bar builder \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
         void RebuildTabBar()
         {
             tabBar.Children.Clear();
@@ -1675,7 +1675,7 @@ public partial class MainWindow
                 ((FrameworkElement)items[i]).Margin = new Thickness(0, 0, i == items.Count - 1 ? 0 : gap, 0);
         }
 
-        // ── Formatting toolbar ────────────────────────────────────────────────
+        // \u2500\u2500 Formatting toolbar \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
         Button FmtBtn(string lbl, string tip, int w = 36) => new Button
         {
             Content = lbl, Width = w, Height = 34, FontSize = 14, ToolTip = tip,
@@ -1804,7 +1804,7 @@ public partial class MainWindow
             rtb.Focus();
         };
 
-        // ── Drag & drop ───────────────────────────────────────────────────────
+        // \u2500\u2500 Drag & drop \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
         rtb.DragOver += (s, e) => { e.Effects = DragDropEffects.Copy; e.Handled = true; };
         rtb.Drop += (s, e) =>
         {
@@ -1854,13 +1854,13 @@ public partial class MainWindow
             e.Handled = true;
         };
 
-        // ── Auto-save (2 s debounce) ──────────────────────────────────────────
+        // \u2500\u2500 Auto-save (2 s debounce) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
         var autoSave = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
         autoSave.Tick     += (s, e) => { autoSave.Stop(); SaveCurrentTab(); AutoLinkifyNotes(rtb); statusTx.Text = "Auto-saved ✓"; };
         rtb.TextChanged   += (s, e) => { autoSave.Stop(); autoSave.Start(); statusTx.Text = ""; };
         win.Closed        += (s, e) => { autoSave.Stop(); SaveCurrentTab(); };
 
-        // ── Init ──────────────────────────────────────────────────────────────
+        // \u2500\u2500 Init \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
         RebuildTabBar();
         LoadTab(_currentNoteTab);
         win.Show();
@@ -1929,13 +1929,13 @@ public partial class MainWindow
     {
         if (string.IsNullOrWhiteSpace(plain)) return "";
 
-        // ── Step 1: prefer a heading-style first line (short, no sentence end) ──
+        // \u2500\u2500 Step 1: prefer a heading-style first line (short, no sentence end) \u2500\u2500
         string firstLine = plain.Split('\n', StringSplitOptions.RemoveEmptyEntries)
                                 .FirstOrDefault(l => !string.IsNullOrWhiteSpace(l))?.Trim() ?? "";
         if (firstLine.Length <= 32 && !firstLine.EndsWith('.') && !firstLine.EndsWith(','))
             return firstLine.Length > 18 ? firstLine[..15] + "…" : firstLine;
 
-        // ── Step 2: keyword extraction — pick most-frequent non-stopword ────────
+        // \u2500\u2500 Step 2: keyword extraction \u2014 pick most-frequent non-stopword \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
         var stopwords = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "a","an","the","and","or","but","is","are","was","were","be","been","being",
@@ -1959,7 +1959,7 @@ public partial class MainWindow
 
         if (topWord != null) return topWord;
 
-        // ── Step 3: fallback — first words of first line ─────────────────────
+        // \u2500\u2500 Step 3: fallback \u2014 first words of first line \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
         return firstLine.Length > 18 ? firstLine[..15] + "…" : firstLine;
     }
 
@@ -2063,7 +2063,7 @@ public partial class MainWindow
 
     private async Task SyncNotesGoogleAsync(string content, SyncAccount account)
     {
-        // Google never published a public Keep API — push to Google Tasks instead,
+        // Google never published a public Keep API \u2014 push to Google Tasks instead,
         // which is real, documented, and supports a title + notes body.
         await AccountSyncService.PushGoogleTaskAsync(
             account, AccountSyncService.AppGoogleClientId, AccountSyncService.AppGoogleClientSecret,
@@ -2094,7 +2094,7 @@ public partial class MainWindow
 
 
 
-	// ── In-app account login (uses browser's existing sessions) ──────────────
+	// \u2500\u2500 In-app account login (uses browser's existing sessions) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     private async Task<SyncAccount?> AddAccountViaWebViewAsync(string provider)
     {
         bool isGoogle     = provider == "Google";
@@ -2135,7 +2135,7 @@ public partial class MainWindow
 
         try
         {
-            // Dedicated WebView2 profile for OAuth logins — deliberately NOT the
+            // Dedicated WebView2 profile for OAuth logins \u2014 deliberately NOT the
             // main browsing environment. Horizon's stealth/anti-detect fingerprint
             // spoofing must never be applied to a real Google/Microsoft sign-in
             // page (it can get the login flagged as suspicious), and this keeps
@@ -2654,9 +2654,9 @@ public partial class MainWindow
         Canvas.SetLeft(sclLbl, 8); Canvas.SetTop(sclLbl, h - 21); canvas.Children.Add(sclLbl);
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
     //  SHARED UI HELPERS
-    // ═══════════════════════════════════════════════════════════════════════════
+    // \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
 
     private void EnsureWidgetDock()
     {

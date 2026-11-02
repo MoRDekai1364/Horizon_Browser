@@ -82,8 +82,8 @@ StartOnSystemStartup=false
 HomePage=horizon://home
 
 # [S02.02] Default search engine name
-#   type: string | values: AlohFind|DuckDuckGo|Google|Bing|Brave|Ecosia | default: AlohFind
-SearchEngine=AlohFind
+#   type: string | values: AlohaFind|DuckDuckGo|Google|Bing|Brave|Ecosia | default: AlohaFind
+SearchEngine=AlohaFind
 
 # [S02.03] Search URL, must match SearchEngine
 #   type: string | values: URL containing {query} | default: https://alohafind.com/search/?q={query}
@@ -277,6 +277,27 @@ DownloadTabHoverWidth=200.0
 #   type: int | values: 0|1 | default: 0
 TabSwitcherOrder=0
 
+# [S04.14] Throttle JavaScript timers in background tabs
+#   type: bool | values: true|false | default: true
+EnableBackgroundTimerThrottling=true
+
+# [S04.15] Reduce UI dispatcher timer frequency when idle
+#   type: bool | values: true|false | default: true
+EnableCosmeticTimerThrottling=true
+
+# [S04.16] Enable dynamic hardware RAM tiering
+#   type: bool | values: true|false | default: true
+EnableDynamicRamTiering=true
+
+# [S04.17] Exemption protection for audio, calls, forms and downloads before tab sleep
+#   type: bool | values: true|false | default: true
+EnableExemptionBasedSuspension=true
+
+# [S04.18] Tab discard and state capture under high memory pressure
+#   type: bool | values: true|false | default: true
+EnableTabDiscardAndStateCapture=true
+
+
 #==============================================================================
 # [S05] HOME PAGE
 #==============================================================================
@@ -311,11 +332,11 @@ HomeShowDownloadsWidget=true
 
 # [S05.08] Show the favorites widget
 #   type: bool | values: true|false | default: true
-HomeShowFavoritesWidget=true
+HomeShowFavoritesWidget=false
 
 # [S05.09] Show the bookmarks widget
 #   type: bool | values: true|false | default: true
-HomeShowBookmarksWidget=true
+HomeShowBookmarksWidget=false
 
 # [S05.10] Show the battery widget
 #   type: bool | values: true|false | default: true
@@ -327,7 +348,7 @@ HomeShowVpnAdBlockWidget=true
 
 # [S05.20] Show the right column on the home page
 #   type: bool | values: true|false | default: true
-HomeShowRightColumn=true
+HomeShowRightColumn=false
 
 # [S05.21] Show the Favorites drawer in the right column
 #   type: bool | values: true|false | default: true

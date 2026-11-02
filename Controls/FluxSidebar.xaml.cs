@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Collections.ObjectModel;
 using System.Collections.Generic;
@@ -516,7 +516,7 @@ public class PinIconConverter : IValueConverter
         => throw new NotImplementedException();
 }
 
-// ── FluxItemViewModel ─────────────────────────────────────────────────────────
+// \u2500\u2500 FluxItemViewModel \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 
 public class FluxItemViewModel
 {
@@ -720,7 +720,7 @@ public class FluxAccentGradientConverter : IValueConverter
         => throw new NotImplementedException();
 }
 
-// ── LocalImageConverter ───────────────────────────────────────────────────────
+// \u2500\u2500 LocalImageConverter \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 // Loads a local file path into a BitmapImage; returns null if path is empty/missing.
 public class LocalImageConverter : IValueConverter
 {
@@ -745,7 +745,7 @@ public class LocalImageConverter : IValueConverter
         => throw new NotImplementedException();
 }
 
-// ── NullOrEmptyConverter ──────────────────────────────────────────────────────
+// \u2500\u2500 NullOrEmptyConverter \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 // Returns bool false when a string is null/empty (used in DataTrigger bindings).
 public class NullOrEmptyConverter : IValueConverter
 {
@@ -756,15 +756,21 @@ public class NullOrEmptyConverter : IValueConverter
         => throw new NotImplementedException();
 }
 
-// ── Category edit mode enum ───────────────────────────────────────────────────
+// \u2500\u2500 Category edit mode enum \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 
 internal enum CategoryEditMode { Add, Rename, Delete }
 
-// ── Main sidebar control ──────────────────────────────────────────────────────
+// \u2500\u2500 Main sidebar control \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 
 public partial class FluxSidebar : UserControl
 {
     public event EventHandler?                    RequestAddPin;
+    public event EventHandler?                    RequestAddBookmark;
+    private string?                               _activeOpenedPinFolder;
+    private string?                               _activeOpenedBmFolder;
+    private string                                _categoryTargetTab = "Pins";
+    private Point                                 _pinDragStartPt;
+    private Point                                 _bmDragStartPt;
     public event EventHandler<string>?            RequestNavigate;
     public event EventHandler<ExtensionRecord>?   RequestExtensionPopup;
 
@@ -788,52 +794,52 @@ public partial class FluxSidebar : UserControl
         };
     }
 
-    // ── Downloads browse navigation ───────────────────────────────────────────
+    // \u2500\u2500 Downloads browse navigation \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     private string         _browsePath     = string.Empty; // current directory shown
     private Stack<string>  _browseStack    = new();        // back history
     private string?        _clipCutPath    = null;         // null = copy, set = cut source
 
-    // ── Downloads sort state ──────────────────────────────────────────────────
+    // \u2500\u2500 Downloads sort state \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     private enum SortField { Date, Name, Size }
     private SortField _sortField     = SortField.Date;
     private bool      _sortAscending = false;
 
-    // ── Bookmarks sort state ──────────────────────────────────────────────────
+    // \u2500\u2500 Bookmarks sort state \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     private enum BmSortField { Date, Name, Domain }
     private BmSortField _bmSortField     = BmSortField.Date;
     private bool        _bmSortAscending = false;
 
-    // ── History sort state ────────────────────────────────────────────────────
+    // \u2500\u2500 History sort state \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     private enum HistSortField { Date, Title, Domain }
     private HistSortField _histSortField     = HistSortField.Date;
     private bool          _histSortAscending = false;
 
-    // ── Pins sort / filter state ──────────────────────────────────────────────
+    // \u2500\u2500 Pins sort / filter state \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     private enum PinSortField { Manual, Name, Category }
     private PinSortField _pinSortField     = PinSortField.Name;
     private bool         _pinSortAscending = true;
 
-    // ── Extensions sort state ─────────────────────────────────────────────────
+    // \u2500\u2500 Extensions sort state \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     private enum ExtSortField { Name, State, Source }
     private ExtSortField _extSortField     = ExtSortField.Name;
     private bool         _extSortAscending = true;
 
-    // ── Category edit overlay state ───────────────────────────────────────────
+    // \u2500\u2500 Category edit overlay state \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     private CategoryEditMode _categoryEditMode;
     private string           _categoryEditTarget = ""; // for rename/delete
 
-    // ── Active download tracking ──────────────────────────────────────────────
+    // \u2500\u2500 Active download tracking \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     private string _activeDownloadPath = "";
     private string _activeDownloadLink = "";
     private bool _activeDownloadComplete = false;
 
-    // ── Preview state ─────────────────────────────────────────────────────────
+    // \u2500\u2500 Preview state \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     private double _imageZoom = 1.0;
     private double _textZoom = 1.0;
     private const double ZoomStep = 0.2, ZoomMin = 0.2, ZoomMax = 4.0;
     
 
-    // ── In-file search state ──────────────────────────────────────────────────
+    // \u2500\u2500 In-file search state \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     private List<TextRange> _searchMatches  = new();
     private int             _searchIndex    = -1;
     private string          _lastSearchTerm = "";
@@ -845,10 +851,28 @@ public partial class FluxSidebar : UserControl
         InitializeComponent();
         ListFlux.ItemsSource = FluxItems;
         Loaded += FluxSidebar_Loaded;
-        Loaded += (_, _) => ApplyResponsiveSidebarLayout();
+        Loaded += (_, _) => {
+            SetMiniMode(SettingsService.Current.SidebarMiniMode);
+        };
         SizeChanged += (_, _) => ApplyResponsiveSidebarLayout();
         FluxAccentColorConverter.ColorResolved += OnPinAccentColorResolved;
         Unloaded += (_, _) => FluxAccentColorConverter.ColorResolved -= OnPinAccentColorResolved;
+    }
+
+    public event Action<bool>? MiniModeToggled;
+    private bool _isMiniMode = false;
+    public bool IsMiniMode => _isMiniMode;
+
+    public void SetMiniMode(bool isMini)
+    {
+        _isMiniMode = isMini;
+        ApplyResponsiveSidebarLayout();
+        ApplyMiniModeVisuals();
+    }
+
+    private void BtnToggleSidebarDock_Click(object sender, RoutedEventArgs e)
+    {
+        MiniModeToggled?.Invoke(!_isMiniMode);
     }
 
     private void ApplyResponsiveSidebarLayout()
@@ -858,10 +882,17 @@ public partial class FluxSidebar : UserControl
         var rowHeader = SidebarTabControl.Template?.FindName("RowTabHeader", SidebarTabControl) as RowDefinition;
         var headerGrid = SidebarTabControl.Template?.FindName("TabHeaderGrid", SidebarTabControl) as System.Windows.Controls.Primitives.UniformGrid;
 
+        bool isMini = _isMiniMode;
         bool compactHeight = ActualHeight > 0 && ActualHeight < 640;
         if (rowHeader != null && headerGrid != null)
         {
-            if (compactHeight)
+            if (isMini)
+            {
+                headerGrid.Columns = 1;
+                headerGrid.Rows = 6;
+                rowHeader.Height = new GridLength(270);
+            }
+            else if (compactHeight)
             {
                 headerGrid.Columns = 6;
                 headerGrid.Rows = 1;
@@ -875,7 +906,12 @@ public partial class FluxSidebar : UserControl
             }
         }
 
-        if (ActualWidth > 0 && ActualWidth < 275)
+        if (isMini)
+        {
+            if (SidebarTabControl.LayoutTransform != Transform.Identity)
+                SidebarTabControl.LayoutTransform = Transform.Identity;
+        }
+        else if (ActualWidth > 0 && ActualWidth < 275)
         {
             double s = Math.Clamp(ActualWidth / 285.0, 0.82, 1.0);
             SidebarTabControl.LayoutTransform = new ScaleTransform(s, s);
@@ -883,6 +919,229 @@ public partial class FluxSidebar : UserControl
         else if (SidebarTabControl.LayoutTransform != Transform.Identity)
         {
             SidebarTabControl.LayoutTransform = Transform.Identity;
+        }
+
+        ApplyMiniModeVisuals();
+    }
+
+    private void ApplyMiniModeVisuals()
+    {
+        bool isMini = _isMiniMode;
+
+        if (SidebarDockHeader != null && ColHeaderPanes != null && ColHeaderUtil != null && ColHeaderDock != null &&
+            RowHeaderDock != null && RowHeaderPanes != null && RowHeaderUtil != null)
+        {
+            if (TxtSidebarTitle != null) TxtSidebarTitle.Visibility = Visibility.Collapsed;
+
+            if (isMini)
+            {
+                // Mini mode: Vertical stack of dock button + panes button + utilities button
+                ColHeaderPanes.Width = new GridLength(1, GridUnitType.Star);
+                ColHeaderUtil.Width = new GridLength(0);
+                ColHeaderDock.Width = new GridLength(0);
+
+                RowHeaderDock.Height = GridLength.Auto;
+                RowHeaderPanes.Height = GridLength.Auto;
+                RowHeaderUtil.Height = GridLength.Auto;
+
+                if (BtnToggleSidebarDock != null)
+                {
+                    Grid.SetRow(BtnToggleSidebarDock, 0);
+                    Grid.SetColumn(BtnToggleSidebarDock, 0);
+                    BtnToggleSidebarDock.Width = 38;
+                    BtnToggleSidebarDock.Height = 24;
+                    BtnToggleSidebarDock.Margin = new Thickness(0, 2, 0, 4);
+                    BtnToggleSidebarDock.HorizontalAlignment = HorizontalAlignment.Center;
+                    BtnToggleSidebarDock.Visibility = Visibility.Visible;
+                    BtnToggleSidebarDock.Content = "\u25C0";
+                    BtnToggleSidebarDock.ToolTip = "Expand sidebar (320px)";
+                }
+
+                if (BtnSidebarPanesTab != null)
+                {
+                    Grid.SetRow(BtnSidebarPanesTab, 1);
+                    Grid.SetColumn(BtnSidebarPanesTab, 0);
+                    BtnSidebarPanesTab.Width = 38;
+                    BtnSidebarPanesTab.Height = 32;
+                    BtnSidebarPanesTab.Margin = new Thickness(0, 0, 0, 4);
+                    BtnSidebarPanesTab.HorizontalAlignment = HorizontalAlignment.Center;
+                }
+
+                if (BtnSidebarUtilitiesTab != null)
+                {
+                    Grid.SetRow(BtnSidebarUtilitiesTab, 2);
+                    Grid.SetColumn(BtnSidebarUtilitiesTab, 0);
+                    BtnSidebarUtilitiesTab.Width = 38;
+                    BtnSidebarUtilitiesTab.Height = 32;
+                    BtnSidebarUtilitiesTab.Margin = new Thickness(0, 0, 0, 6);
+                    BtnSidebarUtilitiesTab.HorizontalAlignment = HorizontalAlignment.Center;
+                }
+
+                if (TxtPanesTabLabel != null)
+                {
+                    TxtPanesTabLabel.Text = "\uD83D\uDCC2";
+                    TxtPanesTabLabel.FontSize = 15;
+                }
+
+                if (TxtUtilitiesTabLabel != null)
+                {
+                    TxtUtilitiesTabLabel.Text = "\u26A1";
+                    TxtUtilitiesTabLabel.FontSize = 15;
+                }
+            }
+            else
+            {
+                // Expanded mode: Horizontal row
+                ColHeaderPanes.Width = new GridLength(1, GridUnitType.Star);
+                ColHeaderUtil.Width = new GridLength(1, GridUnitType.Star);
+                ColHeaderDock.Width = GridLength.Auto;
+
+                RowHeaderDock.Height = GridLength.Auto;
+                RowHeaderPanes.Height = new GridLength(0);
+                RowHeaderUtil.Height = new GridLength(0);
+
+                if (BtnSidebarPanesTab != null)
+                {
+                    Grid.SetRow(BtnSidebarPanesTab, 0);
+                    Grid.SetColumn(BtnSidebarPanesTab, 0);
+                    BtnSidebarPanesTab.Width = double.NaN;
+                    BtnSidebarPanesTab.Height = 32;
+                    BtnSidebarPanesTab.Margin = new Thickness(0, 0, 2, 0);
+                    BtnSidebarPanesTab.HorizontalAlignment = HorizontalAlignment.Stretch;
+                }
+
+                if (BtnSidebarUtilitiesTab != null)
+                {
+                    Grid.SetRow(BtnSidebarUtilitiesTab, 0);
+                    Grid.SetColumn(BtnSidebarUtilitiesTab, 1);
+                    BtnSidebarUtilitiesTab.Width = double.NaN;
+                    BtnSidebarUtilitiesTab.Height = 32;
+                    BtnSidebarUtilitiesTab.Margin = new Thickness(2, 0, 2, 0);
+                    BtnSidebarUtilitiesTab.HorizontalAlignment = HorizontalAlignment.Stretch;
+                }
+
+                if (BtnToggleSidebarDock != null)
+                {
+                    Grid.SetRow(BtnToggleSidebarDock, 0);
+                    Grid.SetColumn(BtnToggleSidebarDock, 2);
+                    BtnToggleSidebarDock.Width = 26;
+                    BtnToggleSidebarDock.Height = 26;
+                    BtnToggleSidebarDock.Margin = new Thickness(0);
+                    BtnToggleSidebarDock.HorizontalAlignment = HorizontalAlignment.Right;
+                    BtnToggleSidebarDock.Visibility = Visibility.Visible;
+                    BtnToggleSidebarDock.Content = "\u25B6";
+                    BtnToggleSidebarDock.ToolTip = "Dock to mini mode (52px)";
+                }
+
+                if (TxtPanesTabLabel != null)
+                {
+                    TxtPanesTabLabel.Text = "\uD83D\uDCC2\uFE0F Panes";
+                    TxtPanesTabLabel.FontSize = 11;
+                }
+
+                if (TxtUtilitiesTabLabel != null)
+                {
+                    TxtUtilitiesTabLabel.Text = "\u26A1 Utilities";
+                    TxtUtilitiesTabLabel.FontSize = 11;
+                }
+            }
+        }
+
+        var miniStyle = (Style)FindResource("Style.MiniListItem");
+        var pinStyle  = (Style)FindResource("Style.PinListItem");
+        var bmStyle   = (Style)FindResource("Style.StealthListItem");
+        var fluxStyle = (Style)FindResource("Style.FluxListItem");
+        var scrollVis = isMini ? ScrollBarVisibility.Hidden : ScrollBarVisibility.Auto;
+
+        if (ListPins != null)
+        {
+            ListPins.ItemContainerStyle = isMini ? miniStyle : pinStyle;
+            ScrollViewer.SetVerticalScrollBarVisibility(ListPins, scrollVis);
+        }
+        if (ListBookmarks != null)
+        {
+            ListBookmarks.ItemContainerStyle = isMini ? miniStyle : bmStyle;
+            ScrollViewer.SetVerticalScrollBarVisibility(ListBookmarks, scrollVis);
+        }
+        if (ListHistory != null)
+        {
+            ListHistory.ItemContainerStyle = isMini ? miniStyle : bmStyle;
+            ScrollViewer.SetVerticalScrollBarVisibility(ListHistory, scrollVis);
+        }
+        if (ListFlux != null)
+        {
+            ListFlux.ItemContainerStyle = isMini ? miniStyle : fluxStyle;
+            ScrollViewer.SetVerticalScrollBarVisibility(ListFlux, scrollVis);
+        }
+        if (ScvExtensions != null)
+        {
+            ScvExtensions.VerticalScrollBarVisibility = scrollVis;
+        }
+
+        var pinTemplate = (DataTemplate)FindResource(isMini ? "Template.PinItemMini" : "Template.PinItem");
+        if (ListPins != null && !ReferenceEquals(ListPins.ItemTemplate, pinTemplate))
+            ListPins.ItemTemplate = pinTemplate;
+        if (ListBookmarks != null && !ReferenceEquals(ListBookmarks.ItemTemplate, pinTemplate))
+            ListBookmarks.ItemTemplate = pinTemplate;
+
+        var histTemplate = (DataTemplate)FindResource(isMini ? "Template.HistoryItemMini" : "Template.HistoryItem");
+        if (ListHistory != null && !ReferenceEquals(ListHistory.ItemTemplate, histTemplate))
+            ListHistory.ItemTemplate = histTemplate;
+
+        var fluxTemplate = (DataTemplate)FindResource(isMini ? "Template.FluxItemMini" : "Template.FluxItem");
+        if (ListFlux != null && !ReferenceEquals(ListFlux.ItemTemplate, fluxTemplate))
+            ListFlux.ItemTemplate = fluxTemplate;
+
+        if (ListSidebarUtilities != null)
+        {
+            var utilTemplate = (DataTemplate)FindResource(isMini ? "Template.UtilitySidebarItemMini" : "Template.UtilitySidebarItem");
+            if (!ReferenceEquals(ListSidebarUtilities.ItemTemplate, utilTemplate))
+                ListSidebarUtilities.ItemTemplate = utilTemplate;
+            ScrollViewer.SetVerticalScrollBarVisibility(ListSidebarUtilities, scrollVis);
+        }
+
+        var vis = isMini ? Visibility.Collapsed : Visibility.Visible;
+        var tabMargin = isMini ? new Thickness(2, 4, 2, 4) : new Thickness(10, 10, 10, 10);
+
+        if (GridPinTab != null) GridPinTab.Margin = tabMargin;
+        if (RowPinSort != null) RowPinSort.Visibility = vis;
+        if (RowPinActions != null) RowPinActions.Visibility = vis;
+        if (PinSearchRow != null && isMini) PinSearchRow.Visibility = Visibility.Collapsed;
+        if (BtnAddPin != null)
+        {
+            BtnAddPin.Content = isMini ? "+" : " PIN CURRENT ";
+            BtnAddPin.ToolTip = isMini ? "Pin current page" : null;
+        }
+
+        if (GridBmTab != null) GridBmTab.Margin = tabMargin;
+        if (RowBmSort != null) RowBmSort.Visibility = vis;
+        if (RowBmActions != null) RowBmActions.Visibility = vis;
+        if (BtnManualBookmarkImport != null) BtnManualBookmarkImport.Visibility = vis;
+
+        if (GridHistTab != null) GridHistTab.Margin = tabMargin;
+        if (RowHistSort != null) RowHistSort.Visibility = vis;
+        if (RowHistActions != null) RowHistActions.Visibility = vis;
+        if (BtnClearHistory != null) BtnClearHistory.Visibility = vis;
+
+        if (GridDlTab != null) GridDlTab.Margin = tabMargin;
+        if (FluxPathBar != null && isMini) FluxPathBar.Visibility = Visibility.Collapsed;
+        if (RowDlSort != null) RowDlSort.Visibility = vis;
+        if (RowDlActions != null) RowDlActions.Visibility = vis;
+        if (BtnPreviewFile != null) BtnPreviewFile.Visibility = vis;
+
+        if (GridExtTab != null) GridExtTab.Margin = tabMargin;
+        if (RowExtSort != null) RowExtSort.Visibility = vis;
+        if (RowExtActions != null) RowExtActions.Visibility = vis;
+
+        if (PnlSidebarUtilities != null && PnlSidebarUtilities.RowDefinitions.Count >= 4)
+        {
+            PnlSidebarUtilities.Margin = isMini ? new Thickness(2, 4, 2, 4) : new Thickness(8, 6, 8, 8);
+            var searchGrid = PnlSidebarUtilities.Children.Count > 0 ? PnlSidebarUtilities.Children[0] as UIElement : null;
+            var catScroll = PnlSidebarUtilities.Children.Count > 1 ? PnlSidebarUtilities.Children[1] as UIElement : null;
+            var bottomHint = PnlSidebarUtilities.Children.Count > 3 ? PnlSidebarUtilities.Children[3] as UIElement : null;
+            if (searchGrid != null) searchGrid.Visibility = vis;
+            if (catScroll != null) catScroll.Visibility = vis;
+            if (bottomHint != null) bottomHint.Visibility = vis;
         }
     }
 
@@ -932,9 +1191,9 @@ public partial class FluxSidebar : UserControl
         ExtensionService.CatalogChanged  += ()      => Dispatcher.Invoke(BuildExtensionCards);
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
+    // \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
     // EXTENSIONS
-    // ══════════════════════════════════════════════════════════════════════════
+    // \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
 
     private void BuildExtensionCards()
     {
@@ -1136,22 +1395,22 @@ public partial class FluxSidebar : UserControl
             return;
         }
 
-        ShowStatus($"⏳  Installing \"{info.Name}\"…");
+        ShowStatus($"⏳  Installing \"{info.Name}\"\u2026");
         BtnExtInstallUrl.IsEnabled = false;
 
         var progress = new Progress<string>(msg =>
-            Dispatcher.Invoke(() => ShowStatus($"⏳  {msg}")));
+            Dispatcher.Invoke(() => ShowStatus($"\u23F3  {msg}")));
         var record = await ExtensionInstaller.InstallAsync(info, progress);
 
         BtnExtInstallUrl.IsEnabled = true;
         if (record != null)
         {
             BuildExtensionCards();
-            ShowStatus("✓  Installed! Restart Horizon to apply.");
+            ShowStatus("\u2713  Installed! Restart Horizon to apply.");
         }
         else
         {
-            ShowStatus("✗  Installation failed. Check logs.");
+            ShowStatus("\u2717  Installation failed. Check logs.");
         }
     }
 
@@ -1181,7 +1440,7 @@ public partial class FluxSidebar : UserControl
         if (_ctxExt == null) return;
         bool ns = !_ctxExt.Enabled;
         ExtensionService.SetEnabled(_ctxExt.Id, ns);
-        ShowStatus("⚡ Restart Horizon to apply changes.");
+        ShowStatus("\u26A1 Restart Horizon to apply changes.");
         BuildExtensionCards();
     }
 
@@ -1204,7 +1463,7 @@ public partial class FluxSidebar : UserControl
         ExtContextPopup.IsOpen = false;
         if (_ctxExt == null) return;
         ExtensionService.Uninstall(_ctxExt.Id);
-        ShowStatus("⚡ Restart Horizon to apply changes.");
+        ShowStatus("\u26A1 Restart Horizon to apply changes.");
         BuildExtensionCards();
     }
 
@@ -1302,6 +1561,66 @@ public partial class FluxSidebar : UserControl
     private void RefreshPins()
     {
         var pins = SettingsService.Current.PinnedUrls.AsEnumerable();
+        var allCats = SettingsService.Current.PinnedUrls
+            .Select(p => p.Category)
+            .Where(c => !string.IsNullOrWhiteSpace(c))
+            .Concat(SettingsService.Current.FavoriteFolders)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(c => c)
+            .ToList();
+
+        if (PnlPinFolderBar != null && PnlPinFolderChips != null)
+        {
+            if (allCats.Count > 0)
+            {
+                PnlPinFolderBar.Visibility = Visibility.Visible;
+                RenderFolderChips(PnlPinFolderChips, allCats, _activeOpenedPinFolder,
+                    onSelectFolder: sel => { _activeOpenedPinFolder = sel; RefreshPins(); },
+                    onRename: cat => {
+                        _categoryTargetTab = "Pins";
+                        _categoryEditMode = CategoryEditMode.Rename;
+                        _categoryEditTarget = cat;
+                        TxtCategoryEditTitle.Text = $"RENAME FOLDER: {cat}";
+                        TxtCategoryEditInput.Text = cat;
+                        OverlayCategoryEdit.Visibility = Visibility.Visible;
+                        TxtCategoryEditInput.Focus();
+                    },
+                    onDelete: cat => {
+                        _categoryTargetTab = "Pins";
+                        _categoryEditMode = CategoryEditMode.Delete;
+                        _categoryEditTarget = cat;
+                        TxtCategoryEditTitle.Text = $"DELETE FOLDER: {cat}";
+                        TxtCategoryEditInput.Text = cat;
+                        OverlayCategoryEdit.Visibility = Visibility.Visible;
+                        TxtCategoryEditInput.Focus();
+                    },
+                    onNewFolder: () => {
+                        _categoryTargetTab = "Pins";
+                        _categoryEditMode = CategoryEditMode.Add;
+                        TxtCategoryEditTitle.Text = "ADD FOLDER";
+                        TxtCategoryEditInput.Text = "";
+                        OverlayCategoryEdit.Visibility = Visibility.Visible;
+                        TxtCategoryEditInput.Focus();
+                    },
+                    onDropItem: (cat, item) => {
+                        if (item is PinItem p)
+                        {
+                            p.Category = cat;
+                            SettingsService.Save();
+                            RefreshPins();
+                        }
+                    });
+            }
+            else
+            {
+                PnlPinFolderBar.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        if (!string.IsNullOrEmpty(_activeOpenedPinFolder))
+        {
+            pins = pins.Where(p => string.Equals(p.Category, _activeOpenedPinFolder, StringComparison.OrdinalIgnoreCase));
+        }
 
         // Apply sort (skip when in manual order mode)
         if (_pinSortField != PinSortField.Manual)
@@ -1319,13 +1638,28 @@ public partial class FluxSidebar : UserControl
 
         ListPins.ItemsSource = pins.ToList();
         UpdatePinSortButtonStyles();
+
+        bool isMini = _isMiniMode;
+        if (BtnAddPin != null)
+        {
+            if (!string.IsNullOrEmpty(_activeOpenedPinFolder))
+            {
+                BtnAddPin.Content = isMini ? "+" : $"+ PIN TO {_activeOpenedPinFolder.ToUpperInvariant()}";
+                BtnAddPin.ToolTip = $"Pin current page to {_activeOpenedPinFolder}";
+            }
+            else
+            {
+                BtnAddPin.Content = isMini ? "+" : " PIN CURRENT ";
+                BtnAddPin.ToolTip = isMini ? "Pin current page" : null;
+            }
+        }
     }
 
     private void UpdatePinSortButtonStyles()
     {
         SetSortBtnActive(BtnPinSortName, _pinSortField == PinSortField.Name);
         SetSortBtnActive(BtnPinSortCat,  _pinSortField == PinSortField.Category);
-        BtnPinSortDir.Content    = _pinSortAscending ? "↑" : "↓";
+        BtnPinSortDir.Content    = _pinSortAscending ? "\u2191" : "\u2193";
         BtnPinSortDir.Foreground = new SolidColorBrush(Color.FromRgb(0x44, 0x44, 0x44));
     }
 
@@ -1339,7 +1673,7 @@ public partial class FluxSidebar : UserControl
         e.Handled = true;
 
         var menu = new ContextMenu();
-        var item = new MenuItem { Header = "☑  Set as default" };
+        var item = new MenuItem { Header = "\u2611  Set as default" };
         item.Click += (_, _) =>
         {
             switch (btn.Name)
@@ -1428,16 +1762,149 @@ public partial class FluxSidebar : UserControl
 
     private void BtnAddPin_Click(object sender, RoutedEventArgs e) => RequestAddPin?.Invoke(this, EventArgs.Empty);
 
+    // ── Folder Chips & Drag-and-Drop Helpers ─────────────────────────────────────
+    private void ListPins_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        _pinDragStartPt = e.GetPosition(null);
+    }
+
+    private void ListPins_PreviewMouseMove(object sender, MouseEventArgs e)
+    {
+        if (e.LeftButton == MouseButtonState.Pressed && ListPins.SelectedItem is PinItem pin)
+        {
+            Point current = e.GetPosition(null);
+            if (Math.Abs(current.X - _pinDragStartPt.X) > SystemParameters.MinimumHorizontalDragDistance ||
+                Math.Abs(current.Y - _pinDragStartPt.Y) > SystemParameters.MinimumVerticalDragDistance)
+            {
+                DragDrop.DoDragDrop(ListPins, new DataObject("HorizonDragItem", pin), DragDropEffects.Move);
+            }
+        }
+    }
+
+    private void ListBookmarks_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        _bmDragStartPt = e.GetPosition(null);
+    }
+
+    private void ListBookmarks_PreviewMouseMove(object sender, MouseEventArgs e)
+    {
+        if (e.LeftButton == MouseButtonState.Pressed && ListBookmarks.SelectedItem is BookmarkItem bm)
+        {
+            Point current = e.GetPosition(null);
+            if (Math.Abs(current.X - _bmDragStartPt.X) > SystemParameters.MinimumHorizontalDragDistance ||
+                Math.Abs(current.Y - _bmDragStartPt.Y) > SystemParameters.MinimumVerticalDragDistance)
+            {
+                DragDrop.DoDragDrop(ListBookmarks, new DataObject("HorizonDragItem", bm), DragDropEffects.Move);
+            }
+        }
+    }
+
+    private void RenderFolderChips(StackPanel host, IEnumerable<string> categories, string? activeFolder,
+        Action<string?> onSelectFolder, Action<string> onRename, Action<string> onDelete, Action onNewFolder,
+        Action<string, object> onDropItem)
+    {
+        host.Children.Clear();
+        var list = categories.ToList();
+
+        var allBtn = CreateFolderChip("\U0001F4C1 All", string.IsNullOrEmpty(activeFolder));
+        allBtn.Click += (_, _) => onSelectFolder(null);
+        host.Children.Add(allBtn);
+
+        foreach (var cat in list)
+        {
+            string folderName = cat;
+            bool isActive = string.Equals(activeFolder, folderName, StringComparison.OrdinalIgnoreCase);
+            var chip = CreateFolderChip($"\U0001F4C1 {folderName}", isActive);
+            chip.Click += (_, _) => onSelectFolder(isActive ? null : folderName);
+            chip.AllowDrop = true;
+            chip.DragOver += (s, e) =>
+            {
+                if (e.Data.GetDataPresent("HorizonDragItem") || e.Data.GetDataPresent(typeof(PinItem)) || e.Data.GetDataPresent(typeof(BookmarkItem)))
+                {
+                    e.Effects = DragDropEffects.Move;
+                    e.Handled = true;
+                }
+            };
+            chip.Drop += (s, e) =>
+            {
+                object? raw = null;
+                if (e.Data.GetDataPresent("HorizonDragItem")) raw = e.Data.GetData("HorizonDragItem");
+                else if (e.Data.GetDataPresent(typeof(PinItem))) raw = e.Data.GetData(typeof(PinItem));
+                else if (e.Data.GetDataPresent(typeof(BookmarkItem))) raw = e.Data.GetData(typeof(BookmarkItem));
+                if (raw != null)
+                {
+                    onDropItem(folderName, raw);
+                    e.Handled = true;
+                }
+            };
+
+            var cm = new ContextMenu();
+            var miRename = new MenuItem { Header = "Rename folder" };
+            miRename.Click += (_, _) => onRename(folderName);
+            var miDelete = new MenuItem { Header = "Delete folder" };
+            miDelete.Click += (_, _) => onDelete(folderName);
+            cm.Items.Add(miRename);
+            cm.Items.Add(miDelete);
+            chip.ContextMenu = cm;
+
+            host.Children.Add(chip);
+        }
+
+        var addBtn = CreateFolderChip("+ Folder", false);
+        addBtn.Foreground = new SolidColorBrush(Color.FromRgb(0xFF, 0xD7, 0x00));
+        addBtn.Click += (_, _) => onNewFolder();
+        host.Children.Add(addBtn);
+    }
+
+    private Button CreateFolderChip(string label, bool isActive)
+    {
+        return new Button
+        {
+            Content = label,
+            Height = 22,
+            Margin = new Thickness(0, 0, 4, 0),
+            Padding = new Thickness(8, 1, 8, 1),
+            FontSize = 11,
+            FontWeight = isActive ? FontWeights.Bold : FontWeights.Normal,
+            Background = new SolidColorBrush(isActive ? Color.FromArgb(0x44, 0x00, 0xDC, 0x82) : Color.FromArgb(0x22, 0xFF, 0xFF, 0xFF)),
+            Foreground = new SolidColorBrush(isActive ? Color.FromRgb(0x00, 0xFF, 0x99) : Color.FromRgb(0xCC, 0xCC, 0xCC)),
+            BorderBrush = new SolidColorBrush(isActive ? Color.FromArgb(0x88, 0x00, 0xDC, 0x82) : Color.FromArgb(0x33, 0xFF, 0xFF, 0xFF)),
+            BorderThickness = new Thickness(1),
+            Cursor = Cursors.Hand
+        };
+    }
+
     public void AddPin(string url, string title = "")
     {
         if (string.IsNullOrWhiteSpace(url)) return;
         if (string.IsNullOrWhiteSpace(title)) title = url;
         if (!SettingsService.Current.PinnedUrls.Any(p => p.Url == url))
         {
-            SettingsService.Current.PinnedUrls.Add(new PinItem { Name = title, Url = url });
+            var pin = new PinItem { Name = title, Url = url };
+            if (!string.IsNullOrWhiteSpace(_activeOpenedPinFolder))
+            {
+                pin.Category = _activeOpenedPinFolder;
+            }
+            SettingsService.Current.PinnedUrls.Add(pin);
             SettingsService.Save();
             RefreshPins();
         }
+    }
+
+    private void BtnAddBookmark_Click(object sender, RoutedEventArgs e) => RequestAddBookmark?.Invoke(this, EventArgs.Empty);
+
+    public void AddBookmark(string url, string title = "")
+    {
+        if (string.IsNullOrWhiteSpace(url)) return;
+        if (string.IsNullOrWhiteSpace(title)) title = url;
+        var bm = new BookmarkItem { Name = title, Url = url };
+        if (!string.IsNullOrWhiteSpace(_activeOpenedBmFolder))
+        {
+            bm.Category = _activeOpenedBmFolder;
+        }
+        BookmarkService.Add(bm);
+        BookmarkService.SaveBookmarks();
+        RefreshBookmarks();
     }
 
     private void ListPins_MouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -1590,7 +2057,7 @@ public partial class FluxSidebar : UserControl
 
         var dlg = new System.Windows.Window
         {
-            Title           = $"Change Website — {pin.Name}",
+            Title           = $"Change Website \u2014 {pin.Name}",
             Width           = 380,
             Height          = 150,
             WindowStyle     = System.Windows.WindowStyle.ToolWindow,
@@ -1646,7 +2113,7 @@ public partial class FluxSidebar : UserControl
         // ── Build the icon picker dialog ──────────────────────────────────────
         var dlg = new System.Windows.Window
         {
-            Title           = $"Set Icon — {pin.Name}",
+            Title           = $"Set Icon \u2014 {pin.Name}",
             Width           = 360,
             Height          = 300,
             WindowStyle     = System.Windows.WindowStyle.ToolWindow,
@@ -1669,24 +2136,24 @@ public partial class FluxSidebar : UserControl
         // ── Emoji grid ───────────────────────────────────────────────────────
         string[] emojis =
         {
-            "⭐","🌟","💫","✨","🔴","🟠","🟡","🟢","🔵","🟣","⚪","⚫",
-            "🌐","🏠","🔗","📡","🛜","🔍","🌍","🌏","🗺","🧭",
-            "🎮","🕹","🎯","🏆","🥇","🎉","🎊","🎁","🎨","🎭","🎬","📺","🎞","📽",
-            "🎵","🎧","🎙","📻","🎸","🎹","🎺","🥁","🎼","🎤",
-            "💼","📁","📂","📄","📋","📊","📈","📌","📎","✏","🖊","📝","🗒","📅",
-            "🖥","💻","🖨","⌨","🖱","📱","📞","📟","☎","📠",
-            "📧","💬","🗣","👥","🔔","📣","📢","🗨","💌",
-            "🛒","💳","💰","💵","💎","🏦","🏪","🏬","🧾","🪙",
-            "📚","📖","🎓","🧠","🔬","🔭","📐","📏","🧪","🧬","⚗","🏫",
-            "🔧","🔨","⚙","🛠","🔩","🔑","🔒","🔓","🛡","⚔","🪛","🪚",
-            "🚀","✈","🚗","🚂","⚡","🛸","🛩","🚁","⛵","🏎","🚀",
-            "🌿","🌱","🌸","🍀","🌊","💧","❄","☀","🌙","🔥","🌈","⛅","🌪","🌻","🍃",
-            "❤","🧡","💛","💚","💙","💜","🖤","🤍","❤‍🔥","💔",
-            "💡","🕯","🔦","🏮","🪔","🌠","🌌","🪐","☄","🌅",
-            "🐱","🐶","🦊","🐸","🐧","🦁","🐉","🦋","🦄","🐺","🦅","🐬",
-            "🍎","🍕","☕","🧃","🍺","🍓","🧁","🍜","🥗","🍔","🍩",
-            "🏋","🧘","⚽","🏀","🎾","🏊","🚴","🏇","🥊","🏹",
-            "🏔","🏖","🏕","🗼","🏛","🗽","🏰","⛩","🕌","🗿",
+            "\u2B50","\U0001F31F","\U0001F4AB","\u2728","\U0001F534","\U0001F7E0","\U0001F7E1","\U0001F7E2","\U0001F535","\U0001F7E3","\u26AA","\u26AB",
+            "\U0001F310","\U0001F3E0","\U0001F517","\U0001F4E1","\U0001F6DC","\U0001F50D","\U0001F30D","\U0001F30F","\U0001F5FA","\U0001F9ED",
+            "\U0001F3AE","\U0001F579","\U0001F3AF","\U0001F3C6","\U0001F947","\U0001F389","\U0001F38A","\U0001F381","\U0001F3A8","\U0001F3AD","\U0001F3AC","\U0001F4FA","\U0001F39E","\U0001F4FD",
+            "\U0001F3B5","\U0001F3A7","\U0001F399","\U0001F4FB","\U0001F3B8","\U0001F3B9","\U0001F3BA","\U0001F941","\U0001F3BC","\U0001F3A4",
+            "\U0001F4BC","\U0001F4C1","\U0001F4C2","\U0001F4C4","\U0001F4CB","\U0001F4CA","\U0001F4C8","\U0001F4CC","\U0001F4CE","\u270F","\U0001F58A","\U0001F4DD","\U0001F5D2","\U0001F4C5",
+            "\U0001F5A5","\U0001F4BB","\U0001F5A8","\u2328","\U0001F5B1","\U0001F4F1","\U0001F4DE","\U0001F4DF","\u260E","\U0001F4E0",
+            "\U0001F4E7","\U0001F4AC","\U0001F5E3","\U0001F465","\U0001F514","\U0001F4E3","\U0001F4E2","\U0001F5E8","\U0001F48C",
+            "\U0001F6D2","\U0001F4B3","\U0001F4B0","\U0001F4B5","\U0001F48E","\U0001F3E6","\U0001F3EA","\U0001F3EC","\U0001F9FE","\U0001FA99",
+            "\U0001F4DA","\U0001F4D6","\U0001F393","\U0001F9E0","\U0001F52C","\U0001F52D","\U0001F4D0","\U0001F4CF","\U0001F9EA","\U0001F9EC","\u2697","\U0001F3EB",
+            "\U0001F527","\U0001F528","\u2699","\U0001F6E0","\U0001F529","\U0001F511","\U0001F512","\U0001F513","\U0001F6E1","\u2694","\U0001FA9B","\U0001FA9A",
+            "\U0001F680","\u2708","\U0001F697","\U0001F682","\u26A1","\U0001F6F8","\U0001F6E9","\U0001F681","\u26F5","\U0001F3CE","\U0001F680",
+            "\U0001F33F","\U0001F331","\U0001F338","\U0001F340","\U0001F30A","\U0001F4A7","\u2744","\u2600","\U0001F319","\U0001F525","\U0001F308","\u26C5","\U0001F32A","\U0001F33B","\U0001F343",
+            "\u2764","\U0001F9E1","\U0001F49B","\U0001F49A","\U0001F499","\U0001F49C","\U0001F5A4","\U0001F90D","\u2764\u200D\U0001F525","\U0001F494",
+            "\U0001F4A1","\U0001F56F","\U0001F526","\U0001F3EE","\U0001FA94","\U0001F320","\U0001F30C","\U0001FA90","\u2604","\U0001F305",
+            "\U0001F431","\U0001F436","\U0001F98A","\U0001F438","\U0001F427","\U0001F981","\U0001F409","\U0001F98B","\U0001F984","\U0001F43A","\U0001F985","\U0001F42C",
+            "\U0001F34E","\U0001F355","\u2615","\U0001F9C3","\U0001F37A","\U0001F353","\U0001F9C1","\U0001F35C","\U0001F957","\U0001F354","\U0001F369",
+            "\U0001F3CB","\U0001F9D8","\u26BD","\U0001F3C0","\U0001F3BE","\U0001F3CA","\U0001F6B4","\U0001F3C7","\U0001F94A","\U0001F3F9",
+            "\U0001F3D4","\U0001F3D6","\U0001F3D5","\U0001F5FC","\U0001F3DB","\U0001F5FD","\U0001F3F0","\u26E9","\U0001F54C","\U0001F5FF",
         };
 
         var wrapPanel = new WrapPanel { Margin = new Thickness(0, 0, 0, 10) };
@@ -1722,7 +2189,7 @@ public partial class FluxSidebar : UserControl
 
         var btnUpload = new Button
         {
-            Content         = "📁  Upload Image",
+            Content         = "\U0001F4C1  Upload Image",
             Height          = 30, Padding = new Thickness(10, 0, 10, 0),
             Margin          = new Thickness(0, 0, 6, 0),
             Background      = new SolidColorBrush(Color.FromRgb(0x1a, 0x2a, 0x1a)),
@@ -1748,7 +2215,7 @@ public partial class FluxSidebar : UserControl
 
         var btnClear = new Button
         {
-            Content         = "↺  Use Default",
+            Content         = "\u21BA  Use Default",
             Height          = 30, Padding = new Thickness(10, 0, 10, 0),
             Background      = new SolidColorBrush(Color.FromRgb(0x2a, 0x10, 0x10)),
             Foreground      = new SolidColorBrush(Color.FromRgb(0xFF, 0x44, 0x44)),
@@ -1801,6 +2268,7 @@ public partial class FluxSidebar : UserControl
 
     private void CtxPinAddCategory_Click(object sender, RoutedEventArgs e)
     {
+        _categoryTargetTab = "Pins";
         PinsContextPopup.IsOpen = false;
         _categoryEditMode          = CategoryEditMode.Add;
         TxtCategoryEditTitle.Text  = "ADD CATEGORY";
@@ -1811,6 +2279,7 @@ public partial class FluxSidebar : UserControl
 
     private void CtxPinRenameCategory_Click(object sender, RoutedEventArgs e)
     {
+        _categoryTargetTab = "Pins";
         PinsContextPopup.IsOpen = false;
         // Rename the category of the selected pin's current category
         if (ListPins.SelectedItem is not PinItem item || string.IsNullOrEmpty(item.Category)) return;
@@ -1824,6 +2293,7 @@ public partial class FluxSidebar : UserControl
 
     private void CtxPinDeleteCategory_Click(object sender, RoutedEventArgs e)
     {
+        _categoryTargetTab = "Pins";
         PinsContextPopup.IsOpen = false;
         if (ListPins.SelectedItem is not PinItem item || string.IsNullOrEmpty(item.Category)) return;
         _categoryEditMode          = CategoryEditMode.Delete;
@@ -1841,32 +2311,75 @@ public partial class FluxSidebar : UserControl
         OverlayCategoryEdit.Visibility = Visibility.Collapsed;
         string newName = TxtCategoryEditInput.Text.Trim();
 
-        switch (_categoryEditMode)
+        if (_categoryTargetTab == "Pins")
         {
-            case CategoryEditMode.Add:
-                // The category is created by assigning it to pins; nothing more needed here.
-                // If the user wants to assign this category to the selected pin, do it now.
-                if (ListPins.SelectedItem is PinItem selAdd && !string.IsNullOrEmpty(newName))
-                {
-                    selAdd.Category = newName;
+            switch (_categoryEditMode)
+            {
+                case CategoryEditMode.Add:
+                    if (!string.IsNullOrEmpty(newName))
+                    {
+                        if (!SettingsService.Current.FavoriteFolders.Contains(newName, StringComparer.OrdinalIgnoreCase))
+                            SettingsService.Current.FavoriteFolders.Add(newName);
+                        if (ListPins.SelectedItem is PinItem selAdd) selAdd.Category = newName;
+                        SettingsService.Save();
+                    }
+                    break;
+
+                case CategoryEditMode.Rename:
+                    int idx = SettingsService.Current.FavoriteFolders.FindIndex(f => f.Equals(_categoryEditTarget, StringComparison.OrdinalIgnoreCase));
+                    if (idx >= 0) SettingsService.Current.FavoriteFolders[idx] = newName;
+                    foreach (var p in SettingsService.Current.PinnedUrls.Where(p => p.Category == _categoryEditTarget))
+                        p.Category = newName;
+                    if (_activeOpenedPinFolder == _categoryEditTarget) _activeOpenedPinFolder = newName;
                     SettingsService.Save();
-                }
-                break;
+                    break;
 
-            case CategoryEditMode.Rename:
-                foreach (var p in SettingsService.Current.PinnedUrls.Where(p => p.Category == _categoryEditTarget))
-                    p.Category = newName;
-                SettingsService.Save();
-                break;
-
-            case CategoryEditMode.Delete:
-                foreach (var p in SettingsService.Current.PinnedUrls.Where(p => p.Category == _categoryEditTarget))
-                    p.Category = "";
-                SettingsService.Save();
-                break;
+                case CategoryEditMode.Delete:
+                    SettingsService.Current.FavoriteFolders.RemoveAll(f => f.Equals(_categoryEditTarget, StringComparison.OrdinalIgnoreCase));
+                    foreach (var p in SettingsService.Current.PinnedUrls.Where(p => p.Category == _categoryEditTarget))
+                        p.Category = "";
+                    if (_activeOpenedPinFolder == _categoryEditTarget) _activeOpenedPinFolder = null;
+                    SettingsService.Save();
+                    break;
+            }
+            RefreshPins();
         }
+        else
+        {
+            switch (_categoryEditMode)
+            {
+                case CategoryEditMode.Add:
+                    if (!string.IsNullOrEmpty(newName))
+                    {
+                        if (!SettingsService.Current.BookmarkFolders.Contains(newName, StringComparer.OrdinalIgnoreCase))
+                            SettingsService.Current.BookmarkFolders.Add(newName);
+                        if (ListBookmarks.SelectedItem is BookmarkItem selBm) selBm.Category = newName;
+                        SettingsService.Save();
+                        BookmarkService.SaveBookmarks();
+                    }
+                    break;
 
-        RefreshPins();
+                case CategoryEditMode.Rename:
+                    int bIdx = SettingsService.Current.BookmarkFolders.FindIndex(f => f.Equals(_categoryEditTarget, StringComparison.OrdinalIgnoreCase));
+                    if (bIdx >= 0) SettingsService.Current.BookmarkFolders[bIdx] = newName;
+                    foreach (var b in BookmarkService.Items.Where(b => b.Category == _categoryEditTarget))
+                        b.Category = newName;
+                    if (_activeOpenedBmFolder == _categoryEditTarget) _activeOpenedBmFolder = newName;
+                    SettingsService.Save();
+                    BookmarkService.SaveBookmarks();
+                    break;
+
+                case CategoryEditMode.Delete:
+                    SettingsService.Current.BookmarkFolders.RemoveAll(f => f.Equals(_categoryEditTarget, StringComparison.OrdinalIgnoreCase));
+                    foreach (var b in BookmarkService.Items.Where(b => b.Category == _categoryEditTarget))
+                        b.Category = "";
+                    if (_activeOpenedBmFolder == _categoryEditTarget) _activeOpenedBmFolder = null;
+                    SettingsService.Save();
+                    BookmarkService.SaveBookmarks();
+                    break;
+            }
+            RefreshBookmarks();
+        }
     }
 
     // Pins context search — filters visible items inline
@@ -1888,9 +2401,102 @@ public partial class FluxSidebar : UserControl
     // BOOKMARKS
     // ══════════════════════════════════════════════════════════════════════════
 
+
+    private void CtxBmAddFolder_Click(object sender, RoutedEventArgs e)
+    {
+        BookmarksContextPopup.IsOpen = false;
+        _categoryTargetTab = "Bookmarks";
+        _categoryEditMode = CategoryEditMode.Add;
+        TxtCategoryEditTitle.Text = "ADD BOOKMARK FOLDER";
+        TxtCategoryEditInput.Text = "";
+        OverlayCategoryEdit.Visibility = Visibility.Visible;
+        TxtCategoryEditInput.Focus();
+    }
+
+    private void CtxBmRenameFolder_Click(object sender, RoutedEventArgs e)
+    {
+        BookmarksContextPopup.IsOpen = false;
+        if (ListBookmarks.SelectedItem is not BookmarkItem item || string.IsNullOrEmpty(item.Category)) return;
+        _categoryTargetTab = "Bookmarks";
+        _categoryEditMode = CategoryEditMode.Rename;
+        _categoryEditTarget = item.Category;
+        TxtCategoryEditTitle.Text = $"RENAME FOLDER: {item.Category}";
+        TxtCategoryEditInput.Text = item.Category;
+        OverlayCategoryEdit.Visibility = Visibility.Visible;
+        TxtCategoryEditInput.Focus();
+    }
+
+    private void CtxBmDeleteFolder_Click(object sender, RoutedEventArgs e)
+    {
+        BookmarksContextPopup.IsOpen = false;
+        if (ListBookmarks.SelectedItem is not BookmarkItem item || string.IsNullOrEmpty(item.Category)) return;
+        _categoryTargetTab = "Bookmarks";
+        _categoryEditMode = CategoryEditMode.Delete;
+        _categoryEditTarget = item.Category;
+        TxtCategoryEditTitle.Text = $"DELETE FOLDER: {item.Category}";
+        TxtCategoryEditInput.Text = item.Category;
+        OverlayCategoryEdit.Visibility = Visibility.Visible;
+        TxtCategoryEditInput.Focus();
+    }
     public void RefreshBookmarks()
     {
         var bookmarks = BookmarkService.Items;
+        var bmCats = (bookmarks ?? (IReadOnlyList<BookmarkItem>)new List<BookmarkItem>())
+            .Select(b => b.Category)
+            .Where(c => !string.IsNullOrWhiteSpace(c))
+            .Concat(SettingsService.Current.BookmarkFolders)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(c => c)
+            .ToList();
+
+        if (PnlBmFolderBar != null && PnlBmFolderChips != null)
+        {
+            if (bmCats.Count > 0)
+            {
+                PnlBmFolderBar.Visibility = Visibility.Visible;
+                RenderFolderChips(PnlBmFolderChips, bmCats, _activeOpenedBmFolder,
+                    onSelectFolder: sel => { _activeOpenedBmFolder = sel; RefreshBookmarks(); },
+                    onRename: cat => {
+                        _categoryTargetTab = "Bookmarks";
+                        _categoryEditMode = CategoryEditMode.Rename;
+                        _categoryEditTarget = cat;
+                        TxtCategoryEditTitle.Text = $"RENAME FOLDER: {cat}";
+                        TxtCategoryEditInput.Text = cat;
+                        OverlayCategoryEdit.Visibility = Visibility.Visible;
+                        TxtCategoryEditInput.Focus();
+                    },
+                    onDelete: cat => {
+                        _categoryTargetTab = "Bookmarks";
+                        _categoryEditMode = CategoryEditMode.Delete;
+                        _categoryEditTarget = cat;
+                        TxtCategoryEditTitle.Text = $"DELETE FOLDER: {cat}";
+                        TxtCategoryEditInput.Text = cat;
+                        OverlayCategoryEdit.Visibility = Visibility.Visible;
+                        TxtCategoryEditInput.Focus();
+                    },
+                    onNewFolder: () => {
+                        _categoryTargetTab = "Bookmarks";
+                        _categoryEditMode = CategoryEditMode.Add;
+                        TxtCategoryEditTitle.Text = "ADD BOOKMARK FOLDER";
+                        TxtCategoryEditInput.Text = "";
+                        OverlayCategoryEdit.Visibility = Visibility.Visible;
+                        TxtCategoryEditInput.Focus();
+                    },
+                    onDropItem: (cat, item) => {
+                        if (item is BookmarkItem b)
+                        {
+                            b.Category = cat;
+                            BookmarkService.SaveBookmarks();
+                            RefreshBookmarks();
+                        }
+                    });
+            }
+            else
+            {
+                PnlBmFolderBar.Visibility = Visibility.Collapsed;
+            }
+        }
+
         if (bookmarks == null || bookmarks.Count == 0)
         {
             ListBookmarks.ItemsSource        = null;
@@ -1899,23 +2505,44 @@ public partial class FluxSidebar : UserControl
             return;
         }
 
+        IEnumerable<BookmarkItem> filtered = bookmarks;
+        if (!string.IsNullOrEmpty(_activeOpenedBmFolder))
+        {
+            filtered = filtered.Where(b => string.Equals(b.Category, _activeOpenedBmFolder, StringComparison.OrdinalIgnoreCase));
+        }
+
         IEnumerable<BookmarkItem> sorted = _bmSortField switch
         {
             BmSortField.Name   => _bmSortAscending
-                ? bookmarks.OrderBy(b => b.Title)
-                : bookmarks.OrderByDescending(b => b.Title),
+                ? filtered.OrderBy(b => b.Title)
+                : filtered.OrderByDescending(b => b.Title),
             BmSortField.Domain => _bmSortAscending
-                ? bookmarks.OrderBy(b => GetDomain(b.Url))
-                : bookmarks.OrderByDescending(b => GetDomain(b.Url)),
+                ? filtered.OrderBy(b => GetDomain(b.Url))
+                : filtered.OrderByDescending(b => GetDomain(b.Url)),
             _ => _bmSortAscending
-                ? bookmarks.OrderBy(b => b.DateAdded)
-                : bookmarks.OrderByDescending(b => b.DateAdded),
+                ? filtered.OrderBy(b => b.DateAdded)
+                : filtered.OrderByDescending(b => b.DateAdded),
         };
 
         ListBookmarks.ItemsSource        = sorted.ToList();
         ListBookmarks.Visibility         = Visibility.Visible;
         PanelBookmarkFallback.Visibility = Visibility.Collapsed;
         UpdateBmSortButtonStyles();
+
+        bool isMini = _isMiniMode;
+        if (BtnAddBookmark != null)
+        {
+            if (!string.IsNullOrEmpty(_activeOpenedBmFolder))
+            {
+                BtnAddBookmark.Content = isMini ? "+" : $"+ BOOKMARK TO {_activeOpenedBmFolder.ToUpperInvariant()}";
+                BtnAddBookmark.ToolTip = $"Bookmark current page to {_activeOpenedBmFolder}";
+            }
+            else
+            {
+                BtnAddBookmark.Content = isMini ? "+" : " BOOKMARK CURRENT ";
+                BtnAddBookmark.ToolTip = isMini ? "Bookmark current page" : null;
+            }
+        }
     }
 
     private void UpdateBmSortButtonStyles()
@@ -1923,7 +2550,7 @@ public partial class FluxSidebar : UserControl
         SetSortBtnActive(BtnBmSortDate,   _bmSortField == BmSortField.Date);
         SetSortBtnActive(BtnBmSortName,   _bmSortField == BmSortField.Name);
         SetSortBtnActive(BtnBmSortDomain, _bmSortField == BmSortField.Domain);
-        BtnBmSortDir.Content    = _bmSortAscending ? "↑" : "↓";
+        BtnBmSortDir.Content    = _bmSortAscending ? "\u2191" : "\u2193";
         BtnBmSortDir.Foreground = new SolidColorBrush(Color.FromRgb(0x44, 0x44, 0x44));
     }
 
@@ -2006,7 +2633,7 @@ public partial class FluxSidebar : UserControl
             BookmarkService.Add(new BookmarkItem { Title = pin.Name, Url = pin.Url, DateAdded = DateTime.Now });
             RefreshBookmarks();
         }
-        catch (Exception ex) { LogService.RecordCrash(ex, "Pin→Bookmark"); }
+        catch (Exception ex) { LogService.RecordCrash(ex, "Pin\u2192Bookmark"); }
     }
 
     private void CtxBmSendToFavourites_Click(object sender, RoutedEventArgs e)
@@ -2105,7 +2732,7 @@ public partial class FluxSidebar : UserControl
             }
             sb.AppendLine("</DL><p>");
             File.WriteAllText(dlg.FileName, sb.ToString(), System.Text.Encoding.UTF8);
-            ShowStatus($"✔ Exported {BookmarkService.Items.Count} bookmarks.");
+            ShowStatus($"\u2714 Exported {BookmarkService.Items.Count} bookmarks.");
         }
         catch (Exception ex)
         {
@@ -2150,7 +2777,7 @@ public partial class FluxSidebar : UserControl
         SetSortBtnActive(BtnHistSortDate,   _histSortField == HistSortField.Date);
         SetSortBtnActive(BtnHistSortTitle,  _histSortField == HistSortField.Title);
         SetSortBtnActive(BtnHistSortDomain, _histSortField == HistSortField.Domain);
-        BtnHistSortDir.Content    = _histSortAscending ? "↑" : "↓";
+        BtnHistSortDir.Content    = _histSortAscending ? "\u2191" : "\u2193";
         BtnHistSortDir.Foreground = new SolidColorBrush(Color.FromRgb(0x44, 0x44, 0x44));
     }
 
@@ -2237,7 +2864,7 @@ public partial class FluxSidebar : UserControl
             ? Visibility.Collapsed : Visibility.Visible;
         if (!atDownloads || _browseStack.Count > 0)
         {
-            TxtFluxPath.Text = atDrives ? "📁 This PC — All Drives"
+            TxtFluxPath.Text = atDrives ? "\U0001F4C1 This PC \u2014 All Drives"
                 : _browsePath.Length > dlRoot.Length && _browsePath.StartsWith(dlRoot, StringComparison.OrdinalIgnoreCase)
                     ? _browsePath[dlRoot.Length..].TrimStart('\\', '/')
                     : _browsePath;
@@ -2253,12 +2880,12 @@ public partial class FluxSidebar : UserControl
                 // System quick-access locations (always shown)
                 var quickAccess = new (string Label, string Path)[]
                 {
-                    ("🖥  Desktop",   Environment.GetFolderPath(Environment.SpecialFolder.Desktop)),
-                    ("⬇  Downloads", SettingsService.Current.DownloadsPath),
-                    ("📄  Documents", Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)),
-                    ("🎵  Music",     Environment.GetFolderPath(Environment.SpecialFolder.MyMusic)),
-                    ("🖼  Images",    Environment.GetFolderPath(Environment.SpecialFolder.MyPictures)),
-                    ("🎬  Videos",    Environment.GetFolderPath(Environment.SpecialFolder.MyVideos)),
+                    ("\U0001F5A5  Desktop",   Environment.GetFolderPath(Environment.SpecialFolder.Desktop)),
+                    ("\u2B07  Downloads", SettingsService.Current.DownloadsPath),
+                    ("\U0001F4C4  Documents", Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)),
+                    ("\U0001F3B5  Music",     Environment.GetFolderPath(Environment.SpecialFolder.MyMusic)),
+                    ("\U0001F5BC  Images",    Environment.GetFolderPath(Environment.SpecialFolder.MyPictures)),
+                    ("\U0001F3AC  Videos",    Environment.GetFolderPath(Environment.SpecialFolder.MyVideos)),
                 };
                 foreach (var (lbl, p) in quickAccess)
                 {
@@ -2268,21 +2895,21 @@ public partial class FluxSidebar : UserControl
                 // Recycle Bin (open via Explorer)
                 FluxItems.Add(new FluxItemViewModel(new DirectoryInfo(
                     Environment.GetFolderPath(Environment.SpecialFolder.Desktop)))
-                    { OverrideFileName = "🗑  Recycle Bin" });
+                    { OverrideFileName = "\U0001F5D1  Recycle Bin" });
 
                 // User-pinned locations
                 foreach (var pinned in SettingsService.Current.PinnedFsLocations)
                 {
                     if (!Directory.Exists(pinned)) continue;
                     FluxItems.Add(new FluxItemViewModel(new DirectoryInfo(pinned))
-                        { OverrideFileName = $"📌  {System.IO.Path.GetFileName(pinned)}" });
+                        { OverrideFileName = $"\U0001F4CC  {System.IO.Path.GetFileName(pinned)}" });
                 }
 
                 // Physical drives
                 foreach (var drive in DriveInfo.GetDrives().Where(d => d.IsReady))
                 {
                     FluxItems.Add(new FluxItemViewModel(new DirectoryInfo(drive.RootDirectory.FullName))
-                        { OverrideFileName = $"[{drive.DriveType}]  {drive.Name}  —  {drive.VolumeLabel}" });
+                        { OverrideFileName = $"[{drive.DriveType}]  {drive.Name}  \u2014  {drive.VolumeLabel}" });
                 }
             }
             catch (Exception ex) { LogService.RecordCrash(ex, "FluxStream drives"); }
@@ -2358,7 +2985,7 @@ public partial class FluxSidebar : UserControl
         SetSortBtnActive(BtnSortDate, _sortField == SortField.Date);
         SetSortBtnActive(BtnSortName, _sortField == SortField.Name);
         SetSortBtnActive(BtnSortSize, _sortField == SortField.Size);
-        BtnSortDir.Content    = _sortAscending ? "↑" : "↓";
+        BtnSortDir.Content    = _sortAscending ? "\u2191" : "\u2193";
         BtnSortDir.Foreground = new SolidColorBrush(Color.FromRgb(0x44, 0x44, 0x44));
     }
 
@@ -2392,7 +3019,7 @@ public partial class FluxSidebar : UserControl
     {
         PauseDownloadRequested?.Invoke();
         _dlPaused = !_dlPaused;
-        BtnDlPause.Content = _dlPaused ? "▶" : "⏸";
+        BtnDlPause.Content = _dlPaused ? "\u25B6" : "\u23F8";
     }
 
     private void BtnDlCancel_Click(object sender, RoutedEventArgs e)
@@ -2421,7 +3048,7 @@ public partial class FluxSidebar : UserControl
         TxtDlSpeed.Text = "Cancelled";
         TxtDlEta.Text = "";
         _dlPaused = false;
-        BtnDlPause.Content = "⏸";
+        BtnDlPause.Content = "\u23F8";
         CancelDownloadRequested?.Invoke();
     }
 
@@ -2453,15 +3080,15 @@ public partial class FluxSidebar : UserControl
             }
             TxtDlEta.Text = "";
             _dlPaused = false;
-            BtnDlPause.Content = "⏸";
+            BtnDlPause.Content = "\u23F8";
             BtnDlPause.Visibility = Visibility.Collapsed;
-            BtnDlCancel.Content = "✕ Dismiss";
+            BtnDlCancel.Content = "\u2715 Dismiss";
             BtnDlCancel.ToolTip = "Remove from list and delete the downloaded file";
         }
         else
         {
             BtnDlPause.Visibility = Visibility.Visible;
-            BtnDlCancel.Content = "✕ Cancel";
+            BtnDlCancel.Content = "\u2715 Cancel";
             BtnDlCancel.ToolTip = "Cancel Download";
             TxtDlSpeed.Text = info.SpeedMBs >= 1.0
                 ? $"{info.SpeedMBs:F1} MB/s"
@@ -2551,7 +3178,7 @@ public partial class FluxSidebar : UserControl
         if (canPin)
         {
             bool alreadyPinned = SettingsService.Current.PinnedFsLocations.Contains(_browsePath);
-            BtnCtxPinLocation.Content    = alreadyPinned ? "📌  Unpin This Location" : "📌  Pin This Location";
+            BtnCtxPinLocation.Content    = alreadyPinned ? "\U0001F4CC  Unpin This Location" : "\U0001F4CC  Pin This Location";
             BtnCtxPinLocation.Visibility = Visibility.Visible;
             SepPinLocation.Visibility    = Visibility.Visible;
         }
@@ -2738,7 +3365,7 @@ public partial class FluxSidebar : UserControl
             if (res != MessageBoxResult.Yes) return;
         }
 
-        ShowStatus("⏳ Extracting…");
+        ShowStatus("\u23F3 Extracting\u2026");
         string? errorMsg = null;
 
         try
@@ -2778,7 +3405,7 @@ public partial class FluxSidebar : UserControl
                 }
             });
 
-            ShowStatus($"✔ Extracted to '{baseName}'");
+            ShowStatus($"\u2714 Extracted to '{baseName}'");
         }
         catch (Exception ex)
         {
@@ -2936,7 +3563,7 @@ public partial class FluxSidebar : UserControl
             PreviewTextScroll.Visibility = Visibility.Visible;
             PreviewSearchBar.Visibility  = Visibility.Visible;
             PreviewZoomPanel.Visibility  = Visibility.Visible;
-            TxtPreviewInfo.Text          = $"DOCX  ·  {content.Split('\n').Length} lines  ·  {FormatFileSize(info.Length)}";
+            TxtPreviewInfo.Text          = $"DOCX  \u00B7  {content.Split('\n').Length} lines  \u00B7  {FormatFileSize(info.Length)}";
         }
         catch (Exception ex)
         {
@@ -2992,7 +3619,7 @@ public partial class FluxSidebar : UserControl
             PreviewTextScroll.Visibility = Visibility.Visible;
             PreviewSearchBar.Visibility  = Visibility.Visible;
             PreviewZoomPanel.Visibility  = Visibility.Visible;
-            TxtPreviewInfo.Text          = $"XLSX  ·  {rows.Count} rows  ·  {FormatFileSize(info.Length)}";
+            TxtPreviewInfo.Text          = $"XLSX  \u00B7  {rows.Count} rows  \u00B7  {FormatFileSize(info.Length)}";
         }
         catch (Exception ex)
         {
@@ -3019,7 +3646,7 @@ public partial class FluxSidebar : UserControl
             PreviewImageScale.ScaleY      = 1;
             PreviewImageScroll.Visibility = Visibility.Visible;
             PreviewZoomPanel.Visibility   = Visibility.Visible;
-            TxtPreviewInfo.Text           = $"{bmp.PixelWidth} × {bmp.PixelHeight}  ·  {FormatFileSize(info.Length)}";
+            TxtPreviewInfo.Text           = $"{bmp.PixelWidth} \u00D7 {bmp.PixelHeight}  \u00B7  {FormatFileSize(info.Length)}";
         }
         catch (Exception ex)
         {
@@ -3045,13 +3672,13 @@ public partial class FluxSidebar : UserControl
             }
             else { content = File.ReadAllText(path); }
 
-            if (truncated) content += $"\n\n[... truncated — file is {FormatFileSize(info.Length)} total ...]";
+            if (truncated) content += $"\n\n[... truncated \u2014 file is {FormatFileSize(info.Length)} total ...]";
 
             PreviewRichText.Document      = BuildSyntaxDocument(content, ext);
             PreviewTextScroll.Visibility  = Visibility.Visible;
             PreviewSearchBar.Visibility   = Visibility.Visible;
             PreviewZoomPanel.Visibility   = Visibility.Visible;
-            TxtPreviewInfo.Text           = $"{info.Extension.ToUpperInvariant()}  ·  {content.Split('\n').Length} lines  ·  {FormatFileSize(info.Length)}";
+            TxtPreviewInfo.Text           = $"{info.Extension.ToUpperInvariant()}  \u00B7  {content.Split('\n').Length} lines  \u00B7  {FormatFileSize(info.Length)}";
         }
         catch (Exception ex)
         {
@@ -3539,5 +4166,268 @@ public partial class FluxSidebar : UserControl
             File.Copy(file, Path.Combine(dst, Path.GetFileName(file)));
         foreach (string dir in Directory.GetDirectories(src))
             DeepCopyDirectory(dir, Path.Combine(dst, Path.GetFileName(dir)));
+    }
+    // =========================================================================
+    // Utilities Hub Tab & Management
+    // =========================================================================
+    private string _currentSidebarUtilityCat = "All";
+    private string _currentSidebarUtilitySort = "Category";
+    private Point _utilDragStart;
+
+    private void BtnSidebarPanesTab_Click(object sender, MouseButtonEventArgs e)
+    {
+        if (SidebarTabControl != null) SidebarTabControl.Visibility = Visibility.Visible;
+        if (PnlSidebarUtilities != null) PnlSidebarUtilities.Visibility = Visibility.Collapsed;
+
+        BtnSidebarPanesTab.Background = (Brush)FindResource("Brush_TabStripBgSelected");
+        BtnSidebarPanesTab.BorderBrush = (Brush)FindResource("Brush.Neon");
+        BtnSidebarUtilitiesTab.Background = (Brush)FindResource("Brush_TabStripBg");
+        BtnSidebarUtilitiesTab.BorderBrush = (Brush)FindResource("Brush_TabStripBorder");
+    }
+
+    private void BtnSidebarUtilitiesTab_Click(object sender, MouseButtonEventArgs e)
+    {
+        if (SidebarTabControl != null) SidebarTabControl.Visibility = Visibility.Collapsed;
+        if (PnlSidebarUtilities != null) PnlSidebarUtilities.Visibility = Visibility.Visible;
+
+        BtnSidebarUtilitiesTab.Background = (Brush)FindResource("Brush_TabStripBgSelected");
+        BtnSidebarUtilitiesTab.BorderBrush = (Brush)FindResource("Brush.Neon");
+        BtnSidebarPanesTab.Background = (Brush)FindResource("Brush_TabStripBg");
+        BtnSidebarPanesTab.BorderBrush = (Brush)FindResource("Brush_TabStripBorder");
+
+        LoadSidebarUtilities();
+    }
+
+    public void ShowUtilitiesTab()
+    {
+        BtnSidebarUtilitiesTab_Click(this, null!);
+    }
+
+    public void LoadSidebarUtilities()
+    {
+        string search = TxtSidebarUtilitySearch?.Text ?? "";
+        UtilitiesService.Instance.RefreshItems(search, _currentSidebarUtilityCat, _currentSidebarUtilitySort);
+        if (ListSidebarUtilities != null)
+        {
+            ListSidebarUtilities.ItemsSource = UtilitiesService.Instance.Items;
+        }
+    }
+
+    private void TxtSidebarUtilitySearch_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        if (TxtSidebarUtilitySearchHint != null)
+        {
+            TxtSidebarUtilitySearchHint.Visibility = string.IsNullOrEmpty(TxtSidebarUtilitySearch.Text) ? Visibility.Visible : Visibility.Collapsed;
+        }
+        LoadSidebarUtilities();
+    }
+
+    private void CmbSidebarUtilitySort_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (CmbSidebarUtilitySort?.SelectedItem is ComboBoxItem cbi && cbi.Content is string s)
+        {
+            _currentSidebarUtilitySort = s;
+            LoadSidebarUtilities();
+        }
+    }
+
+    private void BtnSidebarCat_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is string cat)
+        {
+            _currentSidebarUtilityCat = cat;
+
+            var parent = VisualTreeHelper.GetParent(btn) as StackPanel;
+            if (parent != null)
+            {
+                foreach (var child in parent.Children.OfType<Button>())
+                {
+                    bool isSel = child == btn;
+                    child.Background = isSel ? new SolidColorBrush(Color.FromArgb(0xFF, 0x1A, 0x2A, 0x1A)) : (Brush)FindResource("Brush_TabStripBg");
+                    child.Foreground = isSel ? new SolidColorBrush(Color.FromRgb(0x00, 0xCC, 0x00)) : (Brush)FindResource("Brush_TabStripTextInactive");
+                    child.BorderBrush = isSel ? new SolidColorBrush(Color.FromArgb(0xFF, 0x2A, 0x4A, 0x2A)) : (Brush)FindResource("Brush_TabStripBorder");
+                }
+            }
+
+            LoadSidebarUtilities();
+        }
+    }
+
+    private void BtnSidebarRunUtil_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement fe && fe.DataContext is UtilityItem item)
+        {
+            UtilitiesService.Instance.ExecuteUtility(item, Window.GetWindow(this));
+            e.Handled = true;
+        }
+    }
+
+    private void ListSidebarUtilities_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+    {
+        if (ListSidebarUtilities?.SelectedItem is UtilityItem item)
+        {
+            UtilitiesService.Instance.ExecuteUtility(item, Window.GetWindow(this));
+            e.Handled = true;
+        }
+    }
+
+    private void ListSidebarUtilities_RightClick(object sender, MouseButtonEventArgs e)
+    {
+        var item = (e.OriginalSource as FrameworkElement)?.DataContext as UtilityItem ?? ListSidebarUtilities?.SelectedItem as UtilityItem;
+        if (item == null) return;
+
+        var cm = new ContextMenu
+        {
+            Background = new SolidColorBrush(Color.FromArgb(0xF0, 0x12, 0x15, 0x1E)),
+            BorderBrush = new SolidColorBrush(Color.FromArgb(0x35, 0xFF, 0xFF, 0xFF)),
+            BorderThickness = new Thickness(1),
+            Foreground = Brushes.White
+        };
+
+        var miPin = new MenuItem
+        {
+            Header = item.IsPinned ? "\uD83D\uDCCC Unpin from Top" : "\uD83D\uDCCD Pin to Top",
+            Foreground = Brushes.White
+        };
+        miPin.Click += (s, ev) =>
+        {
+            UtilitiesService.Instance.TogglePin(item.Id);
+            LoadSidebarUtilities();
+        };
+        cm.Items.Add(miPin);
+        cm.Items.Add(new Separator());
+
+        var miFav = new MenuItem { Header = "\u2B50 Send to Favorites", Foreground = Brushes.White };
+        miFav.Click += (s, ev) =>
+        {
+            if (UtilitiesService.Instance.SendToFavorites(item))
+            {
+                RefreshPins();
+                MessageBox.Show(Window.GetWindow(this), $"Added '{item.Title}' to Favorites.", "Horizon Utilities", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        };
+        cm.Items.Add(miFav);
+
+        var miBm = new MenuItem { Header = "\uD83D\uDD16 Send to Bookmarks", Foreground = Brushes.White };
+        miBm.Click += (s, ev) =>
+        {
+            if (UtilitiesService.Instance.SendToBookmarks(item))
+            {
+                RefreshBookmarks();
+                MessageBox.Show(Window.GetWindow(this), $"Added '{item.Title}' to Bookmarks.", "Horizon Utilities", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        };
+        cm.Items.Add(miBm);
+
+        var miHome = new MenuItem { Header = "\uD83C\uDFE0 Pin to Homepage", Foreground = Brushes.White };
+        miHome.Click += (s, ev) =>
+        {
+            UtilitiesService.Instance.SendToFavorites(item);
+            MessageBox.Show(Window.GetWindow(this), $"Pinned '{item.Title}' to Homepage.", "Horizon Utilities", MessageBoxButton.OK, MessageBoxImage.Information);
+        };
+        cm.Items.Add(miHome);
+
+        var miHeader = new MenuItem { Header = "\uD83D\uDDB1\uFE0F Send to Header Context Menu", Foreground = Brushes.White };
+        miHeader.Click += (s, ev) =>
+        {
+            if (UtilitiesService.Instance.SendToHeaderContextMenu(item))
+            {
+                MessageBox.Show(Window.GetWindow(this), $"Added '{item.Title}' to Header Menu.", "Horizon Utilities", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        };
+        cm.Items.Add(miHeader);
+
+        var miWidget = new MenuItem { Header = "\uD83E\uDDE9 Add as Homepage Widget", Foreground = Brushes.White };
+        miWidget.Click += (s, ev) =>
+        {
+            if (UtilitiesService.Instance.SendToHomepageWidgets(item))
+            {
+                MessageBox.Show(Window.GetWindow(this), $"Added '{item.Title}' to Homepage Widget Board.", "Horizon Utilities", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        };
+        cm.Items.Add(miWidget);
+
+        cm.Items.Add(new Separator());
+
+        var miLaunch = new MenuItem { Header = "\u25B6 Launch Now", FontWeight = FontWeights.Bold, Foreground = new SolidColorBrush(Color.FromRgb(0x4A, 0x9E, 0xFF)) };
+        miLaunch.Click += (s, ev) =>
+        {
+            UtilitiesService.Instance.ExecuteUtility(item, Window.GetWindow(this));
+        };
+        cm.Items.Add(miLaunch);
+
+        cm.PlacementTarget = sender as UIElement;
+        cm.IsOpen = true;
+        e.Handled = true;
+    }
+
+    private void ListSidebarUtilities_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        _utilDragStart = e.GetPosition(null);
+    }
+
+    private void ListSidebarUtilities_PreviewMouseMove(object sender, MouseEventArgs e)
+    {
+        if (e.LeftButton == MouseButtonState.Pressed)
+        {
+            Point pos = e.GetPosition(null);
+            Vector diff = _utilDragStart - pos;
+            if (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance ||
+                Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance)
+            {
+                var item = (e.OriginalSource as FrameworkElement)?.DataContext as UtilityItem ?? ListSidebarUtilities?.SelectedItem as UtilityItem;
+                if (item != null)
+                {
+                    var data = new DataObject("HorizonUtilityItem", item);
+                    DragDrop.DoDragDrop(ListSidebarUtilities, data, DragDropEffects.Copy | DragDropEffects.Move);
+                }
+            }
+        }
+    }
+
+    private void ListPins_DragOver(object sender, DragEventArgs e)
+    {
+        if (e.Data.GetDataPresent("HorizonUtilityItem"))
+        {
+            e.Effects = DragDropEffects.Copy;
+            e.Handled = true;
+        }
+    }
+
+    private void ListPins_Drop(object sender, DragEventArgs e)
+    {
+        if (e.Data.GetDataPresent("HorizonUtilityItem"))
+        {
+            if (e.Data.GetData("HorizonUtilityItem") is UtilityItem item)
+            {
+                UtilitiesService.Instance.SendToFavorites(item);
+                RefreshPins();
+                e.Effects = DragDropEffects.Copy;
+                e.Handled = true;
+            }
+        }
+    }
+
+    private void ListBookmarks_DragOver(object sender, DragEventArgs e)
+    {
+        if (e.Data.GetDataPresent("HorizonUtilityItem"))
+        {
+            e.Effects = DragDropEffects.Copy;
+            e.Handled = true;
+        }
+    }
+
+    private void ListBookmarks_Drop(object sender, DragEventArgs e)
+    {
+        if (e.Data.GetDataPresent("HorizonUtilityItem"))
+        {
+            if (e.Data.GetData("HorizonUtilityItem") is UtilityItem item)
+            {
+                UtilitiesService.Instance.SendToBookmarks(item);
+                RefreshBookmarks();
+                e.Effects = DragDropEffects.Copy;
+                e.Handled = true;
+            }
+        }
     }
 }

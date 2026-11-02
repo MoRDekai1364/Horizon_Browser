@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Benchmark: Standard Deterministic Content</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0; padding: 24px;
+            background: #0f141c; color: #e2e8f0;
+        }
+        .container { max-width: 900px; margin: 0 auto; }
+        h1 { color: #00d9ff; font-size: 26px; border-bottom: 1px solid #1e293b; padding-bottom: 12px; }
+        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 24px 0; }
+        .card { background: #162030; border: 1px solid #23334d; border-radius: 8px; padding: 16px; }
+        .card h3 { margin-top: 0; color: #38bdf8; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #23334d; padding: 8px 12px; text-align: left; }
+        th { background: #1a273b; color: #94a3b8; }
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; background: #0369a1; color: #e0f2fe; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Horizon Benchmark: Standard Reference Content</h1>
+        <p>This deterministic test document contains a fixed DOM hierarchy of 150 elements with styled cards, tables, and typography. Zero external network resources.</p>
+        
+        <div class="grid">
+            <div class="card">
+                <h3>DOM Component Alpha</h3>
+                <p>Deterministic content block containing structured analytical data and inline style declarations.</p>
+                <span class="badge">Fixed Size: 4.2 KB</span>
+            </div>
+            <div class="card">
+                <h3>DOM Component Beta</h3>
+                <p>Deterministic layout verifying CSS flexbox alignment and sub-pixel text rendering metrics.</p>
+                <span class="badge">State: Static</span>
+            </div>
+            <div class="card">
+                <h3>DOM Component Gamma</h3>
+                <p>Ensures consistent V8 heap allocation and style recalculation boundaries across runs.</p>
+                <span class="badge">Isolation: Full</span>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr><th>ID</th><th>Module</th><th>Allocated Memory</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>#01</td><td>Renderer Pipeline</td><td>4,096 KB</td><td>Active</td></tr>
+                <tr><td>#02</td><td>Compositor Cache</td><td>2,048 KB</td><td>Idle</td></tr>
+                <tr><td>#03</td><td>Layout Engine</td><td>1,024 KB</td><td>Synchronized</td></tr>
+                <tr><td>#04</td><td>Resource Manager</td><td>512 KB</td><td>Standby</td></tr>
+                <tr><td>#05</td><td>Font Metric Store</td><td>256 KB</td><td>Loaded</td></tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

@@ -72,7 +72,8 @@
     "SaveAndExit": "СОХРАНИТЬ И ВЫЙТИ",
     "WeatherUnavailable": "⛅ Н/Д",
     "HomeFavorites": "Избранное",
-    "HomeBookmarks": "Закладки"
+    "HomeBookmarks": "Закладки",
+    "Calendar": "Календарь"
   },
   "Settings": {
     "Title": "Настройки",
@@ -164,6 +165,8 @@
     "Auto Consent": "Автосогласие на cookie",
     "Auto-Hide Header": "Автоскрытие шапки",
     "Auto-Hide Sidebar": "Автоскрытие боковой панели",
+    "Sidebar Mini Mode (Dock)": "Мини-режим боковой панели (Док)",
+    "Shrinks the sidebar into a slim icon dock on the right side.": "Сворачивает боковую панель в компактный док с иконками справа.",
     "Auto-restore previous session on startup": "Автоматически восстанавливать вкладки при запуске",
     "Auto-skips sponsors, intros, outros, self-promo and interaction reminders on YouTube": "Auto-skips sponsors, intros, outros, self-promo and interaction reminders on YouTube",
     "Automatically clicks 'Reject All' on cookie consent popups": "Automatically clicks 'Reject All' on cookie consent popups",
@@ -656,6 +659,8 @@
   "Auto Consent": "Автосогласие на cookie",
   "Auto-Hide Header": "Автоскрытие шапки",
   "Auto-Hide Sidebar": "Автоскрытие боковой панели",
+  "Sidebar Mini Mode (Dock)": "Мини-режим боковой панели (Док)",
+  "Shrinks the sidebar into a slim icon dock on the right side.": "Сворачивает боковую панель в компактный док с иконками справа.",
   "Auto-restore previous session on startup": "Автоматически восстанавливать вкладки при запуске",
   "Auto-skips sponsors, intros, outros, self-promo and interaction reminders on YouTube": "Auto-skips sponsors, intros, outros, self-promo and interaction reminders on YouTube",
   "Automatically clicks 'Reject All' on cookie consent popups": "Automatically clicks 'Reject All' on cookie consent popups",

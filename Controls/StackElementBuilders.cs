@@ -201,7 +201,7 @@ internal sealed class StackWebHost : Border, IDisposable
         _initializing = true;
         try
         {
-            var env = Horizon.Stealth.Core.StealthEnvironment.Instance;
+            var env = Horizon.Stealth.Core.HorizonEnvironment.Instance;
             if (env == null) { ShowFailure("Browser engine is not ready."); return; }
 
             bool isolated = _data.LoginProfile == StackLoginProfile.Isolated;
@@ -220,7 +220,7 @@ internal sealed class StackWebHost : Border, IDisposable
             if (_disposed || !ReferenceEquals(view, _view)) return;
 
             var core = view.CoreWebView2;
-            await Horizon.Stealth.Core.StealthEnvironment.ApplyStealthStrategies(core);
+            await Horizon.Stealth.Core.HorizonEnvironment.ApplyStealthStrategies(core);
             core.Settings.UserAgent = MobileUa;
             view.SizeChanged += (_, __) => ScheduleEmulation();
             if (isolated && _profile.PreferDark) core.Profile.PreferredColorScheme = CoreWebView2PreferredColorScheme.Dark;

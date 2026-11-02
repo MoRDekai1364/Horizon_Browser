@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Benchmark: Interactive Foreground Frame SLO Probe</title>
+    <style>
+        body {
+            font-family: -apple-system, sans-serif;
+            background: #0b0f19; color: #38bdf8;
+            margin: 0; padding: 24px;
+        }
+        #canvas {
+            width: 100%; height: 240px;
+            background: #111827; border: 1px solid #1f2937;
+            border-radius: 8px; margin-top: 16px;
+        }
+        .stats { display: flex; gap: 20px; margin-top: 16px; }
+        .stat-card { background: #1f2937; padding: 12px 20px; border-radius: 6px; }
+        .val { font-size: 24px; font-weight: bold; color: #00d9ff; }
+    </style>
+</head>
+<body>
+    <h2>Horizon Benchmark: Foreground Frame-Time &amp; SLO Probe</h2>
+    <p>Renders continuous 60/120Hz canvas animation while sampling exact inter-frame intervals and observing Long Tasks (&gt; 50ms).</p>
+
+    <div class="stats">
+        <div class="stat-card"><div>FPS</div><div class="val" id="fps">0</div></div>
+        <div class="stat-card"><div>p50 Frame Time</div><div class="val" id="p50">0.0 ms</div></div>
+        <div class="stat-card"><div>p99 Frame Time</div><div class="val" id="p99">0.0 ms</div></div>
+        <div class="stat-card"><div>Long Tasks (&gt;50ms)</div><div class="val" id="longTasks">0</div></div>
+    </div>
+
+    <canvas id="canvas" width="800" height="240"></canvas>
+
+    <script>
+        const canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
+        let lastT = performance.now();
+        let frameDeltas = [];
+        let longTasksCount = 0;
+        let angle = 0;
+
+        if (window.PerformanceObserver) {
+            try {
+                const po = new PerformanceObserver((list) => {
+                    longTasksCount += list.getEntries().length;
+                    const el = document.getElementById("longTasks");
+                    if (el) el.textContent = longTasksCount;
+                });
+                po.observe({ entryTypes: ['longtask'] });
+            } catch(e) {}
+        }
+
+        function render(now) {
+            const delta = now - lastT;
+            lastT = now;
+            frameDeltas.push(delta);
+            if (frameDeltas.length > 6000) frameDeltas.shift();
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            angle += 0.05;
+            const x = canvas.width / 2 + Math.cos(angle) * 200;
+            const y = canvas.height / 2 + Math.sin(angle) * 80;
+
+            ctx.fillStyle = "#00d9ff";
+            ctx.beginPath();
+            ctx.arc(x, y, 16, 0, Math.PI * 2);
+            ctx.fill();
+
+            if (frameDeltas.length >= 60 && Math.floor(now) % 30 === 0) {
+                const sorted = [...frameDeltas].sort((a,b) => a - b);
+                const p50Val = sorted[Math.floor(sorted.length * 0.50)];
+                const p99Val = sorted[Math.floor(sorted.length * 0.99)];
+                const fpsVal = Math.round(1000.0 / p50Val);
+
+                document.getElementById("fps").textContent = fpsVal;
+                document.getElementById("p50").textContent = p50Val.toFixed(1) + " ms";
+                document.getElementById("p99").textContent = p99Val.toFixed(1) + " ms";
+            }
+
+            requestAnimationFrame(render);
+        }
+        requestAnimationFrame(render);
+
+        window.__hzGetFrameMetrics = function() {
+            if (frameDeltas.length < 50) return { p50: 0, p99: 0, longTasks: longTasksCount, sampleCount: frameDeltas.length };
+            const sorted = [...frameDeltas].sort((a,b) => a - b);
+            return {
+                p50: sorted[Math.floor(sorted.length * 0.50)],
+                p99: sorted[Math.floor(sorted.length * 0.99)],
+                longTasks: longTasksCount,
+                sampleCount: frameDeltas.length
+            };
+        };
+    </script>
+</body>
+</html>

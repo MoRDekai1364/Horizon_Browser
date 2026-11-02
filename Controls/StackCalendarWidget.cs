@@ -16,10 +16,15 @@ public sealed class StackCalendarWidget : UserControl
     private DateTime? _selectedDate = DateTime.Today;
 
     private readonly TextBlock _monthLabel;
+    private readonly Border _prevBtn;
+    private readonly Border _nextBtn;
+    private readonly Border _openBtn;
     private readonly UniformGrid _dowGrid;
     private readonly UniformGrid _dayGrid;
     private readonly TextBlock _eventPreview;
     private readonly Border _previewBorder;
+    private double _lastRenderedCellH = -1;
+    private double _lastRenderedWidth = -1;
 
     public StackElementData Data { get; }
 
@@ -27,7 +32,7 @@ public sealed class StackCalendarWidget : UserControl
     {
         Data = data;
         HomeGlass.SetExclude(this, true);
-        MinHeight = 240;
+        MinHeight = 220;
 
         var root = new Grid();
         root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); // Header
@@ -42,25 +47,25 @@ public sealed class StackCalendarWidget : UserControl
         header.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         header.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
-        var prevBtn = MakeNavBtn("‹", "Previous month");
-        prevBtn.MouseLeftButtonUp += (_, e) =>
+        _prevBtn = MakeNavBtn("\u2039", "Previous month");
+        _prevBtn.MouseLeftButtonUp += (_, e) =>
         {
             e.Handled = true;
             _viewMonth = _viewMonth.AddMonths(-1);
             Render();
         };
 
-        var nextBtn = MakeNavBtn("›", "Next month");
-        nextBtn.MouseLeftButtonUp += (_, e) =>
+        _nextBtn = MakeNavBtn("\u203A", "Next month");
+        _nextBtn.MouseLeftButtonUp += (_, e) =>
         {
             e.Handled = true;
             _viewMonth = _viewMonth.AddMonths(1);
             Render();
         };
 
-        var openBtn = MakeNavBtn("↗", "Open full Calendar window");
-        openBtn.Margin = new Thickness(4, 0, 0, 0);
-        openBtn.MouseLeftButtonUp += (_, e) =>
+        _openBtn = MakeNavBtn("\u2197", "Open full Calendar window");
+        _openBtn.Margin = new Thickness(4, 0, 0, 0);
+        _openBtn.MouseLeftButtonUp += (_, e) =>
         {
             e.Handled = true;
             LaunchFullCalendar();
@@ -68,7 +73,7 @@ public sealed class StackCalendarWidget : UserControl
 
         _monthLabel = new TextBlock
         {
-            FontSize = 15,
+            FontSize = 16,
             FontWeight = FontWeights.SemiBold,
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
@@ -84,14 +89,14 @@ public sealed class StackCalendarWidget : UserControl
             Render();
         };
 
-        Grid.SetColumn(prevBtn, 0);
+        Grid.SetColumn(_prevBtn, 0);
         Grid.SetColumn(_monthLabel, 1);
-        Grid.SetColumn(nextBtn, 2);
-        Grid.SetColumn(openBtn, 3);
-        header.Children.Add(prevBtn);
+        Grid.SetColumn(_nextBtn, 2);
+        Grid.SetColumn(_openBtn, 3);
+        header.Children.Add(_prevBtn);
         header.Children.Add(_monthLabel);
-        header.Children.Add(nextBtn);
-        header.Children.Add(openBtn);
+        header.Children.Add(_nextBtn);
+        header.Children.Add(_openBtn);
 
         // --- Day of week header ---
         _dowGrid = new UniformGrid { Rows = 1, Columns = 7, Margin = new Thickness(0, 0, 0, 6) };
@@ -152,6 +157,19 @@ public sealed class StackCalendarWidget : UserControl
             Render();
         };
 
+        SizeChanged += (_, e) =>
+        {
+            if (e.NewSize.Height > 50 && e.NewSize.Width > 50)
+            {
+                double availableH = e.NewSize.Height - 120.0;
+                double cellH = Math.Clamp(Math.Floor(availableH / 6.0), 22.0, 48.0);
+                if (Math.Abs(cellH - _lastRenderedCellH) >= 2.0 || Math.Abs(e.NewSize.Width - _lastRenderedWidth) >= 35.0)
+                {
+                    Render();
+                }
+            }
+        };
+
         Unloaded += (_, _) =>
         {
             CalendarBridge.Updated -= OnCalendarUpdated;
@@ -197,6 +215,18 @@ public sealed class StackCalendarWidget : UserControl
         return b;
     }
 
+    private static void UpdateNavBtnSize(Border b, double size)
+    {
+        if (b == null) return;
+        b.Width = size;
+        b.Height = size;
+        b.CornerRadius = new CornerRadius(size / 2.0);
+        if (b.Child is TextBlock tb)
+        {
+            tb.FontSize = Math.Max(11.0, Math.Round(size * 0.54));
+        }
+    }
+
     private void LaunchFullCalendar()
     {
         if (Application.Current?.MainWindow is MainWindow main)
@@ -219,24 +249,49 @@ public sealed class StackCalendarWidget : UserControl
         }
         catch { }
 
+        double widgetH = ActualHeight > 50 ? ActualHeight : 360.0;
+        double widgetW = ActualWidth > 50 ? ActualWidth : 320.0;
+        bool isCompact = widgetH < 300.0 || widgetW < 270.0;
+        bool isNormal = !isCompact && (widgetH < 400.0 || widgetW < 340.0);
+        bool isLarge = widgetH >= 400.0 && widgetW >= 340.0;
+
+        double availableH = widgetH - (isCompact ? 96.0 : 124.0);
+        double cellH = Math.Clamp(Math.Floor(availableH / 6.0), 22.0, 56.0);
+        _lastRenderedCellH = cellH;
+        _lastRenderedWidth = widgetW;
+
+        double monthFontSize = isLarge ? 21.0 : (isNormal ? 18.0 : 14.0);
+        double dowFontSize = isLarge ? 13.5 : (isNormal ? 12.0 : 10.0);
+        double dayFontSize = isLarge ? 16.5 : (isNormal ? 14.5 : 11.0);
+        double previewFontSize = isLarge ? 13.5 : (isNormal ? 12.0 : 10.5);
+        double navBtnSize = isLarge ? 32.0 : (isNormal ? 28.0 : 22.0);
+        double dotSize = isLarge ? 6.0 : (isNormal ? 4.5 : 3.0);
+
+        _monthLabel.FontSize = monthFontSize;
         _monthLabel.Text = _viewMonth.ToString("MMMM yyyy", culture);
+        _eventPreview.FontSize = previewFontSize;
+        _previewBorder.Padding = isCompact ? new Thickness(8, 5, 8, 5) : new Thickness(10, 8, 10, 8);
+
+        UpdateNavBtnSize(_prevBtn, navBtnSize);
+        UpdateNavBtnSize(_nextBtn, navBtnSize);
+        UpdateNavBtnSize(_openBtn, navBtnSize);
 
         // Day of week headers
         _dowGrid.Children.Clear();
         // Monday-based week
         string[] dows;
         if (culture.TwoLetterISOLanguageName.Equals("bg", StringComparison.OrdinalIgnoreCase))
-            dows = new[] { "Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Нд" };
+            dows = new[] { "\u041F\u043D", "\u0412\u0442", "\u0421\u0440", "\u0427\u0442", "\u041F\u0442", "\u0421\u0431", "\u041D\u0434" };
         else if (culture.TwoLetterISOLanguageName.Equals("de", StringComparison.OrdinalIgnoreCase))
             dows = new[] { "Mo", "Di", "Mi", "Do", "Fr", "Sa", "So" };
         else if (culture.TwoLetterISOLanguageName.Equals("ru", StringComparison.OrdinalIgnoreCase))
-            dows = new[] { "Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс" };
+            dows = new[] { "\u041F\u043D", "\u0412\u0442", "\u0421\u0440", "\u0427\u0442", "\u041F\u0442", "\u0421\u0431", "\u0412\u0441" };
         else if (culture.TwoLetterISOLanguageName.Equals("fr", StringComparison.OrdinalIgnoreCase))
             dows = new[] { "Lu", "Ma", "Me", "Je", "Ve", "Sa", "Di" };
         else if (culture.TwoLetterISOLanguageName.Equals("it", StringComparison.OrdinalIgnoreCase))
             dows = new[] { "Lu", "Ma", "Me", "Gi", "Ve", "Sa", "Do" };
         else if (culture.TwoLetterISOLanguageName.Equals("es", StringComparison.OrdinalIgnoreCase))
-            dows = new[] { "Lu", "Ma", "Mi", "Ju", "Vi", "Sá", "Do" };
+            dows = new[] { "Lu", "Ma", "Mi", "Ju", "Vi", "S\u00E1", "Do" };
         else
             dows = new[] { "Mo", "Tu", "We", "Th", "Fr", "Sa", "Su" };
 
@@ -246,7 +301,7 @@ public sealed class StackCalendarWidget : UserControl
             var dowText = new TextBlock
             {
                 Text = dows[i],
-                FontSize = 10,
+                FontSize = dowFontSize,
                 FontWeight = FontWeights.SemiBold,
                 HorizontalAlignment = HorizontalAlignment.Center,
                 Opacity = isWeekend ? 0.9 : 0.6,
@@ -299,9 +354,9 @@ public sealed class StackCalendarWidget : UserControl
 
             var cellBorder = new Border
             {
-                CornerRadius = new CornerRadius(6),
+                CornerRadius = new CornerRadius(cellH > 30 ? 8 : 6),
                 Margin = new Thickness(1),
-                Height = 22,
+                Height = cellH,
                 Cursor = Cursors.Hand,
                 ClipToBounds = true
             };
@@ -328,7 +383,7 @@ public sealed class StackCalendarWidget : UserControl
             var dayNum = new TextBlock
             {
                 Text = cellDate.Day.ToString(),
-                FontSize = 10,
+                FontSize = dayFontSize,
                 FontWeight = isToday ? FontWeights.Bold : FontWeights.Normal,
                 HorizontalAlignment = HorizontalAlignment.Center,
                 Opacity = isCurrentMonth ? 1.0 : 0.3
@@ -349,10 +404,10 @@ public sealed class StackCalendarWidget : UserControl
             {
                 var dot = new System.Windows.Shapes.Ellipse
                 {
-                    Width = 3,
-                    Height = 3,
+                    Width = dotSize,
+                    Height = dotSize,
                     Fill = isToday ? new SolidColorBrush(accentColor) : new SolidColorBrush(Color.FromRgb(0x4C, 0xD9, 0x64)),
-                    Margin = new Thickness(0, 1, 0, 0),
+                    Margin = new Thickness(0, Math.Max(1.0, dotSize * 0.4), 0, 0),
                     HorizontalAlignment = HorizontalAlignment.Center
                 };
                 cellContent.Children.Add(dot);
@@ -398,7 +453,7 @@ public sealed class StackCalendarWidget : UserControl
             {
                 var ev = dayEvents[0];
                 string time = ev.Start.ToString("HH:mm");
-                _eventPreview.Text = $"📅 {date:d MMM}: {time} {ev.Title}";
+                _eventPreview.Text = $"\U0001F4C5 {date:d MMM}: {time} {ev.Title}";
                 return;
             }
         }
@@ -406,12 +461,12 @@ public sealed class StackCalendarWidget : UserControl
         var next = CalendarBridge.GetNextEvent();
         if (next != null)
         {
-            _eventPreview.Text = $"📅 Next: {next.Start:ddd HH:mm} {next.Title}";
+            _eventPreview.Text = $"\U0001F4C5 Next: {next.Start:ddd HH:mm} {next.Title}";
             return;
         }
 
         var loc = LocalizationService.Instance;
         string noEvents = loc.GetString("Calendar.NoEvents", "No upcoming events");
-        _eventPreview.Text = $"📅 {noEvents}";
+        _eventPreview.Text = $"\U0001F4C5 {noEvents}";
     }
 }

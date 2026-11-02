@@ -65,6 +65,12 @@ Before updating to a new version, run **`Update_manager.bat`** and follow the on
 
 ## Recently Added
 
+- **Multi-Account Container Tabs & Profile Isolation**:
+  - Full cookie, localStorage, HTTP cache, and session isolation per tab/container using native Chromium WebView2 profiles (CoreWebView2Profile).
+  - Right-click any tab -> **🔒 Isolate Tab** (or choose from Work, Personal, Finance, Shopping, or Custom named containers).
+  - Simultaneously stay logged into different accounts on the same website (e.g., Claude account A vs Claude account B, personal vs work Google/GitHub) on side-by-side tabs with zero cross-talk or session interference.
+  - High-contrast visual container badge rendered directly on isolated tabs with container color tint.
+
 - Sleeping tabs
 - Drag & drop support for sidebar and tabs
 - Sidebar categories for tab management

@@ -12,20 +12,131 @@
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <Border Grid.ColumnSpan="2" CornerRadius="5" Background="{DynamicResource Brush_HeaderButtonScrim}" IsHitTestVisible="False"/>
+            <Border Grid.ColumnSpan="3" CornerRadius="5" Background="{DynamicResource Brush_HeaderButtonScrim}" IsHitTestVisible="False"/>
 
-            <TextBlock Grid.Column="0" Text="🔒" Foreground="{DynamicResource Brush_Accent}" 
-                       VerticalAlignment="Center" Margin="10,0,5,0" FontSize="14"/>
+            <!-- Padlock / Site Info -->
+            <TextBlock Grid.Column="0" Text="&#x1F512;" Foreground="{DynamicResource Brush_Accent}" 
+                       VerticalAlignment="Center" Margin="10,0,3,0" FontSize="13" Cursor="Hand"
+                       ToolTip="Connection is encrypted (TLS/SSL)"/>
 
-            <TextBox x:Name="UrlInput" Grid.Column="1"
+            <!-- Security Shield Button -->
+            <Border x:Name="BtnSecurityShield" Grid.Column="1" Width="22" Height="22" CornerRadius="4"
+                    Background="Transparent" Cursor="Hand" Margin="2,0,5,0"
+                    MouseLeftButtonUp="BtnSecurityShield_Click" ToolTip="Horizon Aegis Security &amp; Privacy Shield">
+                <TextBlock Text="&#x1F6E1;" FontSize="13" Foreground="#00E5FF" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+
+            <!-- URL Input -->
+            <TextBox x:Name="UrlInput" Grid.Column="2"
                      Background="Transparent" BorderThickness="0"
                      Foreground="{DynamicResource Brush_Text}" CaretBrush="{DynamicResource Brush_Accent}"
                      VerticalContentAlignment="Center" FontSize="14"
-                     Padding="5,0"
+                     Padding="4,0"
                      KeyDown="UrlInput_KeyDown"/>
+
+            <!-- Aegis Master Security & Privacy Flyout Menu -->
+            <Popup x:Name="PopupSecurityMenu"
+                   AllowsTransparency="True"
+                   StaysOpen="False"
+                   Placement="Bottom"
+                   PlacementTarget="{Binding ElementName=BtnSecurityShield}">
+                <Border Width="380" Background="#F012151E" BorderBrush="#35FFFFFF" BorderThickness="1"
+                        CornerRadius="14" Padding="14" Margin="6">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="24" ShadowDepth="4" Opacity="0.65" Color="#000000"/>
+                    </Border.Effect>
+                    <StackPanel>
+                        <!-- Top Header: Title & Verification Status -->
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="&#x1F6E1; AEGIS SECURITY &amp; PRIVACY" FontSize="11" FontWeight="Bold" Foreground="#00E5FF"/>
+                                <TextBlock Text="Active Web Shield Protection Suite" FontSize="9.5" Foreground="#888" Margin="0,2,0,0"/>
+                            </StackPanel>
+                            <Border Grid.Column="1" Background="#2600E575" BorderBrush="#8000E575" BorderThickness="1" CornerRadius="6" Padding="6,2">
+                                <TextBlock Text="&#x2713; SAFE &amp; SECURE" FontSize="9.5" FontWeight="Bold" Foreground="#00E575"/>
+                            </Border>
+                        </Grid>
+
+                        <Separator Background="#20FFFFFF" Margin="0,0,0,8"/>
+
+                        <!-- Section 1: AdGuard & Platform Shields -->
+                        <TextBlock Text="ADGUARD &amp; PLATFORM SHIELDS" FontSize="9.5" FontWeight="SemiBold" Foreground="#888" Margin="0,0,0,5"/>
+                        <CheckBox x:Name="ChkAegisAdBlock" Content="Master Ad &amp; Tracker Blocker" Foreground="White" FontSize="11" Margin="2,2,0,4" IsChecked="True"/>
+                        <CheckBox x:Name="ChkYouTubeShield" Content="YouTube Ad &amp; SponsorBlock Bypass" Foreground="White" FontSize="11" Margin="2,0,0,4" IsChecked="True"/>
+                        <CheckBox x:Name="ChkTikTokShield" Content="TikTok Guest Wall &amp; Overlay Removal" Foreground="White" FontSize="11" Margin="2,0,0,8" IsChecked="True"/>
+
+                        <Separator Background="#20FFFFFF" Margin="0,0,0,8"/>
+
+                        <!-- Section 2: Container Tab Isolator (Editable Categories) -->
+                        <Grid Margin="0,0,0,5">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="CONTAINER TAB ISOLATOR" FontSize="9.5" FontWeight="SemiBold" Foreground="#888"/>
+                            <TextBlock Grid.Column="1" Text="&#x270E; Edit Categories" FontSize="9.5" Foreground="#00E5FF" Cursor="Hand" MouseLeftButtonUp="BtnEditCategories_Click"/>
+                        </Grid>
+                        <WrapPanel x:Name="PnlContainerChips" Margin="0,0,0,8">
+                            <Border x:Name="ChipDefault" CornerRadius="6" Background="#3000E5FF" BorderBrush="#8000E5FF" BorderThickness="1" Padding="7,2" Margin="0,0,4,4" Cursor="Hand" MouseLeftButtonUp="ContainerChip_Click" Tag="Default">
+                                <TextBlock Text="Default" FontSize="10" FontWeight="SemiBold" Foreground="#00E5FF"/>
+                            </Border>
+                            <Border x:Name="ChipPersonal" CornerRadius="6" Background="#20FFFFFF" BorderBrush="#30FFFFFF" BorderThickness="1" Padding="7,2" Margin="0,0,4,4" Cursor="Hand" MouseLeftButtonUp="ContainerChip_Click" Tag="Personal">
+                                <TextBlock Text="Personal" FontSize="10" Foreground="#CCC"/>
+                            </Border>
+                            <Border x:Name="ChipWork" CornerRadius="6" Background="#20FFFFFF" BorderBrush="#30FFFFFF" BorderThickness="1" Padding="7,2" Margin="0,0,4,4" Cursor="Hand" MouseLeftButtonUp="ContainerChip_Click" Tag="Work">
+                                <TextBlock Text="Work" FontSize="10" Foreground="#CCC"/>
+                            </Border>
+                            <Border x:Name="ChipFinance" CornerRadius="6" Background="#20FFFFFF" BorderBrush="#30FFFFFF" BorderThickness="1" Padding="7,2" Margin="0,0,4,4" Cursor="Hand" MouseLeftButtonUp="ContainerChip_Click" Tag="Finance">
+                                <TextBlock Text="Finance" FontSize="10" Foreground="#CCC"/>
+                            </Border>
+                            <Border x:Name="ChipSocial" CornerRadius="6" Background="#20FFFFFF" BorderBrush="#30FFFFFF" BorderThickness="1" Padding="7,2" Margin="0,0,4,4" Cursor="Hand" MouseLeftButtonUp="ContainerChip_Click" Tag="Social">
+                                <TextBlock Text="Social" FontSize="10" Foreground="#CCC"/>
+                            </Border>
+                            <Border CornerRadius="6" Background="#15FFFFFF" BorderBrush="#25FFFFFF" BorderThickness="1" Padding="7,2" Margin="0,0,4,4" Cursor="Hand" MouseLeftButtonUp="BtnAddCategory_Click">
+                                <TextBlock Text="+ New" FontSize="10" Foreground="#888"/>
+                            </Border>
+                        </WrapPanel>
+
+                        <Separator Background="#20FFFFFF" Margin="0,0,0,8"/>
+
+                        <!-- Section 3: Privacy & Fingerprinting Strippers -->
+                        <TextBlock Text="PRIVACY &amp; FINGERPRINTING GUARDS" FontSize="9.5" FontWeight="SemiBold" Foreground="#888" Margin="0,0,0,5"/>
+                        <CheckBox x:Name="ChkReferrerStripper" Content="Strip Referrer Headers (Hide origin source)" Foreground="White" FontSize="11" Margin="2,2,0,4" IsChecked="True"/>
+                        <CheckBox x:Name="ChkCanvasDefender" Content="Canvas Anti-Fingerprinting (Randomized noise)" Foreground="White" FontSize="11" Margin="2,0,0,4" IsChecked="True"/>
+                        <CheckBox x:Name="ChkAudioDefender" Content="AudioContext Defender (Acoustic profiling blocked)" Foreground="White" FontSize="11" Margin="2,0,0,4" IsChecked="True"/>
+                        <CheckBox x:Name="ChkHttpsOnly" Content="HTTPS-Only Enforcer (Block unencrypted traffic)" Foreground="White" FontSize="11" Margin="2,0,0,8" IsChecked="True"/>
+
+                        <Separator Background="#20FFFFFF" Margin="0,0,0,8"/>
+
+                        <!-- Section 4: Live Power Utilities -->
+                        <TextBlock Text="INSTANT PRIVACY TOOLS" FontSize="9.5" FontWeight="SemiBold" Foreground="#888" Margin="0,0,0,5"/>
+                        <Grid Margin="0,0,0,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" Height="26" CornerRadius="6" Background="#20FFFFFF" Cursor="Hand" Margin="0,0,3,0" MouseLeftButtonUp="BtnBurnerEmail_Click">
+                                <TextBlock Text="&#x26A1; Copy Burner Email" FontSize="10.5" Foreground="#00E5FF" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <Border Grid.Column="1" Height="26" CornerRadius="6" Background="#20FFFFFF" Cursor="Hand" Margin="3,0,0,0" MouseLeftButtonUp="BtnDesaturatePage_Click">
+                                <TextBlock Text="&#x1F441; Clickbait Desaturator" FontSize="10.5" Foreground="#FFD54F" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </Grid>
+
+                        <Border Height="24" CornerRadius="6" Background="#15FFFFFF" Padding="8,0" Margin="0,4,0,0">
+                            <TextBlock Text="&#x1F552; Daily Site Time Budget: Unlimited" FontSize="10" Foreground="#888" VerticalAlignment="Center"/>
+                        </Border>
+                    </StackPanel>
+                </Border>
+            </Popup>
         </Grid>
     </Border>
 </UserControl>

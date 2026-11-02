@@ -483,12 +483,13 @@ public partial class BrowserView : UserControl
             var deferral = e.GetDeferral();
             _ = Dispatcher.InvokeAsync(async () =>
             {
+                System.Windows.Window? popupWin = null;
                 try
                 {
                     double w = (e.WindowFeatures.HasSize && e.WindowFeatures.Width  > 50) ? e.WindowFeatures.Width  : 520;
                     double h = (e.WindowFeatures.HasSize && e.WindowFeatures.Height > 50) ? e.WindowFeatures.Height : 640;
 
-                    var popupWin = new System.Windows.Window
+                    popupWin = new System.Windows.Window
                     {
                         Title               = "Sign in",
                         Width               = w,
@@ -503,17 +504,30 @@ public partial class BrowserView : UserControl
                     popupWin.Content = popupWv;
                     popupWin.Show();
 
-                    // Share the same environment so cookies/profile are shared
-                    await popupWv.EnsureCoreWebView2Async(MainWebView.CoreWebView2.Environment);
+                    // Share the same environment AND container profile options so window.opener and cookies match
+                    if (!string.IsNullOrEmpty(ContainerId) && ContainerId != "default" && HorizonEnvironment.Instance != null)
+                    {
+                        var options = HorizonEnvironment.Instance.CreateCoreWebView2ControllerOptions();
+                        options.ProfileName = "container_" + ContainerId;
+                        options.IsInPrivateModeEnabled = false;
+                        await popupWv.EnsureCoreWebView2Async(HorizonEnvironment.Instance, options);
+                    }
+                    else
+                    {
+                        await popupWv.EnsureCoreWebView2Async(HorizonEnvironment.Instance ?? MainWebView.CoreWebView2.Environment);
+                    }
+
+                    if (popupWv.CoreWebView2 != null)
+                    {
+                        popupWv.CoreWebView2.Settings.UserAgent = Core.HorizonEnvironment.GlobalUserAgent;
+                        popupWv.CoreWebView2.WindowCloseRequested += (_, _) =>
+                            Dispatcher.Invoke(() => { try { popupWin?.Close(); } catch { } });
+                    }
 
                     // Assigning e.NewWindow before deferral.Complete() is what
                     // makes WebView2 preserve window.opener for the parent page.
                     e.NewWindow = popupWv.CoreWebView2;
                     e.Handled   = true;
-
-                    // Let the popup close itself (window.close()) normally
-                    popupWv.CoreWebView2.WindowCloseRequested += (_, _) =>
-                        Dispatcher.Invoke(() => popupWin.Close());
 
                     popupWin.Closed += (_, _) =>
                     {
@@ -524,6 +538,7 @@ public partial class BrowserView : UserControl
                 {
                     // Fallback: open as a plain tab so the user isn't stuck
                     LogService.Write("POPUP", $"OAuth popup failed, falling back to tab: {ex.Message}");
+                    try { popupWin?.Close(); } catch { }
                     e.Handled = true;
                     if (!string.IsNullOrEmpty(e.Uri) && e.Uri != "about:blank")
                         Dispatcher.Invoke(() => OnNewTabRequested(e.Uri));
@@ -623,10 +638,44 @@ public partial class BrowserView : UserControl
         };
         InstallExtDismissBtn.Click += (_, _) => HideExtensionInstallBar();
         NativeHomePage.NavigateRequested += url => Navigate(url);
+        IsVisibleChanged += (_, e) =>
+        {
+            if (e.NewValue is true)
+                _ = ClearBackgroundViewportAsync();
+        };
+        MainWebView.SizeChanged += (_, _) =>
+        {
+            if (IsVisible && MainWebView.ActualWidth > 50 && MainWebView.ActualHeight > 50)
+                _ = ClearBackgroundViewportAsync();
+        };
         Loaded += (_, _) =>
         {
             if (MainWebView.CoreWebView2 == null) InitializeAsync();
         };
+    }
+
+    
+    public Task<bool> EnsureBackgroundViewportAsync(int width = 1280, int height = 800)
+    {
+        // Viewport device emulation override disabled to prevent Chromium from constraining
+        // the active render canvas to 1280x800 and painting a black letterbox on ultrawide monitors.
+        return Task.FromResult(false);
+    }
+
+    public void ClearBackgroundViewportIfNeeded() => _ = ClearBackgroundViewportAsync();
+
+    public async Task ClearBackgroundViewportAsync()
+    {
+                var core = MainWebView?.CoreWebView2;
+        if (core == null) return;
+        try
+        {
+            await core.CallDevToolsProtocolMethodAsync(
+                "Emulation.setDeviceMetricsOverride",
+                "{\"width\":0,\"height\":0,\"deviceScaleFactor\":0,\"mobile\":false}");
+            await core.CallDevToolsProtocolMethodAsync("Emulation.clearDeviceMetricsOverride", "{}");
+        }
+        catch { }
     }
 
     private void OnBecameVisible(object sender, DependencyPropertyChangedEventArgs e)
@@ -640,23 +689,47 @@ public partial class BrowserView : UserControl
 
     private async void InitializeAsync()
     {
-        if (!IsVisible)
+        await EnsureInitializedAsync(forceInit: false);
+    }
+
+    public async Task<bool> EnsureInitializedAsync(bool forceInit = false)
+    {
+        if (MainWebView.CoreWebView2 != null) return true;
+        if (!forceInit && !IsVisible)
         {
             LogService.Debug("webview", () => $"InitializeAsync deferred: not visible core={(MainWebView.CoreWebView2 != null)}");
+            IsVisibleChanged -= OnBecameVisible;
             IsVisibleChanged += OnBecameVisible;
-            return;
+            return false;
         }
-
         try
         {
             LogService.Debug("webview", () => $"InitializeAsync proceeding call#{++_initCallCount} core={(MainWebView.CoreWebView2 != null)} visible={IsVisible} processCrashed={_processCrashed}");
-            await StealthEnvironment.InitializeAsync();
-
-            if (StealthEnvironment.Instance != null)
-            {
-                await MainWebView.EnsureCoreWebView2Async(StealthEnvironment.Instance);
-
-                MainWebView.CoreWebView2.Settings.UserAgent = Core.StealthEnvironment.GlobalUserAgent;
+            await HorizonEnvironment.InitializeAsync();
+ 
+             if (HorizonEnvironment.Instance != null)
+             {
+                 if (!string.IsNullOrEmpty(ContainerId) && ContainerId != "default")
+                 {
+                     try
+                     {
+                         var options = HorizonEnvironment.Instance.CreateCoreWebView2ControllerOptions();
+                         options.ProfileName = "container_" + ContainerId;
+                         options.IsInPrivateModeEnabled = false;
+                         await MainWebView.EnsureCoreWebView2Async(HorizonEnvironment.Instance, options);
+                     }
+                     catch (Exception exProfile)
+                     {
+                         LogService.RecordCrash(exProfile, "BrowserView.Initialize.ContainerProfile");
+                         await MainWebView.EnsureCoreWebView2Async(HorizonEnvironment.Instance);
+                     }
+                 }
+                 else
+                 {
+                     await MainWebView.EnsureCoreWebView2Async(HorizonEnvironment.Instance);
+                 }
+ 
+                  MainWebView.CoreWebView2!.Settings.UserAgent = Core.HorizonEnvironment.GlobalUserAgent;
 
                 MainWebView.CoreWebView2.WebResourceRequested += (s, e) =>
                 {
@@ -761,7 +834,7 @@ public partial class BrowserView : UserControl
                 if (_tabViewModel != null)
                     WireViewModelEvents();
 
-                await StealthEnvironment.ApplyStealthStrategies(MainWebView.CoreWebView2);
+                await HorizonEnvironment.ApplyStealthStrategies(MainWebView.CoreWebView2);
 
                 
                 try
@@ -790,6 +863,8 @@ public partial class BrowserView : UserControl
                     }
                 }
                 InjectRecoveryCookies();
+
+
 
                 if (!string.IsNullOrEmpty(_pendingUrl))
                 {
@@ -823,6 +898,7 @@ public partial class BrowserView : UserControl
         {
             LogService.RecordCrash(ex, "BrowserView.Initialize");
         }
+        return MainWebView.CoreWebView2 != null;
     }
 
     /// <summary>
@@ -941,7 +1017,7 @@ public partial class BrowserView : UserControl
                         _loadedExtensionIds[ext.Name.ToLowerInvariant()] = ext.Id;
                     }
                 }
-                LogService.Write("EXT", $"Loaded: '{item.folderName}' ('{ext.Name}') → ID={ext.Id}");
+                LogService.Write("EXT", $"Loaded: '{item.folderName}' ('{ext.Name}') \u2192 ID={ext.Id}");
                 System.Threading.Interlocked.Increment(ref loaded);
             }
             catch (Exception ex)
@@ -953,7 +1029,7 @@ public partial class BrowserView : UserControl
 
         await Task.WhenAll(tasks);
 
-        LogService.Write("EXT", $"Extension loading done — {loaded} loaded, {failed} failed.");
+        LogService.Write("EXT", $"Extension loading done \u2014 {loaded} loaded, {failed} failed.");
 
         if (loaded == 0 && failed > 0)
             lock (_extensionLock) _extensionsLoaded = false;
@@ -997,6 +1073,14 @@ public partial class BrowserView : UserControl
 
         if (!e.IsSuccess || _tabViewModel == null) return;
 
+        if (SettingsService.Current.EnableTabDiscardAndStateCapture && _tabViewModel.CapturedState != null)
+        {
+            var captured = _tabViewModel.CapturedState;
+            _tabViewModel.CapturedState = null;
+            _tabViewModel.IsDiscarded = false;
+            _ = TabStateCaptureService.RestoreStateAsync(this, captured);
+        }
+
         // Fix: hardware-accelerated video (e.g. YouTube Music watch pages) can init
         // with audio playing but a black/uncomposited frame when the WebView2 surface
         // wasn't already "warm" (i.e. direct/deep-link navigation). Nudging the size
@@ -1036,7 +1120,7 @@ public partial class BrowserView : UserControl
     {
         try
         {
-            // Retry over a longer window — pages that arrive via a redirect
+            // Retry over a longer window \u2014 pages that arrive via a redirect
             // chain (e.g. YouTube's consent-screen bounce before landing on
             // music.youtube.com/watch) mount their canvas/video well after
             // NavigationCompleted fires, so a couple of quick resize events
@@ -1413,7 +1497,7 @@ public partial class BrowserView : UserControl
 
     private void ShowInstallProgress(string step)
     {
-        InstallExtensionBtn.Content = "⏳";
+        InstallExtensionBtn.Content = "\u23F3";
         InstallExtensionBtn.IsEnabled = false;
         InstallExtDismissBtn.IsEnabled = false;
         ExtensionInstallText.Text = step;
@@ -1433,7 +1517,7 @@ public partial class BrowserView : UserControl
             _isInstalling = false;
             Dispatcher.Invoke(() =>
             {
-                ExtensionInstallText.Text = "✗  Installation failed. Check logs.";
+                ExtensionInstallText.Text = "\u2717  Installation failed. Check logs.";
                 InstallExtensionBtn.Visibility = Visibility.Collapsed;
                 InstallExtDismissBtn.IsEnabled = true;
             });
@@ -1443,8 +1527,8 @@ public partial class BrowserView : UserControl
         Dispatcher.Invoke(() =>
         {
             _installSucceeded = true;
-            ExtensionInstallText.Text   = "✓  Installed! Restart to activate.";
-            InstallExtensionBtn.Content    = "↺ Restart";
+            ExtensionInstallText.Text   = "\u2713  Installed! Restart to activate.";
+            InstallExtensionBtn.Content    = "\u21BA Restart";
             InstallExtensionBtn.IsEnabled  = true;
             InstallExtensionBtn.Visibility = Visibility.Visible;
             InstallExtDismissBtn.IsEnabled = true;
@@ -1684,22 +1768,37 @@ public partial class BrowserView : UserControl
                     return _origSetInterval.call(this, fn, delay, ...rest);
                 };
 
-                // MutationObserver: covers YouTube pause overlay + consent dialogs
-                const masterObserver = new MutationObserver(() => {
+                // MutationObserver: covers YouTube pause overlay + consent dialogs with debounce & rate-limiting
+                let _mutationDebounceTimer = null;
+                let _consentAttempts = 0;
+                const runScheduledChecks = () => {
                     suppressYtPause();
                     // Remove YouTube confirm dialogs
                     document.querySelectorAll('yt-confirm-dialog-renderer').forEach(el => {
                         const t = (el.innerText || '').toLowerCase();
                         if (t.includes('pause') || t.includes('continue')) el.remove();
                     });
-                    rejectConsent();
+                    if (!window.__horizonConsentDismissed && _consentAttempts < 5) {
+                        _consentAttempts++;
+                        rejectConsent();
+                    } else if (_consentAttempts >= 5) {
+                        window.__horizonConsentDismissed = true;
+                    }
                     manageAds();
+                };
+
+                const masterObserver = new MutationObserver(() => {
+                    if (_mutationDebounceTimer) return;
+                    _mutationDebounceTimer = setTimeout(() => {
+                        _mutationDebounceTimer = null;
+                        runScheduledChecks();
+                    }, 400);
                 });
 
                 const startObserver = () => {
                     masterObserver.observe(document.documentElement, { childList: true, subtree: true });
-                    rejectConsent(); // run immediately on load too
-                    manageAds();
+                    runScheduledChecks();
+                    setTimeout(() => { window.__horizonConsentDismissed = true; }, 5000);
                 };
 
                 if (document.readyState === 'loading') {
@@ -1843,7 +1942,7 @@ public partial class BrowserView : UserControl
                         SettingsService.Save();
                         // Navigate to Google's AccountChooser so the browser session actually
                         // switches. WebView2 persists cookies, so after restart the chosen
-                        // account stays active — fixing the "resets to account 1" bug.
+                        // account stays active \u2014 fixing the "resets to account 1" bug.
                         string switchUrl = "https://accounts.google.com/AccountChooser" +
                             $"?Email={Uri.EscapeDataString(swEmail)}&continue=https://www.google.com/";
                         MainWebView?.CoreWebView2?.Navigate(switchUrl);
@@ -1873,7 +1972,7 @@ public partial class BrowserView : UserControl
             catch { }
         };
 
-        // ── chrome.downloads shim ────────────────────────────────────────────
+        // \u2500\u2500 chrome.downloads shim \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
         // WebView2 does not implement the chrome.downloads extension API.
         // Extensions like CRX Extractor call chrome.downloads.download({url,filename})
         // to save files; without this shim those calls silently fail and the user
@@ -2033,7 +2132,7 @@ public partial class BrowserView : UserControl
             string sel = e.ContextMenuTarget.SelectionText ?? "";
             if (!string.IsNullOrWhiteSpace(sel))
             {
-                string displayText = sel.Length > 28 ? sel[..28] + "…" : sel;
+                string displayText = sel.Length > 28 ? sel[..28] + "\u2026" : sel;
 
                 var searchItem = env.CreateContextMenuItem(
                     $"Search for \"{displayText}\"", null, CoreWebView2ContextMenuItemKind.Command);
@@ -2164,7 +2263,7 @@ public partial class BrowserView : UserControl
         {
             Dispatcher.Invoke(() => MessageBox.Show(
                 "Could not detect a downloadable source for this item.",
-                "Horizon — Download", MessageBoxButton.OK, MessageBoxImage.Warning));
+                "Horizon \u2014 Download", MessageBoxButton.OK, MessageBoxImage.Warning));
             return;
         }
 
@@ -2236,7 +2335,7 @@ public partial class BrowserView : UserControl
         try
         {
             string url = MainWebView?.Source?.ToString() ?? "";
-            LogService.Write("GACCT", $"DetectCalled — url={url}");
+            LogService.Write("GACCT", $"DetectCalled \u2014 url={url}");
             if (!url.Contains("google.com", StringComparison.OrdinalIgnoreCase)) return;
 
             var cookieManager = MainWebView?.CoreWebView2?.CookieManager;
@@ -2300,7 +2399,7 @@ public partial class BrowserView : UserControl
 
             SettingsService.Current.GoogleBrowserAccounts = accounts;
             // Preserve any user-defined order. Only initialise from scratch when empty,
-            // or do a safe merge when new accounts appear — never blow away custom ordering.
+            // or do a safe merge when new accounts appear \u2014 never blow away custom ordering.
             var existingOrder = SettingsService.Current.GoogleAccountOrder;
             var allEmails     = accounts.Select(a => a.Email).ToList();
             if (!existingOrder.Any() || !allEmails.All(e => existingOrder.Contains(e)))
@@ -2396,6 +2495,7 @@ public partial class BrowserView : UserControl
         $"https://www.google.com/search?q={Uri.EscapeDataString(query)}";
 
     public const string HomeSentinel = "horizon://home";
+    public string? ContainerId { get; set; }
 
     public event Action? HomeStateChanged;
 
@@ -2467,7 +2567,8 @@ public partial class BrowserView : UserControl
             !url.StartsWith("about:",       StringComparison.OrdinalIgnoreCase) &&
             !url.StartsWith("view-source:", StringComparison.OrdinalIgnoreCase) &&
             !url.StartsWith("edge://",      StringComparison.OrdinalIgnoreCase) &&
-            !url.StartsWith("chrome://",    StringComparison.OrdinalIgnoreCase))
+            !url.StartsWith("chrome://",    StringComparison.OrdinalIgnoreCase) &&
+            !url.StartsWith("file:",        StringComparison.OrdinalIgnoreCase))
         {
             if (!url.Contains(" ") && url.Contains("."))
                 url = "https://" + url;
@@ -2486,6 +2587,7 @@ public partial class BrowserView : UserControl
             if (MainWebView.CoreWebView2 == null)
             {
                 _pendingUrl = url;
+                _ = EnsureInitializedAsync(forceInit: true);
                 return;
             }
 

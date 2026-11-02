@@ -17,11 +17,13 @@ public class BookmarkItem
     public DateTime LastOpened { get; set; } = DateTime.MinValue;
     public string IconPath { get; set; } = "";
 
+    public string Category { get; set; } = "";
+
     [System.Text.Json.Serialization.JsonIgnore]
     public string GroupKey { get; set; } = "";
 
     [System.Text.Json.Serialization.JsonIgnore]
-    public PinItem AsPin => new PinItem { Name = this.Name, Url = this.Url, IconPath = this.IconPath, IconEmoji = "" };
+    public PinItem AsPin => new PinItem { Name = this.Name, Url = this.Url, IconPath = this.IconPath, Category = this.Category, IconEmoji = "" };
 }
 
 public static class BookmarkService
@@ -209,6 +211,12 @@ public static class BookmarkService
         return count;
     }
 
+    public static void SaveBookmarks()
+    {
+        Save();
+        OnUpdated?.Invoke();
+    }
+
     public static void Add(BookmarkItem item)
     {
         if (item == null || string.IsNullOrWhiteSpace(item.Url)) return;
@@ -226,6 +234,13 @@ public static class BookmarkService
             Save();
             OnUpdated?.Invoke();
         }
+    }
+
+    public static void Clear()
+    {
+        _items.Clear();
+        Save();
+        OnUpdated?.Invoke();
     }
 
     private static bool IsDuplicate(string url)

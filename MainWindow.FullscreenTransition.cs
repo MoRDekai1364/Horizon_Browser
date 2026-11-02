@@ -9,15 +9,15 @@ namespace Horizon.Stealth;
 
 public partial class MainWindow
 {
-    private const int FsPreDarkenMs = 160;
-    private const int FsStableMinMs = 60;
-    private const int FsStableMaxMs = 1500;
-    private const int FsWebViewSettleMs = 200;
-    private const int FsFadeOutMs = 450;
-    private const int FsPageMinMs = 350;
-    private const int FsPageStableMs = 300;
-    private const int FsPageMaxMs = 4000;
-    private const int FsFallbackHoldMs = 600;
+    private const int FsPreDarkenMs = 80;
+    private const int FsStableMinMs = 20;
+    private const int FsStableMaxMs = 600;
+    private const int FsWebViewSettleMs = 30;
+    private const int FsFadeOutMs = 120;
+    private const int FsPageMinMs = 40;
+    private const int FsPageStableMs = 40;
+    private const int FsPageMaxMs = 800;
+    private const int FsFallbackHoldMs = 60;
     private const int DWMWA_TRANSITIONS_FORCEDISABLED = 3;
 
     private bool _fsDesired;
@@ -57,6 +57,8 @@ public partial class MainWindow
     {
         ApplyFullscreenToggle();
         SyncMobileHeaderForFullscreen();
+        if (_isFullscreen && DynamicIslandPopup != null) DynamicIslandPopup.IsOpen = false;
+        else if (!_isFullscreen) UpdateDynamicIslandVisibility();
     }
 
     private void SyncMobileHeaderForFullscreen()

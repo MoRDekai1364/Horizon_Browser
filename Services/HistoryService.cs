@@ -19,10 +19,7 @@ public static class HistoryService
 {
     public static event EventHandler? HistoryUpdated;
 
-    private static string DataRoot =>
-        Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "Horizon_Browser", "HorizonData");
+    private static string DataRoot => ConfigService.UserDataRoot;
 
     private static string DataFile => Path.Combine(DataRoot, "history.json");
 
@@ -30,6 +27,7 @@ public static class HistoryService
         Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "history.json");
 
     private static List<HistoryItem> _items = new();
+    public static IReadOnlyList<HistoryItem> Items => _items;
 
 
     public static void Load()

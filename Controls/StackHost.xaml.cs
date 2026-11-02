@@ -46,6 +46,7 @@ public partial class StackHost : UserControl
     public int SelectedIndex => _index;
     public bool IsExpanded => _expanded;
     public bool IsOverlayOpen => _overlayOpen;
+    public Border Backdrop => CardBackdrop;
 
     public StackHost()
     {
@@ -58,7 +59,8 @@ public partial class StackHost : UserControl
         _pager.PageRequested += target => Go(target, target > _index ? 1 : -1);
         Dots.Children.Add(_pager);
         Loaded += (_, _) => UpdateDots();
-        Viewport.SizeChanged += (_, _) => UpdateEmptyAddSize();
+        Viewport.SizeChanged += (_, _) => { UpdateEmptyAddSize(); HomeGlassMotion.Pulse(100); };
+        CardBackdrop.SizeChanged += (_, _) => HomeGlassMotion.Pulse(100);
     }
 
     public void AddElement(string title, FrameworkElement content)
@@ -136,8 +138,10 @@ public partial class StackHost : UserControl
         _overlayOpen = true;
         OverlayContent.Content = content;
         Overlay.Visibility = Visibility.Visible;
+        HomeGlassMotion.Pulse(AnimationMs);
 
         var duration = new Duration(TimeSpan.FromMilliseconds(AnimationMs));
+        HomeGlassMotion.Pulse(AnimationMs);
         var ease = new SineEase { EasingMode = EasingMode.EaseInOut };
         Incoming.BeginAnimation(OpacityProperty, new DoubleAnimation(0, duration) { EasingFunction = ease });
         Overlay.BeginAnimation(OpacityProperty, new DoubleAnimation(1, duration) { EasingFunction = ease });
@@ -170,8 +174,10 @@ public partial class StackHost : UserControl
         Overlay.BeginAnimation(OpacityProperty, null);
         Overlay.Opacity = 1;
         Overlay.Visibility = Visibility.Visible;
+        HomeGlassMotion.Pulse(AnimationMs);
 
         var duration = new Duration(TimeSpan.FromMilliseconds(AnimationMs));
+        HomeGlassMotion.Pulse(AnimationMs);
         var ease = new SineEase { EasingMode = EasingMode.EaseInOut };
         _inPlaceScale.BeginAnimation(ScaleTransform.ScaleXProperty, new DoubleAnimation(startX, 1, duration) { EasingFunction = ease });
         _inPlaceScale.BeginAnimation(ScaleTransform.ScaleYProperty, new DoubleAnimation(startY, 1, duration) { EasingFunction = ease });
@@ -186,7 +192,9 @@ public partial class StackHost : UserControl
     private void CloseInPlace()
     {
         _inPlace = false;
+        HomeGlassMotion.Pulse(AnimationMs);
         var duration = new Duration(TimeSpan.FromMilliseconds(AnimationMs));
+        HomeGlassMotion.Pulse(AnimationMs);
         var ease = new SineEase { EasingMode = EasingMode.EaseInOut };
         double width = Math.Max(1, Viewport.ActualWidth);
         double height = Math.Max(1, Viewport.ActualHeight);
@@ -231,6 +239,7 @@ public partial class StackHost : UserControl
         }
 
         var duration = new Duration(TimeSpan.FromMilliseconds(AnimationMs));
+        HomeGlassMotion.Pulse(AnimationMs);
         var ease = new SineEase { EasingMode = EasingMode.EaseInOut };
         Incoming.BeginAnimation(OpacityProperty, new DoubleAnimation(1, duration) { EasingFunction = ease });
 
@@ -311,6 +320,7 @@ public partial class StackHost : UserControl
         BeginAnimation(HeightProperty, null);
         Width = width;
         Height = height;
+        HomeGlassMotion.Pulse(100);
     }
 
     public void ExpandTo(double width, double height)
@@ -359,6 +369,7 @@ public partial class StackHost : UserControl
         SelectionChanged?.Invoke(index);
 
         var duration = new Duration(TimeSpan.FromMilliseconds(AnimationMs));
+        HomeGlassMotion.Pulse(AnimationMs);
         var ease = new SineEase { EasingMode = EasingMode.EaseInOut };
 
         var fadeOut = new DoubleAnimation(0, new Duration(TimeSpan.FromMilliseconds(150))) { EasingFunction = ease };
@@ -414,6 +425,7 @@ public partial class StackHost : UserControl
     private void AnimateSize(double width, double height, bool release)
     {
         var duration = new Duration(TimeSpan.FromMilliseconds(AnimationMs));
+        HomeGlassMotion.Pulse(AnimationMs);
         var ease = new SineEase { EasingMode = EasingMode.EaseInOut };
 
         var widthAnimation = new DoubleAnimation(ActualWidth, width, duration) { EasingFunction = ease };
@@ -427,6 +439,7 @@ public partial class StackHost : UserControl
                 BeginAnimation(HeightProperty, null);
                 Width = _baseWidth;
                 Height = _baseHeight;
+                HomeGlassMotion.Pulse(100);
             };
         }
 
@@ -438,14 +451,48 @@ public partial class StackHost : UserControl
     {
         Dots.Visibility = _items.Count > 1 ? Visibility.Visible : Visibility.Collapsed;
         EmptyAdd.Visibility = _items.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        CardBackdrop.Visibility = _items.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
         UpdateEmptyAddSize();
         _pager.SetState(_items.Count, _index, _items.Select(item => item.Title).ToList());
     }
 
+    private static T? FindVisualChild<T>(DependencyObject? parent) where T : DependencyObject
+    {
+        if (parent == null) return null;
+        int count = VisualTreeHelper.GetChildrenCount(parent);
+        for (int i = 0; i < count; i++)
+        {
+            var child = VisualTreeHelper.GetChild(parent, i);
+            if (child is T typed) return typed;
+            var desc = FindVisualChild<T>(child);
+            if (desc != null) return desc;
+        }
+        return null;
+    }
+
     private void Root_MouseWheel(object sender, MouseWheelEventArgs e)
     {
-        if (!WheelSwitchEnabled || _items.Count < 2 || e.Handled || _overlayOpen) return;
-        e.Handled = true;
-        if (e.Delta > 0) Previous(); else Next();
+        if (e.Handled || _overlayOpen) return;
+
+        bool isCtrl = (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control;
+        if (isCtrl)
+        {
+            if (!WheelSwitchEnabled || _items.Count < 2) return;
+            e.Handled = true;
+            if (e.Delta > 0) Previous(); else Next();
+        }
+        else
+        {
+            // Normal scroll (wheel alone) must scroll ONLY vertically within the active widget.
+            // It must NEVER switch stack cards horizontally.
+            e.Handled = true;
+            var sv = FindVisualChild<ScrollViewer>(Incoming.Content as DependencyObject);
+            if (sv != null && sv.ScrollableHeight > 0)
+            {
+                double step = 48.0;
+                double target = sv.VerticalOffset - (e.Delta > 0 ? step : -step);
+                sv.ScrollToVerticalOffset(Math.Clamp(target, 0, sv.ScrollableHeight));
+            }
+        }
     }
 }

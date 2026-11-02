@@ -14,23 +14,63 @@
 
     <Window.Resources>
         <Style x:Key="BarButton" TargetType="Button">
-            <Setter Property="Width" Value="30"/>
-            <Setter Property="Height" Value="22"/>
+            <Setter Property="Width" Value="46"/>
+            <Setter Property="VerticalAlignment" Value="Stretch"/>
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Foreground" Value="#D0D0D0"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontSize" Value="12"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="shell:WindowChrome.IsHitTestVisibleInChrome" Value="True"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="3">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#55FFFFFF"/>
+                                <Setter TargetName="Bd" Property="Background" Value="#2AFFFFFF"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#40FFFFFF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="BarCloseButton" TargetType="Button">
+            <Setter Property="Width" Value="48"/>
+            <Setter Property="VerticalAlignment" Value="Stretch"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#D0D0D0"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="shell:WindowChrome.IsHitTestVisibleInChrome" Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#E81123"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#C4101F"/>
+                                <Setter Property="Foreground" Value="White"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -93,7 +133,7 @@
                Placement="Relative" PlacementTarget="{Binding ElementName=RootGrid}"
                HorizontalOffset="0" VerticalOffset="0" IsOpen="False">
             <Grid x:Name="BarRoot" Height="36" Opacity="0">
-                <Border CornerRadius="8,8,0,0" IsHitTestVisible="False">
+                <Border CornerRadius="8,0,0,0" IsHitTestVisible="False">
                     <Border.Background>
                         <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
                             <GradientStop Color="#F20b0b0b" Offset="0"/>
@@ -103,15 +143,15 @@
                 </Border>
                 <Rectangle x:Name="BarDragGrip" Fill="#01000000" Cursor="SizeAll"
                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                           Margin="0,0,110,0" MouseLeftButtonDown="BarDragGrip_MouseLeftButtonDown"/>
+                           Margin="0,0,140,0" MouseLeftButtonDown="BarDragGrip_MouseLeftButtonDown"/>
                 <TextBlock x:Name="BarTitle" HorizontalAlignment="Left" VerticalAlignment="Center"
-                           Margin="12,0,120,0" Foreground="#CCCCCC" FontSize="12"
+                           Margin="12,0,140,0" Foreground="#CCCCCC" FontSize="12"
                            TextTrimming="CharacterEllipsis" IsHitTestVisible="False"/>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
-                            VerticalAlignment="Center" Margin="0,0,8,0">
-                    <Button x:Name="BtnBarMin" Style="{StaticResource BarButton}" Content="&#x2013;" Click="BtnBarMin_Click"/>
+                            VerticalAlignment="Stretch" Margin="0">
+                    <Button x:Name="BtnBarMin" Style="{StaticResource BarButton}" Content="&#x2500;" Click="BtnBarMin_Click"/>
                     <Button x:Name="BtnBarMax" Style="{StaticResource BarButton}" Content="&#x25A1;" Click="BtnBarMax_Click"/>
-                    <Button x:Name="BtnBarClose" Style="{StaticResource BarButton}" Foreground="#FF6666" Content="&#x2715;" Click="BtnBarClose_Click"/>
+                    <Button x:Name="BtnBarClose" Style="{StaticResource BarCloseButton}" Content="&#x2715;" Click="BtnBarClose_Click"/>
                 </StackPanel>
             </Grid>
         </Popup>

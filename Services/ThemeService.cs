@@ -27,8 +27,14 @@ public static class ThemeService
                 var dict = new ResourceDictionary { Source = new Uri(uriStr) };
                 
                 
-                app.Resources.MergedDictionaries.Clear();
-                app.Resources.MergedDictionaries.Add(dict);
+                if (app.Resources.MergedDictionaries.Count > 0)
+                {
+                    app.Resources.MergedDictionaries[0] = dict;
+                }
+                else
+                {
+                    app.Resources.MergedDictionaries.Add(dict);
+                }
                 
                 LogService.Write("THEME", $"Applied visual style: {themeName}");
                     ContrastGuard.RequestRefresh();

@@ -1,0 +1,1 @@
+{"nodes": [{"id": "pkg_horizon_core", "label": "horizon_core", "file_type": "code", "type": "package", "ecosystem": "cargo", "source_file": "Native/horizon_core/Cargo.toml", "source_location": "L1", "version": "1.0.0"}], "edges": []}

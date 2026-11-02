@@ -8,7 +8,7 @@
         Title="Horizon Configuration" MinWidth="700"
         SizeToContent="WidthAndHeight"
         WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
-        Loaded="SettingsWindow_Loaded"
+        Loaded="SettingsWindow_Loaded" PreviewKeyDown="SettingsWindow_PreviewKeyDown"
         Background="{DynamicResource Brush_DeepBackground}"
         WindowStyle="None" BorderBrush="{DynamicResource Brush_Accent}" BorderThickness="1">
 
@@ -24,26 +24,88 @@
                 <Setter Property="BorderBrush" Value="#444"/>
                 <Setter Property="BorderThickness" Value="1"/>
             </Style>
+            <Style x:Key="Style_SettingsCaptionButton" TargetType="Button">
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="Foreground" Value="{DynamicResource Brush_SoftText}"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="Padding" Value="0"/>
+                <Setter Property="Margin" Value="0"/>
+                <Setter Property="Width" Value="46"/>
+                <Setter Property="VerticalAlignment" Value="Stretch"/>
+                <Setter Property="Focusable" Value="False"/>
+                <Setter Property="FontSize" Value="13"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="Bd" Background="{TemplateBinding Background}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Bd" Property="Background" Value="#2AFFFFFF"/>
+                                    <Setter Property="Foreground" Value="White"/>
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter TargetName="Bd" Property="Background" Value="#40FFFFFF"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style x:Key="Style_SettingsCloseButton" TargetType="Button">
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="Foreground" Value="{DynamicResource Brush_SoftText}"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="Padding" Value="0"/>
+                <Setter Property="Margin" Value="0"/>
+                <Setter Property="Width" Value="48"/>
+                <Setter Property="VerticalAlignment" Value="Stretch"/>
+                <Setter Property="Focusable" Value="False"/>
+                <Setter Property="FontSize" Value="13"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="Bd" Background="{TemplateBinding Background}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Bd" Property="Background" Value="#E81123"/>
+                                    <Setter Property="Foreground" Value="White"/>
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter TargetName="Bd" Property="Background" Value="#C4101F"/>
+                                    <Setter Property="Foreground" Value="White"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
         </ResourceDictionary>
     </Window.Resources>
 
-    <Grid Margin="32">
+    <Grid Margin="0">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Grid x:Name="GlassBackdropHost" Grid.RowSpan="3" Margin="-32" IsHitTestVisible="False"/>
+        <Grid x:Name="GlassBackdropHost" Grid.RowSpan="3" Margin="0" IsHitTestVisible="False"/>
 
-        <Grid x:Name="TitleBarRow" VerticalAlignment="Top" MouseLeftButtonDown="TitleBarRow_MouseLeftButtonDown">
+        <Grid x:Name="TitleBarRow" Grid.Row="0" Height="40" VerticalAlignment="Top" Background="#01000000" MouseLeftButtonDown="TitleBarRow_MouseLeftButtonDown">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <TextBlock x:Name="TxtSettingsTitle" Grid.Column="0" Text="CONFIGURATION //" Foreground="{DynamicResource Brush_Accent}" FontSize="20" FontWeight="Bold" VerticalAlignment="Center"/>
-            <Grid Grid.Column="1" Margin="24,-10,24,0" VerticalAlignment="Top" MaxWidth="320" Height="30">
+            <TextBlock x:Name="TxtSettingsTitle" Grid.Column="0" Text="CONFIGURATION //" Margin="28,0,0,0" Foreground="{DynamicResource Brush_Accent}" FontSize="20" FontWeight="Bold" VerticalAlignment="Center"/>
+            <Grid Grid.Column="1" Margin="24,0,24,0" VerticalAlignment="Center" MaxWidth="320" Height="30">
                 <Border Background="#22FFFFFF" BorderBrush="{DynamicResource Brush_Accent}" BorderThickness="1" CornerRadius="15"/>
                 <TextBox x:Name="TxtSettingsSearch" 
                          VerticalContentAlignment="Center" Padding="14,0,14,0"
@@ -52,15 +114,14 @@
                          Tag="Search here..." TextChanged="TxtSettingsSearch_TextChanged" KeyDown="TxtSettingsSearch_KeyDown"/>
             </Grid>
 
-
-            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Right">
-                <Button Content="🗕" Click="BtnSettingsMinimize_Click" Style="{StaticResource Style_StealthButton}" Width="36" Height="30"/>
-                <Button Content="🗖" Click="BtnSettingsMaximize_Click" Style="{StaticResource Style_StealthButton}" Width="36" Height="30"/>
-                <Button Content="✕" Click="BtnSettingsClose_Click" Style="{StaticResource Style_StealthButton}" Width="36" Height="30"/>
+            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Stretch" HorizontalAlignment="Right" Margin="0">
+                <Button Content="&#x2500;" Click="BtnSettingsMinimize_Click" Style="{StaticResource Style_SettingsCaptionButton}" ToolTip="Minimize"/>
+                <Button Content="&#x25A1;" Click="BtnSettingsMaximize_Click" Style="{StaticResource Style_SettingsCaptionButton}" ToolTip="Maximize"/>
+                <Button Content="&#x2715;" Click="BtnSettingsClose_Click" Style="{StaticResource Style_SettingsCloseButton}" ToolTip="Close"/>
             </StackPanel>
         </Grid>
 
-        <TabControl x:Name="TabsMain" Grid.Row="1" Margin="0,02" Background="Transparent" BorderThickness="0"
+        <TabControl x:Name="TabsMain" Grid.Row="1" Margin="32,8,32,16" Background="Transparent" BorderThickness="0"
                     SelectionChanged="TabsMain_SelectionChanged">
             <TabControl.Resources>
                 <Style TargetType="TabItem">
@@ -118,13 +179,13 @@
                                   local:SearchIndex.Label="Search Engine" local:SearchIndex.Description="The search provider used when entering non-URL text in the address bar."
                                   SelectionChanged="CboSearch_SelectionChanged"
                                   ToolTip="The search provider used when entering non-URL text in the address bar.">
-                            <ComboBoxItem Content="AlohFind"    Tag="https://alohafind.com/search/?q={query}"/>
+                            <ComboBoxItem Content="AlohaFind"    Tag="https://alohafind.com/search/?q={query}"/>
                             <ComboBoxItem Content="DuckDuckGo"  Tag="https://duckduckgo.com/?q={query}"/>
                             <ComboBoxItem Content="Google"      Tag="https://www.google.com/search?q={query}"/>
                             <ComboBoxItem Content="Bing"        Tag="https://www.bing.com/search?q={query}"/>
                             <ComboBoxItem Content="Brave"       Tag="https://search.brave.com/search?q={query}"/>
                             <ComboBoxItem Content="Ecosia"      Tag="https://www.ecosia.org/search?q={query}"/>
-                            <ComboBoxItem Content="Custom…"     Tag="custom"/>
+                            <ComboBoxItem Content="Custom&#x2026;"     Tag="custom"/>
                         </ComboBox>
                         <StackPanel x:Name="PanelCustomSearch" Visibility="Collapsed" Margin="0,0,0,5">
                             <TextBlock Text="Custom search URL (use {query} as placeholder):" Foreground="#888" FontSize="11" Margin="0,0,0,3"/>
@@ -153,7 +214,7 @@
                                   ToolTip="Instead of exiting on close, Horizon hides to the system tray. The WebView2 engine stays warm so the next open is near-instant. Right-click the tray icon to fully exit."/>
                         <CheckBox x:Name="ChkStartOnSystemStartup" Content="Start automatically when Windows starts"
                                   Foreground="{StaticResource Brush_Text}" Margin="0,5"
-                                  ToolTip="Adds Horizon to your Windows login startup items. Launches hidden in the system tray — click the tray icon to open."/>
+                                  ToolTip="Adds Horizon to your Windows login startup items. Launches hidden in the system tray &#x2014; click the tray icon to open."/>
 
                         <TextBlock Text="Media Widget" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" Margin="0,15,0,5"/>
                         <CheckBox x:Name="ChkMediaWidgetAutoShowOnMinimize" Content="Show media controls when browser is minimized during playback"
@@ -201,7 +262,7 @@
 
                         <TextBlock Text="System Integration" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" Margin="0,15,0,5"/>
                         <TextBlock Text="Register Horizon with Windows so it appears in Default Apps settings." Foreground="#AAA" TextWrapping="Wrap" FontSize="11" Margin="0,0,0,6"/>
-                        <Button Content="🌐  SET AS DEFAULT BROWSER" Click="BtnSetDefaultBrowser_Click"
+                        <Button Content="&#x1F310;  SET AS DEFAULT BROWSER" Click="BtnSetDefaultBrowser_Click"
                                 local:SearchIndex.Label="Set as Default Browser" local:SearchIndex.Description="Registers Horizon in the Windows registry and opens Default Apps settings."
                                 Background="#0D1A0D" Foreground="#00FF00"
                                 BorderBrush="#005500" BorderThickness="1"
@@ -499,6 +560,10 @@
                                   ToolTip="Hides the top navigation bar. Move mouse to top edge to reveal."/>
                         <CheckBox x:Name="ChkHideSidebar" Content="Auto-Hide Sidebar" Foreground="{StaticResource Brush_Text}" Margin="0,10"
                                   ToolTip="Hides the right sidebar. Move mouse to right edge to reveal."/>
+                        <CheckBox x:Name="ChkSidebarMiniMode" Content="Sidebar Mini Mode (Dock)" Foreground="{StaticResource Brush_Text}" Margin="0,10"
+                                  ToolTip="Shrinks the sidebar into a slim icon dock on the right side."/>
+                        <CheckBox x:Name="ChkHomeSidebarFloatingOverlay" Content="Float Sidebar over Homepage" Foreground="{StaticResource Brush_Text}" Margin="0,10"
+                                  ToolTip="Slides the sidebar over the homepage as a floating flyout without resizing or decentralizing homepage widgets. Standard web pages continue to use push layout."/>
 
                         <Rectangle Height="1" Fill="#333" Margin="0,10"/>
                         <TextBlock Text="Browser Interface Language" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" Margin="0,5,0,5"/>
@@ -629,6 +694,10 @@
                                   Foreground="{StaticResource Brush_Text}" FontWeight="SemiBold" Margin="0,15,0,5"
                                   ToolTip="Hides ad/sponsored listings on Google, Bing, DuckDuckGo, Yahoo, Brave, and Ecosia search results."/>
 
+                        <CheckBox x:Name="ChkTikTokAutoplay" Content="Allow TikTok Autoplay on Page Load"
+                                  Foreground="{StaticResource Brush_Text}" FontWeight="SemiBold" Margin="0,10,0,5"
+                                  ToolTip="When turned off, videos on TikTok will not automatically begin playing until clicked."/>
+
                         <Rectangle Height="2" Fill="{StaticResource Brush_Accent}" Opacity="0.3" Margin="0,28"/>
 
                         <TextBlock Text="EXTENSIONS" Foreground="{StaticResource Brush_Accent}" FontSize="15" FontWeight="Bold" Margin="0,0,0,12"/>
@@ -639,13 +708,13 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="Installed Extensions" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" VerticalAlignment="Center"/>
-                            <Button Grid.Column="1" Content="📂 Folder" Click="BtnOpenExtensionsFolder_Click"
+                            <Button Grid.Column="1" Content="&#x1F4C2; Folder" Click="BtnOpenExtensionsFolder_Click"
                                     Background="#2a2a2a" Foreground="#CCC" BorderBrush="#555" BorderThickness="1"
                                     Padding="8,4" Cursor="Hand" ToolTip="Open Extensions install folder in Explorer"/>
                         </Grid>
 
                         <TextBlock Foreground="#999" FontSize="10" TextWrapping="Wrap" Margin="0,0,0,10"
-                                   Text="Navigate to the Chrome, Edge, or Firefox extension store in Horizon, open the sidebar → 🧩 tab and click Install. Changes take effect after restart."/>
+                                   Text="Navigate to the Chrome, Edge, or Firefox extension store in Horizon, open the sidebar &#x2192; &#x1F9E9; tab and click Install. Changes take effect after restart."/>
 
                         <!-- Code-behind fills this with one card per extension -->
                         <StackPanel x:Name="PanelInstalledExtensions"/>
@@ -653,7 +722,7 @@
                         <Border x:Name="BannerSettingsRestart" Background="#0D1A0D"
                                 BorderBrush="#005500" BorderThickness="1" CornerRadius="5"
                                 Padding="10,7" Margin="0,10,0,0" Visibility="Collapsed">
-                            <TextBlock Text="⚡ Changes will take effect after restarting Horizon."
+                            <TextBlock Text="&#x26A1; Changes will take effect after restarting Horizon."
                                        Foreground="#00FF00" FontSize="10" FontWeight="SemiBold" HorizontalAlignment="Center"/>
                         </Border>
 
@@ -679,8 +748,8 @@
 
                         <TextBlock Text="Vault Import (Passwords)" Foreground="{StaticResource Brush_Accent}" FontSize="14" FontWeight="Bold" Margin="0,0,0,5"/>
                         <TextBlock Text="Import your saved passwords from other browsers or managers (like Chrome or LastPass)." Foreground="#DDD" TextWrapping="Wrap" Margin="0,0,0,5"/>
-                        <TextBlock Text="• Required File Type: .CSV" Foreground="Gray" FontSize="11" Margin="0,0,0,2"/>
-                        <TextBlock Text="• Format: url, username, password" Foreground="Gray" FontSize="11" Margin="0,0,0,10"/>
+                        <TextBlock Text="&#x2022; Required File Type: .CSV" Foreground="Gray" FontSize="11" Margin="0,0,0,2"/>
+                        <TextBlock Text="&#x2022; Format: url, username, password" Foreground="Gray" FontSize="11" Margin="0,0,0,10"/>
                         
                         <Button Content="SELECT CSV FILE..." Click="BtnImport_Click" Style="{StaticResource Style_StealthButton}" Height="35" HorizontalAlignment="Left" Width="200"
                                 local:SearchIndex.Label="Import Passwords" local:SearchIndex.Description="Browse for a .csv file to import into your secure Vault."
@@ -689,10 +758,10 @@
                         <Rectangle Height="1" Fill="#333" Margin="0,25"/>
                     
                         <TextBlock Text="Session Cookies Sync" Foreground="{StaticResource Brush_Accent}" FontSize="14" FontWeight="Bold" Margin="0,0,0,5"/>
-                        <TextBlock Text="Transfer your logged-in sessions from Chrome or Edge into Horizon — no need to sign in again." Foreground="#DDD" TextWrapping="Wrap" Margin="0,0,0,6"/>
-                        <TextBlock Text="⚠  Close Chrome / Edge before syncing, or the copy may fail." Foreground="#FFAA44" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,12"/>
+                        <TextBlock Text="Transfer your logged-in sessions from Chrome or Edge into Horizon &#x2014; no need to sign in again." Foreground="#DDD" TextWrapping="Wrap" Margin="0,0,0,6"/>
+                        <TextBlock Text="&#x26A0;  Close Chrome / Edge before syncing, or the copy may fail." Foreground="#FFAA44" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,12"/>
 
-                        <TextBlock Text="Step 1 — Which browser to copy from?" Foreground="#AAA" FontSize="11" Margin="0,0,0,6"/>
+                        <TextBlock Text="Step 1 &#x2014; Which browser to copy from?" Foreground="#AAA" FontSize="11" Margin="0,0,0,6"/>
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
                             <RadioButton x:Name="RboCookieChrome" Content="Chrome" GroupName="CookieSource" IsChecked="True"
                                          Foreground="#DDD" Margin="0,0,16,0" VerticalAlignment="Center"/>
@@ -702,7 +771,7 @@
                                          Foreground="#DDD" VerticalAlignment="Center"/>
                         </StackPanel>
 
-                        <TextBlock Text="Step 2 — Which sites to include?" Foreground="#AAA" FontSize="11" Margin="0,0,0,6"/>
+                        <TextBlock Text="Step 2 &#x2014; Which sites to include?" Foreground="#AAA" FontSize="11" Margin="0,0,0,6"/>
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                             <RadioButton x:Name="RboCookieScopeAll"     Content="All sites"        GroupName="CookieScope" IsChecked="True"
                                          Foreground="#DDD" Margin="0,0,16,0" VerticalAlignment="Center"/>
@@ -725,16 +794,16 @@
                         <TextBlock Text="CONNECTED ACCOUNTS" Foreground="{StaticResource Brush_Accent}" FontSize="15" FontWeight="Bold" Margin="0,0,0,12"/>
 
                         <TextBlock Text="Google Integration" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" Margin="0,0,0,10"/>
-                        <TextBlock Text="No setup needed — click &quot;Add Google Account&quot; in the Calendar widget → Accounts tab and sign in normally." Foreground="#999" FontSize="10" TextWrapping="Wrap" Margin="0,0,0,20"/>
+                        <TextBlock Text="No setup needed &#x2014; click &quot;Add Google Account&quot; in the Calendar widget &#x2192; Accounts tab and sign in normally." Foreground="#999" FontSize="10" TextWrapping="Wrap" Margin="0,0,0,20"/>
 
                         <TextBlock Text="Microsoft Integration" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" Margin="0,0,0,10"/>
                         <TextBlock Text="Client ID" Foreground="{StaticResource Brush_Text}" FontSize="11" Margin="0,0,0,2"/>
                         <TextBox x:Name="TxtMicrosoftClientId" Height="30" Margin="0,0,0,4" Background="#222" Foreground="White" BorderThickness="0" Padding="8,5" FontFamily="Consolas" FontSize="11"
                                  local:SearchIndex.Label="Microsoft Client ID" local:SearchIndex.Description="From portal.azure.com. Needed for Calendar sync and OneNote."/>
-                        <TextBlock Text="From portal.azure.com → App registrations (no secret needed). Needed for Calendar sync and OneNote." Foreground="#999" FontSize="10" TextWrapping="Wrap" Margin="0,0,0,20"/>
+                        <TextBlock Text="From portal.azure.com &#x2192; App registrations (no secret needed). Needed for Calendar sync and OneNote." Foreground="#999" FontSize="10" TextWrapping="Wrap" Margin="0,0,0,20"/>
 
                         <Rectangle Height="1" Fill="#222" Margin="0,0,0,15"/>
-                        <TextBlock Text="Connected accounts are managed inside the browser in the Calendar widget → Accounts tab." Foreground="#999" FontSize="11" TextWrapping="Wrap"/>
+                        <TextBlock Text="Connected accounts are managed inside the browser in the Calendar widget &#x2192; Accounts tab." Foreground="#999" FontSize="11" TextWrapping="Wrap"/>
 
                     </StackPanel>
                 </ScrollViewer>
@@ -756,19 +825,19 @@
                                 <TextBlock Text="Default (px)" Foreground="{StaticResource Brush_Text}" FontSize="11"/>
                                 <TextBox x:Name="TxtTabDefaultWidth" Height="30" Background="#222" Foreground="White" BorderThickness="0" Margin="0,5" 
                                          local:SearchIndex.Label="Tab Default Width" local:SearchIndex.Description="Standard tab width when the tab bar has room."
-                                         ToolTip="Standard tab width when the tab bar has room. Range: 90–400."/>
+                                         ToolTip="Standard tab width when the tab bar has room. Range: 90&#x2013;400."/>
                             </StackPanel>
                             <StackPanel Grid.Column="1" Margin="5,0">
                                 <TextBlock Text="Media Tab (px)" Foreground="{StaticResource Brush_Text}" FontSize="11"/>
                                 <TextBox x:Name="TxtTabMediaWidth" Height="30" Background="#222" Foreground="White" BorderThickness="0" Margin="0,5" 
                                          local:SearchIndex.Label="Media Tab Width" local:SearchIndex.Description="Minimum width granted to a tab that is playing audio."
-                                         ToolTip="Minimum width granted to a tab that is playing audio. Range: 90–400."/>
+                                         ToolTip="Minimum width granted to a tab that is playing audio. Range: 90&#x2013;400."/>
                             </StackPanel>
                             <StackPanel Grid.Column="2" Margin="5,0,0,0">
                                 <TextBlock Text="Download Tab (px)" Foreground="{StaticResource Brush_Text}" FontSize="11"/>
                                 <TextBox x:Name="TxtTabDownloadWidth" Height="30" Background="#222" Foreground="White" BorderThickness="0" Margin="0,5" 
                                          local:SearchIndex.Label="Download Tab Width" local:SearchIndex.Description="Minimum width granted to a tab with an active download."
-                                         ToolTip="Minimum width granted to a tab with an active download. Range: 90–400."/>
+                                         ToolTip="Minimum width granted to a tab with an active download. Range: 90&#x2013;400."/>
                             </StackPanel>
                         </Grid>
                         <Grid Margin="0,0,0,18">
@@ -780,13 +849,13 @@
                                 <TextBlock Text="Media Hover Width (px)" Foreground="{StaticResource Brush_Text}" FontSize="11"/>
                                 <TextBox x:Name="TxtTabMediaHoverWidth" Height="30" Background="#222" Foreground="White" BorderThickness="0" Margin="0,5" 
                                          local:SearchIndex.Label="Media Hover Width" local:SearchIndex.Description="Width a media-playback tab expands to on mouse hover."
-                                         ToolTip="Width a media-playback tab expands to on mouse hover. Range: 120–500."/>
+                                         ToolTip="Width a media-playback tab expands to on mouse hover. Range: 120&#x2013;500."/>
                             </StackPanel>
                             <StackPanel Grid.Column="1" Margin="5,0,0,0">
                                 <TextBlock Text="Download Hover Width (px)" Foreground="{StaticResource Brush_Text}" FontSize="11"/>
                                 <TextBox x:Name="TxtTabDownloadHoverWidth" Height="30" Background="#222" Foreground="White" BorderThickness="0" Margin="0,5" 
                                          local:SearchIndex.Label="Download Hover Width" local:SearchIndex.Description="Width a download-mode tab expands to on mouse hover."
-                                         ToolTip="Width a download-mode tab expands to on mouse hover. Range: 120–500."/>
+                                         ToolTip="Width a download-mode tab expands to on mouse hover. Range: 120&#x2013;500."/>
                             </StackPanel>
                         </Grid>
                         <Rectangle Height="1" Fill="#333" Margin="0,0,0,18"/>
@@ -801,6 +870,48 @@
                             <CheckBox x:Name="ChkSleepingTabsEnabled" Grid.Column="1" VerticalAlignment="Center"/>
                         </Grid>
                         <TextBlock Text="Top 5 most-clicked tabs are always protected. Suspending is skipped when RAM is below 2 GB and fewer than 6 tabs are open." Foreground="Gray" FontSize="10" TextWrapping="Wrap" Margin="0,0,0,18"/>
+
+                        <TextBlock Text="Optimization &amp; Throttling" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" Margin="0,0,0,6"/>
+                        <Grid Margin="0,0,0,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Throttle background timers (aligns timers to save CPU &amp; battery)" Foreground="{StaticResource Brush_Text}" FontSize="11" VerticalAlignment="Center" ToolTip="When enabled, background tab JavaScript timers are clamped to reduce CPU usage."/>
+                            <CheckBox x:Name="ChkBackgroundTimerThrottling" Grid.Column="1" VerticalAlignment="Center"/>
+                        </Grid>
+                        <Grid Margin="0,0,0,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Throttle UI cosmetic animations when inactive" Foreground="{StaticResource Brush_Text}" FontSize="11" VerticalAlignment="Center" ToolTip="Reduces frequency of sensor hit-tests and UI animations when window is inactive or minimized."/>
+                            <CheckBox x:Name="ChkCosmeticTimerThrottling" Grid.Column="1" VerticalAlignment="Center"/>
+                        </Grid>
+                        <Grid Margin="0,0,0,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Enable dynamic hardware RAM tiering" Foreground="{StaticResource Brush_Text}" FontSize="11" VerticalAlignment="Center" ToolTip="Derives memory thresholds dynamically based on available physical memory and core count."/>
+                            <CheckBox x:Name="ChkDynamicRamTiering" Grid.Column="1" VerticalAlignment="Center"/>
+                        </Grid>
+                        <Grid Margin="0,0,0,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Exemption protection (safeguards audio, calls, forms and downloads)" Foreground="{StaticResource Brush_Text}" FontSize="11" VerticalAlignment="Center" ToolTip="Protects tabs with active audio, WebRTC calls, downloads, or uncommitted form edits from being suspended."/>
+                            <CheckBox x:Name="ChkExemptionBasedSuspension" Grid.Column="1" VerticalAlignment="Center"/>
+                        </Grid>
+                        <Grid Margin="0,0,0,18">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Tab discard &amp; state capture (hibernates tabs without data loss)" Foreground="{StaticResource Brush_Text}" FontSize="11" VerticalAlignment="Center" ToolTip="Frees renderer memory under high pressure while preserving scroll position and form inputs."/>
+                            <CheckBox x:Name="ChkTabDiscardAndStateCapture" Grid.Column="1" VerticalAlignment="Center"/>
+                        </Grid>
 
                         <TextBlock Text="Flux Janitor Rules" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" Margin="0,0,0,10"/>
                         
@@ -831,7 +942,7 @@
                         </Grid>
 
                         <TextBlock Text="System Health" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" Margin="0,10,0,10"/>
-                        <Button x:Name="BtnNuclear" Content="⚠ EXECUTE PURGE" Click="BtnNuclear_Click" 
+                        <Button x:Name="BtnNuclear" Content="&#x26A0; EXECUTE PURGE" Click="BtnNuclear_Click" 
                                 local:SearchIndex.Label="System Health Purge" local:SearchIndex.Description="Forcefully releases RAM from all browser processes. May cause tabs to reload."
                                 Background="#330000" Foreground="#FF3333" BorderBrush="#FF3333" BorderThickness="1"
                                 Height="40" Cursor="Hand"
@@ -853,7 +964,7 @@
             <TabItem Header="DEVELOPER">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" PanningMode="VerticalOnly">
                     <StackPanel Margin="10,10,20,10">
-                        <TextBlock x:Name="TblVersionDisplay" Text="-----version—" Foreground="#FF2222" FontSize="20" FontWeight="Bold" Margin="0,0,0,8"/>
+                        <TextBlock x:Name="TblVersionDisplay" Text="-----version&#x2014;" Foreground="#FF2222" FontSize="20" FontWeight="Bold" Margin="0,0,0,8"/>
 
                         <TextBlock x:Name="TblChangelog" Text="" Foreground="{StaticResource Brush_Text}" FontSize="12"
                                    TextWrapping="Wrap" Margin="0,0,0,18"/>
@@ -957,7 +1068,7 @@
                         <Grid Margin="0,0,0,6">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                             <Border Background="#1A1A1A" CornerRadius="3" Padding="8,4">
-                                <TextBlock Text="Alt + ← / →" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" FontFamily="Consolas"/>
+                                <TextBlock Text="Alt + &#x2190; / &#x2192;" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" FontFamily="Consolas"/>
                             </Border>
                             <TextBlock Grid.Column="1" Text="Browser Back / Forward" Foreground="#DDD" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
                         </Grid>
@@ -976,6 +1087,14 @@
                                 <TextBlock Text="Alt + Scroll" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" FontFamily="Consolas"/>
                             </Border>
                             <TextBlock Grid.Column="1" Text="5× speed scroll boost on any scrollable element" Foreground="#DDD" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <Border Background="#1A1A1A" CornerRadius="3" Padding="8,4">
+                                <TextBlock Text="Ctrl + Shift + D" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" FontFamily="Consolas"/>
+                            </Border>
+                            <TextBlock Grid.Column="1" Text="Copy homepage layout diagnostics to clipboard" Foreground="#DDD" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
                         </Grid>
 
                         <Rectangle Height="1" Fill="#333" Margin="0,15"/>
@@ -1010,7 +1129,7 @@
                             <Border Background="#1A1A1A" CornerRadius="3" Padding="8,4">
                                 <TextBlock Text="Tab Language" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" FontFamily="Consolas"/>
                             </Border>
-                            <TextBlock Grid.Column="1" Text="Right-click tab → Tab Language to set Accept-Language per tab. Default set in Settings → Input." Foreground="#DDD" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
+                            <TextBlock Grid.Column="1" Text="Right-click tab &#x2192; Tab Language to set Accept-Language per tab. Default set in Settings &#x2192; Input." Foreground="#DDD" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
                         </Grid>
 
                         <Rectangle Height="1" Fill="#333" Margin="0,15"/>
@@ -1132,7 +1251,7 @@
 
         </TabControl>
 
-        <Grid x:Name="GridSearchResults" Grid.Row="1" Margin="0,02" Visibility="Collapsed">
+        <Grid x:Name="GridSearchResults" Grid.Row="1" Margin="32,8,32,16" Visibility="Collapsed">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
@@ -1194,19 +1313,38 @@
             </ScrollViewer>
         </Grid>
 
-        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
-            <CheckBox x:Name="ChkResetWipeData" Content="Also delete data" VerticalAlignment="Center" Foreground="{DynamicResource Brush_SoftText}" Margin="0,0,10,0" ToolTip="Also clears accounts, API keys, tokens, pins, session URLs, saved homepages, layouts, notes and favorites."/>
-            <Button x:Name="BtnResetAll" Content="RESET ALL" Click="BtnResetAll_Click" Style="{StaticResource Style_StealthButton}" MinWidth="100" Padding="12,0" Height="35" Margin="0,0,30,0"/>
-            <Button x:Name="BtnCancel" Content="CANCEL" Click="BtnCancel_Click" Style="{StaticResource Style_StealthButton}" MinWidth="100" Padding="12,0" Height="35" Margin="0,0,10,0"/>
-            <Button x:Name="BtnSave" Content="SAVE &amp; APPLY" Click="BtnSave_Click" Background="{StaticResource Brush_Accent}" Foreground="Black" FontWeight="Bold" MinWidth="120" Padding="14,0" Height="35">
-                <Button.Template>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" CornerRadius="4">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
-                        </Border>
-                    </ControlTemplate>
-                </Button.Template>
-            </Button>
-        </StackPanel>
+        <Grid Grid.Row="2" Margin="32,0,32,20" VerticalAlignment="Bottom">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Reset options (separate: Reset Settings vs Reset Browser Data) -->
+            <WrapPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,16,0">
+                <Button x:Name="BtnResetSettings" Content="RESET SETTINGS" Click="BtnResetSettings_Click"
+                        Style="{StaticResource Style_StealthButton}" MinWidth="110" Padding="12,0" Height="35" Margin="0,0,10,0"
+                        ToolTip="Reset all browser settings and preferences to default values without deleting user data."/>
+                <Button x:Name="BtnResetData" Content="RESET BROWSER DATA" Click="BtnResetData_Click"
+                        Style="{StaticResource Style_StealthButton}" MinWidth="130" Padding="12,0" Height="35" Margin="0,0,10,0"
+                        ToolTip="Clear accounts, API keys, tokens, session history, saved homepages, widget notes and favorites without resetting your settings."/>
+            </WrapPanel>
+
+            <!-- Menu exit & save actions (ALWAYS docked right and fully visible) -->
+            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                <Button x:Name="BtnCancel" Content="CANCEL" Click="BtnCancel_Click"
+                        Style="{StaticResource Style_StealthButton}" MinWidth="100" Padding="12,0" Height="35" Margin="0,0,10,0"/>
+                <Button x:Name="BtnSave" Content="SAVE &amp; APPLY" Click="BtnSave_Click"
+                        Background="{StaticResource Brush_Accent}" Foreground="Black" FontWeight="Bold"
+                        MinWidth="120" Padding="14,0" Height="35">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}" CornerRadius="4">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+            </StackPanel>
+        </Grid>
     </Grid>
 </Window>

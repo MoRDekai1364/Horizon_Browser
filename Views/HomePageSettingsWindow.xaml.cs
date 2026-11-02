@@ -1,4 +1,5 @@
-using System;
+using System.Windows.Input;
+﻿using System;
 using System.IO;
 using System.Linq;
 using System.Windows;
@@ -78,12 +79,13 @@ public partial class HomePageSettingsWindow : Window
     private void BuildGlassBackdrop()
     {
         var wallBrush = new ImageBrush();
+        bool isFlat = SettingsService.Current.DisableBlurEffects;
         var wallLayer = new Border
         {
             RenderTransformOrigin = new Point(0.5, 0.5),
             RenderTransform = new ScaleTransform(1.08, 1.08),
             Background = wallBrush,
-            Effect = new BlurEffect
+            Effect = isFlat ? null : new BlurEffect
             {
                 Radius = 32,
                 KernelType = KernelType.Gaussian,
@@ -96,25 +98,41 @@ public partial class HomePageSettingsWindow : Window
         glassHost.Children.Add(tintLayer);
         GlassBackdropHost.Children.Add(glassHost);
 
-        var unbind = WidgetBackdropService.Bind(this, wallBrush, overlap =>
+        Rect? lastOverlap = null;
+        void UpdateGlass(Rect? overlap)
         {
-            if (overlap == null)
+            lastOverlap = overlap;
+            bool flat = SettingsService.Current.DisableBlurEffects;
+            wallLayer.Effect = flat ? null : new BlurEffect
+            {
+                Radius = 32,
+                KernelType = KernelType.Gaussian,
+                RenderingBias = RenderingBias.Performance
+            };
+            if (flat || overlap == null)
             {
                 glassHost.Visibility = Visibility.Collapsed;
                 return;
             }
             glassHost.Clip = new RectangleGeometry(overlap.Value);
             glassHost.Visibility = Visibility.Visible;
+        }
+
+        var unbind = WidgetBackdropService.Bind(this, wallBrush, overlap =>
+        {
+            UpdateGlass(overlap);
         });
 
         void Apply()
         {
+            UpdateGlass(lastOverlap);
+            bool flat = SettingsService.Current.DisableBlurEffects;
             byte bgAlpha = (byte)Math.Max((int)TintService.Apply(0xD9), 0xB0);
             Color searchBg = WeatherBridge.ThemeDarkWallpaper
                 ? Color.FromArgb(bgAlpha, 0x1A, 0x1A, 0x1A)
                 : Color.FromArgb(bgAlpha, 0xFF, 0xFF, 0xFF);
             tintLayer.Background = HomePageView.CreateSearchBarBackgroundBrush(searchBg);
-            wallLayer.Opacity = WeatherBridge.ThemeWallpaper != null
+            wallLayer.Opacity = (!flat && WeatherBridge.ThemeWallpaper != null)
                 ? Math.Clamp(0.55 * SettingsService.Current.BackgroundOpacity, 0.0, 1.0)
                 : 0.0;
         }
@@ -122,7 +140,13 @@ public partial class HomePageSettingsWindow : Window
         Apply();
         Action handler = () => Dispatcher.BeginInvoke(new Action(Apply));
         WeatherBridge.ThemeUpdated += handler;
-        _detachGlassBackdrop = () => { WeatherBridge.ThemeUpdated -= handler; unbind(); };
+        Controls.HomeGlassMotion.BlurSettingChanged += handler;
+        _detachGlassBackdrop = () =>
+        {
+            WeatherBridge.ThemeUpdated -= handler;
+            Controls.HomeGlassMotion.BlurSettingChanged -= handler;
+            unbind();
+        };
     }
 
     private bool _loadingToggles = false;
@@ -135,6 +159,8 @@ public partial class HomePageSettingsWindow : Window
         LoadSectionWidgetUi();
         RefreshShortcutsList();
         LoadAppearanceUi();
+
+        LoadThemeGalleryUi();
     }
 
     private static readonly string[] HomeFontChoices =
@@ -477,6 +503,7 @@ public partial class HomePageSettingsWindow : Window
 
         ChkSectionClockWeather.IsChecked = s.HomeShowClockWeatherSection;
         ChkSectionSearch.IsChecked       = s.HomeShowSearchSection;
+        ChkHomeSidebarFloatingOverlay.IsChecked = s.HomeSidebarFloatingOverlay;
 
         ChkWidgetClock.IsChecked     = s.HomeShowClock;
         ChkWidgetWeather.IsChecked   = s.HomeShowWeather;
@@ -518,6 +545,20 @@ public partial class HomePageSettingsWindow : Window
         CmbFolderOpenMode.SelectedIndex = folderOpenModeIdx >= 0 ? folderOpenModeIdx : 0;
 
         _loadingToggles = false;
+    }
+
+    private void HomeSidebarFloatingOverlay_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_loadingToggles) return;
+        SettingsService.Current.HomeSidebarFloatingOverlay = ChkHomeSidebarFloatingOverlay.IsChecked == true;
+        SettingsService.Save();
+        foreach (Window win in Application.Current.Windows)
+        {
+            if (win is MainWindow mw)
+            {
+                mw.UpdateSidebarDockMode();
+            }
+        }
     }
 
     private void SectionToggle_Changed(object sender, RoutedEventArgs e)
@@ -901,6 +942,15 @@ public partial class HomePageSettingsWindow : Window
         }
     }
 
+    private void HomePageSettingsWindow_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Escape)
+        {
+            Close();
+            e.Handled = true;
+        }
+    }
+
     private void BtnCloseHomeSettings_Click(object sender, RoutedEventArgs e)
     {
         if (!string.IsNullOrWhiteSpace(CmbHomepage.Text))
@@ -909,5 +959,72 @@ public partial class HomePageSettingsWindow : Window
             SettingsService.Save();
         }
         Close();
+    }
+
+    // =========================================================================
+    // THEMES & WORLDS GALLERY
+    // =========================================================================
+    private void LoadThemeGalleryUi()
+    {
+        string currentTheme = SettingsService.Current.HomePageTheme ?? "Default";
+        UpdateThemeSelectionBadges(currentTheme);
+    }
+
+    private void UpdateThemeSelectionBadges(string selectedTheme)
+    {
+        var badges = new Dictionary<string, TextBlock?>
+        {
+            ["Default"] = BadgeTheme_Default,
+            ["CyberTerminal"] = BadgeTheme_CyberTerminal,
+            ["MetroMatrix"] = BadgeTheme_MetroMatrix,
+            ["RustNeoCanvas"] = BadgeTheme_RustNeoCanvas,
+            ["RetroCRT"] = BadgeTheme_RetroCRT,
+            ["EditorialPaper"] = BadgeTheme_EditorialPaper,
+            ["StarshipLCARS"] = BadgeTheme_StarshipLCARS,
+            ["ZenGarden"] = BadgeTheme_ZenGarden,
+            ["Win95RetroDesk"] = BadgeTheme_Win95RetroDesk
+        };
+
+        var cards = new Dictionary<string, Border?>
+        {
+            ["Default"] = CardTheme_Default,
+            ["CyberTerminal"] = CardTheme_CyberTerminal,
+            ["MetroMatrix"] = CardTheme_MetroMatrix,
+            ["RustNeoCanvas"] = CardTheme_RustNeoCanvas,
+            ["RetroCRT"] = CardTheme_RetroCRT,
+            ["EditorialPaper"] = CardTheme_EditorialPaper,
+            ["StarshipLCARS"] = CardTheme_StarshipLCARS,
+            ["ZenGarden"] = CardTheme_ZenGarden,
+            ["Win95RetroDesk"] = CardTheme_Win95RetroDesk
+        };
+
+        foreach (var (theme, badge) in badges)
+        {
+            if (badge != null)
+                badge.Text = (theme == selectedTheme) ? "ACTIVE" : "";
+        }
+
+        foreach (var (theme, card) in cards)
+        {
+            if (card != null)
+            {
+                card.BorderThickness = (theme == selectedTheme) ? new Thickness(2.5) : new Thickness(1);
+            }
+        }
+    }
+
+    private void CardTheme_Click(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is Border b && b.Tag is string themeName)
+        {
+            SettingsService.Current.HomePageTheme = themeName;
+            SettingsService.Save();
+            UpdateThemeSelectionBadges(themeName);
+
+            if (Application.Current?.MainWindow is MainWindow mw)
+            {
+                mw.CurrentBrowser?.NativeHomePage?.ApplyHomePageTheme(themeName);
+            }
+        }
     }
 }

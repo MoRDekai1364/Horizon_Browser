@@ -153,10 +153,29 @@ public sealed class OpenFolderView : UserControl
             CloseRequested?.Invoke();
         };
 
+        title.Margin = new Thickness(8, 0, 8, 0);
+
         var header = new Grid { Height = 36, Margin = new Thickness(0, 0, 0, 14) };
-        header.Children.Add(title);
+        header.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        header.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        header.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+        Grid.SetColumn(back, 0);
+        Grid.SetColumn(title, 1);
+        Grid.SetColumn(close, 2);
+
         header.Children.Add(back);
+        header.Children.Add(title);
         header.Children.Add(close);
+
+        PreviewKeyDown += (_, e) =>
+        {
+            if (e.Key == Key.Escape)
+            {
+                CloseRequested?.Invoke();
+                e.Handled = true;
+            }
+        };
 
         _strip = new StackPanel
         {
@@ -252,51 +271,41 @@ public sealed class OpenFolderView : UserControl
         {
             int start = p * _perPage;
             if (start >= count) break;
-            _strip.Children.Add(new Grid { Width = width, Height = height });
+            int end = Math.Min(start + _perPage, count);
+            if (start >= end) break;
+
+            var rowsHost = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
+            for (int rowStart = start; rowStart < end; rowStart += _cols)
+            {
+                var rowPanel = new StackPanel
+                {
+                    Orientation = Orientation.Horizontal,
+                    HorizontalAlignment = HorizontalAlignment.Center
+                };
+                int rowEnd = Math.Min(rowStart + _cols, end);
+                for (int i = rowStart; i < rowEnd; i++)
+                    rowPanel.Children.Add(BuildTile(_group.Items[i], _cellWidth));
+
+                if (rowPanel.Children.Count > 0)
+                    rowsHost.Children.Add(rowPanel);
+            }
+
+            var scroll = new ScrollViewer
+            {
+                Width = width,
+                Height = height,
+                VerticalScrollBarVisibility = ScrollBarVisibility.Hidden,
+                HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
+                Focusable = false,
+                Content = rowsHost
+            };
+            _strip.Children.Add(scroll);
         }
 
         _pageCount = _strip.Children.Count;
         _page = Math.Clamp(_page, 0, Math.Max(0, _pageCount - 1));
-        EnsurePageWindowPopulated(_page);
         _slide.X = -_page * width;
         UpdateDots();
-    }
-
-    private void EnsurePageWindowPopulated(int centerPage)
-    {
-        EnsurePagePopulated(centerPage);
-        if (centerPage - 1 >= 0) EnsurePagePopulated(centerPage - 1);
-        if (centerPage + 1 < _pageCount) EnsurePagePopulated(centerPage + 1);
-    }
-
-    private void EnsurePagePopulated(int p)
-    {
-        if (p < 0 || p >= _strip.Children.Count) return;
-        if (_strip.Children[p] is not Grid pageGrid || pageGrid.Children.Count > 0) return;
-
-        int count = _group.Items.Count;
-        int start = p * _perPage;
-        int end = Math.Min(start + _perPage, count);
-        if (start >= end) return;
-
-        var rowsHost = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
-        for (int rowStart = start; rowStart < end; rowStart += _cols)
-        {
-            var rowPanel = new StackPanel
-            {
-                Orientation = Orientation.Horizontal,
-                HorizontalAlignment = HorizontalAlignment.Center
-            };
-            int rowEnd = Math.Min(rowStart + _cols, end);
-            for (int i = rowStart; i < rowEnd; i++)
-                rowPanel.Children.Add(BuildTile(_group.Items[i], _cellWidth));
-
-            if (rowPanel.Children.Count > 0)
-                rowsHost.Children.Add(rowPanel);
-        }
-
-        if (rowsHost.Children.Count > 0)
-            pageGrid.Children.Add(rowsHost);
     }
 
     private FrameworkElement BuildTile(DrawerItem item, double cell)
@@ -337,6 +346,21 @@ public sealed class OpenFolderView : UserControl
         };
         holder.Children.Add(tile);
         holder.Children.Add(label);
+        Point dragStartPt = new();
+        holder.PreviewMouseLeftButtonDown += (_, e) => { dragStartPt = e.GetPosition(null); };
+        holder.PreviewMouseMove += (_, e) =>
+        {
+            if (e.LeftButton == MouseButtonState.Pressed)
+            {
+                var diff = dragStartPt - e.GetPosition(null);
+                if (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance ||
+                    Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance)
+                {
+                    var data = new DataObject("HorizonDragItem", item.Source ?? item);
+                    DragDrop.DoDragDrop(holder, data, DragDropEffects.Move);
+                }
+            }
+        };
         holder.MouseLeftButtonUp += (_, e) =>
         {
             e.Handled = true;
@@ -363,7 +387,6 @@ public sealed class OpenFolderView : UserControl
         if (target == _page || _animating) return;
 
         _page = target;
-        EnsurePageWindowPopulated(_page);
         UpdateDots();
         _animating = true;
         var animation = new DoubleAnimation(-_page * _pageWidth, TimeSpan.FromMilliseconds(AnimationMs))
@@ -381,9 +404,29 @@ public sealed class OpenFolderView : UserControl
 
     private void Folder_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
     {
+        bool isCtrl = (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control;
+        if (isCtrl)
+        {
+            // Ctrl + scroll: Horizontal paging ONLY across pages
+            if (_pageCount <= 1) return;
+            e.Handled = true;
+            if (e.Delta < 0) GoTo(_page + 1);
+            else GoTo(_page - 1);
+            return;
+        }
+
         e.Handled = true;
-        if (_pageCount <= 1) return;
-        GoTo(_page + (e.Delta < 0 ? 1 : -1));
+        // Normal scroll (wheel alone): scrolls ONLY vertically within current page
+        ScrollViewer? currentScroll = (_page >= 0 && _page < _strip.Children.Count)
+            ? _strip.Children[_page] as ScrollViewer
+            : null;
+
+        if (currentScroll != null && currentScroll.ScrollableHeight > 0)
+        {
+            double step = 48.0;
+            double target = currentScroll.VerticalOffset - (e.Delta > 0 ? step : -step);
+            currentScroll.ScrollToVerticalOffset(Math.Clamp(target, 0, currentScroll.ScrollableHeight));
+        }
     }
 }
 
@@ -469,9 +512,8 @@ public sealed class FolderDrawerView : UserControl
         Content = new Border
         {
             CornerRadius = new CornerRadius(22),
-            Background = new SolidColorBrush(Color.FromArgb(0x14, 0xFF, 0xFF, 0xFF)),
-            BorderBrush = new SolidColorBrush(Color.FromArgb(0x1F, 0xFF, 0xFF, 0xFF)),
-            BorderThickness = new Thickness(1),
+            Background = Brushes.Transparent,
+            BorderThickness = new Thickness(0),
             Padding = new Thickness(16),
             Child = layout
         };
@@ -588,7 +630,7 @@ public sealed class FolderDrawerView : UserControl
             return (ns, new List<List<List<int>>> { rows }, false);
         }
 
-        double pageHeight = height;
+        double pageHeight = Math.Max(height, 120);
         var pages = new List<List<List<int>>>();
         var page = new List<List<int>>();
         double used = 0;
@@ -606,6 +648,7 @@ public sealed class FolderDrawerView : UserControl
             used += rowHeight;
         }
         if (page.Count > 0) pages.Add(page);
+        pages = pages.Where(p => p.Count > 0 && p.Any(r => r.Count > 0)).ToList();
         return (ns, pages, pages.Count > 1);
     }
 
@@ -656,51 +699,43 @@ public sealed class FolderDrawerView : UserControl
         _pageWidth = width;
         _relayoutDone++;
 
-        foreach (var pageRows in _currentPlan.Pages)
+        for (int p = 0; p < _currentPlan.Pages.Count; p++)
         {
-            if (pageRows.Count == 0 || pageRows.All(r => r.Count == 0)) continue;
-            _strip.Children.Add(new Grid { Width = width, Height = pageHeight });
+            var pageRows = _currentPlan.Pages[p];
+            var rowsHost = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
+            foreach (var row in pageRows)
+            {
+                if (row.Count == 0) continue;
+                var rowPanel = new StackPanel
+                {
+                    Orientation = Orientation.Horizontal,
+                    HorizontalAlignment = HorizontalAlignment.Center
+                };
+                foreach (int index in row)
+                {
+                    if (index >= 0 && index < _groups.Count && index < _currentPlan.Sizes.Length)
+                        rowPanel.Children.Add(CreateCard(_groups[index], _currentPlan.Sizes[index]));
+                }
+                if (rowPanel.Children.Count > 0)
+                    rowsHost.Children.Add(rowPanel);
+            }
+
+            var scroll = new ScrollViewer
+            {
+                Width = width,
+                Height = pageHeight,
+                VerticalScrollBarVisibility = ScrollBarVisibility.Hidden,
+                HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
+                Focusable = false,
+                Content = rowsHost
+            };
+            _strip.Children.Add(scroll);
         }
 
         _pageCount = _strip.Children.Count;
         _page = Math.Clamp(_page, 0, Math.Max(0, _pageCount - 1));
-        EnsureDrawerPageWindowPopulated(_page);
         _slide.X = -_page * width;
         UpdateDots();
-    }
-
-    private void EnsureDrawerPageWindowPopulated(int centerPage)
-    {
-        EnsureDrawerPagePopulated(centerPage);
-        if (centerPage - 1 >= 0) EnsureDrawerPagePopulated(centerPage - 1);
-        if (centerPage + 1 < _pageCount) EnsureDrawerPagePopulated(centerPage + 1);
-    }
-
-    private void EnsureDrawerPagePopulated(int p)
-    {
-        if (p < 0 || p >= _strip.Children.Count || p >= _currentPlan.Pages.Count) return;
-        if (_strip.Children[p] is not Grid pageGrid || pageGrid.Children.Count > 0) return;
-
-        var pageRows = _currentPlan.Pages[p];
-        var rowsHost = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
-        foreach (var row in pageRows)
-        {
-            if (row.Count == 0) continue;
-            var rowPanel = new StackPanel
-            {
-                Orientation = Orientation.Horizontal,
-                HorizontalAlignment = HorizontalAlignment.Center
-            };
-            foreach (int index in row)
-            {
-                if (index >= 0 && index < _groups.Count && index < _currentPlan.Sizes.Length)
-                    rowPanel.Children.Add(CreateCard(_groups[index], _currentPlan.Sizes[index]));
-            }
-            if (rowPanel.Children.Count > 0)
-                rowsHost.Children.Add(rowPanel);
-        }
-        if (rowsHost.Children.Count > 0)
-            pageGrid.Children.Add(rowsHost);
     }
 
     private void UpdateDots()
@@ -721,7 +756,6 @@ public sealed class FolderDrawerView : UserControl
         if (target == _page || _animating) return;
 
         _page = target;
-        EnsureDrawerPageWindowPopulated(_page);
         UpdateDots();
         _animating = true;
         var animation = new DoubleAnimation(-_page * _pageWidth, TimeSpan.FromMilliseconds(AnimationMs))
@@ -739,11 +773,30 @@ public sealed class FolderDrawerView : UserControl
 
     private void Drawer_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
     {
-        if (_pageCount <= 1) return;
-        int target = _page + (e.Delta < 0 ? 1 : -1);
-        if (target < 0 || target >= _pageCount) return;
+        // Intercept mouse wheel on the drawer.
+        // Normal scroll: Vertical scrolling ONLY within current page. Never page horizontally or switch cards.
+        // Ctrl + scroll: Horizontal paging across drawer pages.
+        bool isCtrl = (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control;
+        if (isCtrl)
+        {
+            if (_pageCount <= 1) return;
+            e.Handled = true;
+            if (e.Delta < 0) GoTo(_page + 1);
+            else GoTo(_page - 1);
+            return;
+        }
+
         e.Handled = true;
-        GoTo(target);
+        ScrollViewer? currentScroll = (_page >= 0 && _page < _strip.Children.Count)
+            ? _strip.Children[_page] as ScrollViewer
+            : null;
+
+        if (currentScroll != null && currentScroll.ScrollableHeight > 0)
+        {
+            double step = 48.0;
+            double target = currentScroll.VerticalOffset - (e.Delta > 0 ? step : -step);
+            currentScroll.ScrollToVerticalOffset(Math.Clamp(target, 0, currentScroll.ScrollableHeight));
+        }
     }
 
     private FolderCardView CreateCard(DrawerGroup group, int n)

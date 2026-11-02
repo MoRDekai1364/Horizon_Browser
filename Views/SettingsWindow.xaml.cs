@@ -302,12 +302,13 @@ public partial class SettingsWindow : Window
     private void BuildGlassBackdrop()
     {
         var wallBrush = new ImageBrush();
+        bool isFlat = SettingsService.Current.DisableBlurEffects;
         var wallLayer = new Border
         {
             RenderTransformOrigin = new Point(0.5, 0.5),
             RenderTransform = new ScaleTransform(1.08, 1.08),
             Background = wallBrush,
-            Effect = new BlurEffect
+            Effect = isFlat ? null : new BlurEffect
             {
                 Radius = 32,
                 KernelType = KernelType.Gaussian,
@@ -320,25 +321,41 @@ public partial class SettingsWindow : Window
         glassHost.Children.Add(tintLayer);
         GlassBackdropHost.Children.Add(glassHost);
 
-        var unbind = WidgetBackdropService.Bind(this, wallBrush, overlap =>
+        Rect? lastOverlap = null;
+        void UpdateGlass(Rect? overlap)
         {
-            if (overlap == null)
+            lastOverlap = overlap;
+            bool flat = SettingsService.Current.DisableBlurEffects;
+            wallLayer.Effect = flat ? null : new BlurEffect
+            {
+                Radius = 32,
+                KernelType = KernelType.Gaussian,
+                RenderingBias = RenderingBias.Performance
+            };
+            if (flat || overlap == null)
             {
                 glassHost.Visibility = Visibility.Collapsed;
                 return;
             }
             glassHost.Clip = new RectangleGeometry(overlap.Value);
             glassHost.Visibility = Visibility.Visible;
+        }
+
+        var unbind = WidgetBackdropService.Bind(this, wallBrush, overlap =>
+        {
+            UpdateGlass(overlap);
         });
 
         void Apply()
         {
+            UpdateGlass(lastOverlap);
+            bool flat = SettingsService.Current.DisableBlurEffects;
             byte bgAlpha = (byte)Math.Max((int)TintService.Apply(0xD9), 0xB0);
             Color searchBg = WeatherBridge.ThemeDarkWallpaper
                 ? Color.FromArgb(bgAlpha, 0x1A, 0x1A, 0x1A)
                 : Color.FromArgb(bgAlpha, 0xFF, 0xFF, 0xFF);
             tintLayer.Background = HomePageView.CreateSearchBarBackgroundBrush(searchBg);
-            wallLayer.Opacity = WeatherBridge.ThemeWallpaper != null
+            wallLayer.Opacity = (!flat && WeatherBridge.ThemeWallpaper != null)
                 ? Math.Clamp(0.55 * SettingsService.Current.BackgroundOpacity, 0.0, 1.0)
                 : 0.0;
         }
@@ -346,7 +363,13 @@ public partial class SettingsWindow : Window
         Apply();
         Action handler = () => Dispatcher.BeginInvoke(new Action(Apply));
         WeatherBridge.ThemeUpdated += handler;
-        _detachGlassBackdrop = () => { WeatherBridge.ThemeUpdated -= handler; unbind(); };
+        Controls.HomeGlassMotion.BlurSettingChanged += handler;
+        _detachGlassBackdrop = () =>
+        {
+            WeatherBridge.ThemeUpdated -= handler;
+            Controls.HomeGlassMotion.BlurSettingChanged -= handler;
+            unbind();
+        };
     }
 
     private void TitleBarRow_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -1008,7 +1031,7 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
         }
         if (!foundEngine)
         {
-            // Select "Custom…" and populate the URL box
+            // Select "Custom\u2026" and populate the URL box
             foreach (ComboBoxItem item in CboSearch.Items)
                 if (item.Tag?.ToString() == "custom") { CboSearch.SelectedItem = item; break; }
             TxtCustomSearchUrl.Text = s.SearchEngineUrl;
@@ -1030,6 +1053,12 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
         
         ChkHideHeader.IsChecked     = s.AutoHideHeader;
         ChkHideSidebar.IsChecked    = s.AutoHideSidebar;
+        ChkSidebarMiniMode.IsChecked = s.SidebarMiniMode;
+        ChkHomeSidebarFloatingOverlay.IsChecked = s.HomeSidebarFloatingOverlay;
+        ChkHomeSidebarFloatingOverlay.Checked   += (_, _) => { SettingsService.Current.HomeSidebarFloatingOverlay = true; SettingsService.Save(); ApplySidebarDockModeToMain(); };
+        ChkHomeSidebarFloatingOverlay.Unchecked += (_, _) => { SettingsService.Current.HomeSidebarFloatingOverlay = false; SettingsService.Save(); ApplySidebarDockModeToMain(); };
+        ChkSidebarMiniMode.Checked   += (_, _) => { SettingsService.Current.SidebarMiniMode = true; SettingsService.Save(); ApplySidebarModeToMain(); };
+        ChkSidebarMiniMode.Unchecked += (_, _) => { SettingsService.Current.SidebarMiniMode = false; SettingsService.Save(); ApplySidebarModeToMain(); };
         ChkWebAppDesktop.IsChecked  = s.WebAppShortcutDesktop;
         ChkWebAppStartMenu.IsChecked = s.WebAppShortcutStartMenu;
         ChkWebAppOffer.IsChecked = s.WebAppOfferOnLeave;
@@ -1048,6 +1077,11 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
         ChkAutoDownloadUpdates.IsChecked   = s.AutoDownloadUpdatesEnabled;
         ChkStealth.IsChecked              = s.IsStealthMode;
         ChkSleepingTabsEnabled.IsChecked  = s.SleepingTabsEnabled;
+        ChkBackgroundTimerThrottling.IsChecked = s.EnableBackgroundTimerThrottling;
+        ChkCosmeticTimerThrottling.IsChecked = s.EnableCosmeticTimerThrottling;
+        ChkDynamicRamTiering.IsChecked = s.EnableDynamicRamTiering;
+        ChkExemptionBasedSuspension.IsChecked = s.EnableExemptionBasedSuspension;
+        ChkTabDiscardAndStateCapture.IsChecked = s.EnableTabDiscardAndStateCapture;
 
         ChkSponsorBlock.IsChecked  = s.EnableSponsorBlock;
         ChkSbSponsors.IsChecked    = s.SB_Sponsors;
@@ -1058,7 +1092,8 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
         ChkSbMusic.IsChecked       = s.SB_MusicOfftopic;
         UpdateSponsorBlockVisuals();
 
-        ChkHideSponsoredResults.IsChecked = s.HideSponsoredResults;
+        ChkHideSponsoredResults.IsChecked = s.HideSponsoredResults;
+        ChkTikTokAutoplay.IsChecked = s.TikTokAutoplayOnLoad;
 
         TxtDns.Text = s.NextDnsId;
 
@@ -1086,7 +1121,7 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
         LoadVpnSettings();
 
         SliderScrollSpeed.Value = s.ScrollSpeedMultiplier;
-        TblScrollSpeedValue.Text = $"{s.ScrollSpeedMultiplier:F2}×";
+        TblScrollSpeedValue.Text = $"{s.ScrollSpeedMultiplier:F2}\u00D7";
         SelectComboBoxByTag(CboTabSwitcherOrder, s.TabSwitcherOrder.ToString());
 
         TxtTabDefaultWidth.Text      = ((int)s.TabDefaultWidth).ToString();
@@ -1140,10 +1175,10 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
             if (TabsMain.Items[8] is TabItem t8) t8.Header = loc.GetString("Settings.HelpShortcuts", "HELP & SHORTCUTS").ToUpperInvariant();
         }
 
-        if (BtnResetAll != null) BtnResetAll.Content = loc.GetString("Settings.ResetAll", "RESET ALL");
+        if (BtnResetSettings != null) BtnResetSettings.Content = loc.GetString("Settings.ResetSettings", "RESET SETTINGS");
+        if (BtnResetData != null) BtnResetData.Content = loc.GetString("Settings.ResetData", "RESET BROWSER DATA");
         if (BtnCancel != null) BtnCancel.Content = loc.GetString("Common.Cancel", "CANCEL").ToUpperInvariant();
         if (BtnSave != null) BtnSave.Content = loc.GetString("Settings.SaveApply", "SAVE & APPLY");
-        if (ChkResetWipeData != null) ChkResetWipeData.Content = loc.GetString("Settings.AlsoDeleteData", "Also delete data");
 
         LocalizeElementTree();
     }
@@ -1274,7 +1309,7 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
             else
             {
                 s.SearchEngineUrl = tag;
-                s.SearchEngine    = si.Content.ToString() ?? "AlohFind";
+                s.SearchEngine    = si.Content.ToString() ?? "AlohaFind";
             }
         }
         s.Theme = GetComboTag(CboTheme);
@@ -1295,6 +1330,8 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
 
         s.AutoHideHeader     = ChkHideHeader.IsChecked     == true;
         s.AutoHideSidebar    = ChkHideSidebar.IsChecked    == true;
+        s.SidebarMiniMode    = ChkSidebarMiniMode.IsChecked == true;
+        s.HomeSidebarFloatingOverlay = ChkHomeSidebarFloatingOverlay.IsChecked == true;
         s.WebAppShortcutDesktop   = ChkWebAppDesktop.IsChecked   == true;
         s.WebAppShortcutStartMenu = ChkWebAppStartMenu.IsChecked == true;
         s.WebAppOfferOnLeave = ChkWebAppOffer.IsChecked == true;
@@ -1311,6 +1348,11 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
         s.AutoDownloadUpdatesEnabled  = ChkAutoDownloadUpdates.IsChecked == true;
         s.IsStealthMode       = ChkStealth.IsChecked             == true;
         s.SleepingTabsEnabled = ChkSleepingTabsEnabled.IsChecked == true;
+        s.EnableBackgroundTimerThrottling = ChkBackgroundTimerThrottling.IsChecked == true;
+        s.EnableCosmeticTimerThrottling = ChkCosmeticTimerThrottling.IsChecked == true;
+        s.EnableDynamicRamTiering = ChkDynamicRamTiering.IsChecked == true;
+        s.EnableExemptionBasedSuspension = ChkExemptionBasedSuspension.IsChecked == true;
+        s.EnableTabDiscardAndStateCapture = ChkTabDiscardAndStateCapture.IsChecked == true;
 
         s.EnableSponsorBlock  = ChkSponsorBlock.IsChecked  == true;
         s.SB_Sponsors         = ChkSbSponsors.IsChecked    == true;
@@ -1319,7 +1361,8 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
         s.SB_Outro            = ChkSbOutro.IsChecked       == true;
         s.SB_Interaction      = ChkSbInteraction.IsChecked == true;
         s.SB_MusicOfftopic    = ChkSbMusic.IsChecked       == true;
-        s.HideSponsoredResults = ChkHideSponsoredResults.IsChecked == true;
+        s.HideSponsoredResults = ChkHideSponsoredResults.IsChecked == true;
+        s.TikTokAutoplayOnLoad = ChkTikTokAutoplay.IsChecked == true;
 
         s.NextDnsId = TxtDns.Text;
 
@@ -1366,7 +1409,28 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
 
         SettingsApplied?.Invoke();
         Close();
-        App.Restart();
+    }
+
+    
+    private void ApplySidebarDockModeToMain()
+    {
+        foreach (Window win in Application.Current.Windows)
+        {
+            if (win is MainWindow mw)
+            {
+                mw.UpdateSidebarDockMode();
+            }
+        }
+    }
+    private void ApplySidebarModeToMain()
+    {
+        foreach (Window win in Application.Current.Windows)
+        {
+            if (win is MainWindow mw)
+            {
+                mw.ApplySidebarMode();
+            }
+        }
     }
 
     private void ChkMediaWidgetAutoShowOnMinimize_Changed(object sender, RoutedEventArgs e)
@@ -1466,34 +1530,61 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
             : "Uninstall incomplete: " + string.Join("; ", errors);
     }
 
-    private void BtnResetAll_Click(object sender, RoutedEventArgs e)
+    private void SettingsWindow_PreviewKeyDown(object sender, KeyEventArgs e)
     {
-        bool wipe = ChkResetWipeData.IsChecked == true;
-        string prompt = wipe
-            ? "Reset ALL settings to defaults AND delete saved data (accounts, API keys, tokens, pins, session URLs, saved homepages, layouts, notes, favorites)?\n\nThis cannot be undone."
-            : "Reset ALL settings to defaults (settings, header, sidebar, homepage)?\n\nAccounts, keys, pins and other saved data are kept.";
+        if (e.Key == Key.Escape)
+        {
+            Close();
+            e.Handled = true;
+        }
+    }
 
-        if (MessageBox.Show(prompt, "Horizon", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No) != MessageBoxResult.Yes)
+    private void BtnResetSettings_Click(object sender, RoutedEventArgs e)
+    {
+        string prompt = "Reset ALL browser settings to defaults (theme, preferences, shortcuts, layouts)?\n\nYour saved data (accounts, keys, pins, session history, notes, favorites) will be kept.";
+        if (MessageBox.Show(prompt, "Horizon - Reset Settings", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No) != MessageBoxResult.Yes)
             return;
 
         try
         {
-            int count = SettingsService.ResetToDefaults(wipe);
+            int count = SettingsService.ResetSettingsOnly();
             var s = SettingsService.Current;
             ThemeService.ApplyTheme(s.Theme);
             BackgroundKeepAliveService.OnSettingChanged();
             StartupService.Apply(s.StartOnSystemStartup);
             FluxJanitorService.Initialize();
-            LogService.Write("SETTINGS", $"Reset ALL from SettingsWindow. WipeData={wipe}, properties={count}");
+            LogService.Write("SETTINGS", $"Reset SETTINGS from SettingsWindow. Properties reset={count}");
 
-            MessageBox.Show(wipe ? "Settings reset and data deleted. Restart Horizon to finish." : "Settings reset to defaults.", "Horizon", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show("Settings reset to defaults.", "Horizon", MessageBoxButton.OK, MessageBoxImage.Information);
             SettingsApplied?.Invoke();
             Close();
         }
         catch (Exception ex)
         {
-            LogService.RecordCrash(ex, "ResetAllSettings");
+            LogService.RecordCrash(ex, "ResetSettingsOnly");
             MessageBox.Show($"Reset failed:\n{ex.Message}", "Horizon", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private void BtnResetData_Click(object sender, RoutedEventArgs e)
+    {
+        string prompt = "Reset ALL browser data (accounts, API keys, tokens, pins, session history, saved homepages, widget notes, favorites and bookmarks)?\n\nYour browser configuration and theme settings will be kept.\n\nThis cannot be undone. Are you sure?";
+        if (MessageBox.Show(prompt, "Horizon - Reset Browser Data", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No) != MessageBoxResult.Yes)
+            return;
+
+        try
+        {
+            int count = SettingsService.ResetBrowserDataOnly();
+            LogService.Write("SETTINGS", $"Reset DATA from SettingsWindow. Properties reset={count}");
+
+            MessageBox.Show("Browser data reset complete. Restart Horizon to finish applying changes.", "Horizon", MessageBoxButton.OK, MessageBoxImage.Information);
+            SettingsApplied?.Invoke();
+            Close();
+        }
+        catch (Exception ex)
+        {
+            LogService.RecordCrash(ex, "ResetBrowserDataOnly");
+            MessageBox.Show($"Reset data failed:\n{ex.Message}", "Horizon", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 
@@ -1852,7 +1943,7 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
         const string appKey  = @"Software\Clients\StartMenuInternet\HorizonBrowser";
         const string capsKey = @"Software\Horizon Browser\Capabilities";
 
-        // ── 1. ProgID: what Windows invokes when opening http/https/html ──────
+        // \u2500\u2500 1. ProgID: what Windows invokes when opening http/https/html \u2500\u2500\u2500\u2500\u2500\u2500
         using (var key = Registry.CurrentUser.CreateSubKey($@"Software\Classes\{progId}"))
         {
             key.SetValue("", appName + " Document");
@@ -1924,12 +2015,12 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
         LogService.Write("SETTINGS", "Registered Horizon as candidate default browser.");
     }
 
-    // ── Extensions tab: dynamic card list ────────────────────────────────────
+    // \u2500\u2500 Extensions tab: dynamic card list \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 
     /// <summary>
     /// Builds one card per installed extension. Each card shows:
     ///   icon | name | version/source | ON/OFF toggle | Uninstall button
-    ///   └── expandable settings panel with extension-specific options
+    ///   \u2514\u2500\u2500 expandable settings panel with extension-specific options
     /// Called from LoadState() and after any uninstall action.
     /// </summary>
     private void BuildInstalledExtensionsList()
@@ -1956,7 +2047,7 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
         {
             bool isBundled = ext.Source == ExtensionSource.Bundled;
 
-            // ── Outer card ────────────────────────────────────────────────────
+            // \u2500\u2500 Outer card \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
             var card = new Border
             {
                 Background      = new SolidColorBrush(Color.FromRgb(0x14, 0x14, 0x14)),
@@ -1969,7 +2060,7 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
 
             var outer = new StackPanel();
 
-            // ── Header row: icon | name+badge | [ON/OFF] [🗑] ────────────────
+            // \u2500\u2500 Header row: icon | name+badge | [ON/OFF] [\U0001F5D1] \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
             var header = new Grid { Margin = new Thickness(12, 9, 12, 9) };
             header.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             header.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
@@ -2140,7 +2231,7 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
         panel.Children.Add(SettingsNote($"Installed: {ext.InstalledAt:yyyy-MM-dd}"));
         var folderBtn = new Button
         {
-            Content = "📂 Open Extension Folder",
+            Content = "\U0001F4C2 Open Extension Folder",
             HorizontalAlignment = HorizontalAlignment.Left,
             Padding = new Thickness(10, 4, 10, 4),
             Margin = new Thickness(0, 4, 0, 0),
@@ -2219,7 +2310,7 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
     private void SliderScrollSpeed_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
     {
         if (TblScrollSpeedValue != null)
-            TblScrollSpeedValue.Text = $"{e.NewValue:F2}×";
+            TblScrollSpeedValue.Text = $"{e.NewValue:F2}\u00D7";
     }
 
     private static SolidColorBrush ExtBorderBrush(bool enabled)
@@ -2256,7 +2347,7 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
         {
             int count = await mw.SyncCookiesFromBrowserAsync(useChrome, useEdge, domainFilter);
             TblCookieSyncStatus.Text = count > 0
-                ? $"✓ {count} cookies synced. Reload open pages to apply."
+                ? $"\u2713 {count} cookies synced. Reload open pages to apply."
                 : "No cookies found for the selected source/scope.";
             LogService.Write("COOKIES", $"Sync completed: {count} cookies (chrome={useChrome}, edge={useEdge}, domain={domainFilter ?? "all"})");
         }
@@ -2479,6 +2570,7 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
     {
         SettingsService.Current.NarrowWindowMode = CmbNarrowWindowMode.SelectedIndex;
         SettingsService.Save();
+        (Application.Current?.MainWindow as MainWindow)?.ApplyNarrowWindowMode();
     }
 
     private void TxtNarrowThreshold_LostFocus(object sender, RoutedEventArgs e)
@@ -2487,6 +2579,7 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
         {
             SettingsService.Current.NarrowWindowThresholdPx = val;
             SettingsService.Save();
+            (Application.Current?.MainWindow as MainWindow)?.ApplyNarrowWindowMode();
         }
         else
         {

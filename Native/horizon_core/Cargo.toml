@@ -1,0 +1,10 @@
+[package]
+name = "horizon_core"
+version = "1.0.0"
+edition = "2021"
+
+[lib]
+name = "horizon_core"
+crate-type = ["cdylib"]
+
+[dependencies]

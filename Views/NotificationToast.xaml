@@ -28,7 +28,7 @@
                            Foreground="#FF8888AA" FontSize="11"
                            TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
                 <Button x:Name="BtnClose" Grid.Column="1"
-                        Content="✕" Width="20" Height="20"
+                        Content="&#x2715;" Width="20" Height="20"
                         Background="Transparent" BorderThickness="0"
                         Foreground="#FF666680" FontSize="11"
                         Cursor="Hand" Padding="0" VerticalAlignment="Center"

@@ -10,6 +10,10 @@
             <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
         <Grid x:Name="Viewport" Grid.Column="0" ClipToBounds="True">
+            <Border x:Name="CardBackdrop" CornerRadius="22"
+                    Background="{DynamicResource SharedSearchBgBrush}"
+                    BorderBrush="{DynamicResource SharedSearchBorderBrush}"
+                    BorderThickness="1" IsHitTestVisible="False"/>
             <Border x:Name="EmptyAdd" Visibility="Collapsed" Background="Transparent" Cursor="Hand" CornerRadius="22"
                     MouseLeftButtonUp="EmptyAdd_Click" MouseEnter="EmptyAdd_Hover" MouseLeave="EmptyAdd_Hover">
                 <Grid>

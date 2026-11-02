@@ -36,49 +36,43 @@ public static class ExtensionService
     private static readonly Dictionary<string, (string Icon, string Description)> _bundledMeta =
         new(StringComparer.OrdinalIgnoreCase)
         {
-            ["consent-o-matic"] = ("🍪", "Automatically handles GDPR/cookie consent dialogs."),
-            ["adguard"]         = ("🛡",  "Blocks ads, trackers, and malware on every site."),
-            ["sponsorblock-for-youtube-skip-sponsorships-chrome-web-store"] = ("⏭", "Skip sponsorships, intro animations, and annoying segments on YouTube."),
-            ["sponsorblock"]    = ("⏭", "Skip sponsorships, intro animations, and annoying segments on YouTube."),
-            ["linguist-web-page-translator-chrome-web-store"] = ("🌐", "Translate full web pages and selected text instantly."),
-            ["linguist"]        = ("🌐", "Translate full web pages and selected text instantly."),
-            ["twp-translate-[beta]-chrome-web-store"] = ("🈯", "Translate web pages in real-time."),
-            ["twp-translate"]   = ("🈯", "Translate web pages in real-time."),
-            ["remove-paywalls-chrome-web-store"] = ("🔓", "Read articles cleanly without paywalls or nag screens."),
-            ["remove-paywalls"] = ("🔓", "Read articles cleanly without paywalls or nag screens."),
-            ["save-it-later-chrome-web-store"] = ("💾", "Save articles and bookmarks to read offline later."),
-            ["save-it-later"]   = ("💾", "Save articles and bookmarks to read offline later."),
-            ["crx-extractor-downloader-chrome-web-store"] = ("📦", "Download and unpack Chrome extensions as ZIP/CRX."),
-            ["crx-extractor"]   = ("📦", "Download and unpack Chrome extensions as ZIP/CRX."),
+            ["consent-o-matic"] = ("\U0001F36A", "Automatically handles GDPR/cookie consent dialogs."),
+            ["adguard"]         = ("\U0001F6E1",  "Blocks ads, trackers, and malware on every site."),
+            ["sponsorblock-for-youtube-skip-sponsorships-chrome-web-store"] = ("\u23ED", "Skip sponsorships, intro animations, and annoying segments on YouTube."),
+            ["sponsorblock"]    = ("\u23ED", "Skip sponsorships, intro animations, and annoying segments on YouTube."),
+            ["linguist-web-page-translator-chrome-web-store"] = ("\U0001F310", "Translate full web pages and selected text instantly."),
+            ["linguist"]        = ("\U0001F310", "Translate full web pages and selected text instantly."),
+            ["twp-translate-[beta]-chrome-web-store"] = ("\U0001F22F", "Translate web pages in real-time."),
+            ["twp-translate"]   = ("\U0001F22F", "Translate web pages in real-time."),
+            ["remove-paywalls-chrome-web-store"] = ("\U0001F513", "Read articles cleanly without paywalls or nag screens."),
+            ["remove-paywalls"] = ("\U0001F513", "Read articles cleanly without paywalls or nag screens."),
+            ["save-it-later-chrome-web-store"] = ("\U0001F4BE", "Save articles and bookmarks to read offline later."),
+            ["save-it-later"]   = ("\U0001F4BE", "Save articles and bookmarks to read offline later."),
+            ["crx-extractor-downloader-chrome-web-store"] = ("\U0001F4E6", "Download and unpack Chrome extensions as ZIP/CRX."),
+            ["crx-extractor"]   = ("\U0001F4E6", "Download and unpack Chrome extensions as ZIP/CRX."),
         };
 
     private static (string Icon, string Description) GetBundledMeta(string id)
     {
         if (_bundledMeta.TryGetValue(id, out var meta)) return meta;
         string lower = id.ToLowerInvariant();
-        if (lower.Contains("consent")) return ("🍪", "Automatically handles GDPR/cookie consent dialogs.");
-        if (lower.Contains("adguard")) return ("🛡", "Blocks ads, trackers, and malware on every site.");
-        if (lower.Contains("sponsorblock")) return ("⏭", "Skip sponsorships, intro animations, and annoying segments on YouTube.");
-        if (lower.Contains("linguist")) return ("🌐", "Translate full web pages and selected text instantly.");
-        if (lower.Contains("twp") || lower.Contains("translate")) return ("🈯", "Translate web pages in real-time.");
-        if (lower.Contains("paywall")) return ("🔓", "Read articles cleanly without paywalls or nag screens.");
-        if (lower.Contains("save")) return ("💾", "Save articles and bookmarks to read offline later.");
-        if (lower.Contains("crx")) return ("📦", "Download and unpack Chrome extensions as ZIP/CRX.");
-        return ("🧩", string.Empty);
+        if (lower.Contains("consent")) return ("\U0001F36A", "Automatically handles GDPR/cookie consent dialogs.");
+        if (lower.Contains("adguard")) return ("\U0001F6E1", "Blocks ads, trackers, and malware on every site.");
+        if (lower.Contains("sponsorblock")) return ("\u23ED", "Skip sponsorships, intro animations, and annoying segments on YouTube.");
+        if (lower.Contains("linguist")) return ("\U0001F310", "Translate full web pages and selected text instantly.");
+        if (lower.Contains("twp") || lower.Contains("translate")) return ("\U0001F22F", "Translate web pages in real-time.");
+        if (lower.Contains("paywall")) return ("\U0001F513", "Read articles cleanly without paywalls or nag screens.");
+        if (lower.Contains("save")) return ("\U0001F4BE", "Save articles and bookmarks to read offline later.");
+        if (lower.Contains("crx")) return ("\U0001F4E6", "Download and unpack Chrome extensions as ZIP/CRX.");
+        return ("\U0001F9E9", string.Empty);
     }
 
     // ── Paths ────────────────────────────────────────────────────────────────
-    private static string DataRoot =>
-        Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "Horizon_Browser", "HorizonData");
+    private static string DataRoot => ConfigService.UserDataRoot;
 
     private static string CatalogFile => Path.Combine(DataRoot, "extensions.json");
 
-    public static string InstallRoot =>
-        Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "Horizon_Browser", "Extensions");
+    public static string InstallRoot => ConfigService.ExtensionsRoot;
 
     private static string BundleCache =>
         Path.Combine(
@@ -244,7 +238,7 @@ public static class ExtensionService
                 Name        = name,
                 Description = !string.IsNullOrEmpty(meta.Description) ? meta.Description : desc,
                 Version     = version,
-                Icon        = meta.Icon ?? "🧩",
+                Icon        = meta.Icon ?? "\U0001F9E9",
                 Source      = ExtensionSource.Bundled,
                 Enabled     = true,
                 InstalledAt = DateTime.Now,

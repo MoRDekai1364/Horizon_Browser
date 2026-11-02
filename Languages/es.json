@@ -72,7 +72,8 @@
     "SaveAndExit": "GUARDAR Y SALIR",
     "WeatherUnavailable": "⛅ N/D",
     "HomeFavorites": "Favoritos",
-    "HomeBookmarks": "Marcadores"
+    "HomeBookmarks": "Marcadores",
+    "Calendar": "Calendario"
   },
   "Settings": {
     "Title": "Configuración",
@@ -164,6 +165,8 @@
     "Auto Consent": "Consentimiento automático de cookies",
     "Auto-Hide Header": "Ocultar automáticamente el encabezado",
     "Auto-Hide Sidebar": "Ocultar automáticamente la barra lateral",
+    "Sidebar Mini Mode (Dock)": "Modo mini de barra lateral (Dock)",
+    "Shrinks the sidebar into a slim icon dock on the right side.": "Reduce la barra lateral a un dock de iconos delgado a la derecha.",
     "Auto-restore previous session on startup": "Restaurar automáticamente la sesión anterior al iniciar",
     "Auto-skips sponsors, intros, outros, self-promo and interaction reminders on YouTube": "Auto-skips sponsors, intros, outros, self-promo and interaction reminders on YouTube",
     "Automatically clicks 'Reject All' on cookie consent popups": "Automatically clicks 'Reject All' on cookie consent popups",
@@ -656,6 +659,8 @@
   "Auto Consent": "Consentimiento automático de cookies",
   "Auto-Hide Header": "Ocultar automáticamente el encabezado",
   "Auto-Hide Sidebar": "Ocultar automáticamente la barra lateral",
+  "Sidebar Mini Mode (Dock)": "Modo mini de barra lateral (Dock)",
+  "Shrinks the sidebar into a slim icon dock on the right side.": "Reduce la barra lateral a un dock de iconos delgado a la derecha.",
   "Auto-restore previous session on startup": "Restaurar automáticamente la sesión anterior al iniciar",
   "Auto-skips sponsors, intros, outros, self-promo and interaction reminders on YouTube": "Auto-skips sponsors, intros, outros, self-promo and interaction reminders on YouTube",
   "Automatically clicks 'Reject All' on cookie consent popups": "Automatically clicks 'Reject All' on cookie consent popups",

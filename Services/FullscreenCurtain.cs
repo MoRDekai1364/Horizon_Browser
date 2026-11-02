@@ -1,4 +1,4 @@
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Interop;
@@ -257,7 +257,7 @@ public sealed class FullscreenGlassCurtain : IDisposable
             Source = shot,
             Stretch = Stretch.Fill,
             Margin = new Thickness(-BlurBleed),
-            Effect = new BlurEffect
+            Effect = SettingsService.Current.DisableBlurEffects ? null : new BlurEffect
             {
                 Radius = BlurRadiusSmall,
                 KernelType = KernelType.Gaussian,

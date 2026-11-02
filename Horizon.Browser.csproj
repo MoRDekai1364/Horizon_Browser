@@ -11,6 +11,7 @@
     <PlatformTarget>x64</PlatformTarget>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    <CodePage>65001</CodePage>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(ApplicationIcon)' == '' And Exists('$(MSBuildProjectDirectory)\default_settings.txt')">
@@ -44,6 +45,7 @@
     <None Include="Languages\**" CopyToOutputDirectory="PreserveNewest" />
     <EmbeddedResource Include="Languages\**" />
     <None Include="start_videos\**" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="test_fixtures\**" CopyToOutputDirectory="PreserveNewest" Condition="'$(IncludeBenchmarkFixtures)' == 'true'" />
     <None Include="default_settings.txt" CopyToOutputDirectory="PreserveNewest" Condition="Exists('default_settings.txt')" />
   </ItemGroup>
 
@@ -53,5 +55,8 @@
 
     <ItemGroup>
     <None Include="wallpapers\**" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Native\horizon_core\target\release\horizon_core.dll" Link="horizon_core.dll" CopyToOutputDirectory="PreserveNewest" Condition="Exists('Native\horizon_core\target\release\horizon_core.dll')" />
   </ItemGroup>
 </Project>

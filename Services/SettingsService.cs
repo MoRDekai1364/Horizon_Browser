@@ -39,10 +39,20 @@ public class GoogleBrowserAccount
     public string AvatarUrl { get; set; } = "";
 }
 
+public class AccountContainerProfile
+{
+    public string Id          { get; set; } = Guid.NewGuid().ToString("N")[..8];
+    public string Email       { get; set; } = "";
+    public string DisplayName { get; set; } = "";
+    public string Provider    { get; set; } = "Google";
+    public string ColorHex    { get; set; } = "#4285F4";
+    public string ContainerId => "acct_" + System.Text.RegularExpressions.Regex.Replace(Email.ToLowerInvariant(), @"[^a-z0-9]", "_");
+}
+
 public static class SettingsService
 {
-    private static readonly string _folder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "HorizonData");
-    private static readonly string _path = Path.Combine(_folder, "config.json");
+    private static string _folder => ConfigService.UserDataRoot;
+    private static string _path => Path.Combine(_folder, "config.json");
 
     public static SettingsData Current { get; private set; } = DefaultSettingsService.Apply(new SettingsData());
 
@@ -82,11 +92,15 @@ public static class SettingsService
         {
             data.AppLanguage = "en";
         }
+        if (string.Equals(data.SearchEngine, "AlohFind", StringComparison.OrdinalIgnoreCase))
+        {
+            data.SearchEngine = "AlohaFind";
+        }
 
         if (data.ConfigVersion > CurrentConfigVersion) return;
         if (data.ConfigVersion < 3)
         {
-            data.HomeShowRightColumn = true;
+            data.HomeShowRightColumn = false;
             data.HomeRightColumnFavorites = true;
             data.HomeRightColumnBookmarks = true;
         }
@@ -142,7 +156,7 @@ public static class SettingsService
     // never fall out of sync. Mirrors the ComboBoxItems in SettingsWindow.xaml (CboSearch).
     public static readonly List<SearchEngineEntry> BuiltInSearchEngines = new()
     {
-        new SearchEngineEntry { Name = "AlohFind",    Url = "https://alohafind.com/search/?q={query}",   BuiltIn = true },
+        new SearchEngineEntry { Name = "AlohaFind",   Url = "https://alohafind.com/search/?q={query}",   BuiltIn = true },
         new SearchEngineEntry { Name = "DuckDuckGo",  Url = "https://duckduckgo.com/?q={query}",         BuiltIn = true },
         new SearchEngineEntry { Name = "Google",      Url = "https://www.google.com/search?q={query}",  BuiltIn = true },
         new SearchEngineEntry { Name = "Bing",        Url = "https://www.bing.com/search?q={query}",    BuiltIn = true },
@@ -169,6 +183,44 @@ public static class SettingsService
         "WallpaperCustomList", "WallpaperFolderPath",
         "StartupVideoCustomList", "HomeVisualizerWebsites"
     };
+
+    public static int ResetSettingsOnly()
+    {
+        return ResetToDefaults(wipeData: false);
+    }
+
+    public static int ResetBrowserDataOnly()
+    {
+        var fresh = DefaultSettingsService.Apply(new SettingsData());
+        var target = Current;
+        int changed = 0;
+
+        var props = typeof(SettingsData).GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            .Where(p => p.CanRead && p.CanWrite && p.GetIndexParameters().Length == 0);
+
+        foreach (var p in props)
+        {
+            if (AlwaysKeepProperties.Contains(p.Name)) continue;
+            if (!DataProperties.Contains(p.Name)) continue;
+            try
+            {
+                p.SetValue(target, p.GetValue(fresh));
+                changed++;
+            }
+            catch (Exception ex)
+            {
+                LogService.Write("SETTINGS", $"Reset data skipped '{p.Name}': {ex.Message}");
+            }
+        }
+
+        Save();
+
+        try { HistoryService.Clear(); } catch (Exception ex) { LogService.RecordCrash(ex, "SettingsService.ResetData.History"); }
+        try { BookmarkService.Clear(); } catch (Exception ex) { LogService.RecordCrash(ex, "SettingsService.ResetData.Bookmarks"); }
+
+        LogService.Write("SETTINGS", $"ResetBrowserDataOnly done. Data properties reset={changed}");
+        return changed;
+    }
 
     public static int ResetToDefaults(bool wipeData)
     {
@@ -197,6 +249,48 @@ public static class SettingsService
         Save();
         LogService.Write("SETTINGS", $"ResetToDefaults done. WipeData={wipeData}, properties reset={changed}");
         return changed;
+    }
+
+    public static List<AccountContainerProfile> GetAvailableAccountProfiles()
+    {
+        var result = new List<AccountContainerProfile>();
+        var seenEmails = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var p in Current.AccountProfiles)
+        {
+            if (!string.IsNullOrWhiteSpace(p.Email) && seenEmails.Add(p.Email))
+                result.Add(p);
+        }
+
+        foreach (var ga in Current.GoogleBrowserAccounts)
+        {
+            if (!string.IsNullOrWhiteSpace(ga.Email) && seenEmails.Add(ga.Email))
+            {
+                result.Add(new AccountContainerProfile
+                {
+                    Email = ga.Email,
+                    DisplayName = string.IsNullOrWhiteSpace(ga.Name) ? ga.Email : ga.Name,
+                    Provider = "Google",
+                    ColorHex = "#4285F4"
+                });
+            }
+        }
+
+        foreach (var sa in Current.SyncAccounts)
+        {
+            if (!string.IsNullOrWhiteSpace(sa.Email) && seenEmails.Add(sa.Email))
+            {
+                result.Add(new AccountContainerProfile
+                {
+                    Email = sa.Email,
+                    DisplayName = string.IsNullOrWhiteSpace(sa.DisplayName) ? sa.Email : sa.DisplayName,
+                    Provider = string.IsNullOrWhiteSpace(sa.Provider) ? "Microsoft" : sa.Provider,
+                    ColorHex = string.Equals(sa.Provider, "Microsoft", StringComparison.OrdinalIgnoreCase) ? "#00A4EF" : "#4285F4"
+                });
+            }
+        }
+
+        return result;
     }
 
     public static void Save()
@@ -257,7 +351,7 @@ public class SettingsData
     public List<LayoutSet> SavedLayoutSets { get; set; } = new();
     public string ActiveLayoutSetId { get; set; } = "";
     public string HomePage         { get; set; } = "horizon://home";
-    public string SearchEngine     { get; set; } = "AlohFind";
+    public string SearchEngine     { get; set; } = "AlohaFind";
     public string SearchEngineUrl  { get; set; } = "https://alohafind.com/search/?q={query}";
     public List<SearchEngineEntry> CustomSearchEngines { get; set; } = new();
 
@@ -289,10 +383,11 @@ public class SettingsData
     public bool HomeShowBookmarksWidget { get; set; } = true; 
     public bool HomeShowBatteryWidget   { get; set; } = true; 
     public bool HomeShowVpnAdBlockWidget { get; set; } = true;
-    public bool HomeShowRightColumn { get; set; } = true;
+    public bool HomeShowRightColumn { get; set; } = false;
     public bool HomeRightColumnFavorites { get; set; } = true;
     public bool HomeRightColumnBookmarks { get; set; } = true; 
 
+    public string HomePageTheme { get; set; } = "Default";
     public string HomeGroupStyle { get; set; } = "Folder";
     public string HomeBookmarkGrouping { get; set; } = "Domain";
     public int HomeFavoriteRows { get; set; } = 2;
@@ -300,6 +395,14 @@ public class SettingsData
     public int HomeFolderThreshold { get; set; } = 30;
     public string HomeSearchMode { get; set; } = "Search";
     public string HomeFolderOpenMode { get; set; } = "Popup";
+    public string HomeWidgetBoardConfigJson { get; set; } = "";
+    public string HomeWidgetNotesText { get; set; } = "";
+    public bool   TikTokAutoplayOnLoad { get; set; } = false;
+    public List<string> FavoriteFolders { get; set; } = new();
+    public List<string> BookmarkFolders { get; set; } = new();
+    public List<string> PinnedUtilityIds { get; set; } = new();
+    public List<string> HeaderContextUtilityIds { get; set; } = new();
+    public List<string> HomepageWidgetUtilityIds { get; set; } = new();
 
     public bool   HomeAdaptiveColorsEnabled { get; set; } = true;
     public double HomeTintStrength           { get; set; } = 30.0;
@@ -314,6 +417,8 @@ public class SettingsData
     public bool DebugLogging { get; set; } = false;
     public bool AutoHideHeader { get; set; } = false;
     public bool AutoHideSidebar { get; set; } = false;
+    public bool SidebarMiniMode { get; set; } = false;
+    public bool HomeSidebarFloatingOverlay { get; set; } = true;
     public bool WebAppShortcutDesktop { get; set; } = true;
     public bool WebAppShortcutStartMenu { get; set; } = true;
     public bool WebAppOfferOnLeave { get; set; } = true;
@@ -399,6 +504,11 @@ public class SettingsData
     public double TabMediaPlaybackWidth { get; set; } = 160.0;
     public double TabDownloadModeWidth  { get; set; } = 160.0;
     public double DownloadTabHoverWidth { get; set; } = 200.0;
+    public bool EnableBackgroundTimerThrottling { get; set; } = true;
+    public bool EnableCosmeticTimerThrottling { get; set; } = true;
+    public bool EnableDynamicRamTiering { get; set; } = true;
+    public bool EnableExemptionBasedSuspension { get; set; } = true;
+    public bool EnableTabDiscardAndStateCapture { get; set; } = true;
 
     // ── Pinned file browser locations ────────────────────────────────────────
     public List<string> PinnedFsLocations { get; set; } = new();
@@ -463,6 +573,7 @@ public class SettingsData
     public string       DefaultGoogleAccountEmail { get; set; } = "";
     public List<string> GoogleAccountOrder        { get; set; } = new();
     public List<GoogleBrowserAccount> GoogleBrowserAccounts { get; set; } = new();
+    public List<AccountContainerProfile> AccountProfiles { get; set; } = new();
     public double?      AccountSwitcherButtonX    { get; set; } = null;
     public double?      AccountSwitcherButtonY    { get; set; } = null;
 

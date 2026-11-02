@@ -72,7 +72,8 @@
     "SaveAndExit": "SAVE & EXIT",
     "WeatherUnavailable": "⛅ N/A",
     "HomeFavorites": "Favorites",
-    "HomeBookmarks": "Bookmarks"
+    "HomeBookmarks": "Bookmarks",
+    "Calendar": "Calendar"
   },
   "Settings": {
     "Title": "Settings",
@@ -164,6 +165,8 @@
     "Auto Consent": "Auto Consent",
     "Auto-Hide Header": "Auto-Hide Header",
     "Auto-Hide Sidebar": "Auto-Hide Sidebar",
+    "Sidebar Mini Mode (Dock)": "Sidebar Mini Mode (Dock)",
+    "Shrinks the sidebar into a slim icon dock on the right side.": "Shrinks the sidebar into a slim icon dock on the right side.",
     "Auto-restore previous session on startup": "Auto-restore previous session on startup",
     "Auto-skips sponsors, intros, outros, self-promo and interaction reminders on YouTube": "Auto-skips sponsors, intros, outros, self-promo and interaction reminders on YouTube",
     "Automatically clicks 'Reject All' on cookie consent popups": "Automatically clicks 'Reject All' on cookie consent popups",
@@ -656,6 +659,8 @@
   "Auto Consent": "Auto Consent",
   "Auto-Hide Header": "Auto-Hide Header",
   "Auto-Hide Sidebar": "Auto-Hide Sidebar",
+  "Sidebar Mini Mode (Dock)": "Sidebar Mini Mode (Dock)",
+  "Shrinks the sidebar into a slim icon dock on the right side.": "Shrinks the sidebar into a slim icon dock on the right side.",
   "Auto-restore previous session on startup": "Auto-restore previous session on startup",
   "Auto-skips sponsors, intros, outros, self-promo and interaction reminders on YouTube": "Auto-skips sponsors, intros, outros, self-promo and interaction reminders on YouTube",
   "Automatically clicks 'Reject All' on cookie consent popups": "Automatically clicks 'Reject All' on cookie consent popups",

@@ -1,0 +1,457 @@
+using System.IO;
+using System.Text;
+using System.Windows;
+using Microsoft.Web.WebView2.Core;
+using Horizon.Stealth.Services;
+using System.Threading.Tasks;
+
+namespace Horizon.Stealth.Core;
+
+public static class HorizonEnvironment
+{
+    public static CoreWebView2Environment? Instance { get; private set; }
+    private static Task?       _initTask = null;
+    private static bool        _initFailed = false;
+    private static readonly object _initLock = new();
+
+    public const string GlobalUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36";
+
+    private const string SCRIPT_YOUTUBE_INTERVENTION = @"
+        (function() {
+            if (!window.location.hostname.includes('youtube.com') || window.location.hostname.includes('music.youtube.com')) return;
+            
+            setInterval(() => {
+                const adShowing = document.querySelector('.ad-showing') || document.querySelector('.ad-interrupting');
+                const video = document.querySelector('video');
+                
+                if (adShowing && video) {
+                    video.playbackRate = 16.0;
+                    video.muted = true;
+                    
+                    const skipBtn = document.querySelector('.ytp-ad-skip-button') || document.querySelector('.videoAdUiSkipButton');
+                    if (skipBtn) skipBtn.click();
+                }
+            }, 250);
+
+            setInterval(() => {
+                const enforcement = document.querySelector('ytd-enforcement-message-view-model') 
+                                 || document.querySelector('[test-id=""enforcement-message-view-model""]');
+                
+                if (enforcement && document.querySelector('video')?.paused) {
+                    window.location.reload(); 
+                }
+            }, 1000); 
+        })();
+    ";
+
+    private const string SCRIPT_YOUTUBE_SCROLL_FIX = @"
+        (function() {
+            if (!window.location.hostname.includes('youtube.com') || window.location.hostname.includes('music.youtube.com')) return;
+
+            const CSS = `
+                ytd-rich-item-renderer,
+                ytd-video-renderer,
+                ytd-compact-video-renderer,
+                ytd-shelf-renderer,
+                ytd-reel-shelf-renderer {
+                    contain: layout style;
+                }
+                #primary, ytd-browse, #page-manager {
+                    will-change: scroll-position;
+                }
+            `;
+
+            const inject = () => {
+                if (document.getElementById('hz-scroll-fix')) return;
+                const s = document.createElement('style');
+                s.id = 'hz-scroll-fix';
+                s.textContent = CSS;
+                (document.head || document.documentElement).appendChild(s);
+            };
+
+            document.readyState === 'loading'
+                ? document.addEventListener('DOMContentLoaded', inject)
+                : inject();
+
+            const orig = history.pushState;
+            history.pushState = function() {
+                orig.apply(this, arguments);
+                setTimeout(inject, 600);
+            };
+        })();
+    ";
+
+        private const string SCRIPT_TIKTOK_INTERVENTION = @"
+        (function() {
+            if (!window.location.hostname.includes('tiktok.com')) return;
+
+            const CSS = `
+                [id*=""login-modal""],
+                [id*=""loginContainer""],
+                [class*=""DivLoginContainer""],
+                [class*=""DivModalContainer""],
+                [class*=""DivLoginModal""],
+                [class*=""DivLoginWall""],
+                [class*=""DivLoginGate""],
+                [class*=""DivGuestMode""],
+                [class*=""login-modal-mask""],
+                [class*=""tiktok-modal__mask""],
+                [class*=""DivMask-StyledMask""],
+                [class*=""DivModalWrap""],
+                [class*=""DivPopupContainer""],
+                [data-e2e=""feed-follow-popup""],
+                [data-e2e=""login-modal""] {
+                    display: none !important;
+                    visibility: hidden !important;
+                    opacity: 0 !important;
+                    pointer-events: none !important;
+                }
+                html, body {
+                    overflow: auto !important;
+                    position: static !important;
+                }
+            `;
+
+            const injectStyle = () => {
+                if (document.getElementById('hz-tiktok-bypass')) return;
+                const s = document.createElement('style');
+                s.id = 'hz-tiktok-bypass';
+                s.textContent = CSS;
+                (document.head || document.documentElement).appendChild(s);
+            };
+
+            const unlockScrollAndDismiss = () => {
+                const closeBtn = document.querySelector('[data-e2e=""modal-close-icon""]') 
+                              || document.querySelector('[class*=""DivCloseWrapper""]')
+                              || document.querySelector('button[aria-label=""Close""]');
+                if (closeBtn && !closeBtn.dataset.hzDismissed) {
+                    closeBtn.dataset.hzDismissed = 'true';
+                    try { closeBtn.click(); } catch(e) {}
+                }
+
+                const video = document.querySelector('video');
+                if (video) {
+                    if (window.__hzTikTokAutoplay === true) {
+                        if (video.paused && !video.ended && video.readyState >= 2 && video.dataset.hzUserPaused !== 'true') {
+                            video.play().catch(() => {});
+                        }
+                    } else {
+                        if (!video.dataset.hzUserInteracted && !video.paused) {
+                            try { video.pause(); } catch(e) {}
+                        }
+                    }
+                }
+            };
+
+            document.addEventListener('click', (e) => {
+                const v = document.querySelector('video');
+                if (v) {
+                    v.dataset.hzUserInteracted = 'true';
+                    const target = e.target;
+                    if (target && (target.tagName === 'VIDEO' || target.closest('video') || target.closest('[data-e2e=""video-player""]'))) {
+                        v.dataset.hzUserPaused = v.paused ? 'false' : 'true';
+                    }
+                }
+            }, true);
+
+            document.readyState === 'loading'
+                ? document.addEventListener('DOMContentLoaded', () => { injectStyle(); unlockScrollAndDismiss(); })
+                : (injectStyle(), unlockScrollAndDismiss());
+
+            let _timer = null;
+            const debouncedCheck = () => {
+                if (_timer) return;
+                _timer = setTimeout(() => {
+                    _timer = null;
+                    unlockScrollAndDismiss();
+                }, 400);
+            };
+
+            if (window.MutationObserver) {
+                const observer = new MutationObserver(debouncedCheck);
+                const root = document.body || document.documentElement;
+                if (root) observer.observe(root, { childList: true, subtree: true });
+            }
+        })();
+    ";
+
+
+    /// <summary>
+    /// Idempotent — all callers await the same underlying Task.
+    /// Safe to call concurrently from multiple BrowserView instances.
+    /// </summary>
+    public static Task InitializeAsync()
+    {
+        if (Instance != null) return Task.CompletedTask;
+        lock (_initLock)
+        {
+            if (_initFailed || _initTask == null)
+            {
+                _initFailed = false;
+                _initTask = InitializeCoreAsync();
+            }
+        }
+        return _initTask;
+    }
+
+    private static void StartVpnAutoConnect()
+    {
+        var s = SettingsService.Current;
+        if (!s.VpnAutoConnect) return;
+
+        var profile = VpnProfileStore.GetById(s.VpnActiveProfileId);
+        if (profile == null)
+        {
+            LogService.Write("ENGINE", "VPN auto-connect skipped: no active profile stored.");
+            return;
+        }
+
+        var connectTask = VpnRelayService.ConnectAsync(profile);
+        _ = connectTask.ContinueWith(t =>
+        {
+            if (t.IsFaulted)
+                LogService.RecordCrash(t.Exception!, "VPN auto-connect");
+            else
+                LogService.Write("ENGINE", t.Result.Ok
+                    ? $"VPN auto-connect OK: {t.Result.Message}"
+                    : $"VPN auto-connect failed: {t.Result.Message}");
+        });
+    }
+
+    private static async Task InitializeCoreAsync()
+    {
+        try
+        {
+            LogService.Write("ENGINE", "Initializing Stealth Environment...");
+
+            var args = new StringBuilder();
+            
+            args.Append("--disable-blink-features=AutomationControlled ");
+            args.Append("--disable-features=SameSiteByDefaultCookies,CookiesWithoutSameSiteMustBeSecure ");
+            args.Append("--disable-infobars ");
+            if (!SettingsService.Current.EnableBackgroundTimerThrottling)
+                args.Append("--disable-background-timer-throttling ");
+            args.Append("--autoplay-policy=no-user-gesture-required ");
+            // GPU compositor flags (VizDisplayCompositor, UseSkiaRenderer, enable-gpu-rasterization,
+            // enable-zero-copy) all omitted — they cause BrowserProcessExited on certain GPU/driver configs.
+            
+            // NOTE: --load-extension conflicts with Profile.AddBrowserExtensionAsync.
+            // SponsorBlock should be placed in the Extensions folder instead.
+
+            if (SettingsService.Current.VpnEnabled)
+            {
+                if (VpnRelayService.Start())
+                {
+                    args.Append($"--proxy-server=http://127.0.0.1:{VpnRelayService.Port} ");
+                    if (SettingsService.Current.VpnBlockWebRtcLeak)
+                        args.Append("--force-webrtc-ip-handling-policy=disable_non_proxied_udp ");
+                    LogService.Write("ENGINE", $"VPN relay attached on 127.0.0.1:{VpnRelayService.Port}");
+                    if (!VpnRelayService.IsPeer) StartVpnAutoConnect();
+                }
+                else if (SettingsService.Current.VpnKillSwitchEnabled)
+                {
+                    args.Append("--proxy-server=http://127.0.0.1:1 ");
+                    LogService.Write("ENGINE", "VPN relay failed to start and kill switch is ON: browser traffic blocked via dead proxy.");
+                }
+                else
+                {
+                    LogService.Write("ENGINE", "VPN relay failed to start; browsing continues without VPN routing.");
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(SettingsService.Current.NextDnsId))
+            {
+                var dnsUrl = $"https://dns.nextdns.io/{SettingsService.Current.NextDnsId}";
+                args.Append($"--dns-over-https-mapping=https://{dnsUrl} ");
+                args.Append($"--dns-over-https-templates={dnsUrl} ");
+            }
+
+            // GPU intentionally left enabled — disabling it breaks rendering for
+            // GPU-composited content (canvas/WebGL), e.g. YouTube Music's player background.
+
+            if (Environment.GetCommandLineArgs().Any(a => a.Equals("--test-renderer-limit-2", StringComparison.OrdinalIgnoreCase)))
+            {
+                args.Append("--renderer-process-limit=2 ");
+                LogService.Write("DIAGNOSTIC", "Diagnostic launch override applied: --renderer-process-limit=2");
+            }
+
+            var options = new CoreWebView2EnvironmentOptions(args.ToString(), null, null)
+            {
+                // Required for Profile.AddBrowserExtensionAsync and Chrome Web Store
+                AreBrowserExtensionsEnabled = true
+            };
+
+            Instance = await CoreWebView2Environment.CreateAsync(
+                userDataFolder: ConfigService.UserDataRoot, 
+                options: options
+            );
+
+            LogService.Write("ENGINE", "WebView2 Environment Created.");
+        }
+        catch (Exception ex)
+        {
+            lock (_initLock) { _initFailed = true; }
+            LogService.RecordCrash(ex, "HorizonEnvironment.Initialize");
+            MessageBox.Show("Fatal Engine Error: " + ex.Message);
+        }
+    }
+
+    private const string SCRIPT_HIDE_SPONSORED_RESULTS = @"
+        (function() {
+            if (window.location.hostname.includes('music.youtube.com')) return;
+            var host = window.location.hostname;
+
+            var engineSelectors = {
+                'google.': ['div[data-text-ad]', '.uEierd', '.commercial-unit-desktop-top', '.commercial-unit-desktop-bottom', ""div[aria-label='Ads']"", ""div[aria-label='Sponsored']""],
+                'bing.': ['li.b_ad', '.b_adTop', '.b_adBottom', '.b_ad'],
+                'duckduckgo.': [""[data-testid='ad']"", '.badge--ad', '.result--ad'],
+                'yahoo.': ['.searchCenterTopAds', '.searchRightAds', '.compTopAds', '.compBottomAds'],
+                'search.brave.': ['.ad-result', ""[data-type='ad']""],
+                'ecosia.': ['.result-ad', '.ad-item']
+            };
+
+            var selectors = [];
+            for (var key in engineSelectors) {
+                if (host.indexOf(key) !== -1) { selectors = engineSelectors[key]; break; }
+            }
+
+            var injectCss = function() {
+                if (selectors.length === 0) return;
+                if (document.getElementById('hz-sponsor-hider')) return;
+                var css = selectors.map(function(s) { return s + ' { display: none !important; }'; }).join('\n');
+                var s = document.createElement('style');
+                s.id = 'hz-sponsor-hider';
+                s.textContent = css;
+                (document.head || document.documentElement).appendChild(s);
+            };
+
+            var AD_LABELS = {
+                ad: 1, ads: 1, sponsored: 1, advertisement: 1, promoted: 1,
+                'спонсорирано': 1, 'реклама': 1, 'платена реклама': 1,
+                'anuncio': 1, 'publicidad': 1, 'patrocinado': 1,
+                'anzeige': 1, 'gesponsert': 1, 'werbung': 1,
+                'annonce': 1, 'publicité': 1, 'sponsorisé': 1,
+                'sponsorizzato': 1, 'pubblicità': 1,
+                'reclama': 1, 'sponsorizat': 1
+            };
+
+            var findContainer = function(labelEl) {
+                var node = labelEl;
+                var candidate = labelEl;
+                for (var i = 0; i < 8; i++) {
+                    if (!node.parentElement) break;
+                    node = node.parentElement;
+                    var rect = node.getBoundingClientRect();
+                    var linkCount = node.querySelectorAll('a').length;
+                    if (rect.height > 700 || linkCount > 10) break;
+                    candidate = node;
+                }
+                return candidate;
+            };
+
+            var hideByLabel = function() {
+                var nodes = document.querySelectorAll('span, div, a, label, h1, h2, h3, b, strong');
+                for (var i = 0; i < nodes.length; i++) {
+                    var el = nodes[i];
+                    if (el.dataset && el.dataset.hzHidden) continue;
+                    var text = (el.textContent || '').trim().toLowerCase();
+                    if (text.length > 0 && text.length <= 24 && AD_LABELS[text]) {
+                        var container = findContainer(el);
+                        if (container) {
+                            container.style.setProperty('display', 'none', 'important');
+                            if (container.dataset) container.dataset.hzHidden = '1';
+                        }
+                    }
+                }
+            };
+
+            var runPass = function() {
+                injectCss();
+                hideByLabel();
+            };
+
+            var debounceTimer = null;
+            var scheduleRun = function() {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(runPass, 200);
+            };
+
+            document.readyState === 'loading'
+                ? document.addEventListener('DOMContentLoaded', runPass)
+                : runPass();
+
+            var observer = new MutationObserver(scheduleRun);
+            var startObserving = function() {
+                if (document.body) observer.observe(document.body, { childList: true, subtree: true });
+                else setTimeout(startObserving, 100);
+            };
+            startObserving();
+
+            var origPush = history.pushState;
+            history.pushState = function() {
+                origPush.apply(this, arguments);
+                setTimeout(runPass, 300);
+            };
+        })();
+    ";
+
+    public static async Task ApplyStealthStrategies(CoreWebView2 webView)
+    {
+        try
+        {
+            webView.Settings.UserAgent = GlobalUserAgent;
+            await webView.AddScriptToExecuteOnDocumentCreatedAsync(SCRIPT_YOUTUBE_INTERVENTION);
+            await webView.AddScriptToExecuteOnDocumentCreatedAsync(SCRIPT_YOUTUBE_SCROLL_FIX);
+            await webView.AddScriptToExecuteOnDocumentCreatedAsync($"window.__hzTikTokAutoplay = {(SettingsService.Current.TikTokAutoplayOnLoad ? "true" : "false")};");
+            await webView.AddScriptToExecuteOnDocumentCreatedAsync(SCRIPT_TIKTOK_INTERVENTION);
+
+            if (SettingsService.Current.HideSponsoredResults)
+                await webView.AddScriptToExecuteOnDocumentCreatedAsync(SCRIPT_HIDE_SPONSORED_RESULTS);
+
+            if (Environment.GetCommandLineArgs().Any(a => a.Equals("--enable-frame-probe", StringComparison.OrdinalIgnoreCase)))
+            {
+                await webView.AddScriptToExecuteOnDocumentCreatedAsync(SCRIPT_DIAGNOSTIC_FRAME_PROBE);
+            }
+        }
+        catch (Exception ex)
+        {
+            LogService.RecordCrash(ex, "ApplyStealthStrategies");
+        }
+    }
+
+    private const string SCRIPT_DIAGNOSTIC_FRAME_PROBE = @"
+        (function() {
+            if (window.__hzFrameProbeInjected) return;
+            window.__hzFrameProbeInjected = true;
+            let lastT = performance.now();
+            let frameDeltas = [];
+            let longTaskCount = 0;
+
+            if (window.PerformanceObserver) {
+                try {
+                    const po = new PerformanceObserver((list) => {
+                        longTaskCount += list.getEntries().length;
+                    });
+                    po.observe({ entryTypes: ['longtask'] });
+                } catch(e) {}
+            }
+
+            function onFrame(now) {
+                const delta = now - lastT;
+                lastT = now;
+                frameDeltas.push(delta);
+                if (frameDeltas.length > 6000) frameDeltas.shift();
+                requestAnimationFrame(onFrame);
+            }
+            requestAnimationFrame(onFrame);
+
+            window.__hzGetFrameMetrics = function() {
+                if (frameDeltas.length === 0) return { p50: 0, p99: 0, longTasks: longTaskCount, sampleCount: 0 };
+                const sorted = [...frameDeltas].sort((a,b) => a - b);
+                const p50 = sorted[Math.floor(sorted.length * 0.5)];
+                const p99 = sorted[Math.floor(sorted.length * 0.99)];
+                return { p50: p50, p99: p99, longTasks: longTaskCount, sampleCount: frameDeltas.length };
+            };
+        })();
+    ";
+}

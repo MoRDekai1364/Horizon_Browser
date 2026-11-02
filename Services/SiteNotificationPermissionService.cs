@@ -14,8 +14,8 @@ public class SitePermissionEntry
 
 public static class SiteNotificationPermissionService
 {
-    private static readonly string _folder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "HorizonData");
-    private static readonly string _path = Path.Combine(_folder, "notification_permissions.json");
+    private static string _folder => ConfigService.UserDataRoot;
+    private static string _path => Path.Combine(_folder, "notification_permissions.json");
 
     public static Dictionary<string, SitePermissionEntry> Entries { get; private set; } = new();
 

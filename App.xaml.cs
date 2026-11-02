@@ -47,10 +47,9 @@ public partial class App : Application
     }
     protected override void OnStartup(StartupEventArgs e)
     {
+        ConfigService.Initialize(e.Args);
         LogService.Initialize();
-        LogService.Write("BOOT", "Horizon Stealth Browser is starting...");
-
-        ConfigService.InitializeFileSystem();
+        LogService.Write("BOOT", $"Horizon Browser is starting (Mode={(ConfigService.IsDevMode ? "Dev" : "Production")}, Profile={ConfigService.ProfileName})...");
         ExtensionService.EnsureInstalled();
         _ = Task.Run(() =>
         {
@@ -61,6 +60,10 @@ public partial class App : Application
         this.DispatcherUnhandledException += OnDispatcherUnhandledException;
         AppDomain.CurrentDomain.UnhandledException += OnDomainUnhandledException;
         TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
+        AppDomain.CurrentDomain.ProcessExit += (s, e) =>
+        {
+            LogService.Write("BOOT", $"ProcessExit triggered! Stack: {Environment.StackTrace}");
+        };
 
         bool maintenanceMode = false;
         bool trayStart = false;
@@ -169,7 +172,7 @@ public partial class App : Application
             try { LocalizationService.Instance.SetLanguage(SettingsService.Current.AppLanguage); }
             catch (Exception ex) { LogService.RecordCrash(ex, "Startup Localization Load"); }
 
-            _ = StealthEnvironment.InitializeAsync();
+            _ = HorizonEnvironment.InitializeAsync();
             GeoIpService.KickOffBackgroundRefresh();
             VpnThroughputHistoryService.Start();
             _mainServicesStarted = true;
@@ -226,6 +229,11 @@ public partial class App : Application
                     }
                 }
 
+                if (e.Args.Any(a => a.Equals("--phase0-benchmark", StringComparison.OrdinalIgnoreCase)))
+                {
+                    startUrl = PerformanceTelemetryService.BaselineWorkloads.InteractiveForegroundPage;
+                }
+
                 if (webAppManifest != null)
                 {
                     LogService.Write("BOOT", $"Mode: WebApp window ({webAppManifest.Id})");
@@ -275,11 +283,69 @@ public partial class App : Application
                         unminimizeTimer.Start();
                     });
                 }
+
+                if (e.Args.Any(a => a.Equals("--phase0-benchmark", StringComparison.OrdinalIgnoreCase)))
+                {
+                    int repeats = 10;
+                    int dwell = 360;
+                    int launchId = 1;
+                    foreach (var arg in e.Args)
+                    {
+                        if (arg.StartsWith("--repeats=", StringComparison.OrdinalIgnoreCase) &&
+                            int.TryParse(arg.Substring("--repeats=".Length), out int r) && r > 0)
+                        {
+                            repeats = r;
+                        }
+                        else if (arg.StartsWith("--dwell-seconds=", StringComparison.OrdinalIgnoreCase) &&
+                            int.TryParse(arg.Substring("--dwell-seconds=".Length), out int d) && d >= 0)
+                        {
+                            dwell = d;
+                        }
+                        else if (arg.StartsWith("--launch-id=", StringComparison.OrdinalIgnoreCase) &&
+                            int.TryParse(arg.Substring("--launch-id=".Length), out int lid) && lid > 0)
+                        {
+                            launchId = lid;
+                        }
+                    }
+
+                    _ = Task.Run(async () =>
+                    {
+                        await Task.Delay(5000);
+                        await PerformanceTelemetryService.RunAutomatedBaselineSuiteAsync(
+                            openTabAsync: url => browser.Dispatcher.InvokeAsync(() => browser.CreateNewTab(url, activate: false)).Task,
+                            evaluateScriptAsync: async script =>
+                            {
+                                return await browser.Dispatcher.InvokeAsync(async () =>
+                                {
+                                    var wv = browser.CurrentBrowser?.MainWebView?.CoreWebView2;
+                                    return wv != null ? await wv.ExecuteScriptAsync(script) : "{}";
+                                }).Task.Unwrap();
+                            },
+                            repeatsPerState: repeats,
+                            hiddenDwellSeconds: dwell,
+                            launchId: launchId,
+                            progressCallback: msg => LogService.Write("BENCHMARK", msg)
+                        );
+
+                        if (e.Args.Any(a => a.Equals("--auto-exit-after-benchmark", StringComparison.OrdinalIgnoreCase)))
+                        {
+                            await Task.Delay(1000);
+                            await browser.Dispatcher.InvokeAsync(() => Application.Current.Shutdown());
+                        }
+                    });
+                }
             }
             catch (Exception ex)
             {
                 LogService.RecordCrash(ex, "Failed to launch MainWindow");
-                MessageBox.Show("Could not launch Browser.\n" + ex.Message + "\n\nAt: " + (ex.StackTrace ?? "").Split('\n')[0].Trim());
+                string detail = "";
+                var inner = ex.InnerException;
+                while (inner != null)
+                {
+                    detail += $"\n\nDetails: {inner.Message}";
+                    inner = inner.InnerException;
+                }
+                MessageBox.Show("Could not launch Browser.\n" + ex.Message + detail + "\n\nAt: " + (ex.StackTrace ?? "").Split('\n')[0].Trim());
                 Shutdown();
             }
         }
@@ -387,7 +453,7 @@ public partial class App : Application
             try { ThemeService.ApplyTheme(SettingsService.Current.Theme); }
             catch (Exception ex) { LogService.RecordCrash(ex, "Standby ApplyTheme"); }
 
-            _ = StealthEnvironment.InitializeAsync();
+            _ = HorizonEnvironment.InitializeAsync();
             BackgroundKeepAliveService.OnMainWindowRequested = ShowNewMainWindow;
 
             int opened = WebAppHostService.RestoreHost(entries);
@@ -508,7 +574,7 @@ public partial class App : Application
             try { ThemeService.ApplyTheme(SettingsService.Current.Theme); }
             catch (Exception ex) { LogService.RecordCrash(ex, "WebAppHost ApplyTheme"); }
 
-            _ = StealthEnvironment.InitializeAsync();
+            _ = HorizonEnvironment.InitializeAsync();
             BackgroundKeepAliveService.OnMainWindowRequested = ShowNewMainWindow;
             WebAppHostService.StartHost(manifest);
         }

@@ -12,9 +12,7 @@ namespace Horizon.Stealth.Services;
 /// </summary>
 public static class CacheJanitorService
 {
-    private static string StateFile => Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "Horizon_Browser", "HorizonData", "cache_janitor.json");
+    private static string StateFile => Path.Combine(ConfigService.UserDataRoot, "cache_janitor.json");
 
     /// <summary>How many days between automatic cache flushes. Default: 14.</summary>
     public static int IntervalDays { get; set; } = 14;

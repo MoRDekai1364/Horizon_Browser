@@ -117,6 +117,16 @@ public static class TabColorPaletteExtractor
             byte[] pixels = new byte[height * stride];
             converted.CopyPixels(pixels, stride, 0);
 
+            // Fast path: Native Rust Core palette extraction (SIMD/zero-allocation)
+            if (HorizonCore.IsAvailable)
+            {
+                var rustPalette = HorizonCore.ExtractPalette(pixels, 3);
+                if (rustPalette != null && rustPalette.Count > 0)
+                {
+                    return rustPalette;
+                }
+            }
+
             var colorCounts = new Dictionary<int, int>();
             int step = Math.Max(4, (pixels.Length / 4) / 2000) * 4;
 

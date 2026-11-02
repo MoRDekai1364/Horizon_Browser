@@ -4,6 +4,8 @@
 [Oo]utput/
 [Rr]edist/
 github_push/
+target/
+Native/**/target/
 
 # Visual Studio / Rider / VS Code cache
 .vs/

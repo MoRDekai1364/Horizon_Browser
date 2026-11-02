@@ -3,7 +3,7 @@
 ; Non-commercial use only
 
 #define MyAppName "Horizon_Browser"
-#define MyAppVersion "2.7.6"
+#define MyAppVersion "2.7.9"
 #define MyAppPublisher "Swordmaster_Studios Inc."
 #define MyAppURL "https://github.com/MoRDekai1364/Horizon_Browser"
 #define MyAppExeName "Horizon.Browser.exe"
@@ -55,7 +55,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "E:\Programming\Personal_projects\Horizon_Browser\Horizon_Browser_official_release\code_files\bin\Release\*"; DestDir: "{app}"; Excludes: "net8.0-windows*,logs\*,*.pdb"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "E:\Programming\Personal_projects\Horizon_Browser\Horizon_Browser_official_release\code_files\bin\Release\*"; DestDir: "{app}"; Excludes: "net8.0-windows*,logs\*,*.pdb,test_fixtures\*"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Registry]

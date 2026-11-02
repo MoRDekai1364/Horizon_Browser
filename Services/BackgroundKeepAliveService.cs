@@ -10,7 +10,20 @@ namespace Horizon.Stealth.Services;
 
 public static class BackgroundKeepAliveService
 {
-    private const string PipeName = "HorizonBrowserActivate_v1";
+    private static string PipeName => ConfigService.IsDevMode
+        ? $"HorizonBrowserActivate_Dev_{ConfigService.ProfileName}_v1"
+        : "HorizonBrowserActivate_v1";
+
+    public static bool IsMainInstanceRunning()
+    {
+        try
+        {
+            using var client = new NamedPipeClientStream(".", "HorizonBrowserActivate_v1", PipeDirection.Out);
+            client.Connect(100);
+            return true;
+        }
+        catch { return false; }
+    }
 
     private static Forms.NotifyIcon? _trayIcon;
     private static CancellationTokenSource? _pipeCts;
@@ -36,10 +49,14 @@ public static class BackgroundKeepAliveService
     /// </summary>
     public static bool TryActivateExistingInstance(string command = "ACTIVATE")
     {
+        // In Dev mode with --multi-instance, skip activation to allow multiple test windows
+        if (ConfigService.IsDevMode && Environment.GetCommandLineArgs().Any(a => a.Equals("--multi-instance", StringComparison.OrdinalIgnoreCase)))
+            return false;
+
         try
         {
             using var client = new NamedPipeClientStream(".", PipeName, PipeDirection.Out);
-            client.Connect(400);
+            client.Connect(250);
             using var w = new StreamWriter(client) { AutoFlush = true };
             w.WriteLine(command);
             return true;

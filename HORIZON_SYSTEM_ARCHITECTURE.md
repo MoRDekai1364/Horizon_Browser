@@ -86,7 +86,7 @@ The homepage features a dynamic, responsive 3-column cyberpunk layout:
 1. **Left Column (`ColClockWeather`)**:
    - Clock widget (12h/24h), dynamic weather pill, calendar events preview, media player controls, battery status pill.
 2. **Central Column (`ColSearchArea`)**:
-   - Omnibox search pill with multi-engine dropdown (`AlohFind`, `DuckDuckGo`, `Google`, `Bing`, `Brave`, `Ecosia`).
+   - Omnibox search pill with multi-engine dropdown (`AlohaFind`, `DuckDuckGo`, `Google`, `Bing`, `Brave`, `Ecosia`).
    - Search mirrors & mode selector (`PnlSearchMode`).
    - Merged glass island (`GridFavBookmarksIsland`) hosting favorites (`PnlFavoritesContainer`) and bookmarks (`PnlBookmarksContainer`).
    - Folder drawers and sheet overlay host (`_centerSheet`).

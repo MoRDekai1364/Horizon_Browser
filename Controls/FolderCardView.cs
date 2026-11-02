@@ -24,6 +24,7 @@ public sealed class FolderCardView : StackPanel
     private Canvas? _cluster;
 
     public DrawerGroup Group { get; }
+    public static event Action<string, object>? ItemDroppedIntoFolder;
 
     public event Action<FolderCardView>? OpenRequested;
     public event Action<DrawerItem>? ItemActivated;
@@ -35,6 +36,7 @@ public sealed class FolderCardView : StackPanel
 
     public static (int Cols, int Rows, int FullCount) Dims(int count, int n)
     {
+        if (count <= 0) return (1, 1, 0);
         if (count <= OneRowMax) return (count, 1, count);
         if (count <= n * n)
         {
@@ -64,12 +66,36 @@ public sealed class FolderCardView : StackPanel
         double height = rows * Tile + (rows - 1) * Gap;
         var canvas = new Canvas { Width = width, Height = height };
 
-        for (int i = 0; i < full; i++)
+        if (count == 0)
         {
-            var tile = BuildTile(group.Items[i], Tile, 30, 12, true);
-            Canvas.SetLeft(tile, (i % cols) * (Tile + Gap));
-            Canvas.SetTop(tile, (i / cols) * (Tile + Gap));
-            canvas.Children.Add(tile);
+            var emptyBorder = new Border
+            {
+                Width = Tile,
+                Height = Tile,
+                CornerRadius = new CornerRadius(12),
+                Background = new SolidColorBrush(Color.FromArgb(0x0D, 0xFF, 0xFF, 0xFF)),
+                BorderBrush = new SolidColorBrush(Color.FromArgb(0x1F, 0xFF, 0xFF, 0xFF)),
+                BorderThickness = new Thickness(1),
+                Child = new TextBlock
+                {
+                    Text = "\U0001F4C1",
+                    FontSize = 20,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Center,
+                    Opacity = 0.5
+                }
+            };
+            canvas.Children.Add(emptyBorder);
+        }
+        else
+        {
+            for (int i = 0; i < full; i++)
+            {
+                var tile = BuildTile(group.Items[i], Tile, 30, 12, true);
+                Canvas.SetLeft(tile, (i % cols) * (Tile + Gap));
+                Canvas.SetTop(tile, (i / cols) * (Tile + Gap));
+                canvas.Children.Add(tile);
+            }
         }
 
         if (count > fullLimit)
@@ -88,11 +114,12 @@ public sealed class FolderCardView : StackPanel
                     OpenRequested?.Invoke(this);
                 };
             }
+            double miniOffset = Math.Max(0, (Tile - (2 * MiniTile + MiniGap)) / 2.0);
             for (int k = 0; k < extra; k++)
             {
                 var mini = BuildTile(group.Items[fullLimit + k], MiniTile, 14, 6, false);
-                Canvas.SetLeft(mini, (k % 2) * (MiniTile + MiniGap));
-                Canvas.SetTop(mini, (k / 2) * (MiniTile + MiniGap));
+                Canvas.SetLeft(mini, miniOffset + (k % 2) * (MiniTile + MiniGap));
+                Canvas.SetTop(mini, miniOffset + (k / 2) * (MiniTile + MiniGap));
                 cluster.Children.Add(mini);
             }
             Canvas.SetLeft(cluster, (cols - 1) * (Tile + Gap));
@@ -114,12 +141,13 @@ public sealed class FolderCardView : StackPanel
         var name = new TextBlock
         {
             Text = group.Name,
-            FontSize = 14,
-            Height = NameH,
-            Opacity = 0.8,
+            FontSize = 13,
+            FontWeight = FontWeights.Medium,
+            Opacity = 0.85,
             HorizontalAlignment = HorizontalAlignment.Center,
+            TextAlignment = TextAlignment.Center,
             TextTrimming = TextTrimming.CharacterEllipsis,
-            MaxWidth = width + CardChrome,
+            MaxWidth = Math.Max(width + CardChrome, 100),
             Margin = new Thickness(0, NameGap, 0, 0)
         };
         name.SetResourceReference(TextBlock.ForegroundProperty, "HomeTextBrush");
@@ -132,6 +160,43 @@ public sealed class FolderCardView : StackPanel
 
         Margin = new Thickness(CellMargin);
         Background = Brushes.Transparent;
+        AllowDrop = true;
+        DragOver += (s, e) =>
+        {
+            if (e.Data.GetDataPresent("HorizonDragItem") || e.Data.GetDataPresent(typeof(DrawerItem)) || e.Data.GetDataPresent(typeof(PinItem)) || e.Data.GetDataPresent(typeof(BookmarkItem)))
+            {
+                e.Effects = DragDropEffects.Move;
+                e.Handled = true;
+            }
+            else
+            {
+                e.Effects = DragDropEffects.None;
+            }
+        };
+        Drop += (s, e) =>
+        {
+            object? raw = null;
+            if (e.Data.GetDataPresent("HorizonDragItem")) raw = e.Data.GetData("HorizonDragItem");
+            else if (e.Data.GetDataPresent(typeof(DrawerItem))) raw = e.Data.GetData(typeof(DrawerItem));
+            else if (e.Data.GetDataPresent(typeof(PinItem))) raw = e.Data.GetData(typeof(PinItem));
+            else if (e.Data.GetDataPresent(typeof(BookmarkItem))) raw = e.Data.GetData(typeof(BookmarkItem));
+
+            if (raw is DrawerItem di) raw = di.Source ?? raw;
+
+            if (raw is PinItem pin)
+            {
+                pin.Category = Group.Name;
+                SettingsService.Save();
+                ItemDroppedIntoFolder?.Invoke(Group.Name, pin);
+            }
+            else if (raw is BookmarkItem bm)
+            {
+                bm.Category = Group.Name;
+                BookmarkService.SaveBookmarks();
+                ItemDroppedIntoFolder?.Invoke(Group.Name, bm);
+            }
+            e.Handled = true;
+        };
         Children.Add(card);
         Children.Add(name);
         if (!clusterOnly || count <= fullLimit)
@@ -165,6 +230,15 @@ public sealed class FolderCardView : StackPanel
     {
         FrameworkElement glyph = TileFallback.Glyph(item, iconSize);
 
+        var host = new Grid
+        {
+            Width = size,
+            Height = size,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        host.Children.Add(glyph);
+
         var tile = new Border
         {
             Width = size,
@@ -174,7 +248,7 @@ public sealed class FolderCardView : StackPanel
             BorderThickness = new Thickness(1),
             ClipToBounds = true,
             IsHitTestVisible = interactive,
-            Child = glyph
+            Child = host
         };
         TileFallback.Paint(tile, item);
 
@@ -240,25 +314,59 @@ public sealed class FolderCardHost : WrapPanel
     {
         double total = ActualHeight;
         if (total <= 0 || Children.Count == 0) return budget;
-        if (total <= budget) return total;
+        if (total <= budget + 85.0) return total;
+
+        double singleCardHeight = 0;
+        foreach (UIElement child in Children)
+        {
+            if (child is FrameworkElement fe)
+            {
+                double h = fe.ActualHeight > 0 ? fe.ActualHeight : fe.DesiredSize.Height;
+                if (h > 0)
+                {
+                    if (fe.LayoutTransform is ScaleTransform st && st.ScaleY > 0)
+                        h *= st.ScaleY;
+                    h += fe.Margin.Top + fe.Margin.Bottom;
+                    singleCardHeight = Math.Max(singleCardHeight, h);
+                }
+            }
+        }
+        if (singleCardHeight <= 0) singleCardHeight = 210.0;
+
         var tops = new List<double>();
         foreach (UIElement child in Children)
         {
             if (child is not FrameworkElement card) continue;
-            double top = Math.Round(card.TranslatePoint(new Point(0, 0), this).Y);
+            double top = 0;
+            try
+            {
+                var offset = VisualTreeHelper.GetOffset(card);
+                top = Math.Round(offset.Y);
+            }
+            catch
+            {
+                try
+                {
+                    top = Math.Round(card.TranslatePoint(new Point(0, 0), this).Y);
+                }
+                catch { }
+            }
             if (!tops.Contains(top)) tops.Add(top);
         }
         tops.Sort();
+
         double fit = 0;
-        double firstBottom = 0;
+        double firstBottom = tops.Count > 1 ? tops[1] + singleCardHeight : singleCardHeight;
+
         for (int i = 0; i < tops.Count; i++)
         {
-            double bottom = i + 1 < tops.Count ? tops[i + 1] : total;
-            if (i == 0) firstBottom = bottom;
-            if (bottom <= budget + 0.5) fit = bottom;
+            double bottom = tops[i] + singleCardHeight;
+            if (bottom <= budget + 85.0) fit = bottom;
         }
         if (fit > 0) return fit;
-        return atLeastFirstRow ? firstBottom : budget;
+
+        double fallback = atLeastFirstRow ? Math.Max(singleCardHeight, firstBottom) : singleCardHeight;
+        return Math.Max(1.0, fallback);
     }
 }
 
@@ -275,7 +383,7 @@ public sealed class StartMenuView : UserControl
     private readonly TranslateTransform _slide = new();
     private readonly PagerDots _dots;
     private readonly TextBox _filter;
-    private readonly FolderSheetHost _sheet = new();
+    private readonly FolderSheetHost _sheet = new() { HasWallpaperBlur = false };
     private List<DrawerGroup> _all = new();
     private List<DrawerGroup> _shown = new();
     private int _page;
@@ -311,7 +419,11 @@ public sealed class StartMenuView : UserControl
             if (_sheet.IsOpen) _sheet.Close();
             else CloseRequested?.Invoke();
         });
-        var close = RoundButton("\u2715", 12, new Thickness(0), "Close", () => CloseRequested?.Invoke());
+        var close = RoundButton("\u2715", 12, new Thickness(0), "Close", () =>
+        {
+            if (_sheet.IsOpen) _sheet.Close();
+            CloseRequested?.Invoke();
+        });
 
         _filter = new TextBox
         {
@@ -387,9 +499,21 @@ public sealed class StartMenuView : UserControl
         _root.Children.Add(_sheet);
         Content = _root;
 
+        PreviewKeyDown += (_, e) =>
+        {
+            if (e.Key == Key.Escape)
+            {
+                if (_sheet.IsOpen) _sheet.Close();
+                else CloseRequested?.Invoke();
+                e.Handled = true;
+            }
+        };
+
         _viewport.SizeChanged += (_, _) =>
         {
-            _filter.Width = Math.Clamp(_viewport.ActualWidth * 0.34, 110, 260);
+            double avail = Math.Max(0, _viewport.ActualWidth - 120);
+            _filter.Width = Math.Clamp(_viewport.ActualWidth * 0.30, 60, Math.Min(240, avail));
+            _filter.Visibility = avail < 60 ? Visibility.Collapsed : Visibility.Visible;
             if (_pageCount == 0)
             {
                 Relayout();
@@ -407,9 +531,27 @@ public sealed class StartMenuView : UserControl
         PreviewMouseWheel += (_, e) =>
         {
             if (_sheet.IsOpen) return;
+            bool isCtrl = (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control;
+            if (isCtrl)
+            {
+                if (_pageCount <= 1) return;
+                e.Handled = true;
+                GoTo(_page + (e.Delta < 0 ? 1 : -1));
+                return;
+            }
+
             e.Handled = true;
-            if (_pageCount <= 1) return;
-            GoTo(_page + (e.Delta < 0 ? 1 : -1));
+            // Normal scroll: Vertical scrolling ONLY within current page
+            ScrollViewer? currentScroll = (_page >= 0 && _page < _strip.Children.Count)
+                ? _strip.Children[_page] as ScrollViewer
+                : null;
+
+            if (currentScroll != null && currentScroll.ScrollableHeight > 0)
+            {
+                double step = 48.0;
+                double target = currentScroll.VerticalOffset - (e.Delta > 0 ? step : -step);
+                currentScroll.ScrollToVerticalOffset(Math.Clamp(target, 0, currentScroll.ScrollableHeight));
+            }
         };
     }
 
@@ -722,13 +864,21 @@ public sealed class FolderSheetHost : Grid
 {
     private const double OpenSeconds = 0.3;
 
+    private readonly Grid _backdropHost;
     private readonly Border _scrim;
     private readonly Border _sheet;
+    private readonly Border _wallClip;
+    private readonly Border _wallLayer;
+    private readonly ImageBrush _wallBrush;
+    private readonly Border _tintLayer;
+    private readonly ContentPresenter _contentPresenter;
     private readonly ScaleTransform _scale = new();
     private readonly TranslateTransform _move = new();
     private Rect _origin;
     private bool _open;
     private bool _closing;
+
+    public bool HasWallpaperBlur { get; set; } = false;
 
     public event Action? Closed;
 
@@ -742,29 +892,81 @@ public sealed class FolderSheetHost : Grid
 
         HomeGlass.SetExclude(this, true);
 
+        _backdropHost = new Grid
+        {
+            ClipToBounds = true,
+            Opacity = 0,
+            IsHitTestVisible = false
+        };
+        HomeGlass.SetExclude(_backdropHost, true);
+
+        _wallBrush = new ImageBrush
+        {
+            Stretch = Stretch.UniformToFill
+        };
+
+        _wallLayer = new Border
+        {
+            Margin = new Thickness(-32),
+            Background = _wallBrush,
+            Opacity = 0.95
+        };
+
+        _wallClip = new Border
+        {
+            ClipToBounds = true,
+            Child = _wallLayer
+        };
+
         _scrim = new Border
         {
-            Background = new SolidColorBrush(Color.FromArgb(0x66, 0, 0, 0)),
-            Opacity = 0
+            Background = new SolidColorBrush(Color.FromArgb(0x66, 0, 0, 0))
         };
         HomeGlass.SetExclude(_scrim, true);
+
+        _backdropHost.Children.Add(_wallClip);
+        _backdropHost.Children.Add(_scrim);
 
         _sheet = new Border
         {
             BorderThickness = new Thickness(1),
             ClipToBounds = true,
-            RenderTransformOrigin = new Point(0, 0)
+            RenderTransformOrigin = new Point(0, 0),
+            Visibility = Visibility.Collapsed
         };
         HomeGlass.SetExclude(_sheet, true);
-        _sheet.SetResourceReference(Border.BackgroundProperty, "SharedSearchBgBrush");
+
         _sheet.SetResourceReference(Border.BorderBrushProperty, "SharedSearchBorderBrush");
+
+        var sheetGrid = new Grid();
+
+        _tintLayer = new Border();
+        _tintLayer.SetResourceReference(Border.BackgroundProperty, "SharedSearchBgBrush");
+
+        _contentPresenter = new ContentPresenter();
+
+        sheetGrid.Children.Add(_tintLayer);
+        sheetGrid.Children.Add(_contentPresenter);
+
+        _sheet.Child = sheetGrid;
+
         var transforms = new TransformGroup();
         transforms.Children.Add(_scale);
         transforms.Children.Add(_move);
         _sheet.RenderTransform = transforms;
 
-        Children.Add(_scrim);
+        Children.Add(_backdropHost);
         Children.Add(_sheet);
+
+        UpdateBackdrop();
+        Action backdropHandler = () => Dispatcher.BeginInvoke(new Action(UpdateBackdrop));
+        WeatherBridge.ThemeUpdated += backdropHandler;
+        HomeGlassMotion.BlurSettingChanged += backdropHandler;
+        Unloaded += (_, _) =>
+        {
+            WeatherBridge.ThemeUpdated -= backdropHandler;
+            HomeGlassMotion.BlurSettingChanged -= backdropHandler;
+        };
 
         KeyDown += (_, e) =>
         {
@@ -774,6 +976,22 @@ public sealed class FolderSheetHost : Grid
         };
     }
 
+    private void UpdateBackdrop()
+    {
+        bool flat = SettingsService.Current.DisableBlurEffects || !HasWallpaperBlur;
+        _wallLayer.Effect = flat ? null : new System.Windows.Media.Effects.BlurEffect
+        {
+            Radius = 32,
+            KernelType = System.Windows.Media.Effects.KernelType.Gaussian,
+            RenderingBias = System.Windows.Media.Effects.RenderingBias.Performance
+        };
+        var wallpaper = WeatherBridge.ThemeWallpaper;
+        _wallBrush.ImageSource = wallpaper;
+        _wallClip.Visibility = (!flat && wallpaper != null) ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    public Border SheetBorder => _sheet;
+
     public CornerRadius CornerRadius
     {
         get => _sheet.CornerRadius;
@@ -781,26 +999,32 @@ public sealed class FolderSheetHost : Grid
         {
             _sheet.CornerRadius = value;
             _scrim.CornerRadius = value;
+            _wallClip.CornerRadius = value;
+            _tintLayer.CornerRadius = value;
+            bool isFullScreen = value.TopLeft == 0 && value.BottomRight == 0;
+            _sheet.BorderThickness = isFullScreen ? new Thickness(0) : new Thickness(1);
         }
     }
 
     public bool IsOpen => _open && !_closing;
 
-    public FrameworkElement? Content => _sheet.Child as FrameworkElement;
+    public FrameworkElement? Content => _contentPresenter.Content as FrameworkElement;
 
     public void Open(FrameworkElement content, Rect origin)
     {
         _closing = false;
         if (_open)
         {
-            _sheet.Child = content;
+            _contentPresenter.Content = content;
             return;
         }
 
+        UpdateBackdrop();
         _open = true;
         _origin = origin;
-        _sheet.Child = content;
+        _contentPresenter.Content = content;
         Visibility = Visibility.Visible;
+        _sheet.Visibility = Visibility.Visible;
         UpdateLayout();
 
         double width = Math.Max(1, ActualWidth);
@@ -814,14 +1038,35 @@ public sealed class FolderSheetHost : Grid
         _move.X = origin.X;
         _move.Y = origin.Y;
         _sheet.Opacity = 0;
-        _scrim.Opacity = 0;
+        _backdropHost.Opacity = 0;
 
-        _scale.BeginAnimation(ScaleTransform.ScaleXProperty, SnapMotion.Move(1));
-        _scale.BeginAnimation(ScaleTransform.ScaleYProperty, SnapMotion.Move(1));
-        _move.BeginAnimation(TranslateTransform.XProperty, SnapMotion.Move(0));
-        _move.BeginAnimation(TranslateTransform.YProperty, SnapMotion.Move(0));
+        _sheet.CacheMode = new BitmapCache
+        {
+            RenderAtScale = 1.0,
+            EnableClearType = false,
+            SnapsToDevicePixels = true
+        };
+
+        var scaleAnimX = SnapMotion.Move(1);
+        var scaleAnimY = SnapMotion.Move(1);
+        var moveAnimX = SnapMotion.Move(0);
+        var moveAnimY = SnapMotion.Move(0);
+
+        scaleAnimX.Completed += (_, _) =>
+        {
+            if (_open && !_closing)
+            {
+                _sheet.CacheMode = null;
+            }
+        };
+
+        _scale.BeginAnimation(ScaleTransform.ScaleXProperty, scaleAnimX);
+        _scale.BeginAnimation(ScaleTransform.ScaleYProperty, scaleAnimY);
+        _move.BeginAnimation(TranslateTransform.XProperty, moveAnimX);
+        _move.BeginAnimation(TranslateTransform.YProperty, moveAnimY);
         _sheet.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromSeconds(0.18)));
-        _scrim.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromSeconds(OpenSeconds)));
+        _backdropHost.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromSeconds(OpenSeconds)));
+
         foreach (var underlay in Underlays)
         {
             underlay.IsHitTestVisible = false;
@@ -842,6 +1087,13 @@ public sealed class FolderSheetHost : Grid
         var duration = new Duration(TimeSpan.FromSeconds(OpenSeconds));
         var ease = new CubicEase { EasingMode = EasingMode.EaseInOut };
 
+        _sheet.CacheMode = new BitmapCache
+        {
+            RenderAtScale = 1.0,
+            EnableClearType = false,
+            SnapsToDevicePixels = true
+        };
+
         _scale.BeginAnimation(ScaleTransform.ScaleXProperty, new DoubleAnimation(endX, duration) { EasingFunction = ease });
         _scale.BeginAnimation(ScaleTransform.ScaleYProperty, new DoubleAnimation(endY, duration) { EasingFunction = ease });
         _move.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation(_origin.X, duration) { EasingFunction = ease });
@@ -856,7 +1108,7 @@ public sealed class FolderSheetHost : Grid
             if (!_closing) return;
             Finish();
         };
-        _scrim.BeginAnimation(OpacityProperty, fade);
+        _backdropHost.BeginAnimation(OpacityProperty, fade);
     }
 
     private void Finish()
@@ -869,7 +1121,8 @@ public sealed class FolderSheetHost : Grid
             underlay.Opacity = 1;
             underlay.IsHitTestVisible = true;
         }
-        _sheet.Child = null;
+        _contentPresenter.Content = null;
+        _sheet.Visibility = Visibility.Collapsed;
         _open = false;
         _closing = false;
         Closed?.Invoke();
@@ -882,9 +1135,10 @@ public sealed class FolderSheetHost : Grid
         _move.BeginAnimation(TranslateTransform.XProperty, null);
         _move.BeginAnimation(TranslateTransform.YProperty, null);
         _sheet.BeginAnimation(OpacityProperty, null);
-        _scrim.BeginAnimation(OpacityProperty, null);
+        _backdropHost.BeginAnimation(OpacityProperty, null);
+        _sheet.CacheMode = null;
         _sheet.Opacity = 0;
-        _scrim.Opacity = 0;
+        _backdropHost.Opacity = 0;
         _scale.ScaleX = 1;
         _scale.ScaleY = 1;
         _move.X = 0;
