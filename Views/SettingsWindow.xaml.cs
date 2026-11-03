@@ -1075,6 +1075,22 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
         ChkMediaWidgetAutoShowOnMinimize.Unchecked += ChkMediaWidgetAutoShowOnMinimize_Changed;
         ChkSilentUpdateCheck.IsChecked     = s.SilentUpdateCheckEnabled;
         ChkAutoDownloadUpdates.IsChecked   = s.AutoDownloadUpdatesEnabled;
+
+        string currentFreq = s.UpdateCheckFrequency ?? "Weekly";
+        foreach (ComboBoxItem item in CboUpdateFrequency.Items)
+        {
+            if (string.Equals(item.Tag?.ToString(), currentFreq, StringComparison.OrdinalIgnoreCase))
+            {
+                CboUpdateFrequency.SelectedItem = item;
+                break;
+            }
+        }
+        if (CboUpdateFrequency.SelectedItem == null && CboUpdateFrequency.Items.Count > 1)
+        {
+            CboUpdateFrequency.SelectedIndex = 1;
+        }
+
+        RefreshAutoInstallDirDisplay();
         ChkStealth.IsChecked              = s.IsStealthMode;
         ChkSleepingTabsEnabled.IsChecked  = s.SleepingTabsEnabled;
         ChkBackgroundTimerThrottling.IsChecked = s.EnableBackgroundTimerThrottling;
@@ -1092,7 +1108,7 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
         ChkSbMusic.IsChecked       = s.SB_MusicOfftopic;
         UpdateSponsorBlockVisuals();
 
-        ChkHideSponsoredResults.IsChecked = s.HideSponsoredResults;
+        ChkHideSponsoredResults.IsChecked = s.HideSponsoredResults;
         ChkTikTokAutoplay.IsChecked = s.TikTokAutoplayOnLoad;
 
         TxtDns.Text = s.NextDnsId;
@@ -1346,6 +1362,10 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
         s.MediaWidgetAutoShowMinimized  = ChkMediaWidgetAutoShowMinimized.IsChecked  == true;
         s.SilentUpdateCheckEnabled    = ChkSilentUpdateCheck.IsChecked   == true;
         s.AutoDownloadUpdatesEnabled  = ChkAutoDownloadUpdates.IsChecked == true;
+        if (CboUpdateFrequency.SelectedItem is ComboBoxItem freqItem && freqItem.Tag != null)
+        {
+            s.UpdateCheckFrequency = freqItem.Tag.ToString() ?? "Weekly";
+        }
         s.IsStealthMode       = ChkStealth.IsChecked             == true;
         s.SleepingTabsEnabled = ChkSleepingTabsEnabled.IsChecked == true;
         s.EnableBackgroundTimerThrottling = ChkBackgroundTimerThrottling.IsChecked == true;
@@ -1361,7 +1381,7 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
         s.SB_Outro            = ChkSbOutro.IsChecked       == true;
         s.SB_Interaction      = ChkSbInteraction.IsChecked == true;
         s.SB_MusicOfftopic    = ChkSbMusic.IsChecked       == true;
-        s.HideSponsoredResults = ChkHideSponsoredResults.IsChecked == true;
+        s.HideSponsoredResults = ChkHideSponsoredResults.IsChecked == true;
         s.TikTokAutoplayOnLoad = ChkTikTokAutoplay.IsChecked == true;
 
         s.NextDnsId = TxtDns.Text;
@@ -2485,33 +2505,175 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
             return;
         }
 
-        var ask = MessageBox.Show(
-            $"Update available: {result.LatestVersion} ({result.CurrentChannel})\nCurrent version: {result.CurrentVersion}\n\nDownload now?",
-            "Update Available", MessageBoxButton.YesNo, MessageBoxImage.Question);
+        string appropriateTarget = Services.GithubUpdateService.ResolveAppropriateInstallLocation(result.CurrentChannel);
+        var promptDlg = new UpdatePromptDialog(result, appropriateTarget)
+        {
+            Owner = this
+        };
+        promptDlg.ShowDialog();
 
-        if (ask != MessageBoxResult.Yes) return;
-        if (string.IsNullOrEmpty(result.AssetUrl) || string.IsNullOrEmpty(result.AssetName)) return;
-
-        await DownloadUpdateAsync(result.AssetUrl, result.AssetName);
+        if (promptDlg.Decision == UpdateUserDecision.UpdateNow)
+        {
+            if (string.IsNullOrEmpty(result.AssetUrl) || string.IsNullOrEmpty(result.AssetName)) return;
+            string? installerPath = await DownloadUpdateAsync(result.AssetUrl, result.AssetName);
+            if (!string.IsNullOrEmpty(installerPath) && File.Exists(installerPath))
+            {
+                LaunchAutoInstallFromSettings(installerPath, appropriateTarget);
+            }
+        }
+        else if (promptDlg.Decision == UpdateUserDecision.UpdateLaterDownloadNow)
+        {
+            if (!string.IsNullOrEmpty(result.AssetUrl) && !string.IsNullOrEmpty(result.AssetName))
+            {
+                _ = DownloadUpdateAsync(result.AssetUrl, result.AssetName);
+            }
+        }
     }
 
-    private async Task DownloadUpdateAsync(string assetUrl, string assetName)
+    private void CboUpdateFrequency_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (CboUpdateFrequency.SelectedItem is ComboBoxItem item && item.Tag != null)
+        {
+            SettingsService.Current.UpdateCheckFrequency = item.Tag.ToString() ?? "Weekly";
+            SettingsService.Save();
+        }
+    }
+
+    private void RefreshAutoInstallDirDisplay()
+    {
+        string loc = Services.GithubUpdateService.ResolveAppropriateInstallLocation("release");
+        TxtAutoInstallDir.Text = loc;
+        TxtAutoInstallDir.ToolTip = loc;
+    }
+
+    private void BtnChangeInstallDir_Click(object sender, RoutedEventArgs e)
+    {
+        var dlg = new System.Windows.Forms.FolderBrowserDialog
+        {
+            Description = "Select Target Install Directory for Horizon Updates",
+            UseDescriptionForTitle = true,
+            ShowNewFolderButton = true
+        };
+        if (dlg.ShowDialog() == System.Windows.Forms.DialogResult.OK && !string.IsNullOrWhiteSpace(dlg.SelectedPath))
+        {
+            SettingsService.Current.AutoInstallLocation = dlg.SelectedPath;
+            SettingsService.Save();
+            RefreshAutoInstallDirDisplay();
+        }
+    }
+
+    private void BtnResetInstallDir_Click(object sender, RoutedEventArgs e)
+    {
+        SettingsService.Current.AutoInstallLocation = "";
+        SettingsService.Save();
+        RefreshAutoInstallDirDisplay();
+    }
+
+    private void LaunchAutoInstallFromSettings(string installerPath, string targetDir)
+    {
+        string baseDir = AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\', '/');
+        int currentPid = Environment.ProcessId;
+
+        string[] updaterCandidates = new[]
+        {
+            Path.Combine(baseDir, "Horizon.Updater.exe"),
+            Path.Combine(baseDir, "Tools", "Horizon.Updater.exe"),
+            Path.Combine(baseDir, "Tools", "Horizon.Updater", "Horizon.Updater.exe"),
+            Path.Combine(baseDir, "..", "..", "..", "Tools", "Horizon.Updater", "bin", "Release", "net8.0-windows10.0.19041.0", "Horizon.Updater.exe"),
+            Path.Combine(baseDir, "..", "..", "..", "Tools", "Horizon.Updater", "bin", "Release", "net8.0-windows10.0.19041.0", "win-x64", "Horizon.Updater.exe")
+        };
+
+        string? updaterExe = updaterCandidates.FirstOrDefault(File.Exists);
+        if (updaterExe != null)
+        {
+            try
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName = updaterExe,
+                    Arguments = $"--installer \"{installerPath}\" --target \"{targetDir}\" --pid {currentPid}",
+                    WorkingDirectory = Path.GetDirectoryName(updaterExe),
+                    UseShellExecute = true
+                };
+                Process.Start(psi);
+                SettingsService.Current.PendingUpdateInstallerPath = "";
+                SettingsService.Save();
+                Application.Current.Shutdown();
+                return;
+            }
+            catch (Exception ex)
+            {
+                LogService.RecordCrash(ex, "SettingsWindow.LaunchAutoInstallFromSettings");
+            }
+        }
+
+        string? orchestratorPath = ResolvePath("update_orchestrator.bat");
+        if (orchestratorPath != null)
+        {
+            try
+            {
+                string targetFile = ResolvePath("path.txt") ?? Path.Combine(baseDir, "path.txt");
+                File.WriteAllText(targetFile, targetDir);
+
+                var psi = new ProcessStartInfo
+                {
+                    FileName = orchestratorPath,
+                    Arguments = $"\"{installerPath}\"",
+                    WorkingDirectory = Path.GetDirectoryName(orchestratorPath),
+                    UseShellExecute = true,
+                    WindowStyle = ProcessWindowStyle.Hidden
+                };
+                Process.Start(psi);
+                SettingsService.Current.PendingUpdateInstallerPath = "";
+                SettingsService.Save();
+                Application.Current.Shutdown();
+            }
+            catch (Exception ex)
+            {
+                LogService.RecordCrash(ex, "SettingsWindow.LaunchOrchestrator");
+            }
+        }
+    }
+
+    private async Task<string?> DownloadUpdateAsync(string assetUrl, string assetName)
     {
         BtnCheckForUpdates.IsEnabled = false;
-        BtnCheckForUpdates.Content = "DOWNLOADING...";
+        BtnCheckForUpdates.Content = "CONNECTING...";
+
+        var progress = new Progress<(long downloadedBytes, long totalBytes, double percent)>(p =>
+        {
+            if (p.totalBytes > 0)
+            {
+                double mbDownloaded = p.downloadedBytes / (1024.0 * 1024.0);
+                double mbTotal = p.totalBytes / (1024.0 * 1024.0);
+                BtnCheckForUpdates.Content = $"DOWNLOADING {p.percent:0}% ({mbDownloaded:0.0} / {mbTotal:0.0} MB)";
+            }
+            else
+            {
+                double mbDownloaded = p.downloadedBytes / (1024.0 * 1024.0);
+                BtnCheckForUpdates.Content = $"DOWNLOADING ({mbDownloaded:0.0} MB)...";
+            }
+        });
 
         try
         {
-            string path = await Services.GithubUpdateService.DownloadAssetAsync(assetUrl, assetName);
+            string path = await Services.GithubUpdateService.DownloadAssetAsync(assetUrl, assetName, progress);
+            if (!Services.GithubUpdateService.VerifyInstallerIntegrity(path))
+            {
+                throw new InvalidDataException("Downloaded installer is incomplete or corrupted.");
+            }
+
             SettingsService.Current.PendingUpdateInstallerPath = path;
             SettingsService.Save();
             Services.GithubUpdateService.NotifyUpdateReady(path);
             MessageBox.Show($"Downloaded to:\n{path}\n\nAn \"INSTALL UPDATE\" button is now available in the browser header.",
                 "Download Complete", MessageBoxButton.OK, MessageBoxImage.Information);
+            return path;
         }
         catch (Exception ex)
         {
             MessageBox.Show($"Download failed: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            return null;
         }
         finally
         {

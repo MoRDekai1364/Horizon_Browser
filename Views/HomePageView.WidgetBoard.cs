@@ -51,6 +51,12 @@ public partial class HomePageView
             }
         }
 
+        // Enable GPU raster cache mode during motion to achieve silky 60 FPS even with 100+ icons
+        if (GridFavBookmarksIsland.CacheMode == null)
+        {
+            GridFavBookmarksIsland.CacheMode = new BitmapCache { EnableClearType = false, RenderAtScale = 1.0 };
+        }
+
         if (_islandSpringTimer == null)
         {
             _islandSpringTimer = new DispatcherTimer(DispatcherPriority.Render)
@@ -87,6 +93,9 @@ public partial class HomePageView
             GridFavBookmarksIsland.Opacity = _islandTargetOpacity;
             _islandSpringTimer?.Stop();
 
+            // Release GPU cache at rest to restore native crisp typography
+            GridFavBookmarksIsland.CacheMode = null;
+
             if (_islandTargetOpacity <= 0.01)
             {
                 GridFavBookmarksIsland.Visibility = Visibility.Collapsed;
@@ -98,7 +107,6 @@ public partial class HomePageView
         // Exact asymptotic spring physics formula adapted from tab widening/shrinking (diff * 0.22 at 60 FPS)
         tt.Y = curY + (diffY * 0.22);
         GridFavBookmarksIsland.Opacity = Math.Clamp(curOp + (diffOp * 0.22), 0.0, 1.0);
-        _homeGlass?.Invalidate();
     }
 
     // =========================================================================

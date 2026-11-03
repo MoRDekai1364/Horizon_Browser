@@ -658,7 +658,7 @@
 
                       IsHitTestVisible="False" Visibility="Collapsed" ClipToBounds="True">
 
-                    <Grid x:Name="HeaderMainCropHost" HorizontalAlignment="Left" ClipToBounds="True">
+                    <Grid x:Name="HeaderMainCropHost" HorizontalAlignment="Stretch" ClipToBounds="True">
 
                         <Border x:Name="HeaderWallpaperGlassBlur" Margin="-48"/>
 

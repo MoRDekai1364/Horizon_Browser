@@ -22,7 +22,7 @@ AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
-DefaultDirName={autopf}\Horizon_Browser_Beta
+DefaultDirName={autopf}\Horizon_Browser_Official_Release
 UninstallDisplayIcon={app}\{#MyAppExeName}
 ; "ArchitecturesAllowed=x64compatible" specifies that Setup cannot run
 ; on anything but x64 and Windows 11 on Arm.
@@ -42,7 +42,7 @@ InfoAfterFile=D:\Programming\Personal_projects_D\Horizon_Browser\Horizon_Browser
 ; Uncomment the following line to run in non administrative install mode (install for current user only).
 ;PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
-OutputDir=D:\Programming\Personal_projects_D\Horizon_Browser\Horizon_Browser_official_release\Setup_File
+OutputDir=D:\Programming\Personal_projects_D\Horizon_Browser\Horizon_Browser_AI_channel\horizon-browser\Output
 OutputBaseFilename=Setup_Horizon_Browser_Official_Release
 SetupIconFile=D:\Programming\Personal_projects_D\Horizon_Browser\Horizon_Browser_official_release\src\Gemini_Generated_Image_version2.ico
 SolidCompression=yes
@@ -61,13 +61,51 @@ Source: "D:\Programming\Personal_projects_D\Horizon_Browser\Horizon_Browser_offi
 [Registry]
 Root: HKA; Subkey: "Software\Classes\{#MyAppAssocExt}\OpenWithProgids"; ValueType: string; ValueName: "{#MyAppAssocKey}"; ValueData: ""; Flags: uninsdeletevalue
 Root: HKA; Subkey: "Software\Classes\{#MyAppAssocKey}"; ValueType: string; ValueName: ""; ValueData: "{#MyAppAssocName}"; Flags: uninsdeletekey
-Root: HKA; Subkey: "Software\Classes\{#MyAppAssocKey}\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\{#MyAppExeName},0"
-Root: HKA; Subkey: "Software\Classes\{#MyAppAssocKey}\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#MyAppExeName}"" ""%1"""
+Root: HKA; Subkey: "Software\Classes\{#MyAppAssocKey}\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: """{code:GetBrowserExePath}"",0"
+Root: HKA; Subkey: "Software\Classes\{#MyAppAssocKey}\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{code:GetBrowserExePath}"" ""%1"""
 
 [Icons]
-Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
-Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
+Name: "{autoprograms}\{#MyAppName}"; Filename: "{code:GetBrowserExePath}"
+Name: "{autodesktop}\{#MyAppName}"; Filename: "{code:GetBrowserExePath}"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
+Filename: "{code:GetBrowserExePath}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent; Check: ExeExists
 
+[Code]
+procedure CurStepChanged(CurStep: TSetupStep);
+var
+  AppRootExe, SubBinExe: string;
+begin
+  if CurStep = ssPostInstall then
+  begin
+    AppRootExe := ExpandConstant('{app}\Horizon.Browser.exe');
+    SubBinExe := ExpandConstant('{app}\bin\Release\Horizon.Browser.exe');
+    if (not FileExists(AppRootExe)) and FileExists(SubBinExe) then
+    begin
+      CopyFile(SubBinExe, AppRootExe, False);
+    end;
+  end;
+end;
+
+function GetBrowserExePath(Param: string): string;
+var
+  AppRootExe, SubBinExe: string;
+begin
+  AppRootExe := ExpandConstant('{app}\Horizon.Browser.exe');
+  SubBinExe := ExpandConstant('{app}\bin\Release\Horizon.Browser.exe');
+  if FileExists(AppRootExe) then
+    Result := AppRootExe
+  else if FileExists(SubBinExe) then
+    Result := SubBinExe
+  else
+    Result := AppRootExe;
+end;
+
+function ExeExists: Boolean;
+var
+  AppRootExe, SubBinExe: string;
+begin
+  AppRootExe := ExpandConstant('{app}\Horizon.Browser.exe');
+  SubBinExe := ExpandConstant('{app}\bin\Release\Horizon.Browser.exe');
+  Result := FileExists(AppRootExe) or FileExists(SubBinExe);
+end;

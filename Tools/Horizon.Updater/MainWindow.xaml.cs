@@ -98,13 +98,14 @@ public partial class MainWindow : Window
             SetStatus("Relaunching Horizon Browser...", 98);
             await Task.Delay(600);
 
-            string mainExe = Path.Combine(_targetDir, "Horizon.Browser.exe");
-            if (File.Exists(mainExe))
+            EnsureBrowserBinariesAtRoot(_targetDir);
+            string? mainExe = ResolveBrowserExe(_targetDir);
+            if (mainExe != null && File.Exists(mainExe))
             {
                 Process.Start(new ProcessStartInfo
                 {
                     FileName = mainExe,
-                    WorkingDirectory = _targetDir,
+                    WorkingDirectory = Path.GetDirectoryName(mainExe) ?? _targetDir,
                     UseShellExecute = true
                 });
             }
@@ -372,13 +373,14 @@ public partial class MainWindow : Window
             SetStatus("Relaunching Horizon Browser...", 98);
             await Task.Delay(800);
 
-            string mainExe = Path.Combine(_targetDir, "Horizon.Browser.exe");
-            if (File.Exists(mainExe))
+            EnsureBrowserBinariesAtRoot(_targetDir);
+            string? mainExe = ResolveBrowserExe(_targetDir);
+            if (mainExe != null && File.Exists(mainExe))
             {
                 Process.Start(new ProcessStartInfo
                 {
                     FileName = mainExe,
-                    WorkingDirectory = _targetDir,
+                    WorkingDirectory = Path.GetDirectoryName(mainExe) ?? _targetDir,
                     UseShellExecute = true
                 });
             }
@@ -441,6 +443,26 @@ public partial class MainWindow : Window
                     {
                         // Check if command line mentions HorizonData or parent process
                         wvp.Kill();
+                    }
+                    catch { }
+                }
+            }
+            catch { }
+
+            // Ensure no lingering previous setup processes hold locks on files
+            try
+            {
+                foreach (var proc in Process.GetProcesses())
+                {
+                    try
+                    {
+                        string pName = proc.ProcessName;
+                        if (pName.StartsWith("Setup_Horizon_Browser", StringComparison.OrdinalIgnoreCase) ||
+                            pName.StartsWith("Horizon_Browser_Setup", StringComparison.OrdinalIgnoreCase) ||
+                            pName.StartsWith("is-", StringComparison.OrdinalIgnoreCase))
+                        {
+                            proc.Kill();
+                        }
                     }
                     catch { }
                 }
@@ -512,6 +534,10 @@ public partial class MainWindow : Window
         if (!File.Exists(installerPath))
             throw new FileNotFoundException($"Update installer file not found at: {installerPath}");
 
+        // Wait for any file locks (e.g. antivirus scanning) to release
+        await WaitForFileAccessAsync(installerPath);
+        TryUnblockFile(installerPath);
+
         string ext = Path.GetExtension(installerPath).ToLowerInvariant();
 
         if (ext == ".zip")
@@ -532,35 +558,196 @@ public partial class MainWindow : Window
                 {
                     FileName = "msiexec.exe",
                     Arguments = $"/i \"{installerPath}\" /passive /norestart TARGETDIR=\"{targetDir}\"",
-                    UseShellExecute = false
+                    UseShellExecute = true,
+                    Verb = "runas"
                 };
                 using var proc = Process.Start(psi);
                 if (proc == null) return false;
                 proc.WaitForExit();
-                return proc.ExitCode == 0;
+                return proc.ExitCode == 0 || proc.ExitCode == 3010;
             });
         }
 
         return await Task.Run(() =>
         {
+            bool isInno = IsInnoSetupInstaller(installerPath);
+            string args;
+            string engineName;
+
+            if (isInno)
+            {
+                engineName = "Inno Setup";
+                // Inno Setup flags for reliable silent update into the target directory
+                args = $"/SP- /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /CLOSEAPPLICATIONS /FORCECLOSEAPPLICATIONS /DIR=\"{targetDir}\"";
+            }
+            else
+            {
+                engineName = "InstallForge";
+                args = $"-silent -path \"{targetDir}\"";
+            }
+
             var psi = new ProcessStartInfo
             {
                 FileName = installerPath,
-                Arguments = $"-silent -path \"{targetDir}\"",
-                UseShellExecute = false
+                Arguments = args,
+                WorkingDirectory = Path.GetDirectoryName(installerPath) ?? targetDir,
+                UseShellExecute = true, // Required for UAC elevation and avoiding Win32 Error 740/5
+                Verb = "runas"          // Request administrative privileges to access setup and update files
             };
 
-            using var proc = Process.Start(psi);
+            Process? proc = null;
+            try
+            {
+                proc = Process.Start(psi);
+            }
+            catch (System.ComponentModel.Win32Exception wEx) when (wEx.NativeErrorCode == 1223) // ERROR_CANCELLED
+            {
+                throw new Exception("Installation cancelled: Administrator privileges (UAC) were declined.");
+            }
+            catch (Exception)
+            {
+                // Fallback attempt without explicit "runas" verb if elevation verb fails on certain systems
+                psi.Verb = "";
+                proc = Process.Start(psi);
+            }
+
             if (proc == null) return false;
 
             int progress = 45;
             while (!proc.WaitForExit(800))
             {
                 progress = Math.Min(85, progress + 4);
-                SetStatus("Installing update (InstallForge)...", progress);
+                SetStatus($"Installing update ({engineName})...", progress);
             }
 
             return proc.ExitCode == 0 || proc.ExitCode == 3010;
         });
     }
+
+    private static async Task WaitForFileAccessAsync(string filePath, int maxWaitSeconds = 5)
+    {
+        int elapsedMs = 0;
+        int checkIntervalMs = 250;
+        while (elapsedMs < maxWaitSeconds * 1000)
+        {
+            try
+            {
+                using var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                if (fs.Length > 0) return;
+            }
+            catch (IOException)
+            {
+                await Task.Delay(checkIntervalMs);
+                elapsedMs += checkIntervalMs;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                await Task.Delay(checkIntervalMs);
+                elapsedMs += checkIntervalMs;
+            }
+        }
+    }
+
+    private static bool IsInnoSetupInstaller(string filePath)
+    {
+        try
+        {
+            var vi = FileVersionInfo.GetVersionInfo(filePath);
+            if ((vi.Comments != null && vi.Comments.Contains("Inno Setup", StringComparison.OrdinalIgnoreCase)) ||
+                (vi.FileDescription != null && vi.FileDescription.Contains("Inno Setup", StringComparison.OrdinalIgnoreCase)))
+            {
+                return true;
+            }
+
+            using var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            byte[] buffer = new byte[Math.Min(1024 * 1024, (int)fs.Length)];
+            int read = fs.Read(buffer, 0, buffer.Length);
+            string content = System.Text.Encoding.ASCII.GetString(buffer, 0, read);
+            if (content.Contains("Inno Setup") || content.Contains("InnoSetup"))
+                return true;
+        }
+        catch { }
+
+        string fileName = Path.GetFileName(filePath);
+        if (fileName.StartsWith("Setup_Horizon_Browser", StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        return false;
+    }
+
+    private static void TryUnblockFile(string path)
+    {
+        try
+        {
+            if (OperatingSystem.IsWindows() && File.Exists(path))
+            {
+                DeleteFile(path + ":Zone.Identifier");
+            }
+        }
+        catch { }
+    }
+
+    private static void EnsureBrowserBinariesAtRoot(string targetDir)
+    {
+        try
+        {
+            string rootExe = Path.Combine(targetDir, "Horizon.Browser.exe");
+            if (File.Exists(rootExe)) return;
+
+            string[] candidateDirs = new[]
+            {
+                Path.Combine(targetDir, "bin", "Release"),
+                Path.Combine(targetDir, "bin", "Release", "net8.0-windows10.0.19041.0", "win-x64"),
+                Path.Combine(targetDir, "bin", "Release", "net8.0-windows10.0.19041.0")
+            };
+
+            foreach (var dir in candidateDirs)
+            {
+                if (Directory.Exists(dir) && File.Exists(Path.Combine(dir, "Horizon.Browser.exe")))
+                {
+                    foreach (string file in Directory.GetFiles(dir))
+                    {
+                        try
+                        {
+                            string dest = Path.Combine(targetDir, Path.GetFileName(file));
+                            File.Copy(file, dest, overwrite: true);
+                        }
+                        catch { }
+                    }
+
+                    foreach (string subDir in Directory.GetDirectories(dir))
+                    {
+                        try
+                        {
+                            string destSub = Path.Combine(targetDir, Path.GetFileName(subDir));
+                            CopyDirectoryFiltered(subDir, destSub);
+                        }
+                        catch { }
+                    }
+                    break;
+                }
+            }
+        }
+        catch { }
+    }
+
+    private static string? ResolveBrowserExe(string targetDir)
+    {
+        string rootExe = Path.Combine(targetDir, "Horizon.Browser.exe");
+        if (File.Exists(rootExe)) return rootExe;
+
+        string[] candidates = new[]
+        {
+            Path.Combine(targetDir, "Horizon.Browser.exe"),
+            Path.Combine(targetDir, "bin", "Release", "Horizon.Browser.exe"),
+            Path.Combine(targetDir, "bin", "Release", "net8.0-windows10.0.19041.0", "win-x64", "Horizon.Browser.exe"),
+            Path.Combine(targetDir, "bin", "Release", "net8.0-windows10.0.19041.0", "Horizon.Browser.exe")
+        };
+
+        return candidates.FirstOrDefault(File.Exists);
+    }
+
+    [System.Runtime.InteropServices.DllImport("kernel32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode, SetLastError = true)]
+    [return: System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.Bool)]
+    private static extern bool DeleteFile(string lpFileName);
 }

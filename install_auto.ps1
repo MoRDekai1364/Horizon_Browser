@@ -92,14 +92,41 @@ if ($archiveExts -contains $launchExt) {
 }
 
 if (-not $portableDone) {
+    try { Unblock-File -LiteralPath $launchPath -ErrorAction SilentlyContinue } catch { }
     Write-Log "Launching $launchPath"
     if ($launchExt -eq ".msi") {
-        $proc = Start-Process -FilePath "msiexec.exe" -ArgumentList @("/i", "`"$launchPath`"", "/passive", "/norestart") -PassThru
+        try {
+            $proc = Start-Process -FilePath "msiexec.exe" -ArgumentList @("/i", "`"$launchPath`"", "/passive", "/norestart") -Verb RunAs -PassThru
+        } catch {
+            $proc = Start-Process -FilePath "msiexec.exe" -ArgumentList @("/i", "`"$launchPath`"", "/passive", "/norestart") -PassThru
+        }
     } else {
-        # InstallForge supports -silent and -path "<TargetDir>"
-        $argList = @("-silent", "-path", "`"$TargetDir`"")
+        $isInno = $false
+        try {
+            $vi = (Get-Item -LiteralPath $launchPath).VersionInfo
+            if ($vi.Comments -match "Inno Setup" -or $vi.FileDescription -match "Inno Setup") {
+                $isInno = $true
+            }
+        } catch { }
+        if (-not $isInno -and (Split-Path $launchPath -Leaf) -match "^Setup_Horizon_Browser") {
+            $isInno = $true
+        }
+
+        if ($isInno) {
+            # Inno Setup flags for reliable silent update into the target directory
+            $argList = @("/SP-", "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/CLOSEAPPLICATIONS", "/FORCECLOSEAPPLICATIONS", "/DIR=`"$TargetDir`"")
+        } else {
+            # InstallForge supports -silent and -path "<TargetDir>"
+            $argList = @("-silent", "-path", "`"$TargetDir`"")
+        }
+
         Write-Log "Starting process $launchPath with args: $($argList -join ' ')"
-        $proc = Start-Process -FilePath $launchPath -ArgumentList $argList -PassThru
+        try {
+            $proc = Start-Process -FilePath $launchPath -ArgumentList $argList -Verb RunAs -PassThru
+        } catch {
+            Write-Log "Launch with RunAs failed: $($_.Exception.Message), falling back without verb"
+            $proc = Start-Process -FilePath $launchPath -ArgumentList $argList -PassThru
+        }
     }
 }
 
@@ -129,6 +156,17 @@ if ($proc) {
 if ($stageDir -and (Test-Path $stageDir)) {
     try { Remove-Item -LiteralPath $stageDir -Recurse -Force } catch { Write-Log "Stage cleanup failed: $($_.Exception.Message)" }
 }
+
+# Ensure Horizon.Browser.exe is placed at TargetDir root if installer nested it in bin\Release
+$rootExe = Join-Path $TargetDir "Horizon.Browser.exe"
+$binReleaseExe = Join-Path $TargetDir "bin\Release\Horizon.Browser.exe"
+if (-not (Test-Path $rootExe) -and (Test-Path $binReleaseExe)) {
+    Write-Log "Promoting nested binaries from bin\Release to $TargetDir root"
+    try {
+        robocopy (Split-Path $binReleaseExe) $TargetDir /E /NFL /NDL /NJH /NJS /R:1 /W:1 | Out-Null
+    } catch { }
+}
+
 try {
     $logDir = Join-Path $TargetDir "logs"
     New-Item -ItemType Directory -Path $logDir -Force | Out-Null

@@ -432,6 +432,13 @@ public class SettingsData
     public bool SilentUpdateCheckEnabled    { get; set; } = true;
     public bool AutoDownloadUpdatesEnabled  { get; set; } = true;
     public string PendingUpdateInstallerPath { get; set; } = "";
+    public string UpdateCheckFrequency { get; set; } = "Weekly"; // "Daily", "Weekly", "Monthly", "Manual"
+    public DateTime? LastUpdateCheckTime { get; set; } = null;
+    public DateTime? NextUpdateCheckTime { get; set; } = null;
+    public DateTime? SnoozeUntilDate { get; set; } = null;
+    public string SkippedUpdateVersion { get; set; } = "";
+    public string AutoInstallLocation { get; set; } = "";
+    public string PendingUpdateDownloadChoice { get; set; } = ""; // "DownloadNow", "DownloadLater"
     
     public bool IsStealthMode { get; set; } = true;
     public bool EnableSponsorBlock { get; set; } = true;

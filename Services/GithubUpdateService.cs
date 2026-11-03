@@ -27,12 +27,16 @@ public static class GithubUpdateService
         UpdateReadyToInstall?.Invoke(installerPath);
     }
 
-    private static readonly HttpClient _http = new HttpClient();
+    private static readonly HttpClient _apiClient = new HttpClient();
+    private static readonly HttpClient _downloadClient = new HttpClient();
 
     static GithubUpdateService()
     {
-        _http.DefaultRequestHeaders.UserAgent.ParseAdd("Horizon-Browser-Update-Checker");
-        _http.Timeout = TimeSpan.FromSeconds(15);
+        _apiClient.DefaultRequestHeaders.UserAgent.ParseAdd("Horizon-Browser-Update-Checker");
+        _apiClient.Timeout = TimeSpan.FromSeconds(15);
+
+        _downloadClient.DefaultRequestHeaders.UserAgent.ParseAdd("Horizon-Browser-Update-Downloader");
+        _downloadClient.Timeout = System.Threading.Timeout.InfiniteTimeSpan;
     }
 
     public static (string version, string channel) ParseLocalVersion(string raw)
@@ -110,7 +114,7 @@ public static class GithubUpdateService
             }
 
             string apiUrl = $"https://api.github.com/repos/{ownerRepo}/releases?per_page=30";
-            using var response = await _http.GetAsync(apiUrl);
+            using var response = await _apiClient.GetAsync(apiUrl);
             if (!response.IsSuccessStatusCode)
             {
                 result.ErrorMessage = $"GitHub API returned {(int)response.StatusCode}.";
@@ -268,20 +272,309 @@ public static class GithubUpdateService
         catch { return 0; }
     }
 
-    public static async Task<string> DownloadAssetAsync(string assetUrl, string assetName)
+    public static async Task<string> DownloadAssetAsync(
+        string assetUrl,
+        string assetName,
+        IProgress<(long downloadedBytes, long totalBytes, double percent)>? progress = null,
+        System.Threading.CancellationToken cancellationToken = default)
     {
         string downloadsFolder = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
         if (!Directory.Exists(downloadsFolder)) downloadsFolder = Path.GetTempPath();
-        string destPath = Path.Combine(downloadsFolder, Path.GetFileName(assetName));
 
-        using var response = await _http.GetAsync(assetUrl, HttpCompletionOption.ResponseHeadersRead);
-        response.EnsureSuccessStatusCode();
+        string safeFileName = Path.GetFileName(assetName);
+        string destPath = Path.Combine(downloadsFolder, safeFileName);
+        string stagingPath = destPath + ".downloading";
 
-        using var stream = await response.Content.ReadAsStreamAsync();
-        using var fileStream = new FileStream(destPath, FileMode.Create, FileAccess.Write, FileShare.None);
-        await stream.CopyToAsync(fileStream);
+        // Clean up any stale partial staging download
+        try
+        {
+            if (File.Exists(stagingPath)) File.Delete(stagingPath);
+        }
+        catch { }
 
-        return destPath;
+        try
+        {
+            using var response = await _downloadClient.GetAsync(
+                assetUrl,
+                HttpCompletionOption.ResponseHeadersRead,
+                cancellationToken);
+            response.EnsureSuccessStatusCode();
+
+            long? totalBytes = response.Content.Headers.ContentLength;
+
+            using (var stream = await response.Content.ReadAsStreamAsync(cancellationToken))
+            using (var fileStream = new FileStream(
+                stagingPath,
+                FileMode.Create,
+                FileAccess.Write,
+                FileShare.None,
+                bufferSize: 81920,
+                useAsync: true))
+            {
+                byte[] buffer = new byte[81920];
+                long totalBytesRead = 0;
+                int bytesRead;
+
+                while ((bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken)) > 0)
+                {
+                    await fileStream.WriteAsync(buffer, 0, bytesRead, cancellationToken);
+                    totalBytesRead += bytesRead;
+
+                    if (totalBytes.HasValue && totalBytes.Value > 0)
+                    {
+                        double pct = Math.Clamp((double)totalBytesRead / totalBytes.Value * 100.0, 0.0, 100.0);
+                        progress?.Report((totalBytesRead, totalBytes.Value, pct));
+                    }
+                    else
+                    {
+                        progress?.Report((totalBytesRead, -1, 0.0));
+                    }
+                }
+
+                await fileStream.FlushAsync(cancellationToken);
+
+                // Verify size integrity against Content-Length
+                if (totalBytes.HasValue && totalBytes.Value > 0 && totalBytesRead != totalBytes.Value)
+                {
+                    throw new InvalidDataException(
+                        $"Downloaded size ({totalBytesRead} bytes) does not match expected Content-Length ({totalBytes.Value} bytes). File is corrupted or incomplete.");
+                }
+
+                if (totalBytesRead < 1024)
+                {
+                    throw new InvalidDataException($"Downloaded file is too small ({totalBytesRead} bytes) to be a valid installer.");
+                }
+            }
+
+            // Verify binary integrity (valid PE / Zip header)
+            if (!VerifyInstallerIntegrity(stagingPath))
+            {
+                throw new InvalidDataException("The downloaded update package failed binary integrity verification (corrupted PE header).");
+            }
+
+            // Remove existing destination file if present
+            if (File.Exists(destPath))
+            {
+                try { File.Delete(destPath); } catch { }
+            }
+
+            // Move verified staging file to final destination
+            File.Move(stagingPath, destPath, overwrite: true);
+
+            // Remove Mark of the Web (Zone.Identifier) so Windows / Antivirus doesn't block execution
+            TryUnblockFile(destPath);
+
+            return destPath;
+        }
+        catch
+        {
+            // Clean up partial staging file so corrupted files never linger
+            try
+            {
+                if (File.Exists(stagingPath)) File.Delete(stagingPath);
+            }
+            catch { }
+            throw;
+        }
     }
+
+    public static bool VerifyInstallerIntegrity(string filePath)
+    {
+        try
+        {
+            if (!File.Exists(filePath)) return false;
+
+            var fi = new FileInfo(filePath);
+            // Horizon installers are at least 1 MB
+            if (fi.Length < 1024 * 1024) return false;
+
+            using var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            if (fs.Length < 64) return false;
+
+            byte[] header = new byte[64];
+            int read = fs.Read(header, 0, 64);
+            if (read < 64) return false;
+
+            string ext = Path.GetExtension(filePath).ToLowerInvariant();
+
+            if (ext == ".zip")
+            {
+                // ZIP magic bytes: 'P', 'K', 0x03, 0x04
+                return header[0] == 0x50 && header[1] == 0x4B;
+            }
+
+            if (ext == ".msi")
+            {
+                // MSI compound document header: 0xD0, 0xCF, 0x11, 0xE0
+                return header[0] == 0xD0 && header[1] == 0xCF && header[2] == 0xD0 && header[3] == 0xCF ||
+                       header[0] == 0xD0 && header[1] == 0xCF && header[2] == 0x11 && header[3] == 0xE0;
+            }
+
+            // Standard PE executable (.exe)
+            // 'M', 'Z' DOS signature
+            if (header[0] != 0x4D || header[1] != 0x5A) return false;
+
+            // Offset to PE header is at 0x3C
+            int peOffset = BitConverter.ToInt32(header, 0x3C);
+            if (peOffset <= 0 || peOffset + 4 > fs.Length) return false;
+
+            fs.Seek(peOffset, SeekOrigin.Begin);
+            byte[] peSig = new byte[4];
+            if (fs.Read(peSig, 0, 4) < 4) return false;
+
+            // 'P', 'E', 0x00, 0x00
+            return peSig[0] == 0x50 && peSig[1] == 0x45 && peSig[2] == 0x00 && peSig[3] == 0x00;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    public static void TryUnblockFile(string path)
+    {
+        try
+        {
+            if (OperatingSystem.IsWindows() && File.Exists(path))
+            {
+                // Deletes the Zone.Identifier alternate data stream on NTFS
+                DeleteFile(path + ":Zone.Identifier");
+            }
+        }
+        catch { }
+    }
+
+    public static string ResolveAppropriateInstallLocation(string channel, string? currentBaseDir = null)
+    {
+        // 1. User-configured override in Settings
+        if (!string.IsNullOrWhiteSpace(SettingsService.Current.AutoInstallLocation) &&
+            Directory.Exists(SettingsService.Current.AutoInstallLocation))
+        {
+            return SettingsService.Current.AutoInstallLocation;
+        }
+
+        string baseDir = (currentBaseDir ?? AppDomain.CurrentDomain.BaseDirectory).TrimEnd('\\', '/');
+
+        // 2. If the current running directory contains Horizon.Browser.exe, update this active instance in-place!
+        if (File.Exists(Path.Combine(baseDir, "Horizon.Browser.exe")))
+        {
+            return baseDir;
+        }
+
+        // If running from a subfolder like bin\Release, check parent folder for Horizon.Browser.exe
+        string? parentDir = Directory.GetParent(baseDir)?.FullName?.TrimEnd('\\', '/');
+        if (parentDir != null && File.Exists(Path.Combine(parentDir, "Horizon.Browser.exe")))
+        {
+            return parentDir;
+        }
+
+        // 3. Check discovered existing installations on the system
+        try
+        {
+            var discovered = InstallationDiscoveryService.DiscoverInstallations();
+            var match = discovered.FirstOrDefault(d => File.Exists(Path.Combine(d.Path, "Horizon.Browser.exe")));
+            if (match != null && Directory.Exists(match.Path))
+                return match.Path;
+        }
+        catch { }
+
+        // 4. Check Daily Driver location (%LOCALAPPDATA%\Programs\Horizon_Browser)
+        string localAppDataPrograms = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Programs", "Horizon_Browser");
+        if (File.Exists(Path.Combine(localAppDataPrograms, "Horizon.Browser.exe")))
+        {
+            return localAppDataPrograms;
+        }
+
+        // 5. Check standard Program Files installations if they actually exist
+        string progFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+        string progFilesHorizon = Path.Combine(progFiles, "Horizon_Browser");
+        if (File.Exists(Path.Combine(progFilesHorizon, "Horizon.Browser.exe")))
+        {
+            return progFilesHorizon;
+        }
+
+        string progFilesOfficial = Path.Combine(progFiles, "Horizon_Browser_Official_Release");
+        if (File.Exists(Path.Combine(progFilesOfficial, "Horizon.Browser.exe")))
+        {
+            return progFilesOfficial;
+        }
+
+        // 6. Fallback to current baseDir
+        return baseDir;
+    }
+
+    public static bool ShouldCheckForUpdatesNow()
+    {
+        if (!SettingsService.Current.SilentUpdateCheckEnabled) return false;
+
+        string freq = SettingsService.Current.UpdateCheckFrequency?.Trim() ?? "Weekly";
+        if (freq.Equals("Manual", StringComparison.OrdinalIgnoreCase) ||
+            freq.Equals("Never", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        // Check if snooze is active
+        if (SettingsService.Current.SnoozeUntilDate.HasValue)
+        {
+            if (DateTime.UtcNow < SettingsService.Current.SnoozeUntilDate.Value)
+            {
+                return false;
+            }
+            SettingsService.Current.SnoozeUntilDate = null;
+            SettingsService.Save();
+        }
+
+        DateTime lastCheck = SettingsService.Current.LastUpdateCheckTime ?? DateTime.MinValue;
+        TimeSpan elapsed = DateTime.UtcNow - lastCheck;
+        TimeSpan requiredInterval = freq switch
+        {
+            "Daily" => TimeSpan.FromDays(1),
+            "Monthly" => TimeSpan.FromDays(30),
+            _ => TimeSpan.FromDays(7) // Weekly default
+        };
+
+        return elapsed >= requiredInterval;
+    }
+
+    public static void RecordUpdateCheckCompleted()
+    {
+        string freq = SettingsService.Current.UpdateCheckFrequency?.Trim() ?? "Weekly";
+        TimeSpan interval = freq switch
+        {
+            "Daily" => TimeSpan.FromDays(1),
+            "Monthly" => TimeSpan.FromDays(30),
+            _ => TimeSpan.FromDays(7)
+        };
+
+        SettingsService.Current.LastUpdateCheckTime = DateTime.UtcNow;
+        SettingsService.Current.NextUpdateCheckTime = DateTime.UtcNow.Add(interval);
+        SettingsService.Save();
+    }
+
+    public static void SnoozeUpdates(string duration, string currentVersion)
+    {
+        switch (duration.ToLowerInvariant())
+        {
+            case "week":
+                SettingsService.Current.SnoozeUntilDate = DateTime.UtcNow.AddDays(7);
+                break;
+            case "month":
+                SettingsService.Current.SnoozeUntilDate = DateTime.UtcNow.AddDays(30);
+                break;
+            case "year":
+                SettingsService.Current.SnoozeUntilDate = DateTime.UtcNow.AddDays(365);
+                break;
+            case "never":
+                SettingsService.Current.SkippedUpdateVersion = currentVersion;
+                SettingsService.Current.SnoozeUntilDate = null;
+                break;
+        }
+        SettingsService.Save();
+    }
+
+    [System.Runtime.InteropServices.DllImport("kernel32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode, SetLastError = true)]
+    [return: System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.Bool)]
+    private static extern bool DeleteFile(string lpFileName);
 }

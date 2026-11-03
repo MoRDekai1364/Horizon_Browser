@@ -3980,144 +3980,117 @@ public partial class MainWindow : Window
 
 
     private async Task RunSilentUpdateCheckAsync()
-
-
-
     {
-
-
-
         try
-
-
-
         {
-
-
-
-            string? updateTxtPath = ResolveStartupFilePath("update.txt");
-
-
-
-            string? versionTxtPath = ResolveStartupFilePath("version.txt");
-
-
-
-            if (updateTxtPath == null || versionTxtPath == null) return;
-
-
-
-            var result = await GithubUpdateService.CheckForUpdateAsync(updateTxtPath, versionTxtPath);
-
-
-
-            if (!string.IsNullOrEmpty(result.ErrorMessage))
-
-
-
+            if (!Services.GithubUpdateService.ShouldCheckForUpdatesNow())
             {
-
-
-
-                LogService.Write("UPDATE", $"Silent check failed: {result.ErrorMessage}");
-
-
-
                 return;
-
-
-
             }
 
+            string? updateTxtPath = ResolveStartupFilePath("update.txt");
+            string? versionTxtPath = ResolveStartupFilePath("version.txt");
+            if (updateTxtPath == null || versionTxtPath == null) return;
 
+            var result = await Services.GithubUpdateService.CheckForUpdateAsync(updateTxtPath, versionTxtPath);
+            Services.GithubUpdateService.RecordUpdateCheckCompleted();
+
+            if (!string.IsNullOrEmpty(result.ErrorMessage))
+            {
+                LogService.Write("UPDATE", $"Silent check failed: {result.ErrorMessage}");
+                return;
+            }
 
             if (!result.UpdateAvailable) return;
 
-
-
-            if (SettingsService.Current.AutoDownloadUpdatesEnabled
-
-
-
-                && !string.IsNullOrEmpty(result.AssetUrl)
-
-
-
-                && !string.IsNullOrEmpty(result.AssetName))
-
-
-
+            // Check if user skipped this specific version
+            if (!string.IsNullOrEmpty(SettingsService.Current.SkippedUpdateVersion) &&
+                string.Equals(SettingsService.Current.SkippedUpdateVersion, result.LatestVersion, StringComparison.OrdinalIgnoreCase))
             {
-
-
-
-                string path = await GithubUpdateService.DownloadAssetAsync(result.AssetUrl, result.AssetName);
-
-
-
-                SettingsService.Current.PendingUpdateInstallerPath = path;
-
-
-
-                SettingsService.Save();
-
-
-
-                LogService.Write("UPDATE", $"Auto-downloaded update {result.LatestVersion} to {path}");
-
-
-
-                Dispatcher.Invoke(() => ShowUpdateInstallBanner(path));
-
-
-
+                LogService.Write("UPDATE", $"Update {result.LatestVersion} was skipped by user preference.");
+                return;
             }
 
-
-
-            else
-
-
-
+            await Dispatcher.InvokeAsync(async () =>
             {
+                if (_closedForReal) return;
 
+                string appropriateTarget = Services.GithubUpdateService.ResolveAppropriateInstallLocation(result.CurrentChannel);
+                var promptDlg = new Views.UpdatePromptDialog(result, appropriateTarget)
+                {
+                    Owner = this
+                };
+                promptDlg.ShowDialog();
 
+                switch (promptDlg.Decision)
+                {
+                    case Views.UpdateUserDecision.UpdateNow:
+                    {
+                        if (string.IsNullOrEmpty(result.AssetUrl) || string.IsNullOrEmpty(result.AssetName)) return;
+                        ShowUpdateNotification($"Downloading update {result.LatestVersion}...");
+                        string path = await Services.GithubUpdateService.DownloadAssetAsync(result.AssetUrl, result.AssetName);
+                        if (Services.GithubUpdateService.VerifyInstallerIntegrity(path))
+                        {
+                            LaunchUpdateProcess(path, appropriateTarget);
+                        }
+                        else
+                        {
+                            MessageBox.Show("The downloaded update package failed integrity verification.",
+                                "Update Verification Failed", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        }
+                        break;
+                    }
 
-                Dispatcher.Invoke(() => ShowUpdateNotification(
+                    case Views.UpdateUserDecision.UpdateLaterDownloadNow:
+                    {
+                        if (string.IsNullOrEmpty(result.AssetUrl) || string.IsNullOrEmpty(result.AssetName)) return;
+                        _ = Task.Run(async () =>
+                        {
+                            try
+                            {
+                                string path = await Services.GithubUpdateService.DownloadAssetAsync(result.AssetUrl, result.AssetName);
+                                if (Services.GithubUpdateService.VerifyInstallerIntegrity(path))
+                                {
+                                    SettingsService.Current.PendingUpdateInstallerPath = path;
+                                    SettingsService.Save();
+                                    LogService.Write("UPDATE", $"Auto-downloaded update {result.LatestVersion} to {path}");
+                                    Dispatcher.Invoke(() => ShowUpdateInstallBanner(path));
+                                }
+                                else
+                                {
+                                    LogService.Write("UPDATE", $"Auto-downloaded update {result.LatestVersion} failed integrity check.");
+                                    try { if (File.Exists(path)) File.Delete(path); } catch { }
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                LogService.RecordCrash(ex, "Background download for update later");
+                            }
+                        });
+                        break;
+                    }
 
+                    case Views.UpdateUserDecision.UpdateLaterDownloadLater:
+                    {
+                        ShowUpdateNotification($"Update {result.LatestVersion} is available. Click to download and install whenever you're ready.");
+                        break;
+                    }
 
-
-                    $"Update available: {result.LatestVersion} ({result.CurrentChannel}).\nOpen Settings → General to download."));
-
-
-
-            }
-
-
-
+                    case Views.UpdateUserDecision.SnoozeWeek:
+                    case Views.UpdateUserDecision.SnoozeMonth:
+                    case Views.UpdateUserDecision.SnoozeYear:
+                    case Views.UpdateUserDecision.SkipVersion:
+                    case Views.UpdateUserDecision.Dismiss:
+                    default:
+                        break;
+                }
+            });
         }
-
-
-
         catch (Exception ex)
-
-
-
         {
-
-
-
             LogService.RecordCrash(ex, "Silent Update Check");
-
-
-
         }
-
-
-
     }
-
-
 
     private void ShowUpdateNotification(string message)
 
@@ -4184,360 +4157,125 @@ public partial class MainWindow : Window
 
 
     private void BtnInstallUpdate_Click(object sender, RoutedEventArgs e)
-
-
-
     {
-
-
-
         if (string.IsNullOrEmpty(_pendingUpdateInstallerPath) || !File.Exists(_pendingUpdateInstallerPath))
-
-
-
         {
-
-
-
             MessageBox.Show("The downloaded update file is missing. Please check for updates again.",
-
-
-
                 "Update", MessageBoxButton.OK, MessageBoxImage.Warning);
-
-
-
             PanelUpdateBanner.Visibility = Visibility.Collapsed;
-
-
-
             return;
-
-
-
         }
 
-
+        if (!Services.GithubUpdateService.VerifyInstallerIntegrity(_pendingUpdateInstallerPath))
+        {
+            MessageBox.Show("The downloaded update file is incomplete or corrupted. It will be removed. Please check for updates to download a fresh copy.",
+                "Corrupted Update File", MessageBoxButton.OK, MessageBoxImage.Warning);
+            try { File.Delete(_pendingUpdateInstallerPath); } catch { }
+            _pendingUpdateInstallerPath = null;
+            SettingsService.Current.PendingUpdateInstallerPath = "";
+            SettingsService.Save();
+            PanelUpdateBanner.Visibility = Visibility.Collapsed;
+            return;
+        }
 
         var confirm = MessageBox.Show(
-
-
-
             "Horizon will close, install the update package, protect your settings, and relaunch automatically.\n\nContinue?",
-
-
-
             "Install Update", MessageBoxButton.YesNo, MessageBoxImage.Question);
-
-
 
         if (confirm != MessageBoxResult.Yes) return;
 
-
-
         string baseDir = AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\', '/');
+        string targetDir = Services.GithubUpdateService.ResolveAppropriateInstallLocation("release", baseDir);
+        LaunchUpdateProcess(_pendingUpdateInstallerPath, targetDir);
+    }
 
-
-
+    private void LaunchUpdateProcess(string installerPath, string targetDir)
+    {
+        string baseDir = AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\', '/');
         int currentPid = Environment.ProcessId;
 
-
-
         // 1. Prefer professional native Horizon.Updater.exe
-
-
-
         string[] updaterCandidates = new[]
-
-
-
         {
-
-
-
             Path.Combine(baseDir, "Horizon.Updater.exe"),
-
-
-
             Path.Combine(baseDir, "Tools", "Horizon.Updater.exe"),
-
-
-
             Path.Combine(baseDir, "Tools", "Horizon.Updater", "Horizon.Updater.exe"),
-
-
-
-            Path.Combine(baseDir, "..", "..", "..", "Tools", "Horizon.Updater", "bin", "Release", "net8.0-windows10.0.19041.0", "Horizon.Updater.exe")
-
-
-
+            Path.Combine(baseDir, "..", "..", "..", "Tools", "Horizon.Updater", "bin", "Release", "net8.0-windows10.0.19041.0", "Horizon.Updater.exe"),
+            Path.Combine(baseDir, "..", "..", "..", "Tools", "Horizon.Updater", "bin", "Release", "net8.0-windows10.0.19041.0", "win-x64", "Horizon.Updater.exe")
         };
 
-
-
         string? updaterExe = updaterCandidates.FirstOrDefault(File.Exists);
-
-
-
         if (updaterExe != null)
-
-
-
         {
-
-
-
             try
-
-
-
             {
-
-
-
                 var psi = new ProcessStartInfo
-
-
-
                 {
-
-
-
                     FileName = updaterExe,
-
-
-
-                    Arguments = $"--installer \"{_pendingUpdateInstallerPath}\" --target \"{baseDir}\" --pid {currentPid}",
-
-
-
+                    Arguments = $"--installer \"{installerPath}\" --target \"{targetDir}\" --pid {currentPid}",
                     WorkingDirectory = Path.GetDirectoryName(updaterExe),
-
-
-
                     UseShellExecute = true
-
-
-
                 };
-
-
-
                 Process.Start(psi);
-
-
-
                 SettingsService.Current.PendingUpdateInstallerPath = "";
-
-
-
                 SettingsService.Save();
-
-
-
                 Application.Current.Shutdown();
-
-
-
                 return;
-
-
-
             }
-
-
-
             catch (Exception ex)
-
-
-
             {
-
-
-
                 LogService.RecordCrash(ex, "Launching Horizon.Updater.exe");
-
-
-
             }
-
-
-
         }
-
-
 
         // 2. Fallback to orchestrator if updater exe not available
-
-
-
         string? orchestratorPath = ResolveStartupFilePath("update_orchestrator.bat");
-
-
-
         if (orchestratorPath != null)
-
-
-
         {
-
-
-
-            WriteCurrentPathFile();
-
-
-
+            WriteCurrentPathFile(targetDir);
             try
-
-
-
             {
-
-
-
                 var psi = new ProcessStartInfo
-
-
-
                 {
-
-
-
                     FileName = orchestratorPath,
-
-
-
-                    Arguments = $"\"{_pendingUpdateInstallerPath}\"",
-
-
-
+                    Arguments = $"\"{installerPath}\"",
                     WorkingDirectory = Path.GetDirectoryName(orchestratorPath),
-
-
-
                     UseShellExecute = true,
-
-
-
                     WindowStyle = ProcessWindowStyle.Hidden
-
-
-
                 };
-
-
-
                 Process.Start(psi);
-
-
-
                 SettingsService.Current.PendingUpdateInstallerPath = "";
-
-
-
                 SettingsService.Save();
-
-
-
                 Application.Current.Shutdown();
-
-
-
                 return;
-
-
-
             }
-
-
-
             catch (Exception ex)
-
-
-
             {
-
-
-
                 LogService.RecordCrash(ex, "Launching update_orchestrator.bat");
-
-
-
             }
-
-
-
         }
-
-
 
         MessageBox.Show("Could not find updater utility to launch the installation.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-
-
-
-        return;
-
-
-
     }
 
-
-
-    private static void WriteCurrentPathFile()
-
-
-
+    private static void WriteCurrentPathFile(string? customTarget = null)
     {
-
-
-
         try
-
-
-
         {
-
-
-
             string baseDir = AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\', '/');
-
-
+            string resolvedTarget = !string.IsNullOrWhiteSpace(customTarget)
+                ? customTarget
+                : Services.GithubUpdateService.ResolveAppropriateInstallLocation("release", baseDir);
 
             string? pathTxt = ResolveStartupFilePath("path.txt");
-
-
-
             string targetFile = pathTxt ?? Path.Combine(baseDir, "path.txt");
-
-
-
-            File.WriteAllText(targetFile, baseDir);
-
-
-
+            File.WriteAllText(targetFile, resolvedTarget);
         }
-
-
-
         catch (Exception ex)
-
-
-
         {
-
-
-
             LogService.RecordCrash(ex, "WriteCurrentPathFile");
-
-
-
         }
-
-
-
     }
-
-
 
     private static string? ResolveStartupFilePath(string filename)
 
@@ -4715,22 +4453,22 @@ public partial class MainWindow : Window
 
 
 
-        if (!string.IsNullOrEmpty(SettingsService.Current.PendingUpdateInstallerPath)
-
-
-
-            && File.Exists(SettingsService.Current.PendingUpdateInstallerPath))
-
-
-
+        if (!string.IsNullOrEmpty(SettingsService.Current.PendingUpdateInstallerPath))
         {
-
-
-
-            ShowUpdateInstallBanner(SettingsService.Current.PendingUpdateInstallerPath);
-
-
-
+            if (File.Exists(SettingsService.Current.PendingUpdateInstallerPath) &&
+                GithubUpdateService.VerifyInstallerIntegrity(SettingsService.Current.PendingUpdateInstallerPath))
+            {
+                ShowUpdateInstallBanner(SettingsService.Current.PendingUpdateInstallerPath);
+            }
+            else
+            {
+                if (File.Exists(SettingsService.Current.PendingUpdateInstallerPath))
+                {
+                    try { File.Delete(SettingsService.Current.PendingUpdateInstallerPath); } catch { }
+                }
+                SettingsService.Current.PendingUpdateInstallerPath = "";
+                SettingsService.Save();
+            }
         }
 
 
@@ -5181,6 +4919,7 @@ public partial class MainWindow : Window
 
 
         this.Loaded += (s, e) => CheckExistingInstallationsWarning();
+        this.Loaded += (s, e) => UpdateSidebarDockMode();
 
 
 
@@ -10134,133 +9873,141 @@ return colors.length > 0 ? colors : null;
 
 
 
-    private void ToggleSidebar(bool isOpen)
-
-
-
+    private bool IsSidebarOpen()
     {
+        if (SidebarContainer == null) return false;
+        if (SidebarContainer.Width <= 10) return false;
+        if (SidebarSlideTransform != null && SidebarSlideTransform.X > 50) return false;
+        return true;
+    }
 
+    private void ToggleSidebar(bool isOpen)
+    {
+        UpdateSidebarDockMode();
 
+        bool isHome = IsHomeActive();
+        bool useOverlay = isHome && SettingsService.Current.HomeSidebarFloatingOverlay;
+        double targetW = isOpen ? GetTargetSidebarWidth() : 0.0;
+        double contentW = GetTargetSidebarWidth();
 
-        if (isOpen)
-
-
-
-        {
-
-
-
-            // Expand the column first so the * column shrinks and makes room.
-
-
-
-            ColSidebar.Width = GridLength.Auto;
-
-
-
-        }
-
-
-
-        double targetW = isOpen ? GetTargetSidebarWidth() : 0;
         if (isOpen)
         {
             RightSidebar?.SetMiniMode(SettingsService.Current.SidebarMiniMode);
         }
 
+        // Freeze child layout reflows: lock RightSidebar and SlideHost width to contentW
+        if (RightSidebar != null) RightSidebar.Width = contentW;
+        if (SidebarSlideHost != null) SidebarSlideHost.Width = contentW;
 
+        IsSidebarAnimating = true;
 
-        var anim = new System.Windows.Media.Animation.DoubleAnimation
-
-
-
+        // Temporarily enable GPU raster cache on the sidebar during motion for silky 60 FPS
+        if (RightSidebar != null && RightSidebar.CacheMode == null)
         {
-
-
-
-            To = targetW,
-
-
-
-            Duration = TimeSpan.FromMilliseconds(300),
-
-
-
-            EasingFunction = new System.Windows.Media.Animation.CubicEase
-
-
-
-            {
-
-
-
-                EasingMode = System.Windows.Media.Animation.EasingMode.EaseOut
-
-
-
-            }
-
-
-
-        };
-
-
-
-        if (!isOpen)
-
-
-
-        {
-
-
-
-            // After the 300ms close animation, pin ColSidebar to explicit 0 so the
-
-
-
-            // * column (ViewContainer) reclaims full width without depending on Auto→0.
-
-
-
-            var closeTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(320) };
-
-
-
-            closeTimer.Tick += (_, _) =>
-
-
-
-            {
-
-
-
-                closeTimer.Stop();
-
-
-
-                ColSidebar.Width = new GridLength(0);
-
-
-
-            };
-
-
-
-            closeTimer.Start();
-
-
-
+            RightSidebar.CacheMode = new BitmapCache { EnableClearType = false, RenderAtScale = 1.0 };
         }
 
+        if (useOverlay)
+        {
+            // OVERLAY MODE (Homepage):
+            // ColSidebar stays 0 -> homepage never shifts or resizes!
+            ColSidebar.Width = new GridLength(0);
+            SidebarContainer.Width = contentW;
+            SidebarContainer.ClipToBounds = true;
+            SidebarContainer.HorizontalAlignment = HorizontalAlignment.Right;
+            if (SidebarSlideHost != null) SidebarSlideHost.HorizontalAlignment = HorizontalAlignment.Right;
 
+            double fromX = SidebarSlideTransform != null ? SidebarSlideTransform.X : (isOpen ? contentW : 0.0);
+            double toX = isOpen ? 0.0 : contentW;
 
-        SidebarContainer.BeginAnimation(FrameworkElement.WidthProperty, anim);
+            if (SidebarSlideTransform != null)
+            {
+                var animX = new System.Windows.Media.Animation.DoubleAnimation
+                {
+                    From = fromX,
+                    To = toX,
+                    Duration = TimeSpan.FromMilliseconds(240),
+                    EasingFunction = new System.Windows.Media.Animation.CubicEase
+                    {
+                        EasingMode = System.Windows.Media.Animation.EasingMode.EaseOut
+                    }
+                };
 
+                animX.Completed += (s, e) =>
+                {
+                    IsSidebarAnimating = false;
+                    if (RightSidebar != null) RightSidebar.CacheMode = null;
+                    if (!isOpen)
+                    {
+                        SidebarContainer.Width = 0;
+                    }
+                    if (SidebarSlideTransform != null) SidebarSlideTransform.X = toX;
+                    try { CurrentBrowser?.NativeHomePage?.OnSidebarAnimationCompleted(); } catch { }
+                    _sidebarWallpaperGlassRefresh?.Invoke();
+                };
 
+                SidebarSlideTransform.BeginAnimation(TranslateTransform.XProperty, animX);
+            }
+            else
+            {
+                IsSidebarAnimating = false;
+                if (RightSidebar != null) RightSidebar.CacheMode = null;
+                SidebarContainer.Width = targetW;
+                try { CurrentBrowser?.NativeHomePage?.OnSidebarAnimationCompleted(); } catch { }
+            }
+        }
+        else
+        {
+            // PUSH MODE (Web pages or overlay disabled):
+            if (isOpen)
+            {
+                ColSidebar.Width = GridLength.Auto;
+            }
 
+            if (SidebarSlideTransform != null)
+            {
+                SidebarSlideTransform.X = 0;
+            }
+            if (SidebarSlideHost != null)
+            {
+                SidebarSlideHost.HorizontalAlignment = HorizontalAlignment.Left;
+            }
+
+            SidebarContainer.ClipToBounds = true;
+            double fromW = SidebarContainer.ActualWidth > 0 ? SidebarContainer.ActualWidth : SidebarContainer.Width;
+            if (double.IsNaN(fromW) || fromW < 0) fromW = isOpen ? 0.0 : contentW;
+
+            var animW = new System.Windows.Media.Animation.DoubleAnimation
+            {
+                From = fromW,
+                To = targetW,
+                Duration = TimeSpan.FromMilliseconds(240),
+                EasingFunction = new System.Windows.Media.Animation.CubicEase
+                {
+                    EasingMode = System.Windows.Media.Animation.EasingMode.EaseOut
+                }
+            };
+
+            animW.Completed += (s, e) =>
+            {
+                IsSidebarAnimating = false;
+                if (RightSidebar != null) RightSidebar.CacheMode = null;
+                if (!isOpen)
+                {
+                    ColSidebar.Width = new GridLength(0);
+                    SidebarContainer.Width = 0;
+                }
+                else
+                {
+                    SidebarContainer.Width = targetW;
+                }
+                try { CurrentBrowser?.NativeHomePage?.OnSidebarAnimationCompleted(); } catch { }
+                _sidebarWallpaperGlassRefresh?.Invoke();
+            };
+
+            SidebarContainer.BeginAnimation(FrameworkElement.WidthProperty, animW);
+        }
     }
-
-
 
     private void BtnBack_Click(object sender, RoutedEventArgs e)
 
@@ -11198,7 +10945,7 @@ return colors.length > 0 ? colors : null;
 
 
 
-        if (SidebarContainer.Width > 0) { _isSidebarLocked = false; ToggleSidebar(false); }
+        if (IsSidebarOpen()) { _isSidebarLocked = false; ToggleSidebar(false); }
 
 
 
@@ -11933,6 +11680,7 @@ return colors.length > 0 ? colors : null;
 
 
     {
+        UpdateSidebarDockMode();
 
 
 
@@ -12309,156 +12057,37 @@ return colors.length > 0 ? colors : null;
 
 
     private void RefreshHeaderWallpaperCrop()
-
-
-
     {
-
-
-
         if (_headerOwnBlurBrush == null) return;
-
-
+        if (IsSidebarAnimating) return;
 
         double headerHeightDip = HeaderContainer.ActualHeight;
-
-
-
         double headerWidthDip = HeaderContainer.ActualWidth;
-
-
-
-        double sidebarWidthDip = SidebarContainer?.ActualWidth ?? 0;
-
-
+        if (headerHeightDip <= 0 || headerWidthDip <= 0) return;
 
         var frame = HomeGlassService.GetWallpaperFrameDip(HeaderContainer);
-
-
-
         var (xStart, xVisibleFraction, yStart, yVisibleFraction) = HomeGlassService.GetWallpaperVisibleFraction(HeaderContainer);
 
-
-
         double widthFraction = xVisibleFraction;
-
-
-
         double heightFraction = Math.Min(0.12, yVisibleFraction);
-
-
-
         if (frame != null && frame.Value.Height > 0)
-
-
-
         {
-
-
-
             heightFraction = Math.Clamp(headerHeightDip / frame.Value.Height, 0.01, yVisibleFraction);
-
-
-
         }
 
-
-
-        double mainWidthDip = Math.Max(0, headerWidthDip - sidebarWidthDip);
-
-
-
-        HeaderMainCropHost.Width = mainWidthDip;
-
-
+        // The header wallpaper blur spans 100% of header width and never shrinks, splits, or updates when sidebar is shown
+        HeaderMainCropHost.HorizontalAlignment = HorizontalAlignment.Stretch;
+        HeaderMainCropHost.Width = double.NaN;
 
         var crop = new Rect(xStart, yStart, widthFraction, heightFraction);
-
-
-
         _headerOwnBlurBrush.Viewbox = HomeGlassService.ExpandViewboxForBleedMargin(
+            crop, headerWidthDip, headerHeightDip, bleedPadDip: 48.0);
 
-
-
-            crop, mainWidthDip, headerHeightDip, bleedPadDip: 48.0);
-
-
-
-        if (_headerSidebarStripBrush != null)
-
-
-
+        if (HeaderSidebarStripHost != null)
         {
-
-
-
-            if (sidebarWidthDip > 0 && frame != null && frame.Value.Width > 0)
-
-
-
-            {
-
-
-
-                double stripWidthFraction = Math.Clamp(sidebarWidthDip / frame.Value.Width, 0.001, xVisibleFraction);
-
-
-
-                double visibleRightEdge = xStart + xVisibleFraction;
-
-
-
-                double stripXStart = visibleRightEdge - stripWidthFraction;
-
-
-
-                var stripCrop = new Rect(stripXStart, yStart, stripWidthFraction, heightFraction);
-
-
-
-                HeaderSidebarStripHost.Width = sidebarWidthDip;
-
-
-
-                HeaderSidebarStripHost.Visibility = Visibility.Visible;
-
-
-
-                _headerSidebarStripBrush.Viewbox = HomeGlassService.ExpandViewboxForBleedMargin(
-
-
-
-                    stripCrop, sidebarWidthDip, headerHeightDip, bleedPadDip: 48.0);
-
-
-
-            }
-
-
-
-            else
-
-
-
-            {
-
-
-
-                HeaderSidebarStripHost.Visibility = Visibility.Collapsed;
-
-
-
-            }
-
-
-
+            HeaderSidebarStripHost.Visibility = Visibility.Collapsed;
         }
-
-
-
     }
-
-
 
     private void InitHeaderWallpaperGlass()
 
@@ -12640,15 +12269,11 @@ return colors.length > 0 ? colors : null;
 
 
 
-        HeaderContainer.SizeChanged += (s, e) => { if (IsHomeActive()) RefreshHeaderWallpaperCrop(); };
+        HeaderContainer.SizeChanged += (s, e) => { if (IsHomeActive()) { RefreshHeaderWallpaperCrop(); _sidebarWallpaperGlassRefresh?.Invoke(); } };
 
 
 
-        SidebarContainer.SizeChanged += (s, e) => { if (IsHomeActive()) RefreshHeaderWallpaperCrop(); };
-
-
-
-        UpdateHeaderHomeState();
+                UpdateHeaderHomeState();
 
 
 
@@ -12892,7 +12517,7 @@ return colors.length > 0 ? colors : null;
 
 
 
-            RelativeTransform = new ScaleTransform(-1, 1, 0.5, 0.5)
+            RelativeTransform = null
 
 
 
@@ -12905,60 +12530,33 @@ return colors.length > 0 ? colors : null;
 
 
         void RefreshSidebarBlurCrop()
-
-
-
         {
+            if (_sidebarOwnBlurBrush == null) return;
+            _sidebarOwnBlurBrush.RelativeTransform = null;
 
-
-
-            double sidebarWidthDip = SidebarContainer.ActualWidth;
-
-
+            double sidebarWidthDip = SidebarContainer.ActualWidth > 0 ? SidebarContainer.ActualWidth : 320.0;
+            double headerHeightDip = HeaderContainer.ActualHeight;
+            double totalHeightDip = ActualHeight > 0 ? ActualHeight : 1080.0;
+            double sidebarHeightDip = SidebarContainer.ActualHeight > 0 ? SidebarContainer.ActualHeight : Math.Max(100.0, totalHeightDip - headerHeightDip);
 
             var frame = HomeGlassService.GetWallpaperFrameDip(SidebarContainer);
+            var (xStart, xVisibleFraction, yStart, yVisibleFraction) = HomeGlassService.GetWallpaperVisibleFraction(SidebarContainer);
 
+            if (frame != null && frame.Value.Height > 0 && frame.Value.Width > 0)
+            {
+                double cropW = Math.Min(xVisibleFraction, sidebarWidthDip / frame.Value.Width);
+                double cropX = (xStart + xVisibleFraction) - cropW;
 
+                // Vertically align: Sidebar starts at headerHeightDip below top of wallpaper surface,
+                // and spans exactly sidebarHeightDip in height (NOT the entire window height).
+                double cropY = yStart + (headerHeightDip / frame.Value.Height);
+                double cropH = Math.Min(yVisibleFraction, sidebarHeightDip / frame.Value.Height);
 
-            double widthFraction = 1.0 - SidebarBlurFallbackCropStart;
-
-
-
-            if (sidebarWidthDip > 0 && frame != null && frame.Value.Width > 0)
-
-
-
-                widthFraction = Math.Clamp(sidebarWidthDip / frame.Value.Width, 0.001, 1.0);
-
-
-
-            var (xStart, xVisibleFraction, yStart, heightFraction) = HomeGlassService.GetWallpaperVisibleFraction(SidebarContainer);
-
-
-
-            double visibleRightEdge = xStart + xVisibleFraction;
-
-
-
-            widthFraction = Math.Min(widthFraction, xVisibleFraction);
-
-
-
-            var crop = new Rect(visibleRightEdge - widthFraction, yStart, widthFraction, heightFraction);
-
-
-
-            _sidebarOwnBlurBrush!.Viewbox = HomeGlassService.ExpandViewboxForBleedMargin(
-
-
-
-                crop, SidebarContainer.ActualWidth, SidebarContainer.ActualHeight, bleedPadDip: 48.0);
-
-
-
+                var crop = new Rect(cropX, cropY, cropW, cropH);
+                _sidebarOwnBlurBrush.Viewbox = HomeGlassService.ExpandViewboxForBleedMargin(
+                    crop, sidebarWidthDip, sidebarHeightDip, bleedPadDip: 48.0);
+            }
         }
-
-
 
         void RefreshSidebarBlurSource()
 

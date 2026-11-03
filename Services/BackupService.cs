@@ -176,7 +176,8 @@ public static class BackupService
                 Path.Combine(baseDir, "Horizon.Updater.exe"),
                 Path.Combine(baseDir, "Tools", "Horizon.Updater.exe"),
                 Path.Combine(baseDir, "Tools", "Horizon.Updater", "Horizon.Updater.exe"),
-                Path.Combine(baseDir, "..", "..", "..", "Tools", "Horizon.Updater", "bin", "Release", "net8.0-windows10.0.19041.0", "Horizon.Updater.exe")
+                Path.Combine(baseDir, "..", "..", "..", "Tools", "Horizon.Updater", "bin", "Release", "net8.0-windows10.0.19041.0", "Horizon.Updater.exe"),
+                Path.Combine(baseDir, "..", "..", "..", "Tools", "Horizon.Updater", "bin", "Release", "net8.0-windows10.0.19041.0", "win-x64", "Horizon.Updater.exe")
             };
 
             string? updaterExe = candidates.FirstOrDefault(File.Exists);
