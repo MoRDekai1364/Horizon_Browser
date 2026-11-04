@@ -81,98 +81,190 @@ public static class HorizonEnvironment
         })();
     ";
 
-        private const string SCRIPT_TIKTOK_INTERVENTION = @"
-        (function() {
-            if (!window.location.hostname.includes('tiktok.com')) return;
-
-            const CSS = `
-                [id*=""login-modal""],
-                [id*=""loginContainer""],
-                [class*=""DivLoginContainer""],
-                [class*=""DivModalContainer""],
-                [class*=""DivLoginModal""],
-                [class*=""DivLoginWall""],
-                [class*=""DivLoginGate""],
-                [class*=""DivGuestMode""],
-                [class*=""login-modal-mask""],
-                [class*=""tiktok-modal__mask""],
-                [class*=""DivMask-StyledMask""],
-                [class*=""DivModalWrap""],
-                [class*=""DivPopupContainer""],
-                [data-e2e=""feed-follow-popup""],
-                [data-e2e=""login-modal""] {
-                    display: none !important;
-                    visibility: hidden !important;
-                    opacity: 0 !important;
-                    pointer-events: none !important;
-                }
-                html, body {
-                    overflow: auto !important;
-                    position: static !important;
-                }
-            `;
-
-            const injectStyle = () => {
-                if (document.getElementById('hz-tiktok-bypass')) return;
-                const s = document.createElement('style');
-                s.id = 'hz-tiktok-bypass';
-                s.textContent = CSS;
-                (document.head || document.documentElement).appendChild(s);
-            };
-
-            const unlockScrollAndDismiss = () => {
-                const closeBtn = document.querySelector('[data-e2e=""modal-close-icon""]') 
-                              || document.querySelector('[class*=""DivCloseWrapper""]')
-                              || document.querySelector('button[aria-label=""Close""]');
-                if (closeBtn && !closeBtn.dataset.hzDismissed) {
-                    closeBtn.dataset.hzDismissed = 'true';
-                    try { closeBtn.click(); } catch(e) {}
-                }
-
-                const video = document.querySelector('video');
-                if (video) {
-                    if (window.__hzTikTokAutoplay === true) {
-                        if (video.paused && !video.ended && video.readyState >= 2 && video.dataset.hzUserPaused !== 'true') {
-                            video.play().catch(() => {});
-                        }
-                    } else {
-                        if (!video.dataset.hzUserInteracted && !video.paused) {
-                            try { video.pause(); } catch(e) {}
-                        }
-                    }
-                }
-            };
-
-            document.addEventListener('click', (e) => {
-                const v = document.querySelector('video');
-                if (v) {
-                    v.dataset.hzUserInteracted = 'true';
-                    const target = e.target;
-                    if (target && (target.tagName === 'VIDEO' || target.closest('video') || target.closest('[data-e2e=""video-player""]'))) {
-                        v.dataset.hzUserPaused = v.paused ? 'false' : 'true';
-                    }
-                }
-            }, true);
-
-            document.readyState === 'loading'
-                ? document.addEventListener('DOMContentLoaded', () => { injectStyle(); unlockScrollAndDismiss(); })
-                : (injectStyle(), unlockScrollAndDismiss());
-
-            let _timer = null;
-            const debouncedCheck = () => {
-                if (_timer) return;
-                _timer = setTimeout(() => {
-                    _timer = null;
-                    unlockScrollAndDismiss();
-                }, 400);
-            };
-
-            if (window.MutationObserver) {
-                const observer = new MutationObserver(debouncedCheck);
-                const root = document.body || document.documentElement;
-                if (root) observer.observe(root, { childList: true, subtree: true });
-            }
-        })();
+        private const string SCRIPT_TIKTOK_INTERVENTION = @"
+
+        (function() {
+
+            if (!window.location.hostname.includes('tiktok.com')) return;
+
+
+
+            const CSS = `
+
+                [id*=""login-modal""],
+
+                [id*=""loginContainer""],
+
+                [class*=""DivLoginContainer""],
+
+                [class*=""DivModalContainer""],
+
+                [class*=""DivLoginModal""],
+
+                [class*=""DivLoginWall""],
+
+                [class*=""DivLoginGate""],
+
+                [class*=""DivGuestMode""],
+
+                [class*=""login-modal-mask""],
+
+                [class*=""tiktok-modal__mask""],
+
+                [class*=""DivMask-StyledMask""],
+
+                [class*=""DivModalWrap""],
+
+                [class*=""DivPopupContainer""],
+
+                [data-e2e=""feed-follow-popup""],
+
+                [data-e2e=""login-modal""] {
+
+                    display: none !important;
+
+                    visibility: hidden !important;
+
+                    opacity: 0 !important;
+
+                    pointer-events: none !important;
+
+                }
+
+                html, body {
+
+                    overflow: auto !important;
+
+                    position: static !important;
+
+                }
+
+            `;
+
+
+
+            const injectStyle = () => {
+
+                if (document.getElementById('hz-tiktok-bypass')) return;
+
+                const s = document.createElement('style');
+
+                s.id = 'hz-tiktok-bypass';
+
+                s.textContent = CSS;
+
+                (document.head || document.documentElement).appendChild(s);
+
+            };
+
+
+
+            const unlockScrollAndDismiss = () => {
+
+                const closeBtn = document.querySelector('[data-e2e=""modal-close-icon""]') 
+
+                              || document.querySelector('[class*=""DivCloseWrapper""]')
+
+                              || document.querySelector('button[aria-label=""Close""]');
+
+                if (closeBtn && !closeBtn.dataset.hzDismissed) {
+
+                    closeBtn.dataset.hzDismissed = 'true';
+
+                    try { closeBtn.click(); } catch(e) {}
+
+                }
+
+
+
+                const video = document.querySelector('video');
+
+                if (video) {
+
+                    if (window.__hzTikTokAutoplay === true) {
+
+                        if (video.paused && !video.ended && video.readyState >= 2 && video.dataset.hzUserPaused !== 'true') {
+
+                            video.play().catch(() => {});
+
+                        }
+
+                    } else {
+
+                        if (!video.dataset.hzUserInteracted && !video.paused) {
+
+                            try { video.pause(); } catch(e) {}
+
+                        }
+
+                    }
+
+                }
+
+            };
+
+
+
+            document.addEventListener('click', (e) => {
+
+                const v = document.querySelector('video');
+
+                if (v) {
+
+                    v.dataset.hzUserInteracted = 'true';
+
+                    const target = e.target;
+
+                    if (target && (target.tagName === 'VIDEO' || target.closest('video') || target.closest('[data-e2e=""video-player""]'))) {
+
+                        v.dataset.hzUserPaused = v.paused ? 'false' : 'true';
+
+                    }
+
+                }
+
+            }, true);
+
+
+
+            document.readyState === 'loading'
+
+                ? document.addEventListener('DOMContentLoaded', () => { injectStyle(); unlockScrollAndDismiss(); })
+
+                : (injectStyle(), unlockScrollAndDismiss());
+
+
+
+            let _timer = null;
+
+            const debouncedCheck = () => {
+
+                if (_timer) return;
+
+                _timer = setTimeout(() => {
+
+                    _timer = null;
+
+                    unlockScrollAndDismiss();
+
+                }, 400);
+
+            };
+
+
+
+            if (window.MutationObserver) {
+
+                const observer = new MutationObserver(debouncedCheck);
+
+                const root = document.body || document.documentElement;
+
+                if (root) observer.observe(root, { childList: true, subtree: true });
+
+            }
+
+        })();
+
     ";
 
 
@@ -227,7 +319,8 @@ public static class HorizonEnvironment
             var args = new StringBuilder();
             
             args.Append("--disable-blink-features=AutomationControlled ");
-            args.Append("--disable-features=SameSiteByDefaultCookies,CookiesWithoutSameSiteMustBeSecure ");
+            if (SettingsService.Current.RelaxSameSiteCookies)
+                args.Append("--disable-features=SameSiteByDefaultCookies,CookiesWithoutSameSiteMustBeSecure ");
             args.Append("--disable-infobars ");
             if (!SettingsService.Current.EnableBackgroundTimerThrottling)
                 args.Append("--disable-background-timer-throttling ");
@@ -258,6 +351,10 @@ public static class HorizonEnvironment
                     LogService.Write("ENGINE", "VPN relay failed to start; browsing continues without VPN routing.");
                 }
             }
+
+            if (SettingsService.Current.FingerprintSpoofEnabled &&
+                !(SettingsService.Current.VpnEnabled && SettingsService.Current.VpnBlockWebRtcLeak))
+                args.Append("--force-webrtc-ip-handling-policy=default_public_interface_only ");
 
             if (!string.IsNullOrWhiteSpace(SettingsService.Current.NextDnsId))
             {
@@ -400,9 +497,48 @@ public static class HorizonEnvironment
         try
         {
             webView.Settings.UserAgent = GlobalUserAgent;
+            if (SettingsService.Current.FingerprintSpoofEnabled)
+                await FingerprintProfile.RegisterAsync(webView);
+
+            if (SettingsService.Current.FingerprintSpoofEnabled && SettingsService.Current.FingerprintWorkerCoverageEnabled)
+            {
+
+
+                webView.GetDevToolsProtocolEventReceiver("Target.attachedToTarget").DevToolsProtocolEventReceived += async (s, e) =>
+                {
+                    string sessionId = "";
+                    try
+                    {
+                        using var doc = System.Text.Json.JsonDocument.Parse(e.ParameterObjectAsJson);
+                        var root = doc.RootElement;
+                        sessionId = root.GetProperty("sessionId").GetString() ?? "";
+                        string targetType = root.GetProperty("targetInfo").GetProperty("type").GetString() ?? "";
+                        if (sessionId.Length > 0 && (targetType == "worker" || targetType == "shared_worker"))
+                            await webView.CallDevToolsProtocolMethodForSessionAsync(sessionId, "Runtime.evaluate",
+                                System.Text.Json.JsonSerializer.Serialize(new { expression = FingerprintProfile.BuildWorkerScript() }));
+                    }
+                    catch (Exception ex)
+                    {
+                        LogService.Write("FP", $"Worker inject failed: {ex.Message}");
+                    }
+                    finally
+                    {
+                        if (sessionId.Length > 0)
+                        {
+                            try { await webView.CallDevToolsProtocolMethodForSessionAsync(sessionId, "Runtime.runIfWaitingForDebugger", "{}"); }
+                            catch { }
+                        }
+                    }
+                };
+
+                await webView.CallDevToolsProtocolMethodAsync(
+                    "Target.setAutoAttach",
+                    "{\"autoAttach\":true,\"waitForDebuggerOnStart\":true,\"flatten\":true}");
+            }
             await webView.AddScriptToExecuteOnDocumentCreatedAsync(SCRIPT_YOUTUBE_INTERVENTION);
             await webView.AddScriptToExecuteOnDocumentCreatedAsync(SCRIPT_YOUTUBE_SCROLL_FIX);
-            await webView.AddScriptToExecuteOnDocumentCreatedAsync($"window.__hzTikTokAutoplay = {(SettingsService.Current.TikTokAutoplayOnLoad ? "true" : "false")};");
+            await webView.AddScriptToExecuteOnDocumentCreatedAsync($"window.__hzTikTokAutoplay = {(SettingsService.Current.TikTokAutoplayOnLoad ? "true" : "false")};");
+
             await webView.AddScriptToExecuteOnDocumentCreatedAsync(SCRIPT_TIKTOK_INTERVENTION);
 
             if (SettingsService.Current.HideSponsoredResults)

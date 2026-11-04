@@ -166,7 +166,31 @@
             <TabItem Header="GENERAL">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" PanningMode="VerticalOnly">
                     <StackPanel Margin="10,10,20,10">
-                        <TextBlock Text="Home Page" Foreground="{StaticResource Brush_Text}"/>
+                        <Grid>
+    <TextBlock Text="Home Page" Foreground="{StaticResource Brush_Text}" VerticalAlignment="Center"/>
+    <Button x:Name="BtnFeedback" Content="Feedback" Click="BtnFeedback_Click"
+            HorizontalAlignment="Right" VerticalAlignment="Center"
+            Height="20" Margin="0,-4,0,-4" Padding="12,0"
+            FontSize="11" FontWeight="Bold" Foreground="Black" Cursor="Hand"
+            local:SearchIndex.Label="Feedback" local:SearchIndex.Description="Open the feedback form to report a bug or suggest an improvement."
+            ToolTip="Send feedback about Horizon Browser">
+        <Button.Template>
+            <ControlTemplate TargetType="Button">
+                <Border x:Name="Bd" Background="#FFD600" CornerRadius="10" Padding="{TemplateBinding Padding}">
+                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <ControlTemplate.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter TargetName="Bd" Property="Background" Value="#FFEA4D"/>
+                    </Trigger>
+                    <Trigger Property="IsPressed" Value="True">
+                        <Setter TargetName="Bd" Property="Background" Value="#E6BF00"/>
+                    </Trigger>
+                </ControlTemplate.Triggers>
+            </ControlTemplate>
+        </Button.Template>
+    </Button>
+</Grid>
                         <TextBox x:Name="TxtHome" Height="30" Margin="0,5,0,8" Background="#222" Foreground="White" BorderThickness="0"
                                  local:SearchIndex.Label="Home Page" local:SearchIndex.Description="The URL that loads when you open a new tab or the browser starts."
                                  ToolTip="The URL that loads when you open a new tab or the browser starts."/>

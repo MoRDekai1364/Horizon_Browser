@@ -398,6 +398,9 @@ public class SettingsData
     public string HomeWidgetBoardConfigJson { get; set; } = "";
     public string HomeWidgetNotesText { get; set; } = "";
     public bool   TikTokAutoplayOnLoad { get; set; } = false;
+    public bool   FingerprintSpoofEnabled { get; set; } = true;
+    public bool   FingerprintWorkerCoverageEnabled { get; set; } = true;
+    public bool   RelaxSameSiteCookies { get; set; } = false;
     public List<string> FavoriteFolders { get; set; } = new();
     public List<string> BookmarkFolders { get; set; } = new();
     public List<string> PinnedUtilityIds { get; set; } = new();

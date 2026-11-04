@@ -463,6 +463,10 @@ public partial class BrowserView : UserControl
         };
     }
 
+    private DateTime _lastPopupTabUtc = DateTime.MinValue;
+    private bool _initialNavIssued;
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, string> _referrerHints = new();
+
     private void CoreWebView2_NewWindowRequested(object? sender, CoreWebView2NewWindowRequestedEventArgs e)
     {
         // ── OAuth / auth popup detection ─────────────────────────────────────
@@ -553,8 +557,28 @@ public partial class BrowserView : UserControl
 
         // ── Regular new-tab link ─────────────────────────────────────────────
         e.Handled = true;
-        if (!string.IsNullOrEmpty(e.Uri) && e.Uri != "about:blank")
-            OnNewTabRequested(e.Uri);
+        if (string.IsNullOrEmpty(e.Uri) || e.Uri == "about:blank") return;
+        if (!e.IsUserInitiated)
+        {
+            LogService.Write("POPUP", $"Blocked non-user popup: {e.Uri}");
+            return;
+        }
+        var popupNow = DateTime.UtcNow;
+        if ((popupNow - _lastPopupTabUtc).TotalMilliseconds < 1500)
+        {
+            LogService.Write("POPUP", $"Blocked duplicate popup: {e.Uri}");
+            return;
+        }
+        _lastPopupTabUtc = popupNow;
+        LogService.Write("POPUP", $"New tab: {e.Uri}");
+        try
+        {
+            string? srcUrl = MainWebView?.Source?.ToString();
+            if (!string.IsNullOrEmpty(srcUrl) && srcUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+                _referrerHints[e.Uri] = srcUrl;
+        }
+        catch { }
+        OnNewTabRequested(e.Uri);
     }
 
     /// <summary>
@@ -692,7 +716,17 @@ public partial class BrowserView : UserControl
         await EnsureInitializedAsync(forceInit: false);
     }
 
-    public async Task<bool> EnsureInitializedAsync(bool forceInit = false)
+    private Task<bool>? _initTask;
+
+    public Task<bool> EnsureInitializedAsync(bool forceInit = false)
+    {
+        if (MainWebView.CoreWebView2 != null) return Task.FromResult(true);
+        if (_initTask != null && !_initTask.IsCompleted) return _initTask;
+        _initTask = EnsureInitializedCoreAsync(forceInit);
+        return _initTask;
+    }
+
+    private async Task<bool> EnsureInitializedCoreAsync(bool forceInit)
     {
         if (MainWebView.CoreWebView2 != null) return true;
         if (!forceInit && !IsVisible)
@@ -870,10 +904,20 @@ public partial class BrowserView : UserControl
                 {
                     Navigate(_pendingUrl);
                     _pendingUrl = null;
+                    _initialNavIssued = true;
                 }
                 else
                 {
-                    Navigate(SettingsService.Current.HomePage);
+                    string? liveSource = null;
+                    try { liveSource = MainWebView.Source?.ToString(); } catch { }
+                    if (!_initialNavIssued && (string.IsNullOrEmpty(liveSource) || liveSource == "about:blank"))
+                    {
+                        Navigate(SettingsService.Current.HomePage);
+                    }
+                    else
+                    {
+                        LogService.Write("POPUP", $"Init home fallback skipped, tab already on: {liveSource}");
+                    }
                 }
 
                 if (shouldFlushCache)
@@ -1046,6 +1090,7 @@ public partial class BrowserView : UserControl
 
     private async void CoreWebView2_NavigationCompleted(object? sender, CoreWebView2NavigationCompletedEventArgs e)
     {
+        LogService.Write("NAVTRACE", $"NavDone success={e.IsSuccess} err={e.WebErrorStatus} src={MainWebView?.Source} homeActive={IsHomeActive} webViewVisible={MainWebView?.Visibility} viewVisible={Visibility} tabTitle={_tabViewModel?.Title}");
         if (!_extensionsLoaded) _ = LoadExtensionsAsync();
 
         string navHost = MainWebView?.Source?.Host ?? string.Empty;
@@ -1584,6 +1629,7 @@ public partial class BrowserView : UserControl
 
     private async void CoreWebView2_NavigationStarting(object? sender, CoreWebView2NavigationStartingEventArgs e)
     {
+        LogService.Write("NAVTRACE", $"NavStart {e.Uri} homeActive={IsHomeActive} webViewVisible={MainWebView?.Visibility} userInitiated={e.IsUserInitiated} redirected={e.IsRedirected}");
         Dispatcher.Invoke(HideScriptWarning);
         Dispatcher.Invoke(HideExtensionInstallBar);
         string newHost = new Uri(e.Uri ?? "about:blank").Host;
@@ -2546,6 +2592,9 @@ public partial class BrowserView : UserControl
 
     public void Navigate(string url)
     {
+        LogService.Write("NAVTRACE", $"Navigate({url}) homeActive={IsHomeActive} core={(MainWebView?.CoreWebView2 != null)} pending={_pendingUrl} tabUrl={_tabViewModel?.Url}");
+        if (url == HomeSentinel)
+            LogService.Write("NAVTRACE", "Navigate(HomeSentinel) stack:\n" + Environment.StackTrace);
         if (url == HomeSentinel)
         {
             LogService.Debug("nav", () => "Navigate(HomeSentinel) stack:\n" + Environment.StackTrace);
@@ -2591,7 +2640,17 @@ public partial class BrowserView : UserControl
                 return;
             }
 
-            MainWebView.CoreWebView2.Navigate(url);
+            if (_referrerHints.TryRemove(url, out var hintedReferrer))
+            {
+                var refReq = MainWebView.CoreWebView2.Environment.CreateWebResourceRequest(
+                    url, "GET", null, "Referer: " + hintedReferrer);
+                MainWebView.CoreWebView2.NavigateWithWebResourceRequest(refReq);
+                LogService.Write("POPUP", $"Navigated with Referer: {hintedReferrer}");
+            }
+            else
+            {
+                MainWebView.CoreWebView2.Navigate(url);
+            }
         }
         catch (InvalidOperationException)
         {
@@ -2609,6 +2668,7 @@ public partial class BrowserView : UserControl
             await Task.Delay(300);
 
             string? urlToRestore = _pendingUrl;
+            _initialNavIssued = false;
             if (string.IsNullOrEmpty(urlToRestore))
             {
                 try { urlToRestore = MainWebView.Source?.ToString(); } catch { }

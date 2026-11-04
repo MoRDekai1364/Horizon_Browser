@@ -762,6 +762,11 @@ public partial class SettingsWindow : Window
     win.ShowDialog();
 }
 
+private void BtnFeedback_Click(object sender, RoutedEventArgs e)
+{
+    FeedbackWindow.ShowSingleton(this);
+}
+
 private void BtnResetHome_Click(object sender, RoutedEventArgs e)
 {
     TxtHome.Text = "horizon://home";

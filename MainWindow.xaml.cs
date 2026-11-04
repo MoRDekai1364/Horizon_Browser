@@ -11032,6 +11032,29 @@ return colors.length > 0 ? colors : null;
             return;
         }
 
+        if (ctrl && shift && e.Key == Key.F)
+        {
+            string? exHost = null;
+            try
+            {
+                var exCore = CurrentBrowser?.MainWebView?.CoreWebView2;
+                if (exCore != null) exHost = new Uri(exCore.Source).Host;
+            }
+            catch { }
+
+            if (!string.IsNullOrEmpty(exHost))
+            {
+                _ = Dispatcher.InvokeAsync(async () =>
+                {
+                    bool nowExempt = await FingerprintProfile.ToggleAsync(exHost);
+                    LogService.Write("FP", nowExempt ? $"Spoofing off for {exHost}" : $"Spoofing back on for {exHost}");
+                    CurrentBrowser?.MainWebView?.Reload();
+                });
+            }
+            e.Handled = true;
+            return;
+        }
+
         if (ctrl && e.Key == Key.T)
         {
             Horizon.Stealth.Views.ArcCommandBarWindow.ShowCommandBar(this);
