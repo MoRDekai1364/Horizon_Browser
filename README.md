@@ -1,310 +1,224 @@
-<div align="center">
+# Horizon Browser
 
-# 🌌 Horizon Browser
+A Windows desktop browser built on WPF and WebView2, with a small Rust library for the performance-sensitive parts. I started it because I wanted multiple logins to the same site without juggling incognito windows, and it grew from there.
 
-**The Next-Generation Stealth, Speed & Productivity Web Browser for Windows**
-
-*Engineered with .NET 9 / WPF, Microsoft WebView2 Chromium, and a high-performance Native Rust Core.*
-
-<br/>
-
-[![Version](https://img.shields.io/badge/Version-2.7.6%20Beta-7928CA?style=for-the-badge&logo=rocket&logoColor=white)](docs/version.txt)
-[![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%2F%2011%20(x64)-0078D4?style=for-the-badge&logo=windows11&logoColor=white)](#installation--quick-start)
-[![Framework](https://img.shields.io/badge/.NET-8.0%20%2F%209.0%20%7C%20C%23%2013-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)](#architecture--engine-overview)
-[![Web Engine](https://img.shields.io/badge/Engine-WebView2%20%2F%20Chromium-00ADB5?style=for-the-badge&logo=googlechrome&logoColor=white)](#architecture--engine-overview)
-[![Rust Core](https://img.shields.io/badge/Core-Native%20Rust%20cdylib-DEA584?style=for-the-badge&logo=rust&logoColor=white)](#architecture--engine-overview)
-[![UI Design](https://img.shields.io/badge/UI-Fluent%20Acrylic%20%26%20Mica-222831?style=for-the-badge&logo=windows&logoColor=white)](#-key-features)
-[![Stealth](https://img.shields.io/badge/Aegis-Shield%20Active-00C853?style=for-the-badge&logo=shield&logoColor=white)](#-aegis-security--multi-account-containers)
-
-<br/>
-
-[✨ Key Features](#-key-features) •
-[🔒 Aegis Privacy](#-aegis-security--multi-account-containers) •
-[🧩 Fullscreen Widget Board](#-fullscreen-widget-board) •
-[⚡ Flux Sidebar](#-sliding-flux-sidebar--workspace-hub) •
-[⌨️ Shortcuts](#️-keyboard-shortcuts) •
-[🚀 Quick Start](#-installation--quick-start) •
-[💬 Feedback](#-feedback--community)
-
-<br/>
+[![Version](https://img.shields.io/badge/version-2.7.9%20beta-7928CA)](docs/version.txt)
+[![Platform](https://img.shields.io/badge/platform-Windows%2010%20%2F%2011%20x64-0078D4)](#install)
 
 <a href="docs/screenshots/01-homepage-hero.png">
-  <img src="docs/screenshots/01-homepage-hero.png" alt="Horizon Browser Homepage Hero" width="100%" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.4);" />
+  <img src="docs/screenshots/01-homepage-hero.png" alt="Horizon Browser homepage" width="100%" />
 </a>
 
-*Horizon Browser 2.7.6: Hardware-accelerated Acrylic glass homepage with optical-center search anchoring, dynamic weather, and bottom control island.*
+## What it is
 
-</div>
+Horizon is a Chromium-based browser (through Microsoft's WebView2) with a custom WPF shell. Most of what makes it different is in the shell:
 
----
+- Container tabs, so you can stay logged into several accounts on the same site at once
+- A tab governor that puts background tabs to sleep in stages to save memory
+- A homepage with a widget board, bookmarks view and a sidebar
+- Built-in tracker blocking and a few site-specific fixes
 
-## 💡 About Horizon Browser
+## Features
 
-**Horizon Browser** redefines desktop browsing on Windows. Unlike standard Chromium repackagings, Horizon blends a native hardware-accelerated **WPF .NET Fluent Acrylic/Mica shell** with a sub-millisecond **Native Rust core engine (`horizon_core.dll`)** and Microsoft WebView2.
+### Homepage
 
-Horizon was designed from the ground up for power users who demand:
-- 🛡️ **Total Identity & Session Isolation** — Multiple logins to the same service side-by-side using containerized profile sandboxes.
-- 💨 **Zero Latency & Memory Governance** — Intelligent 5-tier tab resource governor (*Active → Warm → Dormant → Suspended → Cryo*) that sheds background memory pressure.
-- 🎨 **Artisanal Aesthetics** — Real-time acrylic blur glass sampling, 9 customizable visual launcher worlds, spring-physics UI animations, and a top-notch Dynamic Island.
-- 🔏 **Stealth & Anti-Fingerprinting** — Cloudflare and anti-bot mitigation, AdGuard tracker blocking, YouTube SponsorBlock bypass, and TikTok guest-wall elimination.
+The homepage has a blurred acrylic background with the search bar fixed in the middle of the screen. It stays put when you open favorites or switch to widgets. Around it:
 
----
+- A draggable status capsule at the top (the "Dynamic Island") showing current media, tab state and a few shortcuts. It collapses when you click outside it.
+- Weather and a clock.
+- A dock at the bottom with a VPN bypass toggle, battery status, wallpaper switcher and quick settings.
 
-## ✨ Key Features
+<a href="docs/screenshots/06-active-browsing-dynamic-island.png">
+  <img src="docs/screenshots/06-active-browsing-dynamic-island.png" alt="Browsing with the status capsule" width="100%" />
+</a>
 
-### 🌌 1. Fluent Acrylic Glass Homepage & Dynamic Island
-The homepage presents a floating, real-time blurred glass canvas. The search bar is optically locked to the midpoint of the screen, staying immutably anchored across searches, favorites, and widget switching.
+### Container tabs and privacy (Aegis)
 
-- **Persistent Search Row**: Search bar remains frozen at the optical center while content islands smoothly expand downward.
-- **Dynamic Island Top-Notch**: A draggable, flush status capsule anchored to the screen ceiling that reveals active media, tab state, and quick shortcuts, with automatic click-outside collapse.
-- **Dynamic Weather & Clock**: Real-time atmospheric conditions, pressure, humidity, and clock rendering with sub-pixel typography.
-- **Bottom Island Dock**: Centralized pill hosting VPN bypass toggles, system battery health, live wallpaper switchers, and quick settings.
+Right-click a tab to move it into a container: Work, Personal, Finance, Shopping, or one you name yourself. Each container has its own cookies, localStorage, IndexedDB and HTTP cache (it uses `CoreWebView2Profile` under the hood), so you can be logged into two Google or GitHub accounts side by side. Tabs show a colored badge for their container.
 
-<div align="center">
-  <a href="docs/screenshots/06-active-browsing-dynamic-island.png">
-    <img src="docs/screenshots/06-active-browsing-dynamic-island.png" alt="Active Browsing and Dynamic Island" width="100%" style="border-radius: 10px; margin-top: 8px;" />
-  </a>
-  <p><em>Active browsing view showing header tabs, seamless WebView2 rendering, and the integrated Dynamic Island status capsule.</em></p>
-</div>
+Also included:
 
----
+- AdGuard-based tracker blocking
+- SponsorBlock for YouTube
+- Removal of TikTok's guest login popup
+- Referrer header stripping
 
-### 🔒 Aegis Security & Multi-Account Containers
-Tired of opening incognito windows or secondary browsers just to log into multiple accounts? Horizon features deep **`CoreWebView2Profile` Container Tab Isolation**.
+<a href="docs/screenshots/04-aegis-security-containers.png">
+  <img src="docs/screenshots/04-aegis-security-containers.png" alt="Container tabs and privacy settings" width="100%" />
+</a>
 
-- **Multi-Account Container Tabs**: Right-click any tab to isolate it into **Work**, **Personal**, **Finance**, **Shopping**, or a **Custom** named container. Each container maintains strictly isolated cookies, localStorage, indexedDB, and HTTP cache.
-- **Simultaneous Multi-Session**: Run multiple accounts on Google, GitHub, Claude, Discord, or AWS side-by-side without interference.
-- **High-Contrast Container Badging**: Visual container pills with distinct color accents render directly on tabs.
-- **Built-in Shields**: Integrated AdGuard tracker blocking, YouTube SponsorBlock bypass, TikTok guest modal unblocking, and referrer header stripping.
+### Widget board
 
-<div align="center">
-  <a href="docs/screenshots/04-aegis-security-containers.png">
-    <img src="docs/screenshots/04-aegis-security-containers.png" alt="Aegis Security & Container Tab Suite" width="100%" style="border-radius: 10px; margin-top: 8px;" />
-  </a>
-  <p><em>Aegis Security & Privacy Suite: Multi-account container isolation, anti-fingerprinting shields, and platform bypasses.</em></p>
-</div>
+The Widgets view fills the window with a grid of cards:
 
----
-
-### 🧩 Fullscreen Widget Board
-Switch to **Widgets** mode to open the fullscreen Acrylic glass command center. Horizon incorporates an interactive 4-column matrix containing 15 dynamic productivity and diagnostic cards:
-
-| Widget | Capabilities |
+| Widget | What it does |
 |---|---|
-| 🕒 **World Clock & Time** | Multiple timezones, UTC offsets, and digital/analog display. |
-| 🌦️ **Atmospheric Weather** | Real-time temperature, humidity, atmospheric pressure, and forecast. |
-| ⚡ **Aegis RAM Governor** | Live browser process-tree memory auditing powered by the native Rust core. |
-| 📝 **Quick Notes** | Instant scratchpad with auto-save, word counter, and character counter. |
-| 📐 **Unit & Currency Converter** | Live length, weight, temperature, and currency conversion. |
-| 🧮 **Scientific Calculator** | Interactive keypad with instant mathematical evaluation. |
-| 🔋 **Battery & Power Status** | Win32 power telemetry, battery percentage, charging health, and power state. |
-| 📅 **Calendar & Event Planner** | Full agenda, date interval calculator, age calculator, and event tracking. |
+| World clock | Several timezones, digital or analog |
+| Weather | Temperature, humidity, pressure, forecast |
+| RAM governor | Memory use of the browser's process tree, read through the Rust library |
+| Quick notes | Scratchpad with autosave and word/character counts |
+| Converter | Length, weight, temperature and currency |
+| Calculator | Scientific calculator |
+| Battery | Charge level and power state from Win32 |
+| Calendar | Agenda, date difference and age calculators |
 
-<div align="center">
-  <a href="docs/screenshots/02-widget-board.png">
-    <img src="docs/screenshots/02-widget-board.png" alt="Fullscreen Acrylic Widget Board" width="100%" style="border-radius: 10px; margin-top: 8px;" />
-  </a>
-  <p><em>Fullscreen Windows 11 Widget Board: 15 interactive cards rendered over dynamic acrylic glass.</em></p>
-</div>
+<a href="docs/screenshots/02-widget-board.png">
+  <img src="docs/screenshots/02-widget-board.png" alt="Widget board" width="100%" />
+</a>
 
-<div align="center">
-  <table>
-    <tr>
-      <td align="center" width="50%">
-        <img src="docs/screenshots/widget-converter.png" alt="Interactive Converter Widget" width="380" style="border-radius: 8px;" />
-        <br/><em>Interactive Unit & Currency Converter</em>
-      </td>
-      <td align="center" width="50%">
-        <img src="docs/screenshots/widget-notes.png" alt="Auto-saving Quick Notes Widget" width="380" style="border-radius: 8px;" />
-        <br/><em>Auto-saving Scratchpad & Word Counter</em>
-      </td>
-    </tr>
-  </table>
-</div>
+<table>
+  <tr>
+    <td align="center" width="50%">
+      <img src="docs/screenshots/widget-converter.png" alt="Converter widget" width="380" />
+      <br/>Converter
+    </td>
+    <td align="center" width="50%">
+      <img src="docs/screenshots/widget-notes.png" alt="Notes widget" width="380" />
+      <br/>Notes
+    </td>
+  </tr>
+</table>
 
----
+### Bookmarks and favorites
 
-### 🔖 Interactive Acrylic Bookmarks & Favorites Island
-Say goodbye to cluttered bookmark bars. Horizon groups your bookmarks and favorites into an organic **puzzle-block matrix**:
+Bookmarks are grouped by domain into cards that pack together to fill the space. Each folder can be shown in one of five ways: header only, first row, stacked preview, mini folder, or full list. Popups open and close with a spring animation.
 
-- **Domain-Grouped Bookmarks**: Bookmarks automatically organize by web domain into sleek glass cards.
-- **Puzzle-Block Packing**: Cards dynamically scale and pack together based on item count with zero wasted space.
-- **5 Folder Presentation Styles**: Choose between *Header Only*, *First Row*, *Stacked Preview*, *Mini Folder*, and *Full List*.
-- **Spring Popup Physics**: Silky-smooth opening and closing transitions powered by asymptotic spring curves (`diff * 0.22`).
+<a href="docs/screenshots/03-favorites-bookmarks.png">
+  <img src="docs/screenshots/03-favorites-bookmarks.png" alt="Bookmarks and favorites" width="100%" />
+</a>
 
-<div align="center">
-  <a href="docs/screenshots/03-favorites-bookmarks.png">
-    <img src="docs/screenshots/03-favorites-bookmarks.png" alt="Bookmarks and Favorites Acrylic Island" width="100%" style="border-radius: 10px; margin-top: 8px;" />
-  </a>
-  <p><em>Favorites & Bookmarks Island: Puzzle-packed domain blocks with dynamic acrylic blur.</em></p>
-</div>
+### Sidebar
 
----
+The sidebar slides out from the edge and holds:
 
-### ⚡ Sliding Flux Sidebar & Workspace Hub
-The **Flux Sidebar** is an extensible slide-out workspace hub that adapts to your workflow:
+- Tab categories, panes and workspaces, color-coded
+- Recent downloads, with cut, copy, paste and open
+- An overlay mode on the homepage, so it floats over the widgets instead of pushing them aside. On regular web pages it pushes the page instead.
 
-- **Spring-Decelerated Slide**: Ported asymptotic physics formula running on a 16ms render loop delivers 60 FPS opening and zero-snap reversal.
-- **Categorized Tab Management**: Group tabs into color-coded categories, panes, and workspaces.
-- **Integrated File Operations**: View recent downloads with native cut, copy, paste, and open operations directly from the sidebar.
-- **Homepage Overlay Mode**: Floats over the homepage with unmirrored acrylic glass without pushing or disturbing centered widgets, automatically transitioning to push mode on web pages.
+<a href="docs/screenshots/05-flux-sidebar.png">
+  <img src="docs/screenshots/05-flux-sidebar.png" alt="Sidebar" width="100%" />
+</a>
 
-<div align="center">
-  <a href="docs/screenshots/05-flux-sidebar.png">
-    <img src="docs/screenshots/05-flux-sidebar.png" alt="Sliding Flux Sidebar" width="100%" style="border-radius: 10px; margin-top: 8px;" />
-  </a>
-  <p><em>Sliding Flux Sidebar: Tab categories, navigation panes, and quick-access utility tools.</em></p>
-</div>
+### Calendar
 
----
+A monthly calendar with events, plus a date calculator (days, weeks and months between two dates) and an age calculator. Available from the homepage and the widget board.
 
-### 📅 Calendar & Productivity Suite
-Horizon includes a built-in calendar and date-math suite accessible directly from the homepage or widget board:
+<a href="docs/screenshots/07-calendar-productivity.png">
+  <img src="docs/screenshots/07-calendar-productivity.png" alt="Calendar" width="100%" />
+</a>
 
-- Full monthly calendar view with event tagging.
-- **Date Calculator**: Calculate exact duration between two dates in days, weeks, and months.
-- **Age Calculator**: Precise date-of-birth age and milestone tracker.
+### Themes
 
-<div align="center">
-  <a href="docs/screenshots/07-calendar-productivity.png">
-    <img src="docs/screenshots/07-calendar-productivity.png" alt="Calendar and Date Calculator Suite" width="100%" style="border-radius: 10px; margin-top: 8px;" />
-  </a>
-  <p><em>Integrated Calendar, Date Math, and Event Planning Suite.</em></p>
-</div>
+The homepage has nine looks, switchable from settings:
 
----
+Horizon Flow (default), CyberTerminal HUD, Metro Matrix, Rust Neo-Canvas, Retro CRT Cyberdeck, Editorial Paper, Starship LCARS, Zen Garden, Win95 RetroDesk.
 
-### 🎨 Homepage Customizer & Multi-World Themes
-Personalize every facet of your browsing environment:
+You can also adjust glass opacity, noise, border glow and wallpaper blur.
 
-- **9 Visual Launcher Worlds**:
-  - 🌌 *Horizon Flow* (Default Fluent Glass)
-  - ⚡ *CyberTerminal HUD*
-  - 🔲 *Metro Matrix*
-  - 🦀 *Rust Neo-Canvas*
-  - 📺 *Retro CRT Cyberdeck*
-  - 📰 *Editorial Paper*
-  - 🚀 *Starship LCARS*
-  - 🌸 *Zen Garden*
-  - 💾 *Win95 RetroDesk*
-- **Glass & Tint Controls**: Fine-tune glass opacity, acrylic noise intensity, border glow, and background wallpaper blurring.
+<a href="docs/screenshots/08-homepage-customizer.png">
+  <img src="docs/screenshots/08-homepage-customizer.png" alt="Homepage settings" width="100%" />
+</a>
 
-<div align="center">
-  <a href="docs/screenshots/08-homepage-customizer.png">
-    <img src="docs/screenshots/08-homepage-customizer.png" alt="Homepage Customizer" width="100%" style="border-radius: 10px; margin-top: 8px;" />
-  </a>
-  <p><em>Homepage Settings: Instant switching between 9 visual worlds and glass styling options.</em></p>
-</div>
+## How it's built
 
----
-
-## 🏛️ Architecture & Engine Overview
-
-Horizon Browser leverages a hybrid three-tier architecture:
+Three layers:
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                    HORIZON BROWSER ARCHITECTURE                 │
-├─────────────────────────────────────────────────────────────────┤
-│  PRESENTATION LAYER (C# 13 / .NET 9 WPF)                        │
-│  • MainWindow Shell & Dynamic Island Capsule                     │
-│  • HomePageView with Fluent Acrylic Glass & 9 Visual Worlds     │
-│  • Flux Sidebar with Asymptotic Spring Physics                  │
-│  • Fullscreen 4x4 Acrylic Widget Board Matrix                   │
-├─────────────────────────────────────────────────────────────────┤
-│  NATIVE ACCELERATION CORE (Rust cdylib: horizon_core.dll)       │
-│  • Sub-millisecond Process-Tree Memory Auditing                 │
-│  • SIMD Wallpaper Luminance & Contrast Sampling                 │
-│  • Zero-Allocation Sub-Pixel Dock & Grid Coordinate Solver      │
-├─────────────────────────────────────────────────────────────────┤
-│  WEB PLATFORM ENGINE (Microsoft WebView2 Chromium)              │
-│  • CoreWebView2Profile Multi-Account Container Sandboxing       │
-│  • Aegis Tab Governor (Active → Warm → Dormant → Cryo)          │
-│  • Chrome DevTools Protocol (CDP) Capture Pipeline              │
-│  • Stealth Anti-Fingerprinting & Client Hints Sanitation        │
-└─────────────────────────────────────────────────────────────────┘
+WPF shell (C#)
+  main window, status capsule, homepage, sidebar, widget board
+
+Rust library (horizon_core.dll)
+  process-tree memory auditing, wallpaper luminance sampling,
+  dock and grid layout math
+
+WebView2 (Chromium)
+  container profiles, tab governor, DevTools Protocol capture
+  for tab previews, fingerprint and client-hint cleanup
 ```
 
-### Aegis Resource Manager Tab Governor
-To maintain lightning-fast responsiveness and avoid Chromium RAM bloat, Horizon's tab governor automatically transitions background tabs through 5 distinct lifecycle tiers:
-1. **Active**: Full rendering, high priority, audio/video playback preserved.
-2. **Warm**: Throttled DOM timers and background JavaScript.
-3. **Dormant**: State cached, memory footprint trimmed.
-4. **Suspended**: Serialized DOM tree; execution paused until tab re-selection.
-5. **Cryo**: Complete memory release with instant state-restoration token.
+### Tab governor
 
----
+Background tabs move through these states to keep memory down:
 
-## ⌨️ Keyboard Shortcuts
+1. **Active**: rendering normally, audio and video keep playing.
+2. **Warm**: timers and background JavaScript are throttled.
+3. **Dormant**: state is cached and memory is trimmed.
+4. **Suspended**: DOM is serialized and execution stops until you switch back.
+5. **Cryo**: memory is fully released, and the tab is restored from a saved state when you return to it.
+
+## Keyboard shortcuts
 
 | Shortcut | Action |
 |---|---|
-| <kbd>Ctrl</kbd> + <kbd>T</kbd> | Open new tab |
-| <kbd>Ctrl</kbd> + <kbd>W</kbd> | Close active tab |
-| <kbd>Ctrl</kbd> + <kbd>Tab</kbd> | Open topmost visual **TabSwitcher** with live CDP previews |
-| <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Tab</kbd> | Cycle backward through tabs |
-| <kbd>Ctrl</kbd> + <kbd>1</kbd> .. <kbd>9</kbd> | Jump directly to tab 1 through 9 |
-| <kbd>Ctrl</kbd> + <kbd>H</kbd> | Open browsing history |
-| <kbd>Ctrl</kbd> + <kbd>J</kbd> | Open downloads drawer in Flux Sidebar |
-| <kbd>Ctrl</kbd> + <kbd>B</kbd> | Toggle Flux Sidebar |
-| <kbd>Ctrl</kbd> + <kbd>L</kbd> / <kbd>Alt</kbd> + <kbd>D</kbd> | Focus URL / Search address bar |
-| <kbd>F11</kbd> | Toggle cinematic glass curtain Fullscreen mode |
-| <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>I</kbd> | Inspect element / Chromium DevTools |
-| <kbd>Ctrl</kbd> + <kbd>+</kbd> / <kbd>-</kbd> / <kbd>0</kbd> | Zoom in, zoom out, reset zoom |
+| <kbd>Ctrl</kbd> + <kbd>T</kbd> | New tab |
+| <kbd>Ctrl</kbd> + <kbd>W</kbd> | Close tab |
+| <kbd>Ctrl</kbd> + <kbd>Tab</kbd> | Tab switcher with live previews |
+| <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Tab</kbd> | Previous tab |
+| <kbd>Ctrl</kbd> + <kbd>1</kbd> to <kbd>9</kbd> | Jump to tab 1 to 9 |
+| <kbd>Ctrl</kbd> + <kbd>H</kbd> | History |
+| <kbd>Ctrl</kbd> + <kbd>J</kbd> | Downloads in the sidebar |
+| <kbd>Ctrl</kbd> + <kbd>B</kbd> | Toggle sidebar |
+| <kbd>Ctrl</kbd> + <kbd>L</kbd> or <kbd>Alt</kbd> + <kbd>D</kbd> | Focus the address bar |
+| <kbd>F11</kbd> | Fullscreen |
+| <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>I</kbd> | DevTools |
+| <kbd>Ctrl</kbd> + <kbd>+</kbd> / <kbd>-</kbd> / <kbd>0</kbd> | Zoom in, out, reset |
 
----
+## Install
 
-## 🚀 Installation & Quick Start
+Requires Windows 10 or 11 (64-bit) and the [WebView2 Runtime](https://developer.microsoft.com/en-us/microsoft-edge/webview2/), which comes with Windows 11.
 
-> [!NOTE]
-> Horizon Browser runs on **Windows 10 / 11 (64-bit)** with the [Microsoft Edge WebView2 Runtime](https://developer.microsoft.com/en-us/microsoft-edge/webview2/) (pre-installed on Windows 11).
+**From a release**
 
-### Option 1: Official Release Package (Recommended)
-1. Download the latest **`Horizon_Browser_official_release.zip`** from Releases.
-2. Extract the archive to your preferred directory (e.g. `C:\Program Files\Horizon` or `~/AppData/Local/Horizon`).
-3. Run **`Horizon.exe`** (or use the included desktop shortcut).
+1. Download `Horizon_Browser_official_release.zip` from Releases.
+2. Extract it anywhere.
+3. Run `Horizon.exe`.
 
-### Option 2: Build From Source
-Ensure you have the [.NET 9.0 SDK](https://dotnet.microsoft.com/download) and [Visual Studio 2022](https://visualstudio.microsoft.com/) / modern Windows C++ build tools installed.
+**From source**
+
+You need the [.NET 8 SDK](https://dotnet.microsoft.com/download) and Visual Studio 2022 (or the Windows C++ build tools, for the Rust library).
 
 ```powershell
-# 1. Clone repository
-git clone https://github.com/dmeta/horizon-browser.git
-cd horizon-browser
-
-# 2. Build Release configuration
+git clone https://github.com/MoRDekai1364/Horizon_Browser.git
+cd Horizon_Browser
 dotnet build -c Release "Horizon.Browser.csproj"
-
-# 3. Launch Horizon Browser
 & "bin\Release\Horizon.Browser.exe"
 ```
 
----
+## Roadmap
 
-## 🗺️ Roadmap & Upcoming Milestones
+Done:
 
-- [x] Multi-Account Container Tabs & Profile Isolation (`CoreWebView2Profile`)
-- [x] Fullscreen 15-Card Acrylic Glass Widget Board
-- [x] Sliding Flux Sidebar with Asymptotic Spring Physics
-- [x] 9-World Multi-Theme Homepage Launchers
-- [x] Native Rust acceleration core (`horizon_core.dll`)
-- [x] TikTok login wall and YouTube SponsorBlock bypass
-- [ ] Automated Chrome Web Store extension installer flow
-- [ ] End-to-end encrypted tab and session synchronization
-- [ ] Dedicated MSIX / InnoSetup packaging installer
-- [ ] Split-view dual-tab browsing layout
+- [x] Container tabs and profile isolation
+- [x] Widget board
+- [x] Sidebar
+- [x] Nine homepage themes
+- [x] Rust core library
+- [x] TikTok login popup and YouTube SponsorBlock fixes
+- [x] Chrome Web Store, Edge Add-ons and Firefox extension installer
+- [x] Inno Setup installer
+- [x] Built-in updater with automatic profile backup and restore
+- [x] Command bar (<kbd>Ctrl</kbd> + <kbd>T</kbd>)
+- [x] English and Bulgarian interface
+- [x] Academic tools: citation builder, DOI resolver, SSL inspector, text miner
 
----
+In progress:
 
-## 💬 Feedback & Community
+- [ ] VPN relay: local relay, profiles and control center exist, remaining phases are not finished
+- [ ] Side-expand mode for homepage folders
+- [ ] More widgets in the homepage stack
+- [ ] Split view with two tabs: registered as a command, layout not finished
 
-We are actively shaping Horizon Browser based on user feedback.
+Planned:
 
-- 📝 **Submit Ideas & Bug Reports:** [Horizon Feedback Portal](https://feedbackcol-nszemvwz.manus.space/)
-- 🐞 **GitHub Issues:** [Open an Issue](https://github.com/dmeta/horizon-browser/issues)
+- [ ] Encrypted tab and session sync
+- [ ] MSIX package
+- [ ] Remaining utilities from the ideas list (ISBN tracker, PDF annotator, WebSocket inspector, header manipulator and others)
 
----
+## Feedback
 
-<div align="center">
-  <sub>Built with ❤️ for Windows power users. Horizon Browser is licensed under custom distribution terms.</sub>
-</div>
+- Ideas and bug reports: [feedback portal](https://feedbackcol-nszemvwz.manus.space/)
+- Issues: [GitHub](https://github.com/MoRDekai1364/Horizon_Browser/issues)
+
+## License
+
+Custom distribution terms.
