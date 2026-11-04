@@ -407,6 +407,7 @@ public partial class MainWindow
             ItemContainerStyle = _dci
         };
         ApplyDarkComboBoxStyle(catBox, convCyan);
+        catBox.Template = DarkComboTemplate();
         catBoxOuter.Child = catBox;
         DockPanel.SetDock(catBoxOuter, Dock.Top);
         root.Children.Add(catBoxOuter);
@@ -424,6 +425,7 @@ public partial class MainWindow
         {
             var cb = new ComboBox { Background = Brushes.Transparent, Foreground = Brushes.White, BorderThickness = new Thickness(0), Margin = new Thickness(0,0,0,6), Padding = new Thickness(6,4,6,4), ItemContainerStyle = _dci, FontSize = 13, FontWeight = FontWeights.SemiBold };
             ApplyDarkComboBoxStyle(cb, convCyan);
+            cb.Template = DarkComboTemplate();
             return cb;
         }
         var fromUnitBox = MakeCatCombo(); var toUnitBox = MakeCatCombo();
@@ -1386,7 +1388,7 @@ public partial class MainWindow
             BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(10),
             Margin = new Thickness(0, 0, 0, 8), Padding = new Thickness(2)
         };
-        var fmtBar = new StackPanel { Orientation = Orientation.Horizontal, Background = Brushes.Transparent };
+        var fmtBar = new WrapPanel { Orientation = Orientation.Horizontal, Background = Brushes.Transparent };
         fmtBarWrap.Child = fmtBar;
         DockPanel.SetDock(fmtBarWrap, Dock.Top);
         outer.Children.Add(fmtBarWrap);
@@ -1725,6 +1727,8 @@ public partial class MainWindow
         var btnSync  = BarButton("☁ Sync", Color.FromArgb(0x30, 0x00, 0x00, 0x00), Color.FromArgb(0x60, notesCyan.R, notesCyan.G, notesCyan.B));
         btnSave.FontSize = 13; btnSave.Height = 34;
         btnSync.FontSize = 13; btnSync.Height = 34;
+        foreach (var fmtEl in new UIElement[] { btnUndo, btnRedo, fmtSep, fontFamilyBox, fontSizeBox, fmtSep2, btnBold, btnItalic, btnULine, btnStrike, btnH1, btnH2, btnBullet, btnNum, btnCheck, btnTable, btnImage, btnColor })
+            fmtBar.Children.Add(fmtEl);
 
         btnUndo.Click   += (s, e) => { ApplicationCommands.Undo.Execute(null, rtb); rtb.Focus(); };
         btnRedo.Click   += (s, e) => { ApplicationCommands.Redo.Execute(null, rtb); rtb.Focus(); };
@@ -2902,6 +2906,46 @@ public partial class MainWindow
         cb.Resources[SystemColors.HighlightBrushKey]     = new SolidColorBrush(accent);
         cb.Resources[SystemColors.HighlightTextBrushKey] = new SolidColorBrush(Colors.White);
         cb.Foreground = new SolidColorBrush(lightFg);
+    }
+
+    private static ControlTemplate DarkComboTemplate()
+    {
+        const string xaml = """
+<ControlTemplate xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                 TargetType="ComboBox">
+    <Grid>
+        <ToggleButton Focusable="False" ClickMode="Press"
+                      IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+            <ToggleButton.Template>
+                <ControlTemplate TargetType="ToggleButton">
+                    <Border Background="Transparent">
+                        <Path HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,10,0"
+                              Data="M0,0 L4,4 L8,0" Stroke="#CCFFFFFF" StrokeThickness="1.5"/>
+                    </Border>
+                </ControlTemplate>
+            </ToggleButton.Template>
+        </ToggleButton>
+        <ContentPresenter IsHitTestVisible="False" Margin="{TemplateBinding Padding}"
+                          HorizontalAlignment="Left" VerticalAlignment="Center"
+                          TextElement.Foreground="{TemplateBinding Foreground}"
+                          Content="{TemplateBinding SelectionBoxItem}"
+                          ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                          ContentStringFormat="{TemplateBinding SelectionBoxItemStringFormat}"/>
+        <Popup IsOpen="{TemplateBinding IsDropDownOpen}" Placement="Bottom" AllowsTransparency="True"
+               Focusable="False" PopupAnimation="Fade">
+            <Border MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}"
+                    MaxHeight="{TemplateBinding MaxDropDownHeight}" Margin="0,2,0,0"
+                    Background="#F01A1A1A" BorderBrush="#33FFFFFF" BorderThickness="1" CornerRadius="8">
+                <ScrollViewer>
+                    <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained"/>
+                </ScrollViewer>
+            </Border>
+        </Popup>
+    </Grid>
+</ControlTemplate>
+""";
+        return (ControlTemplate)System.Windows.Markup.XamlReader.Parse(xaml);
     }
 
     private static void ApplyDarkDatePickerStyle(DatePicker dp)

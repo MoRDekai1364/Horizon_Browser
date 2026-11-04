@@ -4832,6 +4832,7 @@ public partial class MainWindow : Window
 
 
 
+                LogService.Debug("sidebar", () => $"SizeChanged actualW={ActualWidth:F0} state={WindowState} target={GetTargetSidebarWidth():F0} containerW={SidebarContainer.Width:F0} rightW={RightSidebar?.Width:F0} hostW={SidebarSlideHost?.Width:F0}");
                 if (SidebarContainer != null) SidebarContainer.Width = GetTargetSidebarWidth();
                 RightSidebar?.SetMiniMode(SettingsService.Current.SidebarMiniMode);
             }
@@ -9896,6 +9897,7 @@ return colors.length > 0 ? colors : null;
         }
 
         // Freeze child layout reflows: lock RightSidebar and SlideHost width to contentW
+        LogService.Debug("sidebar", () => $"Toggle isOpen={isOpen} actualW={ActualWidth:F0} targetW={targetW:F0} contentW={contentW:F0} overlay={useOverlay}");
         if (RightSidebar != null) RightSidebar.Width = contentW;
         if (SidebarSlideHost != null) SidebarSlideHost.Width = contentW;
 
@@ -12547,9 +12549,20 @@ return colors.length > 0 ? colors : null;
                 double cropW = Math.Min(xVisibleFraction, sidebarWidthDip / frame.Value.Width);
                 double cropX = (xStart + xVisibleFraction) - cropW;
 
-                // Vertically align: Sidebar starts at headerHeightDip below top of wallpaper surface,
-                // and spans exactly sidebarHeightDip in height (NOT the entire window height).
-                double cropY = yStart + (headerHeightDip / frame.Value.Height);
+                                double sidebarTopInSurfaceDip = 0.0;
+
+                try
+                {
+                    var wallpaperSurface = WeatherBridge.WallpaperSurface;
+                    if (wallpaperSurface != null && wallpaperSurface.IsVisible && SidebarContainer.IsVisible)
+                        sidebarTopInSurfaceDip = SidebarContainer.TransformToVisual(wallpaperSurface).Transform(new Point(0, 0)).Y;
+                }
+                catch
+                {
+                    sidebarTopInSurfaceDip = 0.0;
+                }
+
+                double cropY = yStart + (sidebarTopInSurfaceDip / frame.Value.Height);
                 double cropH = Math.Min(yVisibleFraction, sidebarHeightDip / frame.Value.Height);
 
                 var crop = new Rect(cropX, cropY, cropW, cropH);

@@ -3485,7 +3485,7 @@
 
                  is never fully covered by the WebView2 HWND &#x2014; fixes auto-hide sidebar. -->
 
-            <Grid x:Name="ViewContainer" Grid.Row="3" Grid.Column="0" Margin="0"/>
+            <Grid x:Name="ViewContainer" Grid.Row="3" Grid.Column="0" Margin="0,-1,0,0"/>
 
 
 

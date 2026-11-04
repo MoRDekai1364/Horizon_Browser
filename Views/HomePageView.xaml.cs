@@ -1772,7 +1772,7 @@ public partial class HomePageView : UserControl
 
         var fontName = SettingsService.Current.HomeFontFamily;
 
-        if (string.IsNullOrWhiteSpace(fontName)) fontName = "Segoe UI";
+        if (string.IsNullOrWhiteSpace(fontName)) fontName = "Calibri";
 
 
 
