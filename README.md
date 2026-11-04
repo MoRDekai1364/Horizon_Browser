@@ -1,6 +1,6 @@
 # Horizon Browser
 
-A Windows desktop browser built on WPF and WebView2, with a small Rust library for the performance-sensitive parts. I started it because I wanted multiple logins to the same site without juggling incognito windows, and it grew from there.
+A Windows desktop browser built on WPF and WebView2, with a small Rust library for the performance-sensitive parts. I started it because I got frustrated over the years with many small but numerous compromises that define a standard modern web browser, with the recent introduction of multiple logins to the same site without juggling incognito windows being an example of a feature i always wished to have in my browsing experience. Everything started with making the header and sidebar truly adaptable & powerful tools, and the project grew from there.
 
 [![Version](https://img.shields.io/badge/version-2.7.9%20beta-7928CA)](docs/version.txt)
 [![Platform](https://img.shields.io/badge/platform-Windows%2010%20%2F%2011%20x64-0078D4)](#install)
