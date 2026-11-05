@@ -526,6 +526,12 @@
                                   Foreground="{StaticResource Brush_Text}" Margin="0,0,0,10"
                                   ToolTip="Turns off the blurred wallpaper glass on the homepage to reduce CPU and GPU load."/>
 
+                        <TextBlock Text="Tab Switcher" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" Margin="0,10,0,5"/>
+                        <CheckBox x:Name="ChkTabSwitcherGrid" Content="Open the Ctrl+Tab menu in thumbnail grid layout"
+                                  local:SearchIndex.Label="Tab Switcher Grid Layout" local:SearchIndex.Description="Opens the Ctrl+Tab tab switcher as a grid of tab thumbnails instead of a list. Ctrl+G toggles the layout while the switcher is open."
+                                  Foreground="{StaticResource Brush_Text}" Margin="0,0,0,10"
+                                  ToolTip="Ctrl+G toggles the layout while the switcher is open."/>
+
                         <TextBlock Text="Startup" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" Margin="0,10,0,5"/>
                         <CheckBox x:Name="ChkStartupVideo" Content="Play animated logo video on startup"
                                   Foreground="{StaticResource Brush_Text}" Margin="0,0,0,6"

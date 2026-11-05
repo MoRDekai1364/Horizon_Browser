@@ -1053,6 +1053,7 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
         TblWidgetTintValue.Text         = $"{SliderWidgetTint.Value:0}%";
 
         ChkDisableBlur.IsChecked = s.DisableBlurEffects;
+        ChkTabSwitcherGrid.IsChecked = s.TabSwitcherGridMode;
         ChkStartupVideo.IsChecked = s.ShowStartupVideo;
         LoadStartupVideoOptions();
         
@@ -1344,6 +1345,7 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
         s.PaletteSampleRateSec = SliderPaletteSampleRate.Value;
         s.HomeTintStrength     = SliderWidgetTint.Value;
         s.DisableBlurEffects   = ChkDisableBlur.IsChecked == true;
+        s.TabSwitcherGridMode  = ChkTabSwitcherGrid.IsChecked == true;
         Horizon.Stealth.Controls.HomeGlassMotion.RaiseBlurSettingChanged();
 
         s.ShowStartupVideo = ChkStartupVideo.IsChecked == true;

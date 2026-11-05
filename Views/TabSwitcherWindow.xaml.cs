@@ -75,7 +75,7 @@ public partial class TabSwitcherWindow : Window
         CardClipHost.Loaded      += (_, _) => UpdateCardClip();
         CardClipHost.SizeChanged += (_, _) => UpdateCardClip();
 
-        AttachGlassBackdrop();
+        AttachSnapshotBackdrop();
         Closed += (_, _) =>
         {
             _detachGlassBackdrop?.Invoke();
@@ -86,6 +86,7 @@ public partial class TabSwitcherWindow : Window
         HighlightRow(_selectedIndex, null);
         _ = LoadPreviewAsync(_selectedIndex);
         WidgetSyncGuard.RegisterTextFit(TxtPreviewTitle, this, minFontSize: 10, maxFontSize: 13);
+        InitGridMode();
 
         if (_isPersistent)
         {
@@ -309,6 +310,7 @@ public partial class TabSwitcherWindow : Window
     private void BuildTabList()
     {
         TabListPanel.Children.Clear();
+        RebuildGridIfActive();
 
         for (int i = 0; i < _visibleTabs.Count; i++)
         {
@@ -613,6 +615,7 @@ public partial class TabSwitcherWindow : Window
 
     private void HighlightRow(int selectedIndex, Border? previousRow)
     {
+        HighlightGridTiles();
         foreach (var child in TabListPanel.Children)
         {
             if (child is not Border row || row.Tag is not int rowIdx) continue;
@@ -655,6 +658,7 @@ public partial class TabSwitcherWindow : Window
 
     private void ScrollRowIntoView(int index)
     {
+        ScrollGridTileIntoView(index);
         if (index < 0 || index >= TabListPanel.Children.Count) return;
         if (TabListPanel.Children[index] is FrameworkElement el)
             el.BringIntoView();
@@ -670,6 +674,7 @@ public partial class TabSwitcherWindow : Window
             _ = Dispatcher.BeginInvoke(() => NotifyThumbnailReady(tab, thumbnail));
             return;
         }
+        UpdateGridThumbnail(tab, thumbnail);
         if (_committed || !IsVisible) return;
         if (_selectedIndex >= 0 && _selectedIndex < _visibleTabs.Count &&
             ReferenceEquals(_visibleTabs[_selectedIndex], tab))
@@ -771,6 +776,8 @@ public partial class TabSwitcherWindow : Window
     {
         bool ctrl  = (Keyboard.Modifiers & ModifierKeys.Control) != 0;
         bool shift = (Keyboard.Modifiers & ModifierKeys.Shift)   != 0;
+
+        if (HandleModeKeys(e)) return;
 
         switch (e.Key)
         {
