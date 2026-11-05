@@ -2253,6 +2253,16 @@ public partial class HomePageView : UserControl
 
 
     private void BtnChangeWallpaper_Click(object sender, RoutedEventArgs e)
+    {
+        if (_wallpaperApplyBusy)
+        {
+            LogService.Debug("WallpaperPerf", () => "click ignored: previous apply still running");
+            return;
+        }
+        BtnChangeWallpaperClickCore();
+    }
+
+    private void BtnChangeWallpaperClickCore()
 
     {
 
@@ -2360,6 +2370,10 @@ public partial class HomePageView : UserControl
             string path = ResolveWallpaperPath();
 
             int myToken = ++_wallpaperLoadToken;
+            var perfClick = System.Diagnostics.Stopwatch.StartNew();
+            double perfPauseStart = GC.GetTotalPauseDuration().TotalMilliseconds;
+            int perfGen2Start = GC.CollectionCount(2);
+            bool perfCached = false;
 
 
 
@@ -2429,6 +2443,7 @@ public partial class HomePageView : UserControl
 
                 {
 
+                    perfCached = true;
                     CrossfadeWallpaper(BgImageBrush.ImageSource, cachedBmp);
 
                     BgImageBrush.ImageSource = cachedBmp;
@@ -2449,7 +2464,12 @@ public partial class HomePageView : UserControl
 
 
 
-                    if (myToken != _wallpaperLoadToken) return;
+                    if (myToken != _wallpaperLoadToken)
+                    {
+                        long perfStaleMs = perfClick.ElapsedMilliseconds;
+                        LogService.Debug("WallpaperPerf", () => "stale result dropped after " + perfStaleMs + " ms");
+                        return;
+                    }
 
 
 
@@ -2470,6 +2490,16 @@ public partial class HomePageView : UserControl
 
 
             BgImageBrush.Opacity = SettingsService.Current.BackgroundOpacity;
+            long perfApplyMs = perfClick.ElapsedMilliseconds;
+            bool perfWasCached = perfCached;
+            double perfPauseDelta = GC.GetTotalPauseDuration().TotalMilliseconds - perfPauseStart;
+            int perfGen2Delta = GC.CollectionCount(2) - perfGen2Start;
+            Dispatcher.BeginInvoke(DispatcherPriority.ApplicationIdle, new Action(() =>
+            {
+                long perfIdleMs = perfClick.ElapsedMilliseconds;
+                long perfHeapMb = GC.GetTotalMemory(false) / (1024 * 1024);
+                LogService.Debug("WallpaperPerf", () => "cached=" + perfWasCached + " applied=" + perfApplyMs + " ms, idle=" + perfIdleMs + " ms, gcPause=" + Math.Round(perfPauseDelta) + " ms, gen2=" + perfGen2Delta + ", managedHeap=" + perfHeapMb + " MB");
+            }));
 
             PreloadUpcomingWallpapers();
 
@@ -2663,6 +2693,7 @@ public partial class HomePageView : UserControl
 
 
 
+        var perfDecode = System.Diagnostics.Stopwatch.StartNew();
         var display = new BitmapImage();
 
         display.BeginInit();
@@ -2676,6 +2707,7 @@ public partial class HomePageView : UserControl
         display.EndInit();
 
         display.Freeze();
+        long perfDecodeMs = perfDecode.ElapsedMilliseconds;
 
 
 
@@ -2736,6 +2768,11 @@ public partial class HomePageView : UserControl
 
 
         avg = SampleAverageColor(sample);
+        long perfColorMs = perfDecode.ElapsedMilliseconds - perfDecodeMs;
+        int perfW = display.PixelWidth;
+        int perfH = display.PixelHeight;
+        string perfName = Path.GetFileName(path);
+        LogService.Debug("WallpaperPerf", () => "decode=" + perfDecodeMs + " ms, colorSample=" + perfColorMs + " ms, " + perfW + "x" + perfH + ", " + perfName);
 
 
 
