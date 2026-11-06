@@ -15,6 +15,7 @@ version 2.7.9
 + added anti-fingerprinting
 + added second view mode - grid for tab switcher & fixed  look
 + fixed white mode not applying to certain surfaces
++ homepage bugfixes
 
 version 2.7.8
 + added existing installation detection with automatic profile backup and out-of-process restore engine
