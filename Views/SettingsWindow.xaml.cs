@@ -1054,6 +1054,7 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
 
         ChkDisableBlur.IsChecked = s.DisableBlurEffects;
         ChkTabSwitcherGrid.IsChecked = s.TabSwitcherGridMode;
+        ChkCompactTabs.IsChecked = s.CompactTabsEnabled;
         ChkStartupVideo.IsChecked = s.ShowStartupVideo;
         LoadStartupVideoOptions();
         
@@ -1346,6 +1347,7 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
         s.HomeTintStrength     = SliderWidgetTint.Value;
         s.DisableBlurEffects   = ChkDisableBlur.IsChecked == true;
         s.TabSwitcherGridMode  = ChkTabSwitcherGrid.IsChecked == true;
+        s.CompactTabsEnabled   = ChkCompactTabs.IsChecked == true;
         Horizon.Stealth.Controls.HomeGlassMotion.RaiseBlurSettingChanged();
 
         s.ShowStartupVideo = ChkStartupVideo.IsChecked == true;

@@ -8,11 +8,11 @@
         KeyDown="Window_KeyDown"
         Deactivated="Window_Deactivated">
 
-    <Grid x:Name="OuterShadowMarginGrid" Margin="32">
+    <Grid x:Name="OuterShadowMarginGrid" Margin="0">
         <!-- Dedicated shadow caster kept strictly inside the 32px transparent margin -->
-        <Border CornerRadius="16" Background="#01000000" IsHitTestVisible="False">
+        <Border CornerRadius="16" Background="#01000000" IsHitTestVisible="False" Visibility="Collapsed">
             <Border.Effect>
-                <DropShadowEffect BlurRadius="24" ShadowDepth="4" Opacity="0.55" Color="Black"/>
+                <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.55" Color="Black"/>
             </Border.Effect>
         </Border>
 
@@ -43,7 +43,7 @@
                                            FontSize="11" FontWeight="Bold"
                                            VerticalAlignment="Center"/>
                             </Border>
-                            <Button x:Name="BtnModeToggle" Content="Grid" Click="BtnModeToggle_Click"
+                            <Button x:Name="BtnModeToggle" Content="Grid" Click="BtnModeToggle_Click" MouseRightButtonUp="BtnModeToggle_RightClick"
                                     Foreground="#CCCCCC" Background="#20FFFFFF"
                                     BorderBrush="#33FFFFFF" BorderThickness="1"
                                     FontFamily="Segoe UI" FontSize="11" Padding="9,3"

@@ -29,7 +29,7 @@ public partial class TabSwitcherWindow
     private const double TileWidth  = 270;
     private const double TileHeight = 190;
     private const double TileMargin = 8;
-    private const double OuterMargin = 32;
+    private const double OuterMargin = 0;
     private const double BleedPad = 48;
 
     private bool _gridMode;
@@ -272,6 +272,35 @@ public partial class TabSwitcherWindow
     private void BtnModeToggle_Click(object sender, RoutedEventArgs e)
     {
         ToggleMode();
+    }
+
+    private void BtnModeToggle_RightClick(object sender, MouseButtonEventArgs e)
+    {
+        e.Handled = true;
+        bool defaultGrid = SettingsService.Current.TabSwitcherGridMode;
+        var cm = MakeDarkContextMenu(BtnModeToggle);
+
+        var miList = MakeDarkMenuItem((defaultGrid ? "\u2003" : "\u2713") + "  Set List as default");
+        miList.Click += (_, _) => SetDefaultMode(false);
+        cm.Items.Add(miList);
+
+        var miGrid = MakeDarkMenuItem((defaultGrid ? "\u2713" : "\u2003") + "  Set Grid as default");
+        miGrid.Click += (_, _) => SetDefaultMode(true);
+        cm.Items.Add(miGrid);
+
+        cm.IsOpen = true;
+    }
+
+    private void SetDefaultMode(bool grid)
+    {
+        SettingsService.Current.TabSwitcherGridMode = grid;
+        SettingsService.Save();
+
+        if (_gridMode != grid)
+        {
+            _gridMode = grid;
+            ApplyMode();
+        }
     }
 
     private int GridColumns()

@@ -28,7 +28,15 @@ public class TabViewModel : INotifyPropertyChanged, IDisposable
     public string Title
     {
         get => _title;
-        set { _title = value; OnPropertyChanged(); OnPropertyChanged(nameof(DisplayTitle)); }
+        set
+        {
+            _title = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(DisplayTitle));
+            OnPropertyChanged(nameof(CompactInitial));
+            OnPropertyChanged(nameof(CompactInitialBackground));
+            OnPropertyChanged(nameof(CompactInitialBorder));
+        }
     }
 
     // When true, tab was renamed by the user; automatic title updates are suppressed.
@@ -59,6 +67,10 @@ public class TabViewModel : INotifyPropertyChanged, IDisposable
         set
         {
             _url = value;
+            OnPropertyChanged(nameof(CompactFavicon));
+            OnPropertyChanged(nameof(CompactInitial));
+            OnPropertyChanged(nameof(CompactInitialBackground));
+            OnPropertyChanged(nameof(CompactInitialBorder));
             OnPropertyChanged();
             OnPropertyChanged(nameof(DomainTitle));
             OnPropertyChanged(nameof(CombinedMediaTitle));
@@ -244,6 +256,92 @@ public class TabViewModel : INotifyPropertyChanged, IDisposable
         set { _tabWidth = value; OnPropertyChanged(); OnPropertyChanged(nameof(TabTextMaxWidth)); }
     }
 
+    private bool _isCompact;
+    public bool IsCompact
+    {
+        get => _isCompact;
+        set
+        {
+            if (_isCompact == value) return;
+            _isCompact = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(CompactIconVisibility));
+            OnPropertyChanged(nameof(TabTextMaxWidth));
+        }
+    }
+
+    public Visibility CompactIconVisibility => _isCompact ? Visibility.Visible : Visibility.Collapsed;
+
+    public object? CompactFavicon
+    {
+        get
+        {
+            try
+            {
+                return new Horizon.Stealth.Controls.FaviconConverter().Convert(
+                    Url, typeof(ImageSource), string.Empty, System.Globalization.CultureInfo.InvariantCulture);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+    }
+
+    private string CompactLabel
+    {
+        get
+        {
+            string label = !string.IsNullOrWhiteSpace(DomainTitle)
+                ? DomainTitle
+                : (!string.IsNullOrWhiteSpace(DisplayTitle) ? DisplayTitle : "H");
+            return label.Trim();
+        }
+    }
+
+    public string CompactInitial
+    {
+        get
+        {
+            string label = CompactLabel;
+            return label.Length > 0 ? label.Substring(0, 1).ToUpperInvariant() : "H";
+        }
+    }
+
+    private Color CompactAccent
+    {
+        get
+        {
+            Color[] palette =
+            {
+                Color.FromRgb(0x25, 0x63, 0xEB), Color.FromRgb(0x05, 0x96, 0x69),
+                Color.FromRgb(0xD9, 0x77, 0x06), Color.FromRgb(0xDB, 0x27, 0x77),
+                Color.FromRgb(0x7C, 0x3A, 0xED), Color.FromRgb(0x08, 0x91, 0xB2)
+            };
+            int hash = 0;
+            foreach (char ch in CompactLabel) hash = unchecked(hash * 31 + ch);
+            return palette[Math.Abs(hash % palette.Length)];
+        }
+    }
+
+    public Brush CompactInitialBackground
+    {
+        get
+        {
+            var c = CompactAccent;
+            return new SolidColorBrush(Color.FromArgb(0x55, c.R, c.G, c.B));
+        }
+    }
+
+    public Brush CompactInitialBorder
+    {
+        get
+        {
+            var c = CompactAccent;
+            return new SolidColorBrush(Color.FromArgb(0x88, c.R, c.G, c.B));
+        }
+    }
+
     public double TabTextMaxWidth
     {
         get
@@ -251,6 +349,7 @@ public class TabViewModel : INotifyPropertyChanged, IDisposable
             double overhead = 46.0;
             if (ContainerBadgeVisibility == Visibility.Visible) overhead += 28.0;
             if (IsSleeping) overhead += 12.0;
+            if (_isCompact) return 0.0;
             return Math.Max(30.0, _tabWidth - overhead);
         }
     }

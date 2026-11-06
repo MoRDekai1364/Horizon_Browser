@@ -943,6 +943,33 @@
 
 
 
+                                                        <Grid x:Name="CompactIconHost"
+                                                              Width="18" Height="18" Margin="8,0,0,0"
+                                                              HorizontalAlignment="Left" VerticalAlignment="Center"
+                                                              IsHitTestVisible="False"
+                                                              Visibility="{Binding CompactIconVisibility}">
+                                                            <Border CornerRadius="5" BorderThickness="1"
+                                                                    Background="{Binding CompactInitialBackground}"
+                                                                    BorderBrush="{Binding CompactInitialBorder}">
+                                                                <Border.Style>
+                                                                    <Style TargetType="Border">
+                                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding Source, ElementName=CompactFaviconImage}" Value="{x:Null}">
+                                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </Border.Style>
+                                                                <TextBlock Text="{Binding CompactInitial}"
+                                                                           FontFamily="Segoe UI" FontWeight="Bold" FontSize="10"
+                                                                           Foreground="White"
+                                                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                            </Border>
+                                                            <Image x:Name="CompactFaviconImage"
+                                                                   Source="{Binding CompactFavicon}"
+                                                                   Stretch="Uniform"/>
+                                                        </Grid>
                                                         <StackPanel x:Name="NormalTitlePanel"
 
                                                                     Orientation="Horizontal"
@@ -2604,9 +2631,9 @@
 
 
             <Grid x:Name="OverflowContainer" Grid.Row="1" Grid.ColumnSpan="2"
-                  VerticalAlignment="Top" ClipToBounds="True" Visibility="Collapsed">
+                  VerticalAlignment="Top" ClipToBounds="True" Visibility="{Binding Visibility, ElementName=ListOverflowTabs}">
                 <!-- Deep background for standard web page browsing -->
-                <Grid x:Name="PnlOverflowBackground" Background="Transparent"/>
+                <Grid x:Name="PnlOverflowBackground" Background="{StaticResource Brush_DeepBackground}"/>
 
                 <!-- Wallpaper glass blur layer (active on homepage) -->
                 <Grid x:Name="OverflowWallpaperGlass"
@@ -2626,8 +2653,7 @@
                     </Rectangle.Effect>
                 </Rectangle>
 
-                <!-- Acrylic dark glass tint and separator -->
-                <Border Background="#9910131A" BorderBrush="#25FFFFFF" BorderThickness="0,1,0,1"/>
+                
 
                 <ListBox x:Name="ListOverflowTabs"
                          ItemsSource="{Binding OverflowTabs}"

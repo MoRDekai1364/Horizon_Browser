@@ -4534,6 +4534,8 @@ public partial class MainWindow : Window
 
 
         InitSidebarWallpaperGlass();
+        InitCompactTabHover();
+        InitOverflowWallpaperGlass();
 
 
 
@@ -5867,6 +5869,7 @@ public partial class MainWindow : Window
 
 
     private const  double TAB_MIN_WIDTH     =  90.0;
+    private const  double TAB_COMPACT_WIDTH =  56.0;
 
 
 
@@ -5928,6 +5931,7 @@ public partial class MainWindow : Window
     {
         double available = GetTabBarAvailableWidth();
         double remaining = Math.Max(0, available - protectedSpace);
+        foreach (var tab in regularTabs) tab.IsCompact = false;
         var result = new Dictionary<TabViewModel, double>();
 
         if (regularTabs.Count == 0)
@@ -5943,6 +5947,24 @@ public partial class MainWindow : Window
         }
 
         double totalMin = regularTabs.Count * (TAB_MIN_WIDTH + TAB_MARGIN * 2);
+
+        if (totalMin > remaining && regularTabs.Count >= 2 && SettingsService.Current.CompactTabsEnabled)
+        {
+            double compactSlot = remaining / regularTabs.Count - TAB_MARGIN * 2;
+            if (compactSlot >= TAB_COMPACT_WIDTH)
+            {
+                double compactWidth = Math.Round(Math.Min(TAB_MIN_WIDTH, compactSlot), 1);
+                _compactBaseWidth = compactWidth;
+                _compactExpandedTab = null;
+                _compactHoverCandidate = null;
+                foreach (var ct in regularTabs)
+                {
+                    ct.IsCompact = true;
+                    result[ct] = compactWidth;
+                }
+                return (regularTabs.Count, result);
+            }
+        }
 
         // Case 1: All regular tabs fit at their full desired width (auto-widened to incorporate full title)
         if (totalDesired <= remaining)
@@ -11738,6 +11760,13 @@ return colors.length > 0 ? colors : null;
 
 
         if (!homeActive) SidebarWallpaperGlass.Visibility = Visibility.Collapsed;
+        bool overflowGlowWasHidden = OverflowAmbientGlow.Visibility != Visibility.Visible;
+        bool overflowGlassWasHidden = OverflowWallpaperGlass.Visibility != Visibility.Visible;
+        OverflowAmbientGlow.Visibility = homeActive ? Visibility.Collapsed : Visibility.Visible;
+        OverflowWallpaperGlass.Visibility = homeActive ? Visibility.Visible : Visibility.Collapsed;
+        if (!homeActive && overflowGlowWasHidden) FadeGlassIn(OverflowAmbientGlow);
+        if (homeActive && overflowGlassWasHidden) FadeGlassIn(OverflowWallpaperGlass);
+        if (homeActive) RefreshOverflowWallpaperCrop();
 
 
 
@@ -11898,6 +11927,9 @@ return colors.length > 0 ? colors : null;
 
 
         SidebarSiteGlowFill.Effect = flat ? null : MakeChromeBlur(60);
+        OverflowAmbientGlow.Effect = flat ? null : MakeChromeBlur(60);
+        OverflowWallpaperGlassBlur.Effect = flat ? null : MakeChromeBlur(HomeGlassService.SidebarSearchBarBlurRadius);
+        OverflowWallpaperGlassBlur.Background = flat ? null : _overflowOwnBlurBrush;
 
 
 
@@ -12439,12 +12471,161 @@ return colors.length > 0 ? colors : null;
 
 
         SidebarSiteGlowFill.Fill = _sidebarGlowBrush;
+        OverflowAmbientGlow.Fill = _sidebarGlowBrush;
+        OverflowAmbientGlow.Height = double.NaN;
+        OverflowAmbientGlow.Margin = new Thickness(-60);
+        OverflowAmbientGlow.Effect = SettingsService.Current.DisableBlurEffects ? null : MakeChromeBlur(60);
 
 
 
     }
 
 
+
+    private ImageBrush? _overflowOwnBlurBrush;
+
+    private void RefreshOverflowWallpaperCrop()
+    {
+        if (_overflowOwnBlurBrush == null) return;
+        double w = OverflowContainer.ActualWidth;
+        double h = OverflowContainer.ActualHeight;
+        if (w <= 0 || h <= 0) return;
+        var frame = HomeGlassService.GetWallpaperFrameDip(HeaderContainer);
+        var (xStart, xVisibleFraction, yStart, yVisibleFraction) = HomeGlassService.GetWallpaperVisibleFraction(HeaderContainer);
+        if (frame == null || frame.Value.Height <= 0 || frame.Value.Width <= 0) return;
+        double headerFraction = HeaderContainer.ActualHeight / frame.Value.Height;
+        double cropH = Math.Clamp(h / frame.Value.Height, 0.01, 1.0);
+        double cropY = Math.Clamp(yStart + headerFraction, 0.0, 1.0 - cropH);
+        var crop = new Rect(xStart, cropY, xVisibleFraction, cropH);
+        _overflowOwnBlurBrush.Viewbox = HomeGlassService.ExpandViewboxForBleedMargin(
+            crop, w, h, bleedPadDip: 48.0);
+    }
+
+    private void InitOverflowWallpaperGlass()
+    {
+        bool flat = SettingsService.Current.DisableBlurEffects;
+        _overflowOwnBlurBrush = new ImageBrush
+        {
+            Stretch = Stretch.Fill,
+            ViewboxUnits = BrushMappingMode.RelativeToBoundingBox,
+            ImageSource = WeatherBridge.ThemeWallpaper
+        };
+        OverflowWallpaperGlassBlur.Effect = flat ? null : MakeChromeBlur(HomeGlassService.SidebarSearchBarBlurRadius);
+        OverflowWallpaperGlassBlur.Background = flat ? null : _overflowOwnBlurBrush;
+        OverflowContainer.SizeChanged += (_, _) => { if (IsHomeActive()) RefreshOverflowWallpaperCrop(); };
+        WeatherBridge.ThemeUpdated += () => Dispatcher.BeginInvoke(new Action(() =>
+        {
+            if (_closedForReal) return;
+            bool changed = !ReferenceEquals(_overflowOwnBlurBrush!.ImageSource, WeatherBridge.ThemeWallpaper);
+            _overflowOwnBlurBrush.ImageSource = WeatherBridge.ThemeWallpaper;
+            if (changed && IsHomeActive()) FadeGlassIn(OverflowWallpaperGlass);
+            RefreshOverflowWallpaperCrop();
+        }));
+    }
+
+    private const double TAB_SQUISH_MIN = 34.0;
+    private const double TAB_EXPAND_MAX_WIDTH = 190.0;
+    private const int COMPACT_HOVER_DELAY_MS = 250;
+
+    private DispatcherTimer? _compactHoverTimer;
+    private TabViewModel? _compactHoverCandidate;
+    private TabViewModel? _compactExpandedTab;
+    private double _compactBaseWidth;
+
+    private void InitCompactTabHover()
+    {
+        _compactHoverTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(COMPACT_HOVER_DELAY_MS) };
+        _compactHoverTimer.Tick += CompactHoverTimer_Tick;
+        ListTabs.PreviewMouseMove += ListTabs_CompactPreviewMouseMove;
+        ListTabs.MouseLeave += (_, _) => ResetCompactHover(true);
+    }
+
+    private TabViewModel? GetCompactTabUnderCursor(MouseEventArgs e)
+    {
+        if (e.OriginalSource is not DependencyObject source) return null;
+        var container = ItemsControl.ContainerFromElement(ListTabs, source) as ListBoxItem;
+        return container?.DataContext as TabViewModel;
+    }
+
+    private void ListTabs_CompactPreviewMouseMove(object sender, MouseEventArgs e)
+    {
+        if (!SettingsService.Current.CompactTabsEnabled || e.LeftButton == MouseButtonState.Pressed)
+        {
+            _compactHoverTimer?.Stop();
+            _compactHoverCandidate = null;
+            return;
+        }
+
+        var tab = GetCompactTabUnderCursor(e);
+        if (tab == null) return;
+
+        if (ReferenceEquals(tab, _compactExpandedTab) || !tab.IsCompact)
+        {
+            _compactHoverTimer?.Stop();
+            _compactHoverCandidate = null;
+            return;
+        }
+
+        if (ReferenceEquals(tab, _compactHoverCandidate)) return;
+
+        _compactHoverCandidate = tab;
+        _compactHoverTimer?.Stop();
+        _compactHoverTimer?.Start();
+    }
+
+    private void CompactHoverTimer_Tick(object? sender, EventArgs e)
+    {
+        _compactHoverTimer?.Stop();
+        var tab = _compactHoverCandidate;
+        _compactHoverCandidate = null;
+        if (tab == null || !tab.IsCompact) return;
+        ApplyCompactExpansion(tab);
+    }
+
+    private void ApplyCompactExpansion(TabViewModel target)
+    {
+        double baseWidth = _compactBaseWidth;
+        if (baseWidth <= TAB_SQUISH_MIN) return;
+
+        var strip = Tabs.Where(x => !x.HasEverPlayedAudio && !x.HasEverDownloaded).ToList();
+        if (strip.Count < 2 || !strip.Contains(target)) return;
+
+        var others = strip.Where(x => !ReferenceEquals(x, target)).ToList();
+        double wantedWidth = Math.Clamp(ComputeDesiredTabWidth(target), TAB_MIN_WIDTH, TAB_EXPAND_MAX_WIDTH);
+        double extra = wantedWidth - baseWidth;
+        double capacity = others.Count * (baseWidth - TAB_SQUISH_MIN);
+        double give = Math.Min(extra, capacity);
+        if (give <= 0) return;
+
+        double otherWidth = baseWidth - give / others.Count;
+
+        target.IsCompact = false;
+        _compactExpandedTab = target;
+        AnimateTabWidth(target, baseWidth + give);
+
+        foreach (var other in others)
+        {
+            other.IsCompact = true;
+            AnimateTabWidth(other, otherWidth);
+        }
+    }
+
+    private void ResetCompactHover(bool restore)
+    {
+        _compactHoverTimer?.Stop();
+        _compactHoverCandidate = null;
+        var expanded = _compactExpandedTab;
+        _compactExpandedTab = null;
+
+        if (!restore || expanded == null || _compactBaseWidth <= 0) return;
+        if (!Tabs.Any(x => x.IsCompact)) return;
+
+        foreach (var tab in Tabs.Where(x => !x.HasEverPlayedAudio && !x.HasEverDownloaded).ToList())
+        {
+            tab.IsCompact = true;
+            AnimateTabWidth(tab, _compactBaseWidth);
+        }
+    }
 
     private const double SidebarBlurFallbackCropStart = 0.93;
 

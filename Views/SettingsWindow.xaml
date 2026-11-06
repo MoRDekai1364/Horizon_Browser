@@ -472,6 +472,12 @@
                             <ComboBoxItem Content="Domain Only"  Tag="DomainOnly"/>
                         </ComboBox>
 
+                        <TextBlock Text="Compact Tabs" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" Margin="0,10,0,5"/>
+                        <CheckBox x:Name="ChkCompactTabs" Content="Shrink tabs to icons when the tab bar is full, before using the secondary bar"
+                                  local:SearchIndex.Label="Compact Tabs" local:SearchIndex.Description="When tabs no longer fit at minimum width, they shrink to a favicon (or colored initial) instead of moving to the secondary tab bar."
+                                  Foreground="{StaticResource Brush_Text}" Margin="0,0,0,10"
+                                  ToolTip="Off by default. Applies the next time the tab bar re-lays out (resize, open or close a tab)."/>
+
                         <TextBlock Text="Visualizer Color Scheme" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" Margin="0,10,0,5"/>
                         <TextBlock Text="Source used for tab colors when media is playing." Foreground="#AAA" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,6"/>
                         <ComboBox x:Name="CboVisualizerScheme" Height="30" Margin="0,0,0,6"
