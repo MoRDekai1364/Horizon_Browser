@@ -6256,6 +6256,8 @@ public partial class MainWindow : Window
                 protectedSpace += TAB_DEFAULT_WIDTH + TAB_MARGIN * 2;
         }
 
+        foreach (var protectedTab in _allTabs.Where(t => t.HasEverPlayedAudio || t.HasEverDownloaded))
+            protectedTab.IsCompact = false;
         var (regularFit, regularWidths) = GetDynamicRegularTabLayout(protectedCount, regularTabs, protectedSpace);
 
 
@@ -12525,7 +12527,7 @@ return colors.length > 0 ? colors : null;
 
     private const double TAB_SQUISH_MIN = 34.0;
     private const double TAB_EXPAND_MAX_WIDTH = 190.0;
-    private const int COMPACT_HOVER_DELAY_MS = 250;
+
 
     private DispatcherTimer? _compactHoverTimer;
     private TabViewModel? _compactHoverCandidate;
@@ -12534,7 +12536,7 @@ return colors.length > 0 ? colors : null;
 
     private void InitCompactTabHover()
     {
-        _compactHoverTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(COMPACT_HOVER_DELAY_MS) };
+        _compactHoverTimer = new DispatcherTimer();
         _compactHoverTimer.Tick += CompactHoverTimer_Tick;
         ListTabs.PreviewMouseMove += ListTabs_CompactPreviewMouseMove;
         ListTabs.MouseLeave += (_, _) => ResetCompactHover(true);
@@ -12570,7 +12572,11 @@ return colors.length > 0 ? colors : null;
 
         _compactHoverCandidate = tab;
         _compactHoverTimer?.Stop();
-        _compactHoverTimer?.Start();
+        if (_compactHoverTimer != null)
+        {
+            _compactHoverTimer.Interval = TimeSpan.FromMilliseconds(Math.Clamp(SettingsService.Current.CompactTabHoverDelayMs, 0, 1000));
+            _compactHoverTimer.Start();
+        }
     }
 
     private void CompactHoverTimer_Tick(object? sender, EventArgs e)
@@ -22431,11 +22437,12 @@ return colors.length > 0 ? colors : null;
 
 
 
-            _dragGhost.Left = pos.X + System.Windows.SystemParameters.WorkArea.Left + 10;
+            var cursorDip = GetCursorScreenDip();
+            _dragGhost.Left = cursorDip.X + 10;
 
 
 
-            _dragGhost.Top  = pos.Y + System.Windows.SystemParameters.WorkArea.Top  - 24;
+            _dragGhost.Top  = cursorDip.Y - 24;
 
 
 
@@ -22691,11 +22698,11 @@ return colors.length > 0 ? colors : null;
 
 
 
-            Left                  = screenPos.X + System.Windows.SystemParameters.WorkArea.Left + 10,
+            Left                  = GetCursorScreenDip().X + 10,
 
 
 
-            Top                   = screenPos.Y + System.Windows.SystemParameters.WorkArea.Top  - 24,
+            Top                   = GetCursorScreenDip().Y - 24,
 
 
 
@@ -22799,6 +22806,15 @@ return colors.length > 0 ? colors : null;
 
 
 
+    private Point GetCursorScreenDip()
+    {
+        var devicePoint = PointToScreen(Mouse.GetPosition(this));
+        var source = PresentationSource.FromVisual(this);
+        return source?.CompositionTarget != null
+            ? source.CompositionTarget.TransformFromDevice.Transform(devicePoint)
+            : devicePoint;
+    }
+
     private void DestroyDragGhost()
 
 
@@ -22807,6 +22823,7 @@ return colors.length > 0 ? colors : null;
 
 
 
+        ClearTabDropGhost();
         _dragGhost?.Close();
 
 
@@ -22819,7 +22836,255 @@ return colors.length > 0 ? colors : null;
 
 
 
+    private sealed class TabDropGhostAdorner : System.Windows.Documents.Adorner
+    {
+        private Rect _rect = Rect.Empty;
+        private readonly Brush _fill;
+        private readonly Pen _pen;
+
+        public TabDropGhostAdorner(UIElement adorned, Color accent) : base(adorned)
+        {
+            IsHitTestVisible = false;
+            var fill = new SolidColorBrush(Color.FromArgb(0x38, accent.R, accent.G, accent.B));
+            fill.Freeze();
+            _fill = fill;
+            var stroke = new SolidColorBrush(Color.FromArgb(0xE6, accent.R, accent.G, accent.B));
+            stroke.Freeze();
+            var pen = new Pen(stroke, 1.6);
+            pen.Freeze();
+            _pen = pen;
+            Effect = new System.Windows.Media.Effects.DropShadowEffect
+            {
+                Color = accent,
+                BlurRadius = 18,
+                ShadowDepth = 0,
+                Opacity = 0.9
+            };
+            BeginAnimation(UIElement.OpacityProperty, new DoubleAnimation(0.7, 1.0, TimeSpan.FromMilliseconds(550))
+            {
+                AutoReverse = true,
+                RepeatBehavior = RepeatBehavior.Forever
+            });
+        }
+
+        public Rect GhostRect
+        {
+            get => _rect;
+            set
+            {
+                if (_rect == value) return;
+                _rect = value;
+                InvalidateVisual();
+            }
+        }
+
+        protected override void OnRender(DrawingContext drawingContext)
+        {
+            if (_rect.IsEmpty || _rect.Width <= 0 || _rect.Height <= 0) return;
+            drawingContext.DrawRoundedRectangle(_fill, _pen, _rect, 8, 8);
+        }
+    }
+
+    private TabDropGhostAdorner? _tabDropGhostPrimary;
+    private TabDropGhostAdorner? _tabDropGhostSecondary;
+    private ListBox? _tabDropActiveList;
+    private int _tabDropActiveSlot = -1;
+
+    private Color GetTabDropGhostAccent()
+    {
+        if (TryFindResource("Brush_Accent") is SolidColorBrush brush) return brush.Color;
+        return Color.FromRgb(0x00, 0xE6, 0x76);
+    }
+
+    private static Rect GetTabItemLayoutBounds(ListBox list, FrameworkElement container)
+    {
+        var parent = VisualTreeHelper.GetParent(container) as FrameworkElement;
+        var origin = parent != null ? parent.TransformToAncestor(list).Transform(new Point(0, 0)) : new Point(0, 0);
+        var offset = VisualTreeHelper.GetOffset(container);
+        return new Rect(origin.X + offset.X, origin.Y + offset.Y, container.ActualWidth, container.ActualHeight);
+    }
+
+    private int FindTabDropSlot(ListBox list, Point pos, bool rowAware)
+    {
+        for (int i = 0; i < list.Items.Count; i++)
+        {
+            if (list.ItemContainerGenerator.ContainerFromIndex(i) is not FrameworkElement container) continue;
+            var b = GetTabItemLayoutBounds(list, container);
+            if (rowAware)
+            {
+                bool earlierRow = pos.Y < b.Top;
+                bool sameRow = pos.Y >= b.Top && pos.Y <= b.Bottom;
+                if (earlierRow || (sameRow && pos.X < b.X + b.Width / 2)) return i;
+            }
+            else if (pos.X < b.X + b.Width / 2)
+            {
+                return i;
+            }
+        }
+        return list.Items.Count;
+    }
+
+    private int MapTabDropSlotToIndex(bool secondary, int slot)
+    {
+        if (!secondary)
+        {
+            if (slot < ListTabs.Items.Count && ListTabs.Items[slot] is TabViewModel primaryTab)
+            {
+                int idx = _allTabs.IndexOf(primaryTab);
+                if (idx >= 0) return idx;
+            }
+            if (OverflowTabs.Count > 0)
+            {
+                int firstOverflow = _allTabs.IndexOf(OverflowTabs[0]);
+                if (firstOverflow >= 0) return firstOverflow;
+            }
+            return _allTabs.Count;
+        }
+
+        if (slot < OverflowTabs.Count)
+        {
+            int idx = _allTabs.IndexOf(OverflowTabs[slot]);
+            if (idx >= 0) return idx;
+        }
+        return _allTabs.Count;
+    }
+
+    private TabDropGhostAdorner? GetTabDropGhostAdorner(ListBox list)
+    {
+        bool secondary = ReferenceEquals(list, ListOverflowTabs);
+        var existing = secondary ? _tabDropGhostSecondary : _tabDropGhostPrimary;
+        if (existing != null) return existing;
+        var layer = System.Windows.Documents.AdornerLayer.GetAdornerLayer(list);
+        if (layer == null) return null;
+        var created = new TabDropGhostAdorner(list, GetTabDropGhostAccent());
+        layer.Add(created);
+        if (secondary) _tabDropGhostSecondary = created; else _tabDropGhostPrimary = created;
+        return created;
+    }
+
+    private static void ApplyTabDropShift(FrameworkElement container, double target)
+    {
+        var tt = container.RenderTransform as TranslateTransform;
+        if (tt == null || tt.IsFrozen)
+        {
+            tt = new TranslateTransform();
+            container.RenderTransform = tt;
+        }
+        tt.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation(target, TimeSpan.FromMilliseconds(140))
+        {
+            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+        });
+    }
+
+    private static void ResetTabDropShift(ListBox? list)
+    {
+        if (list == null) return;
+        for (int i = 0; i < list.Items.Count; i++)
+        {
+            if (list.ItemContainerGenerator.ContainerFromIndex(i) is FrameworkElement container
+                && container.RenderTransform is TranslateTransform tt && !tt.IsFrozen)
+            {
+                tt.BeginAnimation(TranslateTransform.XProperty, null);
+                tt.X = 0;
+            }
+        }
+    }
+
+    private void ShowTabDropGhost(ListBox list, int slot)
+    {
+        if (!ReferenceEquals(list, _tabDropActiveList))
+        {
+            ResetTabDropShift(_tabDropActiveList);
+            var previous = ReferenceEquals(_tabDropActiveList, ListOverflowTabs) ? _tabDropGhostSecondary : _tabDropGhostPrimary;
+            if (previous != null) previous.GhostRect = Rect.Empty;
+            _tabDropActiveList = list;
+            _tabDropActiveSlot = -1;
+        }
+
+        if (slot == _tabDropActiveSlot) return;
+
+        var adorner = GetTabDropGhostAdorner(list);
+        if (adorner == null) return;
+
+        double slotWidth = TAB_DEFAULT_WIDTH + TAB_MARGIN * 2;
+        int n = list.Items.Count;
+        var containers = new FrameworkElement?[n];
+        var bounds = new Rect[n];
+        for (int i = 0; i < n; i++)
+        {
+            containers[i] = list.ItemContainerGenerator.ContainerFromIndex(i) as FrameworkElement;
+            bounds[i] = containers[i] != null ? GetTabItemLayoutBounds(list, containers[i]!) : Rect.Empty;
+        }
+
+        double refX = 0, refTop = 0, refHeight = 47;
+        if (slot < n && !bounds[slot].IsEmpty)
+        {
+            refX = bounds[slot].X;
+            refTop = bounds[slot].Top;
+            refHeight = bounds[slot].Height;
+        }
+        else
+        {
+            for (int i = n - 1; i >= 0; i--)
+            {
+                if (bounds[i].IsEmpty) continue;
+                refX = bounds[i].Right;
+                refTop = bounds[i].Top;
+                refHeight = bounds[i].Height;
+                break;
+            }
+        }
+
+        for (int i = 0; i < n; i++)
+        {
+            if (containers[i] == null) continue;
+            bool shift = i >= slot && Math.Abs(bounds[i].Top - refTop) < 2.0;
+            ApplyTabDropShift(containers[i]!, shift ? slotWidth : 0.0);
+        }
+
+        double ghostHeight = 47.0;
+        double ghostY = refHeight > ghostHeight ? refTop + (refHeight - ghostHeight) / 2.0 : refTop;
+        adorner.GhostRect = new Rect(refX + TAB_MARGIN, ghostY, TAB_DEFAULT_WIDTH, ghostHeight);
+        _tabDropActiveSlot = slot;
+    }
+
+    private void ClearTabDropGhost()
+    {
+        ResetTabDropShift(ListTabs);
+        ResetTabDropShift(ListOverflowTabs);
+        if (_tabDropGhostPrimary != null)
+        {
+            System.Windows.Documents.AdornerLayer.GetAdornerLayer(ListTabs)?.Remove(_tabDropGhostPrimary);
+            _tabDropGhostPrimary = null;
+        }
+        if (_tabDropGhostSecondary != null)
+        {
+            System.Windows.Documents.AdornerLayer.GetAdornerLayer(ListOverflowTabs)?.Remove(_tabDropGhostSecondary);
+            _tabDropGhostSecondary = null;
+        }
+        _tabDropActiveList = null;
+        _tabDropActiveSlot = -1;
+    }
+
     private void UpdateDropIndicator(Point posRelativeToTabList)
+    {
+        bool useSecondary = false;
+        Point secondaryPos = default;
+        if (OverflowContainer.Visibility == Visibility.Visible && OverflowTabs.Count > 0)
+        {
+            secondaryPos = Mouse.GetPosition(ListOverflowTabs);
+            useSecondary = secondaryPos.X >= 0 && secondaryPos.X <= ListOverflowTabs.ActualWidth
+                        && secondaryPos.Y >= 0 && secondaryPos.Y <= ListOverflowTabs.ActualHeight;
+        }
+
+        var list = useSecondary ? ListOverflowTabs : ListTabs;
+        var pos = useSecondary ? secondaryPos : posRelativeToTabList;
+        int slot = FindTabDropSlot(list, pos, useSecondary);
+        _dragInsertIndex = MapTabDropSlotToIndex(useSecondary, slot);
+        ShowTabDropGhost(list, slot);
+    }
+
+    private void UpdateDropIndicatorLegacy(Point posRelativeToTabList)
 
 
 

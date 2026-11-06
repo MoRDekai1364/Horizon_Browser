@@ -476,7 +476,7 @@
                         <CheckBox x:Name="ChkCompactTabs" Content="Shrink tabs to icons when the tab bar is full, before using the secondary bar"
                                   local:SearchIndex.Label="Compact Tabs" local:SearchIndex.Description="When tabs no longer fit at minimum width, they shrink to a favicon (or colored initial) instead of moving to the secondary tab bar."
                                   Foreground="{StaticResource Brush_Text}" Margin="0,0,0,10"
-                                  ToolTip="Off by default. Applies the next time the tab bar re-lays out (resize, open or close a tab)."/>
+                                  ToolTip="On by default. Applies the next time the tab bar re-lays out (resize, open or close a tab)."/>
 
                         <TextBlock Text="Visualizer Color Scheme" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" Margin="0,10,0,5"/>
                         <TextBlock Text="Source used for tab colors when media is playing." Foreground="#AAA" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,6"/>
@@ -1037,6 +1037,26 @@
                         <Button Content="OPEN CURRENT LOG" Click="BtnOpenLog_Click"
                                 Style="{StaticResource Style_StealthButton}" Height="35" Width="160" HorizontalAlignment="Left" Margin="0,0,0,18"
                                 ToolTip="Opens the log file of this session."/>
+
+                        <TextBlock Text="TABS" Foreground="{StaticResource Brush_Accent}" FontSize="15" FontWeight="Bold" Margin="0,0,0,12"/>
+                        <TextBlock Text="Compact Tab Hover Delay" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" Margin="0,0,0,5"/>
+                        <TextBlock Text="How long the cursor must rest on a compact tab before it expands. 0 = instant." Foreground="#AAA" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,6"/>
+                        <Grid Margin="0,4,0,18">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="60"/>
+                            </Grid.ColumnDefinitions>
+                            <Slider x:Name="SliderCompactHoverDelay" Grid.Column="0"
+                                    local:SearchIndex.Label="Compact Tab Hover Delay" local:SearchIndex.Description="How long the cursor must rest on a compact tab before it expands."
+                                    Minimum="0" Maximum="500" TickFrequency="10"
+                                    IsSnapToTickEnabled="True" VerticalAlignment="Center"
+                                    Margin="0,0,10,0"
+                                    ValueChanged="SliderCompactHoverDelay_ValueChanged"/>
+                            <TextBlock x:Name="TblCompactHoverDelayValue" Grid.Column="1"
+                                       VerticalAlignment="Center"
+                                       Foreground="{StaticResource Brush_Text}" FontSize="11"
+                                       Text="80 ms"/>
+                        </Grid>
 
                         <TextBlock Text="PROJECT TOOLS" Foreground="{StaticResource Brush_Accent}" FontSize="15" FontWeight="Bold" Margin="0,0,0,12"/>
                         <TextBlock Text="Project Mapping" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" Margin="0,10,0,10"/>

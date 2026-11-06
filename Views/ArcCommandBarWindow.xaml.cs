@@ -410,8 +410,18 @@ public partial class ArcCommandBarWindow : Window
         }
     }
 
+    private bool _isClosing;
+
+    protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+    {
+        _isClosing = true;
+        base.OnClosing(e);
+    }
+
     private void Window_Deactivated(object sender, EventArgs e)
     {
+        if (_isClosing) return;
+        _isClosing = true;
         Close();
     }
 

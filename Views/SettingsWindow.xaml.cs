@@ -1055,6 +1055,8 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
         ChkDisableBlur.IsChecked = s.DisableBlurEffects;
         ChkTabSwitcherGrid.IsChecked = s.TabSwitcherGridMode;
         ChkCompactTabs.IsChecked = s.CompactTabsEnabled;
+        SliderCompactHoverDelay.Value = Math.Clamp(s.CompactTabHoverDelayMs, 0, 500);
+        TblCompactHoverDelayValue.Text = $"{(int)SliderCompactHoverDelay.Value} ms";
         ChkStartupVideo.IsChecked = s.ShowStartupVideo;
         LoadStartupVideoOptions();
         
@@ -1348,6 +1350,7 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
         s.DisableBlurEffects   = ChkDisableBlur.IsChecked == true;
         s.TabSwitcherGridMode  = ChkTabSwitcherGrid.IsChecked == true;
         s.CompactTabsEnabled   = ChkCompactTabs.IsChecked == true;
+        s.CompactTabHoverDelayMs = (int)SliderCompactHoverDelay.Value;
         Horizon.Stealth.Controls.HomeGlassMotion.RaiseBlurSettingChanged();
 
         s.ShowStartupVideo = ChkStartupVideo.IsChecked == true;
@@ -2328,6 +2331,12 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
     {
         if (TblWidgetTintValue != null)
             TblWidgetTintValue.Text = $"{e.NewValue:0}%";
+    }
+
+    private void SliderCompactHoverDelay_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (TblCompactHoverDelayValue != null)
+            TblCompactHoverDelayValue.Text = $"{(int)e.NewValue} ms";
     }
 
     private void SliderPaletteSampleRate_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)

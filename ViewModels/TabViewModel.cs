@@ -132,6 +132,7 @@ public class TabViewModel : INotifyPropertyChanged, IDisposable
         set
         {
             _hasEverPlayedAudio = value;
+            if (value) IsCompact = false;
             OnPropertyChanged();
         }
     }
@@ -262,6 +263,7 @@ public class TabViewModel : INotifyPropertyChanged, IDisposable
         get => _isCompact;
         set
         {
+            if (value && (HasEverPlayedAudio || HasEverDownloaded)) value = false;
             if (_isCompact == value) return;
             _isCompact = value;
             OnPropertyChanged();
