@@ -6,7 +6,7 @@
         Title="Horizon Web App" Height="750" Width="1100"
         WindowStyle="None" ResizeMode="CanResize" AllowsTransparency="False"
         WindowStartupLocation="CenterScreen"
-        Background="{StaticResource Brush_Background}">
+        Background="{DynamicResource Brush_Background}">
 
     <shell:WindowChrome.WindowChrome>
         <shell:WindowChrome CaptionHeight="0" ResizeBorderThickness="5" GlassFrameThickness="0" CornerRadius="8"/>

@@ -1,0 +1,386 @@
+diff --git a/Controls/FluxSidebar.xaml b/Controls/FluxSidebar.xaml
+index e071faf..6a23e36 100644
+--- a/Controls/FluxSidebar.xaml
++++ b/Controls/FluxSidebar.xaml
+@@ -141,7 +141,7 @@
+                                 </Trigger>
+                                 <Trigger Property="IsSelected" Value="True">
+                                     <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Brush_TabStripBgSelected}"/>
+-                                    <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Brush.Neon}"/>
++                                    <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Brush.Neon}"/>
+                                 </Trigger>
+                             </ControlTemplate.Triggers>
+                         </ControlTemplate>
+@@ -165,7 +165,7 @@
+                                     <Setter TargetName="Bd" Property="BorderBrush" Value="#666"/>
+                                 </Trigger>
+                                 <Trigger Property="IsSelected" Value="True">
+-                                    <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Brush.Neon}"/>
++                                    <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Brush.Neon}"/>
+                                 </Trigger>
+                             </ControlTemplate.Triggers>
+                         </ControlTemplate>
+@@ -228,7 +228,7 @@
+                                     <Setter TargetName="Bd" Property="BorderBrush" Value="#666"/>
+                                 </Trigger>
+                                 <Trigger Property="IsSelected" Value="True">
+-                                    <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Brush.Neon}"/>
++                                    <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Brush.Neon}"/>
+                                 </Trigger>
+                             </ControlTemplate.Triggers>
+                         </ControlTemplate>
+@@ -338,7 +338,7 @@
+                     <ProgressBar Grid.Column="1" Grid.Row="1" Height="2" VerticalAlignment="Bottom"
+                                  Margin="0,4,0,0"
+                                  Value="{Binding ReceivedBytes, Mode=OneWay}" Maximum="{Binding TotalBytes, Mode=OneWay}"
+-                                 Foreground="{StaticResource Brush.Neon}" Background="{DynamicResource Brush_DeepBackground}"
++                                 Foreground="{DynamicResource Brush.Neon}" Background="{DynamicResource Brush_DeepBackground}"
+                                  BorderThickness="0"
+                                  x:Name="BarProgress" Visibility="Collapsed"/>
+                 </Grid>
+@@ -634,7 +634,7 @@
+                         <Button Content="&#x25B2;"  Click="BtnPinUp_Click"     Style="{StaticResource Style.SidebarIconBtn}" Height="34" Margin="0,0,2,0"/>
+                         <Button Content="&#x25BC;"  Click="BtnPinDown_Click"   Background="{DynamicResource Brush_TabStripBg}" Foreground="{DynamicResource Brush_SoftText}" BorderThickness="0" Height="34" Margin="2,0,2,0"/>
+                         <Button Content="&#x270E;"  Click="BtnRenamePin_Click" Background="{DynamicResource Brush_TabStripBg}" Foreground="{DynamicResource Brush_SoftText}" BorderThickness="0" Height="34" Margin="2,0,2,0"/>
+-                        <Button Content="&#x1F5D1;" Click="BtnRemovePin_Click" Style="{StaticResource Style.SidebarIconBtn}" Foreground="{StaticResource Brush.Alert}" Height="34" Margin="2,0,0,0"/>
++                        <Button Content="&#x1F5D1;" Click="BtnRemovePin_Click" Style="{StaticResource Style.SidebarIconBtn}" Foreground="{DynamicResource Brush.Alert}" Height="34" Margin="2,0,0,0"/>
+                     </UniformGrid>
+ 
+                     <Button x:Name="BtnAddPin" Grid.Row="5" Content=" PIN CURRENT " Click="BtnAddPin_Click"
+@@ -696,7 +696,7 @@
+                              PreviewMouseMove="ListBookmarks_PreviewMouseMove"/>
+ 
+                     <StackPanel x:Name="PanelBookmarkFallback" Grid.Row="2" VerticalAlignment="Center" Visibility="Collapsed">
+-                        <TextBlock Text="Extraction Failed." Foreground="{StaticResource Brush.Alert}"
++                        <TextBlock Text="Extraction Failed." Foreground="{DynamicResource Brush.Alert}"
+                                    FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,15" FontSize="12"/>
+                         <TextBlock Text="1. Open your old browser." Foreground="{DynamicResource Brush_SoftText}" TextWrapping="Wrap" Margin="0,4" FontSize="12"/>
+                         <TextBlock Text="2. Go to Bookmarks / Bookmark Manager." Foreground="{DynamicResource Brush_SoftText}" TextWrapping="Wrap" Margin="0,4" FontSize="12"/>
+@@ -708,7 +708,7 @@
+                     <UniformGrid x:Name="RowBmActions" Grid.Row="3" Rows="1" Columns="3" Margin="0,10,0,5">
+                         <Button Content="&#x1F4CB;" Click="BtnBookmarkCopy_Click"   Background="{DynamicResource Brush_TabStripBg}" Foreground="{DynamicResource Brush_SoftText}" BorderThickness="0" Height="34" Margin="0,0,2,0" ToolTip="Copy URL"/>
+                         <Button Content="&#x1F517;" Click="BtnBookmarkOpen_Click"   Background="{DynamicResource Brush_TabStripBg}" Foreground="{DynamicResource Brush_SoftText}" BorderThickness="0" Height="34" Margin="2,0,2,0" ToolTip="Open"/>
+-                        <Button Content="&#x1F5D1;" Click="BtnBookmarkDelete_Click" Background="{DynamicResource Brush_DangerBg}" Foreground="{StaticResource Brush.Alert}" BorderThickness="0" Height="34" Margin="2,0,0,0" ToolTip="Remove"/>
++                        <Button Content="&#x1F5D1;" Click="BtnBookmarkDelete_Click" Background="{DynamicResource Brush_DangerBg}" Foreground="{DynamicResource Brush.Alert}" BorderThickness="0" Height="34" Margin="2,0,0,0" ToolTip="Remove"/>
+                     </UniformGrid>
+ 
+                     <Button x:Name="BtnAddBookmark" Grid.Row="4" Content=" BOOKMARK CURRENT " Click="BtnAddBookmark_Click"
+@@ -765,7 +765,7 @@
+                     <UniformGrid x:Name="RowHistActions" Grid.Row="2" Rows="1" Columns="3" Margin="0,10,0,5">
+                         <Button Content="&#x1F4CB;" Click="BtnHistoryCopy_Click"   Background="{DynamicResource Brush_TabStripBg}" Foreground="{DynamicResource Brush_SoftText}" BorderThickness="0" Height="34" Margin="0,0,2,0"/>
+                         <Button Content="&#x1F517;" Click="BtnHistoryOpen_Click"   Background="{DynamicResource Brush_TabStripBg}" Foreground="{DynamicResource Brush_SoftText}" BorderThickness="0" Height="34" Margin="2,0,2,0"/>
+-                        <Button Content="&#x1F5D1;" Click="BtnHistoryDelete_Click" Background="{DynamicResource Brush_DangerBg}" Foreground="{StaticResource Brush.Alert}" BorderThickness="0" Height="34" Margin="2,0,0,0"/>
++                        <Button Content="&#x1F5D1;" Click="BtnHistoryDelete_Click" Background="{DynamicResource Brush_DangerBg}" Foreground="{DynamicResource Brush.Alert}" BorderThickness="0" Height="34" Margin="2,0,0,0"/>
+                     </UniformGrid>
+ 
+                     <Button x:Name="BtnClearHistory" Grid.Row="3" Content="[ CLEAR SIGNAL ]" Click="BtnClearHistory_Click"
+@@ -892,7 +892,7 @@
+                     <UniformGrid x:Name="RowDlActions" Grid.Row="4" Rows="1" Columns="3" Margin="0,10,0,5">
+                         <Button Content="&#x1F4C2;" Click="BtnFluxFolder_Click" Background="{DynamicResource Brush_TabStripBg}" Foreground="{DynamicResource Brush_SoftText}" BorderThickness="0" Height="34" Margin="0,0,2,0"/>
+                         <Button Content="&#x25B6;"  Click="BtnFluxOpen_Click"   Background="{DynamicResource Brush_TabStripBg}" Foreground="{DynamicResource Brush_SoftText}" BorderThickness="0" Height="34" Margin="2,0,2,0"/>
+-                        <Button Content="&#x1F5D1;" Click="BtnFluxDelete_Click" Background="{DynamicResource Brush_DangerBg}" Foreground="{StaticResource Brush.Alert}" BorderThickness="0" Height="34" Margin="2,0,0,0"/>
++                        <Button Content="&#x1F5D1;" Click="BtnFluxDelete_Click" Background="{DynamicResource Brush_DangerBg}" Foreground="{DynamicResource Brush.Alert}" BorderThickness="0" Height="34" Margin="2,0,0,0"/>
+                     </UniformGrid>
+ 
+                     <Button x:Name="BtnPreviewFile" Grid.Row="5" Content="[ PREVIEW ]" Click="BtnPreviewFile_Click"
+@@ -946,10 +946,10 @@
+                     </UniformGrid>
+ 
+                     <Border x:Name="BannerStatus" Grid.Row="3"
+-                            Background="#0D1A0D" BorderBrush="{StaticResource Brush.NeonDim}"
++                            Background="#0D1A0D" BorderBrush="{DynamicResource Brush.NeonDim}"
+                             BorderThickness="1" CornerRadius="5" Padding="8,5" Margin="0,2,0,0"
+                             Visibility="Collapsed">
+-                        <TextBlock x:Name="TxtStatus" Foreground="{StaticResource Brush.Neon}"
++                        <TextBlock x:Name="TxtStatus" Foreground="{DynamicResource Brush.Neon}"
+                                    FontSize="10" FontWeight="SemiBold" TextWrapping="Wrap"
+                                    HorizontalAlignment="Center"/>
+                     </Border>
+@@ -1203,10 +1203,10 @@
+                     <Button Content="&#x1F5C2;  Add Category"     Click="CtxPinAddCategory_Click"       Style="{StaticResource Style.CtxBtn}"/>
+                     <Button Content="&#x270E;  Rename Category"  Click="CtxPinRenameCategory_Click"    Style="{StaticResource Style.CtxBtn}"/>
+                     <Button Content="&#x1F5D1;  Delete Category" Click="CtxPinDeleteCategory_Click"
+-                            Style="{StaticResource Style.CtxBtn}" Foreground="{StaticResource Brush.Alert}"/>
++                            Style="{StaticResource Style.CtxBtn}" Foreground="{DynamicResource Brush.Alert}"/>
+                     <Separator Background="#333" Margin="4,2"/>
+                     <Button Content="&#x1F5D1;  Remove Pin"      Click="BtnRemovePin_Click"
+-                            Style="{StaticResource Style.CtxBtn}" Foreground="{StaticResource Brush.Alert}"/>
++                            Style="{StaticResource Style.CtxBtn}" Foreground="{DynamicResource Brush.Alert}"/>
+                     <Separator Background="#333" Margin="4,2"/>
+                     <Button Content="&#x1F516;  Send to Bookmarks" Click="CtxPinSendToBookmarks_Click"
+                             Style="{StaticResource Style.CtxBtn}" Foreground="#AADDAA"/>
+@@ -1244,7 +1244,7 @@
+                             Style="{StaticResource Style.CtxBtn}" Foreground="#AAAADD"/>
+                     <Separator Background="#333" Margin="4,2"/>
+                     <Button Content="&#x1F5D1;  Remove"           Click="BtnBookmarkDelete_Click"
+-                            Style="{StaticResource Style.CtxBtn}" Foreground="{StaticResource Brush.Alert}"/>
++                            Style="{StaticResource Style.CtxBtn}" Foreground="{DynamicResource Brush.Alert}"/>
+                     <Separator Background="#333" Margin="4,2"/>
+                     <Button Content="&#x2B50;  Send to Favourites" Click="CtxBmSendToFavourites_Click"
+                             Style="{StaticResource Style.CtxBtn}" Foreground="#AADDAA"/>
+@@ -1277,7 +1277,7 @@
+                     <Button Content="&#x1F310;  By Domain"        Click="CtxHistSortDomain_Click"       Style="{StaticResource Style.CtxBtn}"/>
+                     <Separator Background="#333" Margin="4,2"/>
+                     <Button Content="&#x1F5D1;  Delete Entry"     Click="BtnHistoryDelete_Click"
+-                            Style="{StaticResource Style.CtxBtn}" Foreground="{StaticResource Brush.Alert}"/>
++                            Style="{StaticResource Style.CtxBtn}" Foreground="{DynamicResource Brush.Alert}"/>
+                 </StackPanel>
+                 </ScrollViewer>
+             </Border>
+@@ -1292,7 +1292,7 @@
+                     <Button Content="&#x1F517;  Copy Link"        Click="DlCtxCopyLink_Click"   Style="{StaticResource Style.CtxBtn}"/>
+                     <Separator Background="#333" Margin="4,2"/>
+                     <Button Content="&#x2715;  Dismiss"           Click="DlCtxDismiss_Click"
+-                            Style="{StaticResource Style.CtxBtn}" Foreground="{StaticResource Brush.Alert}"/>
++                            Style="{StaticResource Style.CtxBtn}" Foreground="{DynamicResource Brush.Alert}"/>
+                 </StackPanel>
+             </Border>
+         </Popup>
+@@ -1351,7 +1351,7 @@
+                     <Button Content="&#x1F4E6;  By Size"          Click="CtxSortSize_Click"             Style="{StaticResource Style.CtxBtn}"/>
+                     <Separator Background="#333" Margin="4,2"/>
+                     <Button Content="&#x1F5D1;  Delete File"      Click="BtnFluxDelete_Click"
+-                            Style="{StaticResource Style.CtxBtn}" Foreground="{StaticResource Brush.Alert}"/>
++                            Style="{StaticResource Style.CtxBtn}" Foreground="{DynamicResource Brush.Alert}"/>
+                 </StackPanel>
+                 </ScrollViewer>
+             </Border>
+@@ -1381,7 +1381,7 @@
+                     <Button Content="&#x1F4E6;  By Source"        Click="CtxExtSortSource_Click"        Style="{StaticResource Style.CtxBtn}"/>
+                     <Separator Background="#333" Margin="4,2"/>
+                     <Button Content="&#x1F5D1;  Uninstall"       Click="CtxExtUninstall_Click"
+-                            Style="{StaticResource Style.CtxBtn}" Foreground="{StaticResource Brush.Alert}"/>
++                            Style="{StaticResource Style.CtxBtn}" Foreground="{DynamicResource Brush.Alert}"/>
+                 </StackPanel>
+                 </ScrollViewer>
+             </Border>
+@@ -1414,7 +1414,7 @@
+             <Border Background="#151515" BorderBrush="#333" BorderThickness="1" CornerRadius="8"
+                     VerticalAlignment="Center" HorizontalAlignment="Center" Width="220" Padding="15">
+                 <StackPanel>
+-                    <TextBlock Text="RENAME SHORTCUT" Foreground="{StaticResource Brush.Neon}"
++                    <TextBlock Text="RENAME SHORTCUT" Foreground="{DynamicResource Brush.Neon}"
+                                FontWeight="Bold" FontSize="12" Margin="0,0,0,10"/>
+                     <TextBox x:Name="TxtRenameInput" Background="{DynamicResource Brush_DeepBackground}" Foreground="{DynamicResource Brush_Text}"
+                              BorderThickness="0" Height="30" VerticalContentAlignment="Center" Padding="5,0"/>
+@@ -1422,7 +1422,7 @@
+                         <Button Content="CANCEL" Click="BtnCancelRename_Click"
+                                 Style="{StaticResource Style_StealthButton}" Width="60" Height="25" Margin="0,0,5,0"/>
+                         <Button Content="SAVE" Click="BtnSaveRename_Click"
+-                                Background="{StaticResource Brush.Neon}" Foreground="Black"
++                                Background="{DynamicResource Brush.Neon}" Foreground="Black"
+                                 FontWeight="Bold" Width="60" Height="25">
+                             <Button.Template>
+                                 <ControlTemplate TargetType="Button">
+@@ -1441,7 +1441,7 @@
+             <Border Background="#151515" BorderBrush="#333" BorderThickness="1" CornerRadius="8"
+                     VerticalAlignment="Center" HorizontalAlignment="Center" Width="240" Padding="15">
+                 <StackPanel>
+-                    <TextBlock Text="CHANGE CATEGORY" Foreground="{StaticResource Brush.Neon}"
++                    <TextBlock Text="CHANGE CATEGORY" Foreground="{DynamicResource Brush.Neon}"
+                                FontWeight="Bold" FontSize="12" Margin="0,0,0,10"/>
+                     <TextBlock Text="Current pin:" Foreground="{DynamicResource Brush_MutedText}" FontSize="10" Margin="0,0,0,4"/>
+                     <TextBlock x:Name="TxtChangeCatPinName" Foreground="{DynamicResource Brush_Text}" FontSize="13"
+@@ -1455,7 +1455,7 @@
+                         <Button Content="CANCEL" Click="BtnCancelChangeCategory_Click"
+                                 Style="{StaticResource Style_StealthButton}" Width="60" Height="25" Margin="0,0,5,0"/>
+                         <Button Content="APPLY" Click="BtnApplyChangeCategory_Click"
+-                                Background="{StaticResource Brush.Neon}" Foreground="Black"
++                                Background="{DynamicResource Brush.Neon}" Foreground="Black"
+                                 FontWeight="Bold" Width="60" Height="25">
+                             <Button.Template>
+                                 <ControlTemplate TargetType="Button">
+@@ -1474,7 +1474,7 @@
+             <Border Background="#151515" BorderBrush="#333" BorderThickness="1" CornerRadius="8"
+                     VerticalAlignment="Center" HorizontalAlignment="Center" Width="240" Padding="15">
+                 <StackPanel>
+-                    <TextBlock x:Name="TxtCategoryEditTitle" Foreground="{StaticResource Brush.Neon}"
++                    <TextBlock x:Name="TxtCategoryEditTitle" Foreground="{DynamicResource Brush.Neon}"
+                                FontWeight="Bold" FontSize="12" Margin="0,0,0,10"/>
+                     <TextBox x:Name="TxtCategoryEditInput" Background="{DynamicResource Brush_DeepBackground}" Foreground="{DynamicResource Brush_Text}"
+                              BorderThickness="0" Height="30" VerticalContentAlignment="Center" Padding="5,0"/>
+@@ -1482,7 +1482,7 @@
+                         <Button Content="CANCEL" Click="BtnCancelCategoryEdit_Click"
+                                 Style="{StaticResource Style_StealthButton}" Width="60" Height="25" Margin="0,0,5,0"/>
+                         <Button Content="SAVE" Click="BtnSaveCategoryEdit_Click"
+-                                Background="{StaticResource Brush.Neon}" Foreground="Black"
++                                Background="{DynamicResource Brush.Neon}" Foreground="Black"
+                                 FontWeight="Bold" Width="60" Height="25">
+                             <Button.Template>
+                                 <ControlTemplate TargetType="Button">
+diff --git a/Controls/VaultSidebar.xaml b/Controls/VaultSidebar.xaml
+index f1f8d3e..97bb362 100644
+--- a/Controls/VaultSidebar.xaml
++++ b/Controls/VaultSidebar.xaml
+@@ -34,7 +34,7 @@
+                                 </Trigger>
+                                 <Trigger Property="IsSelected" Value="True">
+                                     <Setter TargetName="Bd" Property="Background" Value="#222"/>
+-                                    <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Brush.Neon}"/>
++                                    <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Brush.Neon}"/>
+                                 </Trigger>
+                             </ControlTemplate.Triggers>
+                         </ControlTemplate>
+@@ -105,7 +105,7 @@
+                 <Button Content="&#x1F464;" Click="BtnCopyUser_Click" Background="#111" Foreground="#AAA" BorderThickness="0" Height="30" Margin="2,0,2,0" ToolTip="Copy Username"/>
+                 <Button Content="&#x1F511;" Click="BtnCopyPass_Click" Background="#111" Foreground="#AAA" BorderThickness="0" Height="30" Margin="2,0,2,0" ToolTip="Copy Password"/>
+                 <Button Content="&#x270E;" Click="BtnEdit_Click" Background="#111" Foreground="#AAA" BorderThickness="0" Height="30" Margin="2,0,2,0" ToolTip="Edit Entry"/>
+-                <Button Content="&#x1F5D1;" Click="BtnDelete_Click" Background="#331111" Foreground="{StaticResource Brush.Alert}" BorderThickness="0" Height="30" Margin="2,0,0,0" ToolTip="Delete Entry"/>
++                <Button Content="&#x1F5D1;" Click="BtnDelete_Click" Background="#331111" Foreground="{DynamicResource Brush.Alert}" BorderThickness="0" Height="30" Margin="2,0,0,0" ToolTip="Delete Entry"/>
+             </UniformGrid>
+ 
+             <Grid Grid.Row="4" Margin="0,5,0,0">
+@@ -128,7 +128,7 @@
+             <Border Background="#151515" BorderBrush="#333" BorderThickness="1" CornerRadius="8" VerticalAlignment="Center" HorizontalAlignment="Stretch" Margin="12" Padding="16">
+                 <ScrollViewer VerticalScrollBarVisibility="Auto">
+                 <StackPanel>
+-                    <TextBlock x:Name="TxtOverlayHeader" Text="EDIT CREDENTIAL" Foreground="{StaticResource Brush.Neon}" FontWeight="Bold" FontSize="10" Margin="0,0,0,15"/>
++                    <TextBlock x:Name="TxtOverlayHeader" Text="EDIT CREDENTIAL" Foreground="{DynamicResource Brush.Neon}" FontWeight="Bold" FontSize="10" Margin="0,0,0,15"/>
+                     
+                     <TextBlock Text="TITLE" Foreground="#555" FontSize="8" Margin="0,0,0,4"/>
+                     <TextBox x:Name="TxtEditTitle" Background="#222" Foreground="White" BorderThickness="0" Height="30" VerticalContentAlignment="Center" Padding="8,0" Margin="0,0,0,12"/>
+@@ -148,7 +148,7 @@
+                             <ColumnDefinition Width="*"/>
+                         </Grid.ColumnDefinitions>
+                         <Button Grid.Column="0" Content="CANCEL" Click="BtnCancelEdit_Click" Style="{StaticResource Style_StealthButton}" Height="35" Margin="0,0,5,0"/>
+-                        <Button Grid.Column="1" Content="UPDATE" Click="BtnSaveEdit_Click" Background="{StaticResource Brush.Neon}" Foreground="Black" FontWeight="Bold" Height="35" Margin="5,0,0,0">
++                        <Button Grid.Column="1" Content="UPDATE" Click="BtnSaveEdit_Click" Background="{DynamicResource Brush.Neon}" Foreground="Black" FontWeight="Bold" Height="35" Margin="5,0,0,0">
+                             <Button.Template>
+                                 <ControlTemplate TargetType="Button">
+                                     <Border Background="{TemplateBinding Background}" CornerRadius="4">
+@@ -167,7 +167,7 @@
+             <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                 <TextBlock Text="&#x1F512;" FontSize="48" HorizontalAlignment="Center" Margin="0,0,0,20" Opacity="0.3"/>
+                 <TextBlock Text="VAULT ENCRYPTED" Foreground="#444" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,30"/>
+-                <Button Content="[ ACCESS SIGNAL ]" Click="BtnUnlock_Click" Style="{StaticResource Style_StealthButton}" Width="160" Height="40" Foreground="{StaticResource Brush.Neon}"/>
++                <Button Content="[ ACCESS SIGNAL ]" Click="BtnUnlock_Click" Style="{StaticResource Style_StealthButton}" Width="160" Height="40" Foreground="{DynamicResource Brush.Neon}"/>
+             </StackPanel>
+         </Grid>
+     </Grid>
+diff --git a/MainWindow.xaml b/MainWindow.xaml
+index 56ba7f6..bec059a 100644
+--- a/MainWindow.xaml
++++ b/MainWindow.xaml
+@@ -20,7 +20,7 @@
+ 
+         AllowsTransparency="False"
+ 
+-        Background="{StaticResource Brush_Background}">
++        Background="{DynamicResource Brush_Background}">
+ 
+ 
+ 
+@@ -54,11 +54,7 @@
+ 
+         <ResourceDictionary>
+ 
+-            <ResourceDictionary.MergedDictionaries>
+-
+-                <ResourceDictionary Source="Themes/Horizon.xaml"/>
+-
+-            </ResourceDictionary.MergedDictionaries>
++            
+ 
+ 
+ 
+@@ -648,7 +644,7 @@
+ 
+                 <!-- Deep background for standard web page browsing -->
+ 
+-                <Grid x:Name="PnlHeaderBackground" Background="{StaticResource Brush_DeepBackground}"/>
++                <Grid x:Name="PnlHeaderBackground" Background="{DynamicResource Brush_DeepBackground}"/>
+ 
+ 
+ 
+@@ -2432,7 +2428,7 @@
+ 
+ 
+ 
+-                <Grid x:Name="PnlMobileHeaderBackground" Grid.RowSpan="2" Background="{StaticResource Brush_DeepBackground}"/>
++                <Grid x:Name="PnlMobileHeaderBackground" Grid.RowSpan="2" Background="{DynamicResource Brush_DeepBackground}"/>
+ 
+ 
+ 
+@@ -2633,7 +2629,7 @@
+             <Grid x:Name="OverflowContainer" Grid.Row="1" Grid.ColumnSpan="2"
+                   VerticalAlignment="Top" ClipToBounds="True" Visibility="{Binding Visibility, ElementName=ListOverflowTabs}">
+                 <!-- Deep background for standard web page browsing -->
+-                <Grid x:Name="PnlOverflowBackground" Background="{StaticResource Brush_DeepBackground}"/>
++                <Grid x:Name="PnlOverflowBackground" Background="{DynamicResource Brush_DeepBackground}"/>
+ 
+                 <!-- Wallpaper glass blur layer (active on homepage) -->
+                 <Grid x:Name="OverflowWallpaperGlass"
+@@ -3609,7 +3605,7 @@
+ 
+             <!-- This avoids the WPF/Win32 airspace problem where HWND always renders on top -->
+ 
+-            <StackPanel Grid.Row="2" Grid.ColumnSpan="2" Background="{StaticResource Brush_DeepBackground}">
++            <StackPanel Grid.Row="2" Grid.ColumnSpan="2" Background="{DynamicResource Brush_DeepBackground}">
+ 
+ 
+ 
+@@ -3629,7 +3625,7 @@
+ 
+                         <Button Content="RESTORE" Click="BtnRestoreSession_Click"
+ 
+-                                Background="{StaticResource Brush_Accent}" Foreground="Black" FontWeight="Bold"
++                                Background="{DynamicResource Brush_Accent}" Foreground="Black" FontWeight="Bold"
+ 
+                                 Padding="10,4" BorderThickness="0" Cursor="Hand">
+ 
+@@ -3665,7 +3661,7 @@
+ 
+                         <Button Content="DOWNLOAD" Click="BtnDownloadImage_Click"
+ 
+-                                Background="{StaticResource Brush_Accent}" Foreground="Black" FontWeight="Bold"
++                                Background="{DynamicResource Brush_Accent}" Foreground="Black" FontWeight="Bold"
+ 
+                                 Padding="10,4" BorderThickness="0" Cursor="Hand">
+ 
+diff --git a/Themes/Horizon.xaml b/Themes/Horizon.xaml
+index ff81f2a..50a1ef3 100644
+--- a/Themes/Horizon.xaml
++++ b/Themes/Horizon.xaml
+@@ -68,16 +68,16 @@
+                 <ControlTemplate TargetType="Button">
+                     <Border x:Name="Bd" Background="{TemplateBinding Background}" 
+                             CornerRadius="8" 
+-                            BorderBrush="{StaticResource Brush_ButtonBorder}" BorderThickness="1">
++                            BorderBrush="{DynamicResource Brush_ButtonBorder}" BorderThickness="1">
+                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                     </Border>
+                     <ControlTemplate.Triggers>
+                         <Trigger Property="IsMouseOver" Value="True">
+-                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource Brush_ButtonHoverBg}"/>
+-                            <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Brush_ButtonHoverBorder}"/>
++                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Brush_ButtonHoverBg}"/>
++                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Brush_ButtonHoverBorder}"/>
+                         </Trigger>
+                          <Trigger Property="IsPressed" Value="True">
+-                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource Brush_ButtonPressedBg}"/>
++                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Brush_ButtonPressedBg}"/>
+                         </Trigger>
+                     </ControlTemplate.Triggers>
+                </ControlTemplate>
+@@ -86,7 +86,7 @@
+     </Style>
+ <Style TargetType="TabItem">
+         <Setter Property="Background" Value="Transparent"/>
+-        <Setter Property="Foreground" Value="{StaticResource Brush_Text}"/>
++        <Setter Property="Foreground" Value="{DynamicResource Brush_Text}"/>
+         <Setter Property="BorderThickness" Value="0"/>
+         <Setter Property="Padding" Value="12,6"/>
+         <Setter Property="Template">
+diff --git a/Views/WebAppWindow.xaml b/Views/WebAppWindow.xaml
+index 8813b4d..2c0ffd2 100644
+--- a/Views/WebAppWindow.xaml
++++ b/Views/WebAppWindow.xaml
+@@ -6,7 +6,7 @@
+         Title="Horizon Web App" Height="750" Width="1100"
+         WindowStyle="None" ResizeMode="CanResize" AllowsTransparency="False"
+         WindowStartupLocation="CenterScreen"
+-        Background="{StaticResource Brush_Background}">
++        Background="{DynamicResource Brush_Background}">
+ 
+     <shell:WindowChrome.WindowChrome>
+         <shell:WindowChrome CaptionHeight="0" ResizeBorderThickness="5" GlassFrameThickness="0" CornerRadius="8"/>

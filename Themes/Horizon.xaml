@@ -44,6 +44,15 @@
     <SolidColorBrush x:Key="Brush_BannerSuccessBorder" Color="#2E6A2E" po:Freeze="False"/>
     <SolidColorBrush x:Key="Brush_DangerBg" Color="#331111" po:Freeze="False"/> 
 
+    <SolidColorBrush x:Key="Brush_SurfaceCard" Color="#EB121419" po:Freeze="False"/>
+    <SolidColorBrush x:Key="Brush_SurfaceChrome" Color="#16FFFFFF" po:Freeze="False"/>
+    <SolidColorBrush x:Key="Brush_SurfaceChromeStroke" Color="#1AFFFFFF" po:Freeze="False"/>
+    <SolidColorBrush x:Key="Brush_SurfaceField" Color="#16FFFFFF" po:Freeze="False"/>
+    <SolidColorBrush x:Key="Brush_SurfaceFieldStroke" Color="#25FFFFFF" po:Freeze="False"/>
+    <SolidColorBrush x:Key="Brush_OmniboxBg" Color="#66141414" po:Freeze="False"/>
+    <SolidColorBrush x:Key="Brush_SidebarTile" Color="#161A24" po:Freeze="False"/>
+    <SolidColorBrush x:Key="Brush_SidebarTileStroke" Color="#25FFFFFF" po:Freeze="False"/>
+    <SolidColorBrush x:Key="Brush_SidebarPanel" Color="#141414" po:Freeze="False"/>
     <SolidColorBrush x:Key="Brush_HeaderButtonForeground" Color="#FFFFFF" po:Freeze="False"/>
 
     <SolidColorBrush x:Key="Brush.Neon" Color="{StaticResource Color_Accent}" po:Freeze="False"/>
@@ -59,16 +68,16 @@
                 <ControlTemplate TargetType="Button">
                     <Border x:Name="Bd" Background="{TemplateBinding Background}" 
                             CornerRadius="8" 
-                            BorderBrush="{StaticResource Brush_ButtonBorder}" BorderThickness="1">
+                            BorderBrush="{DynamicResource Brush_ButtonBorder}" BorderThickness="1">
                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource Brush_ButtonHoverBg}"/>
-                            <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Brush_ButtonHoverBorder}"/>
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Brush_ButtonHoverBg}"/>
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Brush_ButtonHoverBorder}"/>
                         </Trigger>
                          <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource Brush_ButtonPressedBg}"/>
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Brush_ButtonPressedBg}"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                </ControlTemplate>
@@ -77,7 +86,7 @@
     </Style>
 <Style TargetType="TabItem">
         <Setter Property="Background" Value="Transparent"/>
-        <Setter Property="Foreground" Value="{StaticResource Brush_Text}"/>
+        <Setter Property="Foreground" Value="{DynamicResource Brush_Text}"/>
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="Padding" Value="12,6"/>
         <Setter Property="Template">

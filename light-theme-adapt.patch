@@ -1,0 +1,707 @@
+diff --git a/Controls/FluxSidebar.xaml b/Controls/FluxSidebar.xaml
+index 837b90d..e071faf 100644
+--- a/Controls/FluxSidebar.xaml
++++ b/Controls/FluxSidebar.xaml
+@@ -14,7 +14,6 @@
+                 
+             </ResourceDictionary.MergedDictionaries>
+ 
+-            <SolidColorBrush x:Key="Brush_SoftText" Color="#EAEAEA" po:Freeze="False"/>
+             <local:FaviconConverter x:Key="FaviconConverter"/>
+             <local:FluxAccentColorConverter x:Key="FluxAccentColorConverter"/>
+             <local:NullOrEmptyConverter    x:Key="NullOrEmptyConverter"/>
+@@ -82,7 +81,7 @@
+ 
+             <Style x:Key="Style.SidebarIconBtn" TargetType="Button">
+                 <Setter Property="Background"      Value="Transparent"/>
+-                <Setter Property="Foreground"      Value="{StaticResource Brush_SoftText}"/>
++                <Setter Property="Foreground"      Value="{DynamicResource Brush_SoftText}"/>
+                 <Setter Property="BorderBrush"     Value="{DynamicResource Brush_ButtonBorder}"/>
+                 <Setter Property="BorderThickness" Value="1"/>
+                 <Setter Property="Cursor"          Value="Hand"/>
+@@ -158,7 +157,7 @@
+                     <Setter.Value>
+                         <ControlTemplate TargetType="ListBoxItem">
+                             <Border x:Name="Bd" Background="{Binding ItemGradient}"
+-                                    BorderBrush="#2a2a2a" BorderThickness="1" CornerRadius="6" Padding="4">
++                                    BorderBrush="{DynamicResource Brush_SidebarTileStroke}" BorderThickness="1" CornerRadius="6" Padding="4">
+                                 <ContentPresenter/>
+                             </Border>
+                             <ControlTemplate.Triggers>
+@@ -216,7 +215,7 @@
+                     <Setter.Value>
+                         <ControlTemplate TargetType="ListBoxItem">
+                             <Border x:Name="Bd" Background="{Binding Converter={StaticResource FluxAccentGradientConverter}}"
+-                                    BorderBrush="#2a2a2a" BorderThickness="1" CornerRadius="6" Padding="4" ClipToBounds="True">
++                                    BorderBrush="{DynamicResource Brush_SidebarTileStroke}" BorderThickness="1" CornerRadius="6" Padding="4" ClipToBounds="True">
+                                 <Grid>
+                                     <Border Width="4" HorizontalAlignment="Right" Margin="0,-1,-1,-1"
+                                             Background="{Binding Converter={StaticResource FluxAccentColorConverter}}"
+@@ -270,7 +269,7 @@
+                     </Border>
+ 
+                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
+-                        <TextBlock Text="{Binding Name}" Foreground="#EEE" FontSize="15"
++                        <TextBlock Text="{Binding Name}" Foreground="{DynamicResource Brush_Text}" FontSize="15"
+                                    FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                         <TextBlock Text="{Binding Category}"
+                                    Foreground="{Binding Category, Converter={StaticResource CategoryColorConverter}}"
+@@ -303,8 +302,8 @@
+                         <Image Source="{Binding Url, Converter={StaticResource FaviconConverter}}" Stretch="UniformToFill"/>
+                     </Border>
+                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
+-                        <TextBlock Text="{Binding Title}" Foreground="#EEE" FontSize="13" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+-                        <TextBlock Text="{Binding Url}"   Foreground="#666" FontSize="10"  TextTrimming="CharacterEllipsis" Margin="0,1,0,0"/>
++                        <TextBlock Text="{Binding Title}" Foreground="{DynamicResource Brush_Text}" FontSize="13" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
++                        <TextBlock Text="{Binding Url}"   Foreground="{DynamicResource Brush_MutedText}" FontSize="10"  TextTrimming="CharacterEllipsis" Margin="0,1,0,0"/>
+                     </StackPanel>
+                 </Grid>
+             </DataTemplate>
+@@ -321,13 +320,13 @@
+                     </Grid.RowDefinitions>
+ 
+                     <TextBlock Grid.RowSpan="2" Text="{Binding TypeIcon}" FontSize="18"
+-                               Foreground="{StaticResource Brush_SoftText}" VerticalAlignment="Center" Margin="0,0,10,0"/>
++                               Foreground="{DynamicResource Brush_SoftText}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+ 
+                     <TextBlock Grid.Column="1" Grid.Row="0" Text="{Binding DisplayName}"
+-                               Foreground="#F0F0F0" FontSize="13" FontWeight="SemiBold"
++                               Foreground="{DynamicResource Brush_Text}" FontSize="13" FontWeight="SemiBold"
+                                TextTrimming="CharacterEllipsis" TextWrapping="NoWrap"/>
+ 
+-                    <TextBlock Grid.Column="1" Grid.Row="1" Foreground="{StaticResource Brush_SoftText}" FontSize="10" Margin="0,2,0,0">
++                    <TextBlock Grid.Column="1" Grid.Row="1" Foreground="{DynamicResource Brush_SoftText}" FontSize="10" Margin="0,2,0,0">
+                         <TextBlock.Text>
+                             <MultiBinding StringFormat="{}{0}  ·  {1}">
+                                 <Binding Path="State"/>
+@@ -397,13 +396,13 @@
+                 <Grid Width="34" Height="34" HorizontalAlignment="Center" VerticalAlignment="Center" ToolTip="{Binding DisplayName}">
+                     <Border CornerRadius="8" Background="{DynamicResource Brush_HeaderButtonScrim}" ClipToBounds="True">
+                         <TextBlock Text="{Binding TypeIcon}" FontSize="18"
+-                                   Foreground="{StaticResource Brush_SoftText}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
++                                   Foreground="{DynamicResource Brush_SoftText}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                     </Border>
+                 </Grid>
+             </DataTemplate>
+ 
+                         <DataTemplate x:Key="Template.UtilitySidebarItemMini">
+-                <Border x:Name="BdUtilMini" Width="38" Height="38" Margin="0,0,0,6" CornerRadius="8" Background="#161A24" BorderBrush="#25FFFFFF" BorderThickness="1"
++                <Border x:Name="BdUtilMini" Width="38" Height="38" Margin="0,0,0,6" CornerRadius="8" Background="{DynamicResource Brush_SidebarTile}" BorderBrush="{DynamicResource Brush_SidebarTileStroke}" BorderThickness="1"
+                         Cursor="Hand">
+                     <Border.ToolTip>
+                         <ToolTip Background="#1A202C" Foreground="#FFFFFF" BorderBrush="#33FFFFFF">
+@@ -424,7 +423,7 @@
+             </DataTemplate>
+ 
+ <DataTemplate x:Key="Template.UtilitySidebarItem">
+-                <Border x:Name="BdUtil" Margin="0,0,0,6" CornerRadius="8" Background="#161A24" BorderBrush="#25FFFFFF" BorderThickness="1" Padding="8,6"
++                <Border x:Name="BdUtil" Margin="0,0,0,6" CornerRadius="8" Background="{DynamicResource Brush_SidebarTile}" BorderBrush="{DynamicResource Brush_SidebarTileStroke}" BorderThickness="1" Padding="8,6"
+                         Cursor="Hand" ToolTip="{Binding Description}">
+                     <Grid>
+                         <Grid.ColumnDefinitions>
+@@ -441,12 +440,12 @@
+                         <!-- Title & Details -->
+                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                             <StackPanel Orientation="Horizontal">
+-                                <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="11.5" Foreground="White" TextTrimming="CharacterEllipsis" MaxWidth="150"/>
++                                <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="11.5" Foreground="{DynamicResource Brush_Text}" TextTrimming="CharacterEllipsis" MaxWidth="150"/>
+                                 <Border Margin="4,0,0,0" CornerRadius="3" Background="#20FFFFFF" Padding="3,1" VerticalAlignment="Center">
+                                     <TextBlock Text="{Binding BadgeText}" FontSize="8.5" Foreground="#4A9EFF" FontWeight="Bold"/>
+                                 </Border>
+                             </StackPanel>
+-                            <TextBlock Text="{Binding Description}" FontSize="9.5" Foreground="#888" TextTrimming="CharacterEllipsis" Margin="0,2,0,0"/>
++                            <TextBlock Text="{Binding Description}" FontSize="9.5" Foreground="{DynamicResource Brush_MutedText}" TextTrimming="CharacterEllipsis" Margin="0,2,0,0"/>
+                         </StackPanel>
+ 
+                         <!-- Actions (Pin / Run) -->
+@@ -491,7 +490,7 @@
+                             Height="32" Background="{DynamicResource Brush_TabStripBgSelected}" BorderBrush="{DynamicResource Brush.Neon}" BorderThickness="1"
+                             Cursor="Hand" MouseLeftButtonUp="BtnSidebarPanesTab_Click" ToolTip="Browser Panes">
+                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+-                            <TextBlock x:Name="TxtPanesTabLabel" Text="&#x1F5C2;&#xFE0F; Panes" FontSize="11" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
++                            <TextBlock x:Name="TxtPanesTabLabel" Text="&#x1F5C2;&#xFE0F; Panes" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource Brush_Text}" VerticalAlignment="Center"/>
+                         </StackPanel>
+                     </Border>
+ 
+@@ -537,7 +536,7 @@
+                     <Setter Property="Template">
+                         <Setter.Value>
+                             <ControlTemplate TargetType="TabItem">
+-                                <Border x:Name="Bd" Background="{StaticResource Brush_TabStripBg}" BorderBrush="{StaticResource Brush_TabStripBorder}"
++                                <Border x:Name="Bd" Background="{DynamicResource Brush_TabStripBg}" BorderBrush="{DynamicResource Brush_TabStripBorder}"
+                                         BorderThickness="1" CornerRadius="8" Height="38" Padding="{TemplateBinding Padding}">
+                                     <Grid>
+                                         <Border CornerRadius="8" Background="{DynamicResource Brush_HeaderButtonScrim}" IsHitTestVisible="False"/>
+@@ -550,7 +549,7 @@
+                                 </Border>
+                                 <ControlTemplate.Triggers>
+                                     <Trigger Property="IsSelected" Value="True">
+-                                        <Setter TargetName="Bd" Property="Background" Value="{StaticResource Brush_TabStripBgSelected}"/>
++                                        <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Brush_TabStripBgSelected}"/>
+                                         <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Brush.Neon}"/>
+                                         <Setter TargetName="ActivePip" Property="Visibility" Value="Visible"/>
+                                         <Setter Property="Foreground" Value="{DynamicResource Brush.Neon}"/>
+@@ -559,8 +558,8 @@
+                                         <Setter Property="Foreground" Value="White"/>
+                                     </Trigger>
+                                     <Trigger Property="IsMouseOver" Value="True">
+-                                        <Setter Property="Foreground"                 Value="{StaticResource Brush_TabStripTextHover}"/>
+-                                        <Setter TargetName="Bd" Property="Background" Value="{StaticResource Brush_TabStripBgSelected}"/>
++                                        <Setter Property="Foreground"                 Value="{DynamicResource Brush_TabStripTextHover}"/>
++                                        <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Brush_TabStripBgSelected}"/>
+                                     </Trigger>
+                                 </ControlTemplate.Triggers>
+                             </ControlTemplate>
+@@ -583,7 +582,7 @@
+                     <UniformGrid x:Name="RowPinSort" Grid.Row="0" Rows="1" Columns="4" Margin="0,0,0,8">
+                         <Button x:Name="BtnPinSortName"   Content="&#x1F524; NAME"   Click="BtnPinSortName_Click"
+                                 Style="{StaticResource Style.SortBtn}"
+-                                Background="{DynamicResource Brush_TabStripBg}" Foreground="White" BorderBrush="{DynamicResource Brush_TabStripBorder}"
++                                Background="{DynamicResource Brush_TabStripBg}" Foreground="{DynamicResource Brush_Text}" BorderBrush="{DynamicResource Brush_TabStripBorder}"
+                                 ToolTip="Sort by name" MouseRightButtonUp="SortBtn_RightClick"/>
+                         <Button x:Name="BtnPinSortCat"    Content="&#x1F4C1; CATG"   Click="BtnPinSortCat_Click"
+                                 Style="{StaticResource Style.SortBtn}"
+@@ -600,7 +599,7 @@
+                     </UniformGrid>
+ 
+                     <Border x:Name="PinSearchRow" Grid.Row="1" Visibility="Collapsed"
+-                            Background="#141414" BorderBrush="#2a2a2a" BorderThickness="1"
++                            Background="{DynamicResource Brush_SidebarPanel}" BorderBrush="{DynamicResource Brush_SidebarTileStroke}" BorderThickness="1"
+                             CornerRadius="4" Margin="0,0,0,6">
+                         <Grid>
+                             <TextBox x:Name="TxtPinSearchBar" Style="{StaticResource Style.CtxSearchBox}"
+@@ -633,14 +632,14 @@
+ 
+                     <UniformGrid x:Name="RowPinActions" Grid.Row="4" Rows="1" Columns="4" Margin="0,10,0,5">
+                         <Button Content="&#x25B2;"  Click="BtnPinUp_Click"     Style="{StaticResource Style.SidebarIconBtn}" Height="34" Margin="0,0,2,0"/>
+-                        <Button Content="&#x25BC;"  Click="BtnPinDown_Click"   Background="{DynamicResource Brush_TabStripBg}" Foreground="{StaticResource Brush_SoftText}" BorderThickness="0" Height="34" Margin="2,0,2,0"/>
+-                        <Button Content="&#x270E;"  Click="BtnRenamePin_Click" Background="{DynamicResource Brush_TabStripBg}" Foreground="{StaticResource Brush_SoftText}" BorderThickness="0" Height="34" Margin="2,0,2,0"/>
++                        <Button Content="&#x25BC;"  Click="BtnPinDown_Click"   Background="{DynamicResource Brush_TabStripBg}" Foreground="{DynamicResource Brush_SoftText}" BorderThickness="0" Height="34" Margin="2,0,2,0"/>
++                        <Button Content="&#x270E;"  Click="BtnRenamePin_Click" Background="{DynamicResource Brush_TabStripBg}" Foreground="{DynamicResource Brush_SoftText}" BorderThickness="0" Height="34" Margin="2,0,2,0"/>
+                         <Button Content="&#x1F5D1;" Click="BtnRemovePin_Click" Style="{StaticResource Style.SidebarIconBtn}" Foreground="{StaticResource Brush.Alert}" Height="34" Margin="2,0,0,0"/>
+                     </UniformGrid>
+ 
+                     <Button x:Name="BtnAddPin" Grid.Row="5" Content=" PIN CURRENT " Click="BtnAddPin_Click"
+                             Style="{StaticResource Style_StealthButton}"
+-                            Background="{DynamicResource Brush_TabStripBg}" Foreground="White"
++                            Background="{DynamicResource Brush_TabStripBg}" Foreground="{DynamicResource Brush_Text}"
+                             FontSize="14" Margin="0,5,0,0"/>
+                 </Grid>
+             </TabItem>
+@@ -699,26 +698,26 @@
+                     <StackPanel x:Name="PanelBookmarkFallback" Grid.Row="2" VerticalAlignment="Center" Visibility="Collapsed">
+                         <TextBlock Text="Extraction Failed." Foreground="{StaticResource Brush.Alert}"
+                                    FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,15" FontSize="12"/>
+-                        <TextBlock Text="1. Open your old browser." Foreground="{StaticResource Brush_SoftText}" TextWrapping="Wrap" Margin="0,4" FontSize="12"/>
+-                        <TextBlock Text="2. Go to Bookmarks / Bookmark Manager." Foreground="{StaticResource Brush_SoftText}" TextWrapping="Wrap" Margin="0,4" FontSize="12"/>
+-                        <TextBlock Text="3. Look for 'Export Bookmarks'." Foreground="{StaticResource Brush_SoftText}" TextWrapping="Wrap" Margin="0,4" FontSize="12"/>
+-                        <TextBlock Text="4. Save the HTML file to your PC." Foreground="{StaticResource Brush_SoftText}" TextWrapping="Wrap" Margin="0,4" FontSize="12"/>
+-                        <TextBlock Text="5. Click the button below." Foreground="{StaticResource Brush_SoftText}" TextWrapping="Wrap" Margin="0,4" FontSize="12"/>
++                        <TextBlock Text="1. Open your old browser." Foreground="{DynamicResource Brush_SoftText}" TextWrapping="Wrap" Margin="0,4" FontSize="12"/>
++                        <TextBlock Text="2. Go to Bookmarks / Bookmark Manager." Foreground="{DynamicResource Brush_SoftText}" TextWrapping="Wrap" Margin="0,4" FontSize="12"/>
++                        <TextBlock Text="3. Look for 'Export Bookmarks'." Foreground="{DynamicResource Brush_SoftText}" TextWrapping="Wrap" Margin="0,4" FontSize="12"/>
++                        <TextBlock Text="4. Save the HTML file to your PC." Foreground="{DynamicResource Brush_SoftText}" TextWrapping="Wrap" Margin="0,4" FontSize="12"/>
++                        <TextBlock Text="5. Click the button below." Foreground="{DynamicResource Brush_SoftText}" TextWrapping="Wrap" Margin="0,4" FontSize="12"/>
+                     </StackPanel>
+ 
+                     <UniformGrid x:Name="RowBmActions" Grid.Row="3" Rows="1" Columns="3" Margin="0,10,0,5">
+-                        <Button Content="&#x1F4CB;" Click="BtnBookmarkCopy_Click"   Background="{DynamicResource Brush_TabStripBg}" Foreground="{StaticResource Brush_SoftText}" BorderThickness="0" Height="34" Margin="0,0,2,0" ToolTip="Copy URL"/>
+-                        <Button Content="&#x1F517;" Click="BtnBookmarkOpen_Click"   Background="{DynamicResource Brush_TabStripBg}" Foreground="{StaticResource Brush_SoftText}" BorderThickness="0" Height="34" Margin="2,0,2,0" ToolTip="Open"/>
++                        <Button Content="&#x1F4CB;" Click="BtnBookmarkCopy_Click"   Background="{DynamicResource Brush_TabStripBg}" Foreground="{DynamicResource Brush_SoftText}" BorderThickness="0" Height="34" Margin="0,0,2,0" ToolTip="Copy URL"/>
++                        <Button Content="&#x1F517;" Click="BtnBookmarkOpen_Click"   Background="{DynamicResource Brush_TabStripBg}" Foreground="{DynamicResource Brush_SoftText}" BorderThickness="0" Height="34" Margin="2,0,2,0" ToolTip="Open"/>
+                         <Button Content="&#x1F5D1;" Click="BtnBookmarkDelete_Click" Background="{DynamicResource Brush_DangerBg}" Foreground="{StaticResource Brush.Alert}" BorderThickness="0" Height="34" Margin="2,0,0,0" ToolTip="Remove"/>
+                     </UniformGrid>
+ 
+                     <Button x:Name="BtnAddBookmark" Grid.Row="4" Content=" BOOKMARK CURRENT " Click="BtnAddBookmark_Click"
+                             Style="{StaticResource Style_StealthButton}"
+-                            Background="{DynamicResource Brush_TabStripBg}" Foreground="White"
++                            Background="{DynamicResource Brush_TabStripBg}" Foreground="{DynamicResource Brush_Text}"
+                             FontSize="14" Margin="0,5,0,0"/>
+ 
+                     <Button x:Name="BtnManualBookmarkImport" Grid.Row="5" Content="[ IMPORT HTML ]" Click="BtnManualBookmarkImport_Click"
+-                            Style="{StaticResource Style_StealthButton}" Foreground="#888" FontSize="12" Margin="0,5,0,0"/>
++                            Style="{StaticResource Style_StealthButton}" Foreground="{DynamicResource Brush_MutedText}" FontSize="12" Margin="0,5,0,0"/>
+                 </Grid>
+             </TabItem>
+ 
+@@ -764,8 +763,8 @@
+                              MouseRightButtonUp="ListHistory_RightClick"/>
+ 
+                     <UniformGrid x:Name="RowHistActions" Grid.Row="2" Rows="1" Columns="3" Margin="0,10,0,5">
+-                        <Button Content="&#x1F4CB;" Click="BtnHistoryCopy_Click"   Background="{DynamicResource Brush_TabStripBg}" Foreground="{StaticResource Brush_SoftText}" BorderThickness="0" Height="34" Margin="0,0,2,0"/>
+-                        <Button Content="&#x1F517;" Click="BtnHistoryOpen_Click"   Background="{DynamicResource Brush_TabStripBg}" Foreground="{StaticResource Brush_SoftText}" BorderThickness="0" Height="34" Margin="2,0,2,0"/>
++                        <Button Content="&#x1F4CB;" Click="BtnHistoryCopy_Click"   Background="{DynamicResource Brush_TabStripBg}" Foreground="{DynamicResource Brush_SoftText}" BorderThickness="0" Height="34" Margin="0,0,2,0"/>
++                        <Button Content="&#x1F517;" Click="BtnHistoryOpen_Click"   Background="{DynamicResource Brush_TabStripBg}" Foreground="{DynamicResource Brush_SoftText}" BorderThickness="0" Height="34" Margin="2,0,2,0"/>
+                         <Button Content="&#x1F5D1;" Click="BtnHistoryDelete_Click" Background="{DynamicResource Brush_DangerBg}" Foreground="{StaticResource Brush.Alert}" BorderThickness="0" Height="34" Margin="2,0,0,0"/>
+                     </UniformGrid>
+ 
+@@ -793,11 +792,11 @@
+                         </Grid.ColumnDefinitions>
+                         <Button x:Name="BtnFluxBack" Grid.Column="0"
+                                 Content="&#x1F814;" Click="BtnFluxBack_Click"
+-                                Background="{DynamicResource Brush_TabStripBg}" Foreground="{StaticResource Brush_SoftText}" BorderThickness="0"
++                                Background="{DynamicResource Brush_TabStripBg}" Foreground="{DynamicResource Brush_SoftText}" BorderThickness="0"
+                                 Width="28" Height="28" FontSize="14" Cursor="Hand"
+                                 ToolTip="Back to parent folder"/>
+                         <TextBlock x:Name="TxtFluxPath" Grid.Column="1"
+-                                   Foreground="#666" FontSize="10"
++                                   Foreground="{DynamicResource Brush_MutedText}" FontSize="10"
+                                    VerticalAlignment="Center" Margin="6,0,0,0"
+                                    TextTrimming="CharacterEllipsis"/>
+                     </Grid>
+@@ -820,14 +819,14 @@
+                                     <ColumnDefinition Width="Auto"/>
+                                 </Grid.ColumnDefinitions>
+                                 <TextBlock x:Name="TxtDlFileName" Grid.Column="0"
+-                                           Foreground="{StaticResource Brush_SoftText}" FontSize="11" FontWeight="SemiBold"
++                                           Foreground="{DynamicResource Brush_SoftText}" FontSize="11" FontWeight="SemiBold"
+                                            TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                                 <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="6,0,0,0">
+                                     <TextBlock x:Name="TxtDlSpeed"
+                                                Foreground="#4A9EFF" FontSize="10"
+                                                VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                     <TextBlock x:Name="TxtDlEta"
+-                                               Foreground="#888" FontSize="10"
++                                               Foreground="{DynamicResource Brush_MutedText}" FontSize="10"
+                                                VerticalAlignment="Center"/>
+                                 </StackPanel>
+                             </Grid>
+@@ -891,8 +890,8 @@
+                              MouseRightButtonUp="ListFlux_RightClick"/>
+ 
+                     <UniformGrid x:Name="RowDlActions" Grid.Row="4" Rows="1" Columns="3" Margin="0,10,0,5">
+-                        <Button Content="&#x1F4C2;" Click="BtnFluxFolder_Click" Background="{DynamicResource Brush_TabStripBg}" Foreground="{StaticResource Brush_SoftText}" BorderThickness="0" Height="34" Margin="0,0,2,0"/>
+-                        <Button Content="&#x25B6;"  Click="BtnFluxOpen_Click"   Background="{DynamicResource Brush_TabStripBg}" Foreground="{StaticResource Brush_SoftText}" BorderThickness="0" Height="34" Margin="2,0,2,0"/>
++                        <Button Content="&#x1F4C2;" Click="BtnFluxFolder_Click" Background="{DynamicResource Brush_TabStripBg}" Foreground="{DynamicResource Brush_SoftText}" BorderThickness="0" Height="34" Margin="0,0,2,0"/>
++                        <Button Content="&#x25B6;"  Click="BtnFluxOpen_Click"   Background="{DynamicResource Brush_TabStripBg}" Foreground="{DynamicResource Brush_SoftText}" BorderThickness="0" Height="34" Margin="2,0,2,0"/>
+                         <Button Content="&#x1F5D1;" Click="BtnFluxDelete_Click" Background="{DynamicResource Brush_DangerBg}" Foreground="{StaticResource Brush.Alert}" BorderThickness="0" Height="34" Margin="2,0,0,0"/>
+                     </UniformGrid>
+ 
+@@ -939,10 +938,10 @@
+ 
+                     <UniformGrid x:Name="RowExtActions" Grid.Row="2" Rows="1" Columns="2" Margin="0,10,0,5">
+                         <Button Content="&#x1F4C2; Folder"  Click="BtnExtOpenFolder_Click"
+-                                Background="{DynamicResource Brush_TabStripBg}" Foreground="{StaticResource Brush_SoftText}" BorderThickness="0"
++                                Background="{DynamicResource Brush_TabStripBg}" Foreground="{DynamicResource Brush_SoftText}" BorderThickness="0"
+                                 Height="34" Margin="0,0,2,0" ToolTip="Open Extensions install folder"/>
+                         <Button Content="&#x27F3; Refresh" Click="BtnExtRefresh_Click"
+-                                Background="{DynamicResource Brush_TabStripBg}" Foreground="{StaticResource Brush_SoftText}" BorderThickness="0"
++                                Background="{DynamicResource Brush_TabStripBg}" Foreground="{DynamicResource Brush_SoftText}" BorderThickness="0"
+                                 Height="34" Margin="2,0,0,0" ToolTip="Reload catalog from disk"/>
+                     </UniformGrid>
+ 
+@@ -975,7 +974,7 @@
+                     <ColumnDefinition Width="Auto"/>
+                 </Grid.ColumnDefinitions>
+ 
+-                <Border Grid.Column="0" Background="#141414" BorderBrush="#2a2a2a" BorderThickness="1" CornerRadius="4" Margin="0,0,4,0">
++                <Border Grid.Column="0" Background="{DynamicResource Brush_SidebarPanel}" BorderBrush="{DynamicResource Brush_SidebarTileStroke}" BorderThickness="1" CornerRadius="4" Margin="0,0,4,0">
+                     <Grid>
+                         <TextBox x:Name="TxtSidebarUtilitySearch" Style="{StaticResource Style.CtxSearchBox}"
+                                  TextChanged="TxtSidebarUtilitySearch_TextChanged"/>
+@@ -985,7 +984,7 @@
+                 </Border>
+ 
+                 <ComboBox x:Name="CmbSidebarUtilitySort" Grid.Column="1" Width="78" Height="26"
+-                          Background="#141414" Foreground="White" BorderBrush="#2a2a2a" BorderThickness="1"
++                          Background="{DynamicResource Brush_SidebarPanel}" Foreground="{DynamicResource Brush_Text}" BorderBrush="{DynamicResource Brush_SidebarTileStroke}" BorderThickness="1"
+                           SelectionChanged="CmbSidebarUtilitySort_SelectionChanged">
+                     <ComboBoxItem Content="Category" IsSelected="True"/>
+                     <ComboBoxItem Content="Name"/>
+@@ -1022,13 +1021,13 @@
+ 
+             <!-- Bottom Action Hint -->
+             <Border Grid.Row="3" Margin="0,6,0,0" Padding="8,5" Background="#14FFFFFF" CornerRadius="6">
+-                <TextBlock Text="&#x1F4A1; Right-click or drag to Favorites, Bookmarks, Home, or Header." FontSize="9.5" Foreground="#888" TextWrapping="Wrap" HorizontalAlignment="Center"/>
++                <TextBlock Text="&#x1F4A1; Right-click or drag to Favorites, Bookmarks, Home, or Header." FontSize="9.5" Foreground="{DynamicResource Brush_MutedText}" TextWrapping="Wrap" HorizontalAlignment="Center"/>
+             </Border>
+         </Grid>
+ 
+         <Grid x:Name="OverlayPreview" Background="#CC000000"
+               Visibility="Collapsed" Grid.RowSpan="2" Panel.ZIndex="100">
+-            <Border Background="#0f0f0f" BorderBrush="#2a2a2a" BorderThickness="1"
++            <Border Background="#0f0f0f" BorderBrush="{DynamicResource Brush_SidebarTileStroke}" BorderThickness="1"
+                     CornerRadius="8" Margin="6" Padding="10">
+                 <Grid>
+                     <Grid.RowDefinitions>
+@@ -1045,7 +1044,7 @@
+                         <Button Content="&#x2715;" Click="BtnClosePreview_Click"
+                                 HorizontalAlignment="Right" VerticalAlignment="Top"
+                                 Width="23" Height="23" FontSize="13"
+-                                Background="Transparent" Foreground="#666" BorderThickness="0" Cursor="Hand"/>
++                                Background="Transparent" Foreground="{DynamicResource Brush_MutedText}" BorderThickness="0" Cursor="Hand"/>
+                     </Grid>
+ 
+                     <Grid x:Name="PreviewSearchBar" Grid.Row="1" Margin="0,0,0,6" Visibility="Collapsed">
+@@ -1071,7 +1070,7 @@
+                                    Foreground="#555" FontSize="10"
+                                    VerticalAlignment="Center" Margin="5,0"/>
+                         <Button Grid.Column="2" Content="&#x25B2;" Click="BtnSearchPrev_Click"
+-                                Background="{DynamicResource Brush_TabStripBg}" Foreground="{StaticResource Brush_SoftText}" BorderThickness="0"
++                                Background="{DynamicResource Brush_TabStripBg}" Foreground="{DynamicResource Brush_SoftText}" BorderThickness="0"
+                                 Width="25" Height="25" FontSize="10" Cursor="Hand" Margin="0,0,2,0">
+                             <Button.Template>
+                                 <ControlTemplate TargetType="Button">
+@@ -1082,7 +1081,7 @@
+                             </Button.Template>
+                         </Button>
+                         <Button Grid.Column="3" Content="&#x25BC;" Click="BtnSearchNext_Click"
+-                                Background="{DynamicResource Brush_TabStripBg}" Foreground="{StaticResource Brush_SoftText}" BorderThickness="0"
++                                Background="{DynamicResource Brush_TabStripBg}" Foreground="{DynamicResource Brush_SoftText}" BorderThickness="0"
+                                 Width="25" Height="25" FontSize="10" Cursor="Hand">
+                             <Button.Template>
+                                 <ControlTemplate TargetType="Button">
+@@ -1114,7 +1113,7 @@
+                         <RichTextBox x:Name="PreviewRichText"
+                                      Background="Transparent" BorderThickness="0"
+                                      FontFamily="Consolas" FontSize="12"
+-                                     Foreground="{StaticResource Brush_SoftText}" IsReadOnly="True"
++                                     Foreground="{DynamicResource Brush_SoftText}" IsReadOnly="True"
+                                      IsDocumentEnabled="False"
+                                      HorizontalAlignment="Left"
+                                      HorizontalScrollBarVisibility="Disabled"
+@@ -1146,7 +1145,7 @@
+                         <StackPanel x:Name="PreviewZoomPanel" Grid.Column="1"
+                                     Orientation="Horizontal" Visibility="Collapsed">
+                             <Button Content="&#x2212;" Click="BtnZoomOut_Click"
+-                                    Background="{DynamicResource Brush_TabStripBg}" Foreground="{StaticResource Brush_SoftText}" BorderThickness="0"
++                                    Background="{DynamicResource Brush_TabStripBg}" Foreground="{DynamicResource Brush_SoftText}" BorderThickness="0"
+                                     Width="27" Height="25" FontSize="16" Cursor="Hand" Margin="0,0,3,0">
+                                 <Button.Template>
+                                     <ControlTemplate TargetType="Button">
+@@ -1161,7 +1160,7 @@
+                                        VerticalAlignment="Center" Margin="0,0,3,0"
+                                        MinWidth="34" TextAlignment="Center"/>
+                             <Button Content="+" Click="BtnZoomIn_Click"
+-                                    Background="{DynamicResource Brush_TabStripBg}" Foreground="{StaticResource Brush_SoftText}" BorderThickness="0"
++                                    Background="{DynamicResource Brush_TabStripBg}" Foreground="{DynamicResource Brush_SoftText}" BorderThickness="0"
+                                     Width="27" Height="25" FontSize="16" Cursor="Hand">
+                                 <Button.Template>
+                                     <ControlTemplate TargetType="Button">
+@@ -1182,7 +1181,7 @@
+                 <Border.Effect><DropShadowEffect BlurRadius="10" ShadowDepth="3" Opacity="0.6"/></Border.Effect>
+                 <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="380">
+                 <StackPanel MinWidth="200">
+-                    <Border Background="#141414" BorderBrush="#2a2a2a" BorderThickness="1" CornerRadius="4" Margin="0,0,0,4">
++                    <Border Background="{DynamicResource Brush_SidebarPanel}" BorderBrush="{DynamicResource Brush_SidebarTileStroke}" BorderThickness="1" CornerRadius="4" Margin="0,0,0,4">
+                         <Grid>
+                             <TextBox x:Name="TxtPinsSearch" Style="{StaticResource Style.CtxSearchBox}"
+                                      TextChanged="TxtPinsSearch_TextChanged"/>
+@@ -1221,7 +1220,7 @@
+                 <Border.Effect><DropShadowEffect BlurRadius="10" ShadowDepth="3" Opacity="0.6"/></Border.Effect>
+                 <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="380">
+                 <StackPanel MinWidth="200">
+-                    <Border Background="#141414" BorderBrush="#2a2a2a" BorderThickness="1" CornerRadius="4" Margin="0,0,0,4">
++                    <Border Background="{DynamicResource Brush_SidebarPanel}" BorderBrush="{DynamicResource Brush_SidebarTileStroke}" BorderThickness="1" CornerRadius="4" Margin="0,0,0,4">
+                         <Grid>
+                             <TextBox x:Name="TxtBookmarksSearch" Style="{StaticResource Style.CtxSearchBox}"
+                                      TextChanged="TxtBookmarksSearch_TextChanged"/>
+@@ -1259,7 +1258,7 @@
+                 <Border.Effect><DropShadowEffect BlurRadius="10" ShadowDepth="3" Opacity="0.6"/></Border.Effect>
+                 <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="380">
+                 <StackPanel MinWidth="200">
+-                    <Border Background="#141414" BorderBrush="#2a2a2a" BorderThickness="1" CornerRadius="4" Margin="0,0,0,4">
++                    <Border Background="{DynamicResource Brush_SidebarPanel}" BorderBrush="{DynamicResource Brush_SidebarTileStroke}" BorderThickness="1" CornerRadius="4" Margin="0,0,0,4">
+                         <Grid>
+                             <TextBox x:Name="TxtHistorySearch" Style="{StaticResource Style.CtxSearchBox}"
+                                      TextChanged="TxtHistorySearch_TextChanged"/>
+@@ -1304,7 +1303,7 @@
+                 <Border.Effect><DropShadowEffect BlurRadius="10" ShadowDepth="3" Opacity="0.6"/></Border.Effect>
+                 <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="380">
+                 <StackPanel MinWidth="200">
+-                    <Border Background="#141414" BorderBrush="#2a2a2a" BorderThickness="1" CornerRadius="4" Margin="0,0,0,4">
++                    <Border Background="{DynamicResource Brush_SidebarPanel}" BorderBrush="{DynamicResource Brush_SidebarTileStroke}" BorderThickness="1" CornerRadius="4" Margin="0,0,0,4">
+                         <Grid>
+                             <TextBox x:Name="TxtFluxSearch" Style="{StaticResource Style.CtxSearchBox}"
+                                      TextChanged="TxtFluxSearch_TextChanged"/>
+@@ -1363,7 +1362,7 @@
+                 <Border.Effect><DropShadowEffect BlurRadius="10" ShadowDepth="3" Opacity="0.6"/></Border.Effect>
+                 <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="380">
+                 <StackPanel MinWidth="200">
+-                    <Border Background="#141414" BorderBrush="#2a2a2a" BorderThickness="1" CornerRadius="4" Margin="0,0,0,4">
++                    <Border Background="{DynamicResource Brush_SidebarPanel}" BorderBrush="{DynamicResource Brush_SidebarTileStroke}" BorderThickness="1" CornerRadius="4" Margin="0,0,0,4">
+                         <Grid>
+                             <TextBox x:Name="TxtExtSearch" Style="{StaticResource Style.CtxSearchBox}"
+                                      TextChanged="TxtExtSearch_TextChanged"/>
+@@ -1402,10 +1401,10 @@
+                                 Foreground="#555" BorderThickness="0"
+                                 Width="23" Height="23" FontSize="12" Cursor="Hand"/>
+                     </Grid>
+-                    <TextBlock x:Name="TxtFileInfoName" Foreground="#EEE" FontSize="13" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,0,0,6"/>
+-                    <TextBlock x:Name="TxtFileInfoSize" Foreground="{StaticResource Brush_SoftText}" FontSize="12" TextWrapping="Wrap" Margin="0,2"/>
+-                    <TextBlock x:Name="TxtFileInfoDate" Foreground="{StaticResource Brush_SoftText}" FontSize="12" TextWrapping="Wrap" Margin="0,2"/>
+-                    <TextBlock x:Name="TxtFileInfoType" Foreground="{StaticResource Brush_SoftText}" FontSize="12" TextWrapping="Wrap" Margin="0,2"/>
++                    <TextBlock x:Name="TxtFileInfoName" Foreground="{DynamicResource Brush_Text}" FontSize="13" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,0,0,6"/>
++                    <TextBlock x:Name="TxtFileInfoSize" Foreground="{DynamicResource Brush_SoftText}" FontSize="12" TextWrapping="Wrap" Margin="0,2"/>
++                    <TextBlock x:Name="TxtFileInfoDate" Foreground="{DynamicResource Brush_SoftText}" FontSize="12" TextWrapping="Wrap" Margin="0,2"/>
++                    <TextBlock x:Name="TxtFileInfoType" Foreground="{DynamicResource Brush_SoftText}" FontSize="12" TextWrapping="Wrap" Margin="0,2"/>
+                     <TextBlock x:Name="TxtFileInfoPath" Foreground="#555" FontSize="10"  TextWrapping="Wrap" Margin="0,6,0,0"/>
+                 </StackPanel>
+             </Border>
+@@ -1444,13 +1443,13 @@
+                 <StackPanel>
+                     <TextBlock Text="CHANGE CATEGORY" Foreground="{StaticResource Brush.Neon}"
+                                FontWeight="Bold" FontSize="12" Margin="0,0,0,10"/>
+-                    <TextBlock Text="Current pin:" Foreground="#666" FontSize="10" Margin="0,0,0,4"/>
+-                    <TextBlock x:Name="TxtChangeCatPinName" Foreground="#EEE" FontSize="13"
++                    <TextBlock Text="Current pin:" Foreground="{DynamicResource Brush_MutedText}" FontSize="10" Margin="0,0,0,4"/>
++                    <TextBlock x:Name="TxtChangeCatPinName" Foreground="{DynamicResource Brush_Text}" FontSize="13"
+                                FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,0,0,10"/>
+-                    <TextBlock Text="Select category:" Foreground="#666" FontSize="10" Margin="0,0,0,4"/>
++                    <TextBlock Text="Select category:" Foreground="{DynamicResource Brush_MutedText}" FontSize="10" Margin="0,0,0,4"/>
+                     <ListBox x:Name="ListChangeCatOptions"
+                              Background="#1a1a1a" BorderBrush="#333" BorderThickness="1"
+-                             Foreground="{StaticResource Brush_SoftText}" FontSize="13" MaxHeight="160"
++                             Foreground="{DynamicResource Brush_SoftText}" FontSize="13" MaxHeight="160"
+                              SelectionChanged="ListChangeCatOptions_SelectionChanged"/>
+                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+                         <Button Content="CANCEL" Click="BtnCancelChangeCategory_Click"
+diff --git a/Controls/Omnibox.xaml b/Controls/Omnibox.xaml
+index 4b276a2..d71e506 100644
+--- a/Controls/Omnibox.xaml
++++ b/Controls/Omnibox.xaml
+@@ -8,7 +8,7 @@
+         <ResourceDictionary Source="/Themes/Horizon.xaml"/>
+     </UserControl.Resources>
+ 
+-    <Border Background="#66141414" CornerRadius="5" BorderBrush="{DynamicResource Brush_ButtonBorder}" BorderThickness="1">
++    <Border Background="{DynamicResource Brush_OmniboxBg}" CornerRadius="5" BorderBrush="{DynamicResource Brush_ButtonBorder}" BorderThickness="1">
+         <Grid>
+             <Grid.ColumnDefinitions>
+                 <ColumnDefinition Width="Auto"/>
+diff --git a/MainWindow.xaml.cs b/MainWindow.xaml.cs
+index 8f66773..5d6f08a 100644
+--- a/MainWindow.xaml.cs
++++ b/MainWindow.xaml.cs
+@@ -13129,7 +13129,10 @@ return colors.length > 0 ? colors : null;
+ 
+ 
+ 
+-    private static readonly Color HeaderButtonForegroundApprox = Color.FromRgb(0xEE, 0xEE, 0xEE);
++    private static Color HeaderButtonForegroundApprox =>
++        Application.Current?.TryFindResource("Brush_HeaderButtonForeground") is SolidColorBrush hbf
++            ? hbf.Color
++            : Color.FromRgb(0xEE, 0xEE, 0xEE);
+ 
+ 
+ 
+@@ -13249,7 +13252,7 @@ return colors.length > 0 ? colors : null;
+ 
+ 
+ 
+-            Color scrim = backdropLuma > 0.5
++            Color scrim = RelativeLuminance(HeaderButtonForegroundApprox) < 0.5
+ 
+ 
+ 
+diff --git a/Services/ThemeService.cs b/Services/ThemeService.cs
+index 3a8edcf..7271530 100644
+--- a/Services/ThemeService.cs
++++ b/Services/ThemeService.cs
+@@ -8,6 +8,8 @@ public static class ThemeService
+ {
+     private static string _appliedTheme = "Horizon";
+ 
++    public static bool IsLight => string.Equals(_appliedTheme, "Light", StringComparison.OrdinalIgnoreCase);
++
+     public static void Initialize()
+     {
+         ApplyTheme(SettingsService.Current.Theme);
+diff --git a/Themes/Horizon.xaml b/Themes/Horizon.xaml
+index 7638439..ff81f2a 100644
+--- a/Themes/Horizon.xaml
++++ b/Themes/Horizon.xaml
+@@ -44,6 +44,15 @@
+     <SolidColorBrush x:Key="Brush_BannerSuccessBorder" Color="#2E6A2E" po:Freeze="False"/>
+     <SolidColorBrush x:Key="Brush_DangerBg" Color="#331111" po:Freeze="False"/> 
+ 
++    <SolidColorBrush x:Key="Brush_SurfaceCard" Color="#EB121419" po:Freeze="False"/>
++    <SolidColorBrush x:Key="Brush_SurfaceChrome" Color="#16FFFFFF" po:Freeze="False"/>
++    <SolidColorBrush x:Key="Brush_SurfaceChromeStroke" Color="#1AFFFFFF" po:Freeze="False"/>
++    <SolidColorBrush x:Key="Brush_SurfaceField" Color="#16FFFFFF" po:Freeze="False"/>
++    <SolidColorBrush x:Key="Brush_SurfaceFieldStroke" Color="#25FFFFFF" po:Freeze="False"/>
++    <SolidColorBrush x:Key="Brush_OmniboxBg" Color="#66141414" po:Freeze="False"/>
++    <SolidColorBrush x:Key="Brush_SidebarTile" Color="#161A24" po:Freeze="False"/>
++    <SolidColorBrush x:Key="Brush_SidebarTileStroke" Color="#25FFFFFF" po:Freeze="False"/>
++    <SolidColorBrush x:Key="Brush_SidebarPanel" Color="#141414" po:Freeze="False"/>
+     <SolidColorBrush x:Key="Brush_HeaderButtonForeground" Color="#FFFFFF" po:Freeze="False"/>
+ 
+     <SolidColorBrush x:Key="Brush.Neon" Color="{StaticResource Color_Accent}" po:Freeze="False"/>
+diff --git a/Themes/Light.xaml b/Themes/Light.xaml
+index 382d975..79aba04 100644
+--- a/Themes/Light.xaml
++++ b/Themes/Light.xaml
+@@ -44,6 +44,15 @@
+     <SolidColorBrush x:Key="Brush_BannerSuccessBorder" Color="#8FCB8F" po:Freeze="False"/>
+     <SolidColorBrush x:Key="Brush_DangerBg" Color="#FADCDC" po:Freeze="False"/>
+ 
++    <SolidColorBrush x:Key="Brush_SurfaceCard" Color="#F2F4F6F8" po:Freeze="False"/>
++    <SolidColorBrush x:Key="Brush_SurfaceChrome" Color="#12000000" po:Freeze="False"/>
++    <SolidColorBrush x:Key="Brush_SurfaceChromeStroke" Color="#1F000000" po:Freeze="False"/>
++    <SolidColorBrush x:Key="Brush_SurfaceField" Color="#0F000000" po:Freeze="False"/>
++    <SolidColorBrush x:Key="Brush_SurfaceFieldStroke" Color="#33000000" po:Freeze="False"/>
++    <SolidColorBrush x:Key="Brush_OmniboxBg" Color="#B3FFFFFF" po:Freeze="False"/>
++    <SolidColorBrush x:Key="Brush_SidebarTile" Color="#E6E9EE" po:Freeze="False"/>
++    <SolidColorBrush x:Key="Brush_SidebarTileStroke" Color="#33000000" po:Freeze="False"/>
++    <SolidColorBrush x:Key="Brush_SidebarPanel" Color="#EEEEEE" po:Freeze="False"/>
+     <SolidColorBrush x:Key="Brush_HeaderButtonForeground" Color="#1A1A1A" po:Freeze="False"/>
+ 
+     <SolidColorBrush x:Key="Brush.Neon" Color="{StaticResource Color_Accent}" po:Freeze="False"/>
+diff --git a/Themes/Redmond.xaml b/Themes/Redmond.xaml
+index 098a0d6..c6c888b 100644
+--- a/Themes/Redmond.xaml
++++ b/Themes/Redmond.xaml
+@@ -9,6 +9,15 @@
+     <SolidColorBrush x:Key="Brush_MutedText" Color="#555555"/>
+     <SolidColorBrush x:Key="Brush_DisabledText" Color="#999999"/>
+     <SolidColorBrush x:Key="Brush_OnAccent" Color="#FFFFFF"/>
++    <SolidColorBrush x:Key="Brush_SurfaceCard" Color="#EB121419"/>
++    <SolidColorBrush x:Key="Brush_SurfaceChrome" Color="#16FFFFFF"/>
++    <SolidColorBrush x:Key="Brush_SurfaceChromeStroke" Color="#1AFFFFFF"/>
++    <SolidColorBrush x:Key="Brush_SurfaceField" Color="#16FFFFFF"/>
++    <SolidColorBrush x:Key="Brush_SurfaceFieldStroke" Color="#25FFFFFF"/>
++    <SolidColorBrush x:Key="Brush_OmniboxBg" Color="#66141414"/>
++    <SolidColorBrush x:Key="Brush_SidebarTile" Color="#161A24"/>
++    <SolidColorBrush x:Key="Brush_SidebarTileStroke" Color="#25FFFFFF"/>
++    <SolidColorBrush x:Key="Brush_SidebarPanel" Color="#141414"/>
+     <SolidColorBrush x:Key="Brush_HeaderButtonForeground" Color="Black"/>
+ 
+     <SolidColorBrush x:Key="Brush.Neon" Color="{StaticResource Color_Accent}"/>
+diff --git a/Views/TabSwitcherWindow.xaml b/Views/TabSwitcherWindow.xaml
+index 6386e32..db4dca8 100644
+--- a/Views/TabSwitcherWindow.xaml
++++ b/Views/TabSwitcherWindow.xaml
+@@ -18,15 +18,15 @@
+ 
+         <!-- Rounded-clipped frosted glass card -->
+         <Grid x:Name="CardClipHost">
+-            <Border x:Name="CardBaseBg" CornerRadius="16" Background="#EB121419" IsHitTestVisible="False"/>
++            <Border x:Name="CardBaseBg" CornerRadius="16" Background="{DynamicResource Brush_SurfaceCard}" IsHitTestVisible="False"/>
+ 
+             <!-- Live wallpaper glass backdrop host -->
+             <Grid x:Name="GlassBackdropHost" IsHitTestVisible="False" ClipToBounds="True"/>
+ 
+             <DockPanel x:Name="RootDock">
+                 <!-- Top Header Bar -->
+-                <Border DockPanel.Dock="Top" Background="#16FFFFFF"
+-                        BorderBrush="#1AFFFFFF" BorderThickness="0,0,0,1"
++                <Border DockPanel.Dock="Top" Background="{DynamicResource Brush_SurfaceChrome}"
++                        BorderBrush="{DynamicResource Brush_SurfaceChromeStroke}" BorderThickness="0,0,0,1"
+                         CornerRadius="16,16,0,0"
+                         Padding="18,12,18,12">
+                     <Grid>
+@@ -44,8 +44,8 @@
+                                            VerticalAlignment="Center"/>
+                             </Border>
+                             <Button x:Name="BtnModeToggle" Content="Grid" Click="BtnModeToggle_Click" MouseRightButtonUp="BtnModeToggle_RightClick"
+-                                    Foreground="#CCCCCC" Background="#20FFFFFF"
+-                                    BorderBrush="#33FFFFFF" BorderThickness="1"
++                                    Foreground="{DynamicResource Brush_SoftText}" Background="{DynamicResource Brush_SurfaceChrome}"
++                                    BorderBrush="{DynamicResource Brush_SurfaceFieldStroke}" BorderThickness="1"
+                                     FontFamily="Segoe UI" FontSize="11" Padding="9,3"
+                                     Margin="0,0,6,0" Cursor="Hand" VerticalAlignment="Center"
+                                     ToolTip="Switch to grid layout (Ctrl+G)">
+@@ -57,18 +57,18 @@
+                             </Button>
+                             <Rectangle Width="1" Height="14" Fill="#33FFFFFF" Margin="4,0,10,0"/>
+                             <TextBlock x:Name="TxtTabSwitcherHdr"
+-                                       Foreground="#888888" FontFamily="Segoe UI" FontSize="12"
++                                       Foreground="{DynamicResource Brush_MutedText}" FontFamily="Segoe UI" FontSize="12"
+                                        VerticalAlignment="Center"/>
+                         </StackPanel>
+                         <TextBlock Grid.Column="1" x:Name="TxtPreviewTitle"
+-                                   Foreground="#E2E2E2" FontFamily="Segoe UI" FontSize="12" FontWeight="SemiBold"
++                                   Foreground="{DynamicResource Brush_Text}" FontFamily="Segoe UI" FontSize="12" FontWeight="SemiBold"
+                                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                                    TextTrimming="CharacterEllipsis" MaxWidth="460"/>
+                         <Button Grid.Column="2" x:Name="BtnSwitcherClose"
+                                 Content="&#x2715;" Click="BtnSwitcherClose_Click"
+                                 Visibility="Collapsed"
+-                                Foreground="#CCCCCC" Background="#20FFFFFF"
+-                                BorderBrush="#33FFFFFF" BorderThickness="1"
++                                Foreground="{DynamicResource Brush_SoftText}" Background="{DynamicResource Brush_SurfaceChrome}"
++                                BorderBrush="{DynamicResource Brush_SurfaceFieldStroke}" BorderThickness="1"
+                                 FontSize="11" Padding="8,3"
+                                 Cursor="Hand" VerticalAlignment="Center"
+                                 ToolTip="Close (Esc)">
+@@ -82,13 +82,13 @@
+                 </Border>
+ 
+                 <!-- Bottom Hint Bar -->
+-                <Border DockPanel.Dock="Bottom" Background="#12FFFFFF"
+-                        BorderBrush="#1AFFFFFF" BorderThickness="0,1,0,0"
++                <Border DockPanel.Dock="Bottom" Background="{DynamicResource Brush_SurfaceChrome}"
++                        BorderBrush="{DynamicResource Brush_SurfaceChromeStroke}" BorderThickness="0,1,0,0"
+                         CornerRadius="0,0,16,16"
+                         Padding="16,8">
+                     <TextBlock x:Name="TxtHintBar"
+                                Text="&#x2191;&#x2193; navigate   ·   &#x21B5; switch   ·   Ctrl+click: select   ·   Shift+click: range   ·   Del: close   ·   Esc: dismiss"
+-                               Foreground="#888888" FontFamily="Segoe UI" FontSize="11"
++                               Foreground="{DynamicResource Brush_MutedText}" FontFamily="Segoe UI" FontSize="11"
+                                HorizontalAlignment="Center"/>
+                 </Border>
+ 
+@@ -109,20 +109,20 @@
+                         </Grid.RowDefinitions>
+ 
+                         <!-- Search pill -->
+-                        <Border Grid.Row="0" Background="#16FFFFFF"
+-                                BorderBrush="#25FFFFFF" BorderThickness="1"
++                        <Border Grid.Row="0" Background="{DynamicResource Brush_SurfaceField}"
++                                BorderBrush="{DynamicResource Brush_SurfaceFieldStroke}" BorderThickness="1"
+                                 CornerRadius="16" Margin="10,10,10,6"
+                                 Padding="8,4">
+                             <Grid>
+                                 <TextBox x:Name="TxtSearch"
+-                                         Background="Transparent" Foreground="#FFFFFF"
++                                         Background="Transparent" Foreground="{DynamicResource Brush_Text}"
+                                          BorderThickness="0"
+                                          CaretBrush="#00FF88" SelectionBrush="#4400FF88"
+                                          FontFamily="Segoe UI" FontSize="12"
+                                          Padding="24,2,6,2"
+                                          TextChanged="TxtSearch_TextChanged"/>
+                                 <TextBlock Text="&#x1F50D;  Filter tabs..."
+-                                           Foreground="#888888" FontFamily="Segoe UI" FontSize="12"
++                                           Foreground="{DynamicResource Brush_MutedText}" FontFamily="Segoe UI" FontSize="12"
+                                            Margin="6,0" VerticalAlignment="Center"
+                                            IsHitTestVisible="False">
+                                     <TextBlock.Style>
+@@ -151,8 +151,8 @@
+                         <!-- Multi-select action bar -->
+                         <Border Grid.Row="2" x:Name="MultiActionBar"
+                                 Visibility="Collapsed"
+-                                Background="#1AFFFFFF"
+-                                BorderBrush="#20FFFFFF" BorderThickness="0,1,0,0"
++                                Background="{DynamicResource Brush_SurfaceChrome}"
++                                BorderBrush="{DynamicResource Brush_SurfaceChromeStroke}" BorderThickness="0,1,0,0"
+                                 Padding="8,7">
+                             <StackPanel Orientation="Horizontal">
+                                 <Button x:Name="BtnCloseSelected"
+@@ -202,7 +202,7 @@
+                                             Visibility="Collapsed">
+                                     <TextBlock Text="&#x1F5BC;" FontSize="28" HorizontalAlignment="Center" Opacity="0.4" Margin="0,0,0,6"/>
+                                     <TextBlock x:Name="TxtPreviewStatus"
+-                                               Foreground="#888888" FontFamily="Segoe UI" FontSize="13"
++                                               Foreground="{DynamicResource Brush_MutedText}" FontFamily="Segoe UI" FontSize="13"
+                                                FontWeight="SemiBold"
+                                                HorizontalAlignment="Center"/>
+                                 </StackPanel>
+diff --git a/Views/TabSwitcherWindow.xaml.cs b/Views/TabSwitcherWindow.xaml.cs
+index e556f59..116b71c 100644
+--- a/Views/TabSwitcherWindow.xaml.cs
++++ b/Views/TabSwitcherWindow.xaml.cs
+@@ -225,9 +225,11 @@ public partial class TabSwitcherWindow : Window
+             }
+ 
+             byte bgAlpha = (byte)Math.Max((int)TintService.Apply(0xD0), 0xA0);
+-            Color searchBg = WeatherBridge.ThemeDarkWallpaper
+-                ? Color.FromArgb(bgAlpha, 0x14, 0x14, 0x14)
+-                : Color.FromArgb(bgAlpha, 0x22, 0x22, 0x22);
++            Color searchBg = ThemeService.IsLight
++                ? Color.FromArgb(Math.Min(bgAlpha, (byte)0xB8), 0xF4, 0xF6, 0xF8)
++                : WeatherBridge.ThemeDarkWallpaper
++                    ? Color.FromArgb(bgAlpha, 0x14, 0x14, 0x14)
++                    : Color.FromArgb(bgAlpha, 0x22, 0x22, 0x22);
+             tintLayer.Background = HomePageView.CreateSearchBarBackgroundBrush(searchBg);
+         }
+ 

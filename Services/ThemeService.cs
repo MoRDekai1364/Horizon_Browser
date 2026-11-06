@@ -8,6 +8,11 @@ public static class ThemeService
 {
     private static string _appliedTheme = "Horizon";
 
+    public static System.Windows.Media.Color SurfaceTone(byte dark) =>
+        IsLight ? System.Windows.Media.Color.FromRgb(0xF2, 0xF2, 0xF2) : System.Windows.Media.Color.FromRgb(dark, dark, dark);
+
+    public static bool IsLight => string.Equals(_appliedTheme, "Light", StringComparison.OrdinalIgnoreCase);
+
     public static void Initialize()
     {
         ApplyTheme(SettingsService.Current.Theme);

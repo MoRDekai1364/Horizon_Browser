@@ -1,0 +1,173 @@
+diff --git a/Controls/FluxSidebar.xaml b/Controls/FluxSidebar.xaml
+index 6a23e36..ae76657 100644
+--- a/Controls/FluxSidebar.xaml
++++ b/Controls/FluxSidebar.xaml
+@@ -30,7 +30,7 @@
+                 <Setter Property="Margin"          Value="2"/>
+                 <Setter Property="Cursor"          Value="Hand"/>
+                 <Setter Property="Background"      Value="Transparent"/>
+-                <Setter Property="Foreground"      Value="White"/>
++                <Setter Property="Foreground"      Value="{DynamicResource Brush_Text}"/>
+                 <Setter Property="BorderBrush"     Value="{DynamicResource Brush_ButtonBorder}"/>
+                 <Setter Property="Template">
+                     <Setter.Value>
+@@ -555,7 +555,7 @@
+                                         <Setter Property="Foreground" Value="{DynamicResource Brush.Neon}"/>
+                                     </Trigger>
+                                     <Trigger Property="IsSelected" Value="False">
+-                                        <Setter Property="Foreground" Value="White"/>
++                                        <Setter Property="Foreground" Value="{DynamicResource Brush_Text}"/>
+                                     </Trigger>
+                                     <Trigger Property="IsMouseOver" Value="True">
+                                         <Setter Property="Foreground"                 Value="{DynamicResource Brush_TabStripTextHover}"/>
+diff --git a/Controls/FluxSidebar.xaml.cs b/Controls/FluxSidebar.xaml.cs
+index f8f26ec..3727908 100644
+--- a/Controls/FluxSidebar.xaml.cs
++++ b/Controls/FluxSidebar.xaml.cs
+@@ -235,13 +235,13 @@ public class HistoryItemViewModel : System.ComponentModel.INotifyPropertyChanged
+         Url = src.Url;
+         Title = src.Title;
+         VisitTime = src.VisitTime;
+-        _itemGradient = new SolidColorBrush(Color.FromRgb(0x11, 0x11, 0x11));
++        _itemGradient = new SolidColorBrush(ThemeService.SurfaceTone(0x11));
+         GenerateGradientAsync();
+     }
+ 
+     private async void GenerateGradientAsync()
+     {
+-        Color leftColor = Color.FromRgb(0x33, 0x33, 0x33);
++        Color leftColor = ThemeService.SurfaceTone(0x33);
+         try
+         {
+             var uri = new Uri(Url);
+@@ -569,7 +569,7 @@ public class FluxItemViewModel
+ 
+     private static Brush BuildFolderGradient()
+     {
+-        Color leftColor = GradientUtility.ToGrayscale(Color.FromRgb(0x1A, 0x14, 0x05));
++        Color leftColor = GradientUtility.ToGrayscale(ThemeService.SurfaceTone(0x1A));
+         Color rightColor = GradientUtility.AnalogousColor(GradientUtility.SampleWallpaperColor(), 20);
+ 
+         var gs = new GradientStopCollection
+@@ -670,7 +670,7 @@ public class FluxAccentGradientConverter : IValueConverter
+ 
+     public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
+     {
+-        Color leftColor = GradientUtility.ToGrayscale(Color.FromRgb(0x14, 0x14, 0x14));
++        Color leftColor = GradientUtility.ToGrayscale(ThemeService.SurfaceTone(0x14));
+         Color rightColor = _fallbackAccent;
+ 
+         if (value is PinItem pin && !string.IsNullOrEmpty(pin.Url))
+@@ -4019,7 +4019,7 @@ public partial class FluxSidebar : UserControl
+         Brush idleBorder = (btn.TryFindResource("Brush_TabStripBorder") as Brush) ?? new SolidColorBrush(Color.FromRgb(0x22, 0x22, 0x22));
+ 
+         btn.Background       = active ? selectedBg : idleBg;
+-        btn.Foreground       = active ? accent : Brushes.White;
++        btn.Foreground       = active ? accent : ((btn.TryFindResource("Brush_Text") as Brush) ?? Brushes.White);
+         btn.BorderBrush      = active ? accent : idleBorder;
+         btn.BorderThickness  = active ? new Thickness(0, 0, 0, 2) : new Thickness(0, 0, 1, 1);
+     }
+diff --git a/Controls/Omnibox.xaml b/Controls/Omnibox.xaml
+index d71e506..1928dc1 100644
+--- a/Controls/Omnibox.xaml
++++ b/Controls/Omnibox.xaml
+@@ -4,9 +4,7 @@
+              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+              xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"
+              mc:Ignorable="po">
+-    <UserControl.Resources>
+-        <ResourceDictionary Source="/Themes/Horizon.xaml"/>
+-    </UserControl.Resources>
++
+ 
+     <Border Background="{DynamicResource Brush_OmniboxBg}" CornerRadius="5" BorderBrush="{DynamicResource Brush_ButtonBorder}" BorderThickness="1">
+         <Grid>
+diff --git a/Controls/VaultSidebar.xaml b/Controls/VaultSidebar.xaml
+index 97bb362..9f44221 100644
+--- a/Controls/VaultSidebar.xaml
++++ b/Controls/VaultSidebar.xaml
+@@ -8,9 +8,6 @@
+     
+     <UserControl.Resources>
+         <ResourceDictionary>
+-            <ResourceDictionary.MergedDictionaries>
+-                <ResourceDictionary Source="/Themes/Horizon.xaml"/>
+-            </ResourceDictionary.MergedDictionaries>
+ 
+             <local:FaviconConverter x:Key="FaviconConverter"/>
+ 
+diff --git a/MainWindow.xaml b/MainWindow.xaml
+index bec059a..6c30622 100644
+--- a/MainWindow.xaml
++++ b/MainWindow.xaml
+@@ -2206,7 +2206,7 @@
+ 
+                                 Width="146" Height="42"
+ 
+-                                Background="#66141414" BorderBrush="#2a2a2a" BorderThickness="1"
++                                Background="{DynamicResource Brush_OmniboxBg}" BorderBrush="{DynamicResource Brush_ButtonBorder}" BorderThickness="1"
+ 
+                                 CornerRadius="6" Margin="0,0,4,0" Cursor="Hand"
+ 
+@@ -2258,7 +2258,7 @@
+ 
+                                         <TextBlock x:Name="TxtWidget"
+ 
+-                                                   Foreground="#dddddd" FontSize="16" FontWeight="Bold"
++                                                   Foreground="{DynamicResource Brush_Text}" FontSize="16" FontWeight="Bold"
+ 
+                                                    FontFamily="Consolas"
+ 
+@@ -2274,7 +2274,7 @@
+ 
+                                 <TextBlock x:Name="TxtWidgetSub"
+ 
+-                                           Foreground="#888888" FontSize="11" FontFamily="Consolas"
++                                           Foreground="{DynamicResource Brush_MutedText}" FontSize="11" FontFamily="Consolas"
+ 
+                                            HorizontalAlignment="Right" VerticalAlignment="Bottom"
+ 
+diff --git a/MainWindow.xaml.cs b/MainWindow.xaml.cs
+index 5d6f08a..af35644 100644
+--- a/MainWindow.xaml.cs
++++ b/MainWindow.xaml.cs
+@@ -13260,7 +13260,7 @@ return colors.length > 0 ? colors : null;
+ 
+ 
+ 
+-                : Color.FromArgb(alpha, 0xFF, 0xFF, 0xFF);
++                : Color.FromArgb(0xFF, 0xFF, 0xFF, 0xFF);
+ 
+ 
+ 
+diff --git a/Services/ThemeService.cs b/Services/ThemeService.cs
+index 7271530..5fdf659 100644
+--- a/Services/ThemeService.cs
++++ b/Services/ThemeService.cs
+@@ -8,6 +8,9 @@ public static class ThemeService
+ {
+     private static string _appliedTheme = "Horizon";
+ 
++    public static System.Windows.Media.Color SurfaceTone(byte dark) =>
++        IsLight ? System.Windows.Media.Color.FromRgb(0xF2, 0xF2, 0xF2) : System.Windows.Media.Color.FromRgb(dark, dark, dark);
++
+     public static bool IsLight => string.Equals(_appliedTheme, "Light", StringComparison.OrdinalIgnoreCase);
+ 
+     public static void Initialize()
+diff --git a/Themes/Light.xaml b/Themes/Light.xaml
+index 79aba04..7cadd31 100644
+--- a/Themes/Light.xaml
++++ b/Themes/Light.xaml
+@@ -33,9 +33,9 @@
+     <SolidColorBrush x:Key="Brush_TabBar2ChipBg" Color="#E4E4E4" po:Freeze="False"/>
+     <SolidColorBrush x:Key="Brush_TabBar2ChipBorder" Color="#CFCFCF" po:Freeze="False"/>
+ 
+-    <SolidColorBrush x:Key="Brush_ButtonBorder" Color="#767676" po:Freeze="False"/>
+-    <SolidColorBrush x:Key="Brush_ButtonHoverBg" Color="#E8E8E8" po:Freeze="False"/>
+-    <SolidColorBrush x:Key="Brush_ButtonHoverBorder" Color="#999999" po:Freeze="False"/>
++    <SolidColorBrush x:Key="Brush_ButtonBorder" Color="#000000" po:Freeze="False"/>
++    <SolidColorBrush x:Key="Brush_ButtonHoverBg" Color="#F2F2F2" po:Freeze="False"/>
++    <SolidColorBrush x:Key="Brush_ButtonHoverBorder" Color="#000000" po:Freeze="False"/>
+     <SolidColorBrush x:Key="Brush_ButtonPressedBg" Color="#DCDCDC" po:Freeze="False"/>
+ 
+     <SolidColorBrush x:Key="Brush_BannerInfoBg" Color="#D6E9FF" po:Freeze="False"/>

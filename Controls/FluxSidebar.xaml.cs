@@ -27,6 +27,7 @@ public static class GradientUtility
     public static Color ProcessColor(Color c)
     {
         ColorToHsv(c, out double h, out double s, out double v);
+        if (ThemeService.IsLight) return HsvToRgb(h, Math.Min(Math.Max(0, s - 0.10), 0.30), 0.92);
         s = Math.Max(0, s - 0.10);
         v = Math.Min(v, 0.35); 
         return HsvToRgb(h, s, v);
@@ -85,6 +86,7 @@ public static class GradientUtility
     {
         ColorToHsv(c, out double h, out double s, out double v);
         h = (h + degrees + 360) % 360;
+        if (ThemeService.IsLight) return HsvToRgb(h, Math.Clamp(s, 0.12, 0.30), 0.90);
         s = Math.Max(s, 0.45);
         v = Math.Clamp(v, 0.20, 0.40);
         return HsvToRgb(h, s, v);
@@ -235,13 +237,13 @@ public class HistoryItemViewModel : System.ComponentModel.INotifyPropertyChanged
         Url = src.Url;
         Title = src.Title;
         VisitTime = src.VisitTime;
-        _itemGradient = new SolidColorBrush(Color.FromRgb(0x11, 0x11, 0x11));
+        _itemGradient = new SolidColorBrush(ThemeService.SurfaceTone(0x11));
         GenerateGradientAsync();
     }
 
     private async void GenerateGradientAsync()
     {
-        Color leftColor = Color.FromRgb(0x33, 0x33, 0x33);
+        Color leftColor = ThemeService.SurfaceTone(0x33);
         try
         {
             var uri = new Uri(Url);
@@ -569,7 +571,7 @@ public class FluxItemViewModel
 
     private static Brush BuildFolderGradient()
     {
-        Color leftColor = GradientUtility.ToGrayscale(Color.FromRgb(0x1A, 0x14, 0x05));
+        Color leftColor = GradientUtility.ToGrayscale(ThemeService.SurfaceTone(0x1A));
         Color rightColor = GradientUtility.AnalogousColor(GradientUtility.SampleWallpaperColor(), 20);
 
         var gs = new GradientStopCollection
@@ -670,8 +672,8 @@ public class FluxAccentGradientConverter : IValueConverter
 
     public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        Color leftColor = GradientUtility.ToGrayscale(Color.FromRgb(0x14, 0x14, 0x14));
-        Color rightColor = _fallbackAccent;
+        Color leftColor = GradientUtility.ToGrayscale(ThemeService.SurfaceTone(0x14));
+        Color rightColor = ThemeService.IsLight ? Color.FromRgb(0xE2, 0xE2, 0xE2) : _fallbackAccent;
 
         if (value is PinItem pin && !string.IsNullOrEmpty(pin.Url))
         {
@@ -1660,7 +1662,7 @@ public partial class FluxSidebar : UserControl
         SetSortBtnActive(BtnPinSortName, _pinSortField == PinSortField.Name);
         SetSortBtnActive(BtnPinSortCat,  _pinSortField == PinSortField.Category);
         BtnPinSortDir.Content    = _pinSortAscending ? "\u2191" : "\u2193";
-        BtnPinSortDir.Foreground = new SolidColorBrush(Color.FromRgb(0x44, 0x44, 0x44));
+        BtnPinSortDir.SetResourceReference(Control.ForegroundProperty, "Brush_MutedText");
     }
 
     private void BtnPinSortName_Click(object sender, RoutedEventArgs e) { _pinSortField = PinSortField.Name;     RefreshPins(); }
@@ -1969,13 +1971,9 @@ public partial class FluxSidebar : UserControl
             TxtPinSearchBar.Text = string.Empty;
             RefreshPins();
         }
-        BtnPinSearch.Foreground = show
-            ? new SolidColorBrush(Color.FromRgb(0x00, 0xCC, 0x00))
-            : new SolidColorBrush(Color.FromRgb(0x55, 0x55, 0x55));
-        BtnPinSearch.Background = new SolidColorBrush(Color.FromRgb(
-            show ? (byte)0x1a : (byte)0x11,
-            show ? (byte)0x2a : (byte)0x11,
-            show ? (byte)0x1a : (byte)0x11));
+        if (show) BtnPinSearch.Foreground = new SolidColorBrush(Color.FromRgb(0x00, 0xCC, 0x00));
+        else BtnPinSearch.SetResourceReference(Control.ForegroundProperty, "Brush_MutedText");
+        BtnPinSearch.SetResourceReference(Control.BackgroundProperty, show ? "Brush_TabStripBgSelected" : "Brush_TabStripBg");
     }
 
     private void TxtPinSearchBar_TextChanged(object sender, TextChangedEventArgs e)
@@ -2986,7 +2984,7 @@ public partial class FluxSidebar : UserControl
         SetSortBtnActive(BtnSortName, _sortField == SortField.Name);
         SetSortBtnActive(BtnSortSize, _sortField == SortField.Size);
         BtnSortDir.Content    = _sortAscending ? "\u2191" : "\u2193";
-        BtnSortDir.Foreground = new SolidColorBrush(Color.FromRgb(0x44, 0x44, 0x44));
+        BtnSortDir.SetResourceReference(Control.ForegroundProperty, "Brush_MutedText");
     }
 
     private void BtnSortDate_Click(object sender, RoutedEventArgs e) { _sortField = SortField.Date; ApplySort(); }
@@ -4018,9 +4016,9 @@ public partial class FluxSidebar : UserControl
         Brush idleBg = (btn.TryFindResource("Brush_TabStripBg") as Brush) ?? new SolidColorBrush(Color.FromRgb(0x11, 0x11, 0x11));
         Brush idleBorder = (btn.TryFindResource("Brush_TabStripBorder") as Brush) ?? new SolidColorBrush(Color.FromRgb(0x22, 0x22, 0x22));
 
-        btn.Background       = active ? selectedBg : idleBg;
-        btn.Foreground       = active ? accent : Brushes.White;
-        btn.BorderBrush      = active ? accent : idleBorder;
+        btn.SetResourceReference(Control.BackgroundProperty, active ? "Brush_TabStripBgSelected" : "Brush_TabStripBg");
+        btn.SetResourceReference(Control.ForegroundProperty, active ? "Brush.Neon" : "Brush_Text");
+        btn.SetResourceReference(Control.BorderBrushProperty, active ? "Brush.Neon" : "Brush_TabStripBorder");
         btn.BorderThickness  = active ? new Thickness(0, 0, 0, 2) : new Thickness(0, 0, 1, 1);
     }
 
@@ -4179,10 +4177,10 @@ public partial class FluxSidebar : UserControl
         if (SidebarTabControl != null) SidebarTabControl.Visibility = Visibility.Visible;
         if (PnlSidebarUtilities != null) PnlSidebarUtilities.Visibility = Visibility.Collapsed;
 
-        BtnSidebarPanesTab.Background = (Brush)FindResource("Brush_TabStripBgSelected");
-        BtnSidebarPanesTab.BorderBrush = (Brush)FindResource("Brush.Neon");
-        BtnSidebarUtilitiesTab.Background = (Brush)FindResource("Brush_TabStripBg");
-        BtnSidebarUtilitiesTab.BorderBrush = (Brush)FindResource("Brush_TabStripBorder");
+        BtnSidebarPanesTab.SetResourceReference(Control.BackgroundProperty, "Brush_TabStripBgSelected");
+        BtnSidebarPanesTab.SetResourceReference(Control.BorderBrushProperty, "Brush.Neon");
+        BtnSidebarUtilitiesTab.SetResourceReference(Control.BackgroundProperty, "Brush_TabStripBg");
+        BtnSidebarUtilitiesTab.SetResourceReference(Control.BorderBrushProperty, "Brush_TabStripBorder");
     }
 
     private void BtnSidebarUtilitiesTab_Click(object sender, MouseButtonEventArgs e)
@@ -4190,10 +4188,10 @@ public partial class FluxSidebar : UserControl
         if (SidebarTabControl != null) SidebarTabControl.Visibility = Visibility.Collapsed;
         if (PnlSidebarUtilities != null) PnlSidebarUtilities.Visibility = Visibility.Visible;
 
-        BtnSidebarUtilitiesTab.Background = (Brush)FindResource("Brush_TabStripBgSelected");
-        BtnSidebarUtilitiesTab.BorderBrush = (Brush)FindResource("Brush.Neon");
-        BtnSidebarPanesTab.Background = (Brush)FindResource("Brush_TabStripBg");
-        BtnSidebarPanesTab.BorderBrush = (Brush)FindResource("Brush_TabStripBorder");
+        BtnSidebarUtilitiesTab.SetResourceReference(Control.BackgroundProperty, "Brush_TabStripBgSelected");
+        BtnSidebarUtilitiesTab.SetResourceReference(Control.BorderBrushProperty, "Brush.Neon");
+        BtnSidebarPanesTab.SetResourceReference(Control.BackgroundProperty, "Brush_TabStripBg");
+        BtnSidebarPanesTab.SetResourceReference(Control.BorderBrushProperty, "Brush_TabStripBorder");
 
         LoadSidebarUtilities();
     }

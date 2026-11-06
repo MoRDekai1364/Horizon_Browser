@@ -20,7 +20,7 @@
 
         AllowsTransparency="False"
 
-        Background="{StaticResource Brush_Background}">
+        Background="{DynamicResource Brush_Background}">
 
 
 
@@ -54,11 +54,7 @@
 
         <ResourceDictionary>
 
-            <ResourceDictionary.MergedDictionaries>
-
-                <ResourceDictionary Source="Themes/Horizon.xaml"/>
-
-            </ResourceDictionary.MergedDictionaries>
+            
 
 
 
@@ -648,7 +644,7 @@
 
                 <!-- Deep background for standard web page browsing -->
 
-                <Grid x:Name="PnlHeaderBackground" Background="{StaticResource Brush_DeepBackground}"/>
+                <Grid x:Name="PnlHeaderBackground" Background="{DynamicResource Brush_DeepBackground}"/>
 
 
 
@@ -2210,7 +2206,7 @@
 
                                 Width="146" Height="42"
 
-                                Background="#66141414" BorderBrush="#2a2a2a" BorderThickness="1"
+                                Background="{DynamicResource Brush_OmniboxBg}" BorderBrush="{DynamicResource Brush_ButtonBorder}" BorderThickness="1"
 
                                 CornerRadius="6" Margin="0,0,4,0" Cursor="Hand"
 
@@ -2262,7 +2258,7 @@
 
                                         <TextBlock x:Name="TxtWidget"
 
-                                                   Foreground="#dddddd" FontSize="16" FontWeight="Bold"
+                                                   Foreground="{DynamicResource Brush_Text}" FontSize="16" FontWeight="Bold"
 
                                                    FontFamily="Consolas"
 
@@ -2278,7 +2274,7 @@
 
                                 <TextBlock x:Name="TxtWidgetSub"
 
-                                           Foreground="#888888" FontSize="11" FontFamily="Consolas"
+                                           Foreground="{DynamicResource Brush_MutedText}" FontSize="11" FontFamily="Consolas"
 
                                            HorizontalAlignment="Right" VerticalAlignment="Bottom"
 
@@ -2432,7 +2428,7 @@
 
 
 
-                <Grid x:Name="PnlMobileHeaderBackground" Grid.RowSpan="2" Background="{StaticResource Brush_DeepBackground}"/>
+                <Grid x:Name="PnlMobileHeaderBackground" Grid.RowSpan="2" Background="{DynamicResource Brush_DeepBackground}"/>
 
 
 
@@ -2633,7 +2629,7 @@
             <Grid x:Name="OverflowContainer" Grid.Row="1" Grid.ColumnSpan="2"
                   VerticalAlignment="Top" ClipToBounds="True" Visibility="{Binding Visibility, ElementName=ListOverflowTabs}">
                 <!-- Deep background for standard web page browsing -->
-                <Grid x:Name="PnlOverflowBackground" Background="{StaticResource Brush_DeepBackground}"/>
+                <Grid x:Name="PnlOverflowBackground" Background="{DynamicResource Brush_DeepBackground}"/>
 
                 <!-- Wallpaper glass blur layer (active on homepage) -->
                 <Grid x:Name="OverflowWallpaperGlass"
@@ -3609,7 +3605,7 @@
 
             <!-- This avoids the WPF/Win32 airspace problem where HWND always renders on top -->
 
-            <StackPanel Grid.Row="2" Grid.ColumnSpan="2" Background="{StaticResource Brush_DeepBackground}">
+            <StackPanel Grid.Row="2" Grid.ColumnSpan="2" Background="{DynamicResource Brush_DeepBackground}">
 
 
 
@@ -3629,7 +3625,7 @@
 
                         <Button Content="RESTORE" Click="BtnRestoreSession_Click"
 
-                                Background="{StaticResource Brush_Accent}" Foreground="Black" FontWeight="Bold"
+                                Background="{DynamicResource Brush_Accent}" Foreground="Black" FontWeight="Bold"
 
                                 Padding="10,4" BorderThickness="0" Cursor="Hand">
 
@@ -3665,7 +3661,7 @@
 
                         <Button Content="DOWNLOAD" Click="BtnDownloadImage_Click"
 
-                                Background="{StaticResource Brush_Accent}" Foreground="Black" FontWeight="Bold"
+                                Background="{DynamicResource Brush_Accent}" Foreground="Black" FontWeight="Bold"
 
                                 Padding="10,4" BorderThickness="0" Cursor="Hand">
 

@@ -13129,7 +13129,10 @@ return colors.length > 0 ? colors : null;
 
 
 
-    private static readonly Color HeaderButtonForegroundApprox = Color.FromRgb(0xEE, 0xEE, 0xEE);
+    private static Color HeaderButtonForegroundApprox =>
+        Application.Current?.TryFindResource("Brush_HeaderButtonForeground") is SolidColorBrush hbf
+            ? hbf.Color
+            : Color.FromRgb(0xEE, 0xEE, 0xEE);
 
 
 
@@ -13249,7 +13252,7 @@ return colors.length > 0 ? colors : null;
 
 
 
-            Color scrim = backdropLuma > 0.5
+            Color scrim = RelativeLuminance(HeaderButtonForegroundApprox) < 0.5
 
 
 
@@ -13257,7 +13260,7 @@ return colors.length > 0 ? colors : null;
 
 
 
-                : Color.FromArgb(alpha, 0xFF, 0xFF, 0xFF);
+                : Color.FromArgb(0xFF, 0xFF, 0xFF, 0xFF);
 
 
 

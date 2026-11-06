@@ -225,9 +225,11 @@ public partial class TabSwitcherWindow : Window
             }
 
             byte bgAlpha = (byte)Math.Max((int)TintService.Apply(0xD0), 0xA0);
-            Color searchBg = WeatherBridge.ThemeDarkWallpaper
-                ? Color.FromArgb(bgAlpha, 0x14, 0x14, 0x14)
-                : Color.FromArgb(bgAlpha, 0x22, 0x22, 0x22);
+            Color searchBg = ThemeService.IsLight
+                ? Color.FromArgb(Math.Min(bgAlpha, (byte)0xB8), 0xF4, 0xF6, 0xF8)
+                : WeatherBridge.ThemeDarkWallpaper
+                    ? Color.FromArgb(bgAlpha, 0x14, 0x14, 0x14)
+                    : Color.FromArgb(bgAlpha, 0x22, 0x22, 0x22);
             tintLayer.Background = HomePageView.CreateSearchBarBackgroundBrush(searchBg);
         }
 
