@@ -901,11 +901,11 @@
 
                                                 <Border x:Name="BaseBorder"
 
-                                                        Background="#222" CornerRadius="8"
+                                                        Background="{DynamicResource Brush_TabChipBg}" CornerRadius="8"
 
                                                         Margin="1.9,0" Width="{Binding TabWidth}" MinHeight="47" MaxHeight="47"
 
-                                                        BorderBrush="#333" BorderThickness="1"
+                                                        BorderBrush="{DynamicResource Brush_TabChipBorder}" BorderThickness="1"
 
                                                         VerticalAlignment="Center"/>
 
@@ -1082,7 +1082,7 @@
 
                                                                 Opacity="0" IsHitTestVisible="False"
 
-                                                                Background="#1A1A1A" CornerRadius="4"
+                                                                Background="{DynamicResource Brush_TabChipPopupBg}" CornerRadius="4"
 
                                                                 BorderBrush="#444" BorderThickness="1"
 
@@ -1682,15 +1682,15 @@
 
                                                 <Trigger Property="IsMouseOver" Value="True">
 
-                                                    <Setter TargetName="BaseBorder" Property="Background" Value="#333"/>
+                                                    <Setter TargetName="BaseBorder" Property="Background" Value="{DynamicResource Brush_TabChipHoverBg}"/>
 
                                                 </Trigger>
 
                                                 <Trigger Property="IsSelected" Value="True">
 
-                                                    <Setter TargetName="BaseBorder" Property="Background" Value="#444"/>
+                                                    <Setter TargetName="BaseBorder" Property="Background" Value="{DynamicResource Brush_TabChipSelectedBg}"/>
 
-                                                    <Setter TargetName="BaseBorder" Property="BorderBrush" Value="#555"/>
+                                                    <Setter TargetName="BaseBorder" Property="BorderBrush" Value="{DynamicResource Brush_TabChipSelectedBorder}"/>
 
                                                 </Trigger>
 
@@ -2910,7 +2910,7 @@
 
                                     <Grid>
 
-                                        <Border x:Name="TabBorder" Background="#1C1E24" CornerRadius="7" Margin="1.9,2" Width="{Binding TabWidth}" Height="42" BorderBrush="#2A2E38" BorderThickness="1"
+                                        <Border x:Name="TabBorder" Background="{DynamicResource Brush_TabBar2ChipBg}" CornerRadius="7" Margin="1.9,2" Width="{Binding TabWidth}" Height="42" BorderBrush="{DynamicResource Brush_TabBar2ChipBorder}" BorderThickness="1"
 
                                                 AllowDrop="True"
 

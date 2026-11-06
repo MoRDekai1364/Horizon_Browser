@@ -613,6 +613,14 @@ public class TabViewModel : INotifyPropertyChanged, IDisposable
     /// Saturation/value are kept low so the tint is readable without being garish.
     /// </summary>
     private static readonly SolidColorBrush _whiteBrush = new SolidColorBrush(Colors.White);
+
+    public static Color BaseTitleColor { get; private set; } = Colors.White;
+
+    public static void SetBaseTitleColor(Color color)
+    {
+        BaseTitleColor = color;
+        _whiteBrush.Color = color;
+    }
     private SolidColorBrush? _cachedTitleForeground;
     private int _cachedTitleForegroundIndex = -1;
 

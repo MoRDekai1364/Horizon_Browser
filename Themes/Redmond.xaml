@@ -15,6 +15,35 @@
     <SolidColorBrush x:Key="Brush.NeonDim" Color="#AAAAAA"/>
     <SolidColorBrush x:Key="Brush_Alert" Color="#E81123"/>
 
+    <SolidColorBrush x:Key="Brush_SoftText" Color="#222222"/>
+
+    <SolidColorBrush x:Key="Brush_TabStripBg" Color="#E6E6E6"/>
+    <SolidColorBrush x:Key="Brush_TabStripBgSelected" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="Brush_TabStripBorder" Color="#ADADAD"/>
+    <SolidColorBrush x:Key="Brush_TabStripTextInactive" Color="#6D6D6D"/>
+    <SolidColorBrush x:Key="Brush_TabStripTextHover" Color="#000000"/>
+
+    <SolidColorBrush x:Key="Brush_ButtonBorder" Color="#ADADAD"/>
+    <SolidColorBrush x:Key="Brush_ButtonHoverBg" Color="#E5F1FB"/>
+    <SolidColorBrush x:Key="Brush_ButtonHoverBorder" Color="#0078D4"/>
+    <SolidColorBrush x:Key="Brush_ButtonPressedBg" Color="#CCE4F7"/>
+
+    <SolidColorBrush x:Key="Brush_BannerInfoBg" Color="#D6E9FF"/>
+    <SolidColorBrush x:Key="Brush_BannerInfoBorder" Color="#8FB8E8"/>
+    <SolidColorBrush x:Key="Brush_BannerSuccessBg" Color="#DDF3DD"/>
+    <SolidColorBrush x:Key="Brush_BannerSuccessBorder" Color="#8FCB8F"/>
+    <SolidColorBrush x:Key="Brush_DangerBg" Color="#FADCDC"/>
+
+    <SolidColorBrush x:Key="Brush_TabChipBg" Color="#E6E6E6"/>
+    <SolidColorBrush x:Key="Brush_TabChipBorder" Color="#ADADAD"/>
+    <SolidColorBrush x:Key="Brush_TabChipHoverBg" Color="#CCE8FF"/>
+    <SolidColorBrush x:Key="Brush_TabChipSelectedBg" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="Brush_TabChipSelectedBorder" Color="#0078D4"/>
+    <SolidColorBrush x:Key="Brush_TabChipText" Color="#000000"/>
+    <SolidColorBrush x:Key="Brush_TabChipPopupBg" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="Brush_TabBar2ChipBg" Color="#E6E6E6"/>
+    <SolidColorBrush x:Key="Brush_TabBar2ChipBorder" Color="#ADADAD"/>
+
     <Style TargetType="Button" x:Key="Style_StealthButton">
         <Setter Property="Background" Value="#DDDDDD"/>
         <Setter Property="BorderBrush" Value="#AAAAAA"/>

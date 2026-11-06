@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
@@ -69,6 +70,12 @@ public static class ContrastGuard
     private static bool _flushQueued;
     private static DispatcherTimer? _debounce;
     private static DispatcherTimer? _sweep;
+    private static DispatcherTimer? _settle;
+    private static readonly Queue<FrameworkElement> SweepQueue = new();
+    private static readonly HashSet<FrameworkElement> SweepSeen = new();
+    private static bool _refreshQueued;
+    private static bool _sliceQueued;
+    private static int _settleStep;
 
     public static void Initialize()
     {
@@ -166,31 +173,68 @@ public static class ContrastGuard
     public static void RequestRefresh()
     {
         var app = Application.Current;
+        if (app == null || !_initialized || _refreshQueued) return;
+
+        _refreshQueued = true;
+        app.Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(() =>
+        {
+            _refreshQueued = false;
+            SweepAllWindows();
+            _debounce?.Stop();
+            _debounce?.Start();
+        }));
+    }
+
+    public static void OnThemeChanged()
+    {
+        var app = Application.Current;
         if (app == null || !_initialized) return;
 
-        try
+        if (_settle == null)
         {
-            foreach (Window w in app.Windows)
+            _settle = new DispatcherTimer(DispatcherPriority.Input) { Interval = TimeSpan.FromMilliseconds(400) };
+            _settle.Tick += (_, _) =>
             {
-                if (!w.IsVisible) continue;
-                var sink = new List<FrameworkElement>();
-                CollectTargets(w, sink);
-                foreach (var el in sink)
-                {
-                    if (!IsHomePage(el))
-                    {
-                        Evaluate(el);
-                    }
-                }
-            }
+                RequestRefresh();
+                if (++_settleStep >= 3) _settle!.Stop();
+            };
         }
-        catch { }
 
-        app.Dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(() =>
+        _settleStep = 0;
+        _settle.Stop();
+        _settle.Start();
+        RequestRefresh();
+    }
+
+    private static void RunSlice(double budgetMs)
+    {
+        var sw = Stopwatch.StartNew();
+        while (SweepQueue.Count > 0)
         {
-            if (_debounce == null) return;
-            _debounce.Stop();
-            _debounce.Start();
+            var el = SweepQueue.Dequeue();
+            SweepSeen.Remove(el);
+            try
+            {
+                Evaluate(el);
+            }
+            catch
+            {
+            }
+            if (sw.Elapsed.TotalMilliseconds >= budgetMs) break;
+        }
+    }
+
+    private static void QueueSlice()
+    {
+        var app = Application.Current;
+        if (app == null || _sliceQueued || SweepQueue.Count == 0) return;
+
+        _sliceQueued = true;
+        app.Dispatcher.BeginInvoke(DispatcherPriority.Input, new Action(() =>
+        {
+            _sliceQueued = false;
+            RunSlice(8.0);
+            QueueSlice();
         }));
     }
 
@@ -271,15 +315,15 @@ public static class ContrastGuard
 
     private static bool IsTarget(FrameworkElement fe) => fe is TextBlock || fe is TextBoxBase || fe is PasswordBox;
 
-    private static void CollectTargets(DependencyObject root, List<FrameworkElement> sink)
+    private static void CollectTargets(DependencyObject root, List<FrameworkElement> sink, bool includeFaded = false)
     {
         int n = VisualTreeHelper.GetChildrenCount(root);
         for (int i = 0; i < n; i++)
         {
             var child = VisualTreeHelper.GetChild(root, i);
-            if (child is UIElement u && (u.Visibility != Visibility.Visible || u.Opacity <= 0.01)) continue;
+            if (child is UIElement u && (u.Visibility != Visibility.Visible || (!includeFaded && u.Opacity <= 0.01))) continue;
             if (child is FrameworkElement fe && IsTarget(fe)) sink.Add(fe);
-            CollectTargets(child, sink);
+            CollectTargets(child, sink, includeFaded);
         }
     }
 
@@ -288,29 +332,23 @@ public static class ContrastGuard
         var app = Application.Current;
         if (app == null || !Enabled) return;
 
+        SweepQueue.Clear();
+        SweepSeen.Clear();
+
+        var sink = new List<FrameworkElement>(512);
         foreach (Window w in app.Windows)
         {
             if (!w.IsVisible) continue;
-            var sink = new List<FrameworkElement>();
-            CollectTargets(w, sink);
+            sink.Clear();
+            CollectTargets(w, sink, true);
             foreach (var el in sink)
             {
-                if (!IsHomePage(el))
-                {
-                    Evaluate(el);
-                }
-                else
-                {
-                    Pending.Add(el);
-                }
+                if (SweepSeen.Add(el)) SweepQueue.Enqueue(el);
             }
         }
 
-        if (Pending.Count > 0 && !_flushQueued)
-        {
-            _flushQueued = true;
-            app.Dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(Flush));
-        }
+        RunSlice(10.0);
+        QueueSlice();
     }
 
     private static void Enqueue(FrameworkElement el)
@@ -360,7 +398,7 @@ public static class ContrastGuard
         if (el is TextBlock tb && string.IsNullOrEmpty(tb.Text)) return;
 
         if (!TryGetColor(el.GetValue(prop) as Brush, out var fg, out var fgAlpha)) return;
-        double effAlpha = fgAlpha * el.Opacity;
+        double effAlpha = fgAlpha;
         if (effAlpha <= 0.02) return;
 
         var bg = GetBackdrop(el, out bool image);

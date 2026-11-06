@@ -23,6 +23,16 @@
     <SolidColorBrush x:Key="Brush_TabStripTextInactive" Color="#999999" po:Freeze="False"/>
     <SolidColorBrush x:Key="Brush_TabStripTextHover" Color="#555555" po:Freeze="False"/>
 
+    <SolidColorBrush x:Key="Brush_TabChipBg" Color="#E4E4E4" po:Freeze="False"/>
+    <SolidColorBrush x:Key="Brush_TabChipBorder" Color="#CFCFCF" po:Freeze="False"/>
+    <SolidColorBrush x:Key="Brush_TabChipHoverBg" Color="#D6D6D6" po:Freeze="False"/>
+    <SolidColorBrush x:Key="Brush_TabChipSelectedBg" Color="#FFFFFF" po:Freeze="False"/>
+    <SolidColorBrush x:Key="Brush_TabChipSelectedBorder" Color="#9A9A9A" po:Freeze="False"/>
+    <SolidColorBrush x:Key="Brush_TabChipText" Color="#1A1A1A" po:Freeze="False"/>
+    <SolidColorBrush x:Key="Brush_TabChipPopupBg" Color="#FFFFFF" po:Freeze="False"/>
+    <SolidColorBrush x:Key="Brush_TabBar2ChipBg" Color="#E4E4E4" po:Freeze="False"/>
+    <SolidColorBrush x:Key="Brush_TabBar2ChipBorder" Color="#CFCFCF" po:Freeze="False"/>
+
     <SolidColorBrush x:Key="Brush_ButtonBorder" Color="#767676" po:Freeze="False"/>
     <SolidColorBrush x:Key="Brush_ButtonHoverBg" Color="#E8E8E8" po:Freeze="False"/>
     <SolidColorBrush x:Key="Brush_ButtonHoverBorder" Color="#999999" po:Freeze="False"/>

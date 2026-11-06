@@ -17313,7 +17313,7 @@ return colors.length > 0 ? colors : null;
 
 
 
-                    tab.TitleForeground.Color = Colors.White;
+                    tab.TitleForeground.Color = TabViewModel.BaseTitleColor;
 
 
 
