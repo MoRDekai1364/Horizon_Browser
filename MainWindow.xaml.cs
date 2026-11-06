@@ -11051,6 +11051,11 @@ return colors.length > 0 ? colors : null;
 
 
 
+        if (HomePageView.OwnsDumpHotkey(e))
+        {
+            return;
+        }
+
         if (CustomShortcutService.TryExecuteHotkey(e, this))
         {
             return;

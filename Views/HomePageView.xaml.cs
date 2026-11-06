@@ -1050,6 +1050,18 @@ public partial class HomePageView : UserControl
 
 
 
+    private static readonly System.Collections.Generic.List<WeakReference<HomePageView>> DumpHosts = new();
+
+    public static bool OwnsDumpHotkey(KeyEventArgs e)
+    {
+        if (e.Key != Key.D || Keyboard.Modifiers != (ModifierKeys.Control | ModifierKeys.Shift)) return false;
+        foreach (var r in DumpHosts)
+        {
+            if (r.TryGetTarget(out var v) && v.IsVisible) return true;
+        }
+        return false;
+    }
+
     private void Window_DumpHotkey(object sender, KeyEventArgs e)
 
     {
@@ -1428,7 +1440,7 @@ public partial class HomePageView : UserControl
         bool hasIsland = _searchMode != "Search";
         double requiredHeadroom = hasIsland ? 560.0 : 120.0;
         double maxSafeTop = Math.Max(20.0, bottomBoundary - searchRowH - requiredHeadroom);
-        double persistentSearchTop = hasIsland ? Math.Min(idealCenterTop, maxSafeTop) : idealCenterTop;
+        double persistentSearchTop = idealCenterTop;
 
         PnlSearchArea.Margin = new Thickness(0, persistentSearchTop, 0, 0);
 
@@ -1467,6 +1479,7 @@ public partial class HomePageView : UserControl
                 win.StateChanged += (_, _) => UpdateSearchAreaLayout();
 
                 win.PreviewKeyDown += Window_DumpHotkey;
+                DumpHosts.Add(new WeakReference<HomePageView>(this));
 
                 _winStateHooked = true;
 
