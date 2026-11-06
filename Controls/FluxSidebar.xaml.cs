@@ -684,7 +684,7 @@ public class FluxAccentGradientConverter : IValueConverter
 
                 if (_colorCache.TryGetValue(key, out Color cached))
                 {
-                    rightColor = cached;
+                    rightColor = GradientUtility.AnalogousColor(cached, 0);
                 }
                 else if (_pending.TryAdd(key, null))
                 {

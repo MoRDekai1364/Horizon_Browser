@@ -14,7 +14,7 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <Border Grid.ColumnSpan="3" CornerRadius="5" Background="{DynamicResource Brush_HeaderButtonScrim}" IsHitTestVisible="False"/>
+            <Border Grid.ColumnSpan="3" CornerRadius="5" Background="Transparent" IsHitTestVisible="False"/>
 
             <!-- Padlock / Site Info -->
             <TextBlock Grid.Column="0" Text="&#x1F512;" Foreground="{DynamicResource Brush_Accent}" 

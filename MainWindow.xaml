@@ -2230,7 +2230,7 @@
 
                             <Grid ClipToBounds="True">
 
-                                <Border CornerRadius="6" Background="{DynamicResource Brush_HeaderButtonScrim}" IsHitTestVisible="False"/>
+                                <Border CornerRadius="6" Background="Transparent" IsHitTestVisible="False"/>
 
                                 <!-- Battery indicator: sleek bottom progress bar (Battery mode only) -->
 

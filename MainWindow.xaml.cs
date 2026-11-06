@@ -11785,6 +11785,7 @@ return colors.length > 0 ? colors : null;
 
 
         UpdateHeaderButtonContrastForHome(homeActive);
+        ApplyHomeHeaderForeground(homeActive);
 
 
 
@@ -12941,6 +12942,12 @@ return colors.length > 0 ? colors : null;
 
 
 
+        if (ThemeService.IsLight)
+        {
+            Resources["Brush_HeaderButtonScrim"] = new SolidColorBrush(Colors.Transparent);
+            return;
+        }
+
         Color centerColor = CurrentBrowser?.NativeHomePage.SearchBarTextColor ?? Colors.White;
 
 
@@ -13135,6 +13142,16 @@ return colors.length > 0 ? colors : null;
             : Color.FromRgb(0xEE, 0xEE, 0xEE);
 
 
+
+    private void ApplyHomeHeaderForeground(bool homeActive)
+    {
+        if (!homeActive || !ThemeService.IsLight) return;
+        Color fb = CurrentBrowser?.NativeHomePage.SearchBarTextColor ?? Colors.White;
+        Color l = SampleWallpaperRegionColor(PnlHeaderNavButtons, fb);
+        Color r = SampleWallpaperRegionColor(PnlHeaderRightIcons, fb);
+        Color avg = Color.FromRgb((byte)((l.R + r.R) / 2), (byte)((l.G + r.G) / 2), (byte)((l.B + r.B) / 2));
+        SetHeaderButtonForeground(ChooseContrastingBW(avg));
+    }
 
     private const double HeaderButtonMinContrast = 3.5; // was 2.2 — too low to catch genuinely unreadable icons
 
