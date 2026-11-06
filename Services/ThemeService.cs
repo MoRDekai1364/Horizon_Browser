@@ -8,6 +8,8 @@ public static class ThemeService
 {
     private static string _appliedTheme = "Horizon";
 
+    public static event Action? ThemeApplied;
+
     public static System.Windows.Media.Color SurfaceTone(byte dark) =>
         IsLight ? System.Windows.Media.Color.FromRgb(0xF2, 0xF2, 0xF2) : System.Windows.Media.Color.FromRgb(dark, dark, dark);
 
@@ -58,6 +60,7 @@ public static class ThemeService
 
             LogService.Write("THEME", $"Applied visual style: {themeName}");
             ContrastGuard.OnThemeChanged();
+            ThemeApplied?.Invoke();
         }
         catch (Exception ex)
         {

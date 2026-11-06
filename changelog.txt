@@ -14,6 +14,7 @@ version 2.7.9
 + improved high-DPI and tight-window header/sidebar responsiveness with zero-flicker glass curtain animations
 + added anti-fingerprinting
 + added second view mode - grid for tab switcher & fixed  look
++ fixed white mode not applying to certain surfaces
 
 version 2.7.8
 + added existing installation detection with automatic profile backup and out-of-process restore engine

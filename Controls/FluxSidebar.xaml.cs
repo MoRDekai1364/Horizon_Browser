@@ -858,7 +858,12 @@ public partial class FluxSidebar : UserControl
         };
         SizeChanged += (_, _) => ApplyResponsiveSidebarLayout();
         FluxAccentColorConverter.ColorResolved += OnPinAccentColorResolved;
-        Unloaded += (_, _) => FluxAccentColorConverter.ColorResolved -= OnPinAccentColorResolved;
+        ThemeService.ThemeApplied += OnThemeApplied;
+        Unloaded += (_, _) =>
+        {
+            FluxAccentColorConverter.ColorResolved -= OnPinAccentColorResolved;
+            ThemeService.ThemeApplied -= OnThemeApplied;
+        };
     }
 
     public event Action<bool>? MiniModeToggled;
@@ -1145,6 +1150,14 @@ public partial class FluxSidebar : UserControl
             if (catScroll != null) catScroll.Visibility = vis;
             if (bottomHint != null) bottomHint.Visibility = vis;
         }
+    }
+
+    private void OnThemeApplied()
+    {
+        Dispatcher.BeginInvoke(new Action(() =>
+        {
+            if (IsLoaded) RefreshPins();
+        }));
     }
 
     private void OnPinAccentColorResolved()
