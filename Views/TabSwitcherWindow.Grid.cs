@@ -45,7 +45,7 @@ public partial class TabSwitcherWindow
     private Rect _workAreaPx = new Rect(0, 0, 0, 0);
     private double _dpiScale = 1.0;
 
-    private static BitmapSource? CaptureScreenArea(int x, int y, int width, int height)
+    internal static BitmapSource? CaptureScreenArea(int x, int y, int width, int height)
     {
         if (width <= 0 || height <= 0) return null;
 

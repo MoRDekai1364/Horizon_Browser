@@ -42,7 +42,9 @@ public static class CustomShortcutService
                     if (list != null && list.Count > 0)
                     {
                         _shortcuts = list;
-                        EnsureBuiltIns();
+                        bool changed = RemoveRetiredBuiltIns();
+                        changed |= EnsureBuiltIns();
+                        if (changed) SaveShortcuts();
                         return;
                     }
                 }
@@ -105,16 +107,141 @@ public static class CustomShortcutService
         }
     }
 
-    private static void EnsureBuiltIns()
+    private static bool EnsureBuiltIns()
     {
+        bool changed = false;
         var defaults = GetDefaultShortcuts();
         foreach (var def in defaults)
         {
             if (!_shortcuts.Any(s => s.Id == def.Id || s.Title.Equals(def.Title, StringComparison.OrdinalIgnoreCase)))
             {
                 _shortcuts.Add(def);
+                changed = true;
             }
         }
+        return changed;
+    }
+
+    private static readonly HashSet<string> RetiredBuiltInIds = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "cmd_split_view"
+    };
+
+    private static bool RemoveRetiredBuiltIns()
+    {
+        return _shortcuts.RemoveAll(s => RetiredBuiltInIds.Contains(s.Id)) > 0;
+    }
+
+    public static readonly (string Command, string Label)[] KnownBrowserCommands =
+    {
+        ("new_tab", "New Tab"),
+        ("close_tab", "Close Tab"),
+        ("reopen_closed_tab", "Reopen Closed Tab"),
+        ("toggle_sidebar", "Toggle Sidebar"),
+        ("toggle_mini_mode", "Toggle Sidebar Mini Mode"),
+        ("open_utilities", "Open Utilities"),
+        ("open_notes", "Open Quick Notes"),
+        ("open_timer", "Open Timer & Stopwatch"),
+        ("screenshot", "Capture Page Screenshot"),
+        ("mute_tab", "Mute / Unmute Current Tab"),
+        ("open_settings", "Open Settings")
+    };
+
+    private static readonly HashSet<string> ReservedGestures = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "Ctrl+R", "Ctrl+T", "Ctrl+Tab", "Ctrl+W", "Ctrl+H",
+        "Ctrl+Shift+F", "Ctrl+Shift+T",
+        "Ctrl+D0", "Ctrl+D1", "Ctrl+D2", "Ctrl+D3", "Ctrl+D4", "Ctrl+D5", "Ctrl+D6", "Ctrl+D7", "Ctrl+D8", "Ctrl+D9",
+        "Ctrl+OemPlus", "Ctrl+OemMinus",
+        "F5", "F12"
+    };
+
+    private static bool TryParseKeyName(string name, out Key key)
+    {
+        key = Key.None;
+        if (string.IsNullOrWhiteSpace(name)) return false;
+        name = name.Trim();
+        if (name.Length == 1 && char.IsDigit(name[0])) name = "D" + name;
+        if (char.IsDigit(name[0])) return false;
+        if (!Enum.TryParse(name, true, out key)) return false;
+        return key != Key.None && Enum.IsDefined(typeof(Key), key);
+    }
+
+    public static bool TryNormalizeGesture(string? gesture, out string normalized, out string error)
+    {
+        normalized = "";
+        error = "";
+        if (string.IsNullOrWhiteSpace(gesture)) return true;
+
+        var parts = gesture.Split('+', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        bool ctrl = false, shift = false;
+        string? keyName = null;
+
+        foreach (var p in parts)
+        {
+            if (p.Equals("Ctrl", StringComparison.OrdinalIgnoreCase) || p.Equals("Control", StringComparison.OrdinalIgnoreCase))
+                ctrl = true;
+            else if (p.Equals("Shift", StringComparison.OrdinalIgnoreCase))
+                shift = true;
+            else if (p.Equals("Alt", StringComparison.OrdinalIgnoreCase))
+            {
+                error = "Alt combinations are not supported. Use Ctrl, Ctrl+Shift or a function key.";
+                return false;
+            }
+            else
+            {
+                if (keyName != null)
+                {
+                    error = "Only one key is allowed after the modifiers.";
+                    return false;
+                }
+                keyName = p;
+            }
+        }
+
+        if (keyName == null)
+        {
+            error = "Missing key. Example: Ctrl+Shift+K";
+            return false;
+        }
+
+        if (!TryParseKeyName(keyName, out var key))
+        {
+            error = $"Unknown key \"{keyName}\". Example: Ctrl+Shift+K";
+            return false;
+        }
+
+        bool isFunctionKey = key >= Key.F1 && key <= Key.F24;
+        if (!ctrl && !isFunctionKey)
+        {
+            error = "Start with Ctrl (or use a function key) so normal typing is not hijacked.";
+            return false;
+        }
+
+        normalized = (ctrl ? "Ctrl+" : "") + (shift ? "Shift+" : "") + key;
+        return true;
+    }
+
+    public static string? ValidateGesture(string? gesture, string? excludeId, out string normalized)
+    {
+        if (!TryNormalizeGesture(gesture, out normalized, out var error)) return error;
+        if (normalized.Length == 0) return null;
+
+        if (ReservedGestures.Contains(normalized))
+            return $"{normalized} is already used by the browser.";
+
+        lock (_lock)
+        {
+            foreach (var s in _shortcuts)
+            {
+                if (s.Id == excludeId || string.IsNullOrWhiteSpace(s.KeyGesture)) continue;
+                string other = TryNormalizeGesture(s.KeyGesture, out var n, out _) && n.Length > 0 ? n : s.KeyGesture.Trim();
+                if (string.Equals(other, normalized, StringComparison.OrdinalIgnoreCase))
+                    return $"{normalized} is already used by \"{s.Title}\".";
+            }
+        }
+
+        return null;
     }
 
     public static List<CustomShortcut> GetDefaultShortcuts()
@@ -304,14 +431,62 @@ public static class CustomShortcutService
             },
             new CustomShortcut
             {
-                Id = "cmd_split_view",
-                Title = "Split View (Dual Tab)",
-                Description = "View two tabs side-by-side simultaneously",
-                Icon = "\u25A6",
+                Id = "cmd_new_tab",
+                Title = "New Tab",
+                Description = "Open a blank new tab",
+                Icon = "\u2795",
                 Category = "Action",
                 ActionType = ShortcutActionType.BrowserCommand,
-                Payload = "split_view",
-                Keywords = "split view dual side side side-by-side two tabs",
+                Payload = "new_tab",
+                Keywords = "new tab blank open create",
+                IsBuiltIn = true
+            },
+            new CustomShortcut
+            {
+                Id = "cmd_close_tab",
+                Title = "Close Tab",
+                Description = "Close the current tab",
+                Icon = "\u2716",
+                Category = "Action",
+                ActionType = ShortcutActionType.BrowserCommand,
+                Payload = "close_tab",
+                Keywords = "close tab remove exit",
+                IsBuiltIn = true
+            },
+            new CustomShortcut
+            {
+                Id = "cmd_reopen_tab",
+                Title = "Reopen Closed Tab",
+                Description = "Restore the most recently closed tab",
+                Icon = "\u21A9",
+                Category = "Action",
+                ActionType = ShortcutActionType.BrowserCommand,
+                Payload = "reopen_closed_tab",
+                Keywords = "reopen restore undo closed tab recent",
+                IsBuiltIn = true
+            },
+            new CustomShortcut
+            {
+                Id = "cmd_open_utilities",
+                Title = "Open Utilities",
+                Description = "Open the sidebar utilities tab",
+                Icon = "\U0001F9F0",
+                Category = "Tool",
+                ActionType = ShortcutActionType.BrowserCommand,
+                Payload = "open_utilities",
+                Keywords = "utilities tools sidebar panel",
+                IsBuiltIn = true
+            },
+            new CustomShortcut
+            {
+                Id = "cmd_open_settings",
+                Title = "Open Settings",
+                Description = "Open the browser settings window",
+                Icon = "\u2699",
+                Category = "Action",
+                ActionType = ShortcutActionType.BrowserCommand,
+                Payload = "open_settings",
+                Keywords = "settings preferences options configure",
                 IsBuiltIn = true
             },
             new CustomShortcut
@@ -457,7 +632,7 @@ public static class CustomShortcutService
         if (reqCtrl != ctrl || reqShift != shift || reqAlt != alt)
             return false;
 
-        if (Enum.TryParse<Key>(keyName, true, out var parsedKey))
+        if (TryParseKeyName(keyName, out var parsedKey))
         {
             return parsedKey == key;
         }

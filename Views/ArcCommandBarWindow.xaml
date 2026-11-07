@@ -8,108 +8,81 @@
         KeyDown="Window_KeyDown"
         Deactivated="Window_Deactivated">
 
-    <Grid x:Name="OuterGrid" Margin="24">
-        <!-- Drop Shadow Caster -->
-        <Border CornerRadius="16" Background="#01000000" IsHitTestVisible="False">
-            <Border.Effect>
-                <DropShadowEffect BlurRadius="28" ShadowDepth="6" Opacity="0.65" Color="#000000"/>
-            </Border.Effect>
-        </Border>
-
-        <!-- Frosted Glass Command Bar Card -->
-        <Border x:Name="CardBorder" CornerRadius="16" BorderThickness="1" ClipToBounds="True">
-            <Border.BorderBrush>
-                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                    <GradientStop Color="#70FFFFFF" Offset="0.0"/>
-                    <GradientStop Color="#25FFFFFF" Offset="0.35"/>
-                    <GradientStop Color="#10FFFFFF" Offset="1.0"/>
-                </LinearGradientBrush>
-            </Border.BorderBrush>
-            <Border.Background>
-                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                    <GradientStop Color="#F0131722" Offset="0.0"/>
-                    <GradientStop Color="#F60F121B" Offset="0.6"/>
-                    <GradientStop Color="#FA0A0C12" Offset="1.0"/>
-                </LinearGradientBrush>
-            </Border.Background>
+    <Grid x:Name="OuterGrid" Margin="0">
+        <Grid x:Name="CardClipHost">
+            <Border x:Name="CardBaseBg" CornerRadius="16" Background="{DynamicResource Brush_SurfaceCard}" IsHitTestVisible="False"/>
+            <Grid x:Name="GlassBackdropHost" IsHitTestVisible="False" ClipToBounds="True"/>
 
             <Grid>
-                <!-- Specular top glare line -->
-                <Rectangle Height="1" VerticalAlignment="Top" Margin="16,0,16,0" IsHitTestVisible="False">
-                    <Rectangle.Fill>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                            <GradientStop Color="#00FFFFFF" Offset="0.0"/>
-                            <GradientStop Color="#60FFFFFF" Offset="0.3"/>
-                            <GradientStop Color="#80FFFFFF" Offset="0.5"/>
-                            <GradientStop Color="#60FFFFFF" Offset="0.7"/>
-                            <GradientStop Color="#00FFFFFF" Offset="1.0"/>
-                        </LinearGradientBrush>
-                    </Rectangle.Fill>
-                </Rectangle>
-
                 <DockPanel LastChildFill="True">
                     <!-- Top Search Input Bar (Arc Style) -->
-                    <Border DockPanel.Dock="Top" Height="56" Padding="18,0,18,0">
+                    <Border DockPanel.Dock="Top" Height="56" Padding="18,0,18,0" MouseLeftButtonDown="DragArea_MouseLeftButtonDown" Background="{DynamicResource Brush_SurfaceChrome}" BorderBrush="{DynamicResource Brush_SurfaceChromeStroke}" BorderThickness="0,0,0,1" CornerRadius="16,16,0,0">
                         <Grid VerticalAlignment="Center">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
 
                             <!-- Magnifying Glass Icon -->
-                            <TextBlock Grid.Column="0" Text="&#x1F50D;" FontSize="15" Foreground="#8E9297"
+                            <TextBlock Grid.Column="0" Text="&#x1F50D;" FontSize="15" Foreground="{DynamicResource Brush_MutedText}"
                                        VerticalAlignment="Center" Margin="0,0,12,0"/>
 
                             <!-- Search Input Box & Placeholder -->
                             <Grid Grid.Column="1" VerticalAlignment="Center">
                                 <TextBlock x:Name="TxtPlaceholder" Text="Search or Enter URL, command, or script..."
-                                           Foreground="#60FFFFFF" FontSize="14.5" FontFamily="Segoe UI"
+                                           Foreground="{DynamicResource Brush_MutedText}" FontSize="14.5" FontFamily="Segoe UI"
                                            VerticalAlignment="Center" IsHitTestVisible="False" Margin="2,0,0,0"/>
                                 <TextBox x:Name="TxtSearch" Background="Transparent" BorderThickness="0"
-                                         Foreground="White" FontSize="14.5" FontFamily="Segoe UI"
-                                         CaretBrush="#00E5FF" VerticalAlignment="Center"
+                                         Foreground="{DynamicResource Brush_Text}" FontSize="14.5" FontFamily="Segoe UI"
+                                         CaretBrush="{DynamicResource Brush_Text}" VerticalAlignment="Center"
                                          TextChanged="TxtSearch_TextChanged"
                                          PreviewKeyDown="TxtSearch_PreviewKeyDown"/>
                             </Grid>
 
                             <!-- Clear Button -->
                             <Border x:Name="BtnClear" Grid.Column="2" Width="20" Height="20" CornerRadius="10"
-                                    Background="#20FFFFFF" Cursor="Hand" Margin="0,0,10,0"
+                                    Background="{DynamicResource Brush_SurfaceField}" Cursor="Hand" Margin="0,0,10,0"
                                     Visibility="Collapsed" MouseLeftButtonUp="BtnClear_Click">
-                                <TextBlock Text="&#x2715;" FontSize="9.5" Foreground="#BBB" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <TextBlock Text="&#x2715;" FontSize="9.5" Foreground="{DynamicResource Brush_SoftText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
 
                             <!-- + New Shortcut Button -->
                             <Border x:Name="BtnNewShortcut" Grid.Column="3" Height="26" CornerRadius="13"
-                                    Background="#2000E5FF" BorderBrush="#5000E5FF" BorderThickness="1"
+                                    Background="{DynamicResource Brush_SurfaceField}" BorderBrush="{DynamicResource Brush_Accent}" BorderThickness="1"
                                     Padding="10,0" Cursor="Hand" MouseLeftButtonUp="BtnNewShortcut_Click"
                                     ToolTip="Create Custom Shortcut or Script">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <TextBlock Text="+" FontSize="13" FontWeight="Bold" Foreground="#00E5FF" Margin="0,0,5,-1"/>
-                                    <TextBlock Text="Shortcut" FontSize="11" FontWeight="SemiBold" Foreground="#00E5FF"/>
+                                    <TextBlock Text="+" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource Brush_Accent}" Margin="0,0,5,-1"/>
+                                    <TextBlock Text="Shortcut" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource Brush_Accent}"/>
                                 </StackPanel>
+                            </Border>
+
+                            <!-- Manage Shortcuts Button -->
+                            <Border x:Name="BtnManage" Grid.Column="4" Height="26" CornerRadius="13"
+                                    Background="{DynamicResource Brush_SurfaceField}" BorderBrush="{DynamicResource Brush_SurfaceFieldStroke}" BorderThickness="1"
+                                    Padding="10,0" Margin="6,0,0,0" Cursor="Hand" MouseLeftButtonUp="BtnManage_Click"
+                                    ToolTip="Edit, disable or delete shortcuts">
+                                <TextBlock Text="Manage" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource Brush_SoftText}" VerticalAlignment="Center"/>
                             </Border>
                         </Grid>
                     </Border>
 
-                    <!-- Divider Line -->
-                    <Rectangle DockPanel.Dock="Top" Height="1" Fill="#1EFFFFFF"/>
-
                     <!-- Bottom Status Bar -->
-                    <Border DockPanel.Dock="Bottom" Height="34" Background="#10FFFFFF" BorderBrush="#15FFFFFF" BorderThickness="0,1,0,0" Padding="18,0">
+                    <Border DockPanel.Dock="Bottom" Height="34" MouseLeftButtonDown="DragArea_MouseLeftButtonDown" Background="{DynamicResource Brush_SurfaceChrome}" BorderBrush="{DynamicResource Brush_SurfaceChromeStroke}" BorderThickness="0,1,0,0" CornerRadius="0,0,16,16" Padding="18,0">
                         <Grid VerticalAlignment="Center">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                                <TextBlock Text="&#x2191;&#x2193; Navigate" FontSize="11" Foreground="#70FFFFFF" Margin="0,0,14,0"/>
-                                <TextBlock Text="&#x21B5; Execute / Open" FontSize="11" Foreground="#70FFFFFF" Margin="0,0,14,0"/>
-                                <TextBlock Text="Esc Dismiss" FontSize="11" Foreground="#70FFFFFF"/>
+                                <TextBlock Text="&#x2191;&#x2193; Navigate" FontSize="11" Foreground="{DynamicResource Brush_MutedText}" Margin="0,0,14,0"/>
+                                <TextBlock Text="&#x21B5; Execute / Open" FontSize="11" Foreground="{DynamicResource Brush_MutedText}" Margin="0,0,14,0"/>
+                                <TextBlock Text="Esc Dismiss" FontSize="11" Foreground="{DynamicResource Brush_MutedText}"/>
                             </StackPanel>
-                            <TextBlock Grid.Column="1" Text="Arc Command Bar" FontSize="11" FontWeight="SemiBold" Foreground="#4000E5FF"/>
+                            <TextBlock Grid.Column="1" Text="Arc Command Bar" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource Brush_Accent}"/>
                         </Grid>
                     </Border>
 
@@ -121,7 +94,17 @@
                                  ScrollViewer.VerticalScrollBarVisibility="Auto"
                                  Padding="8,8"
                                  SelectionChanged="ListResults_SelectionChanged"
-                                 MouseDoubleClick="ListResults_MouseDoubleClick">
+                                 PreviewMouseLeftButtonUp="ListResults_PreviewMouseLeftButtonUp">
+                            <ListBox.GroupStyle>
+                                <GroupStyle>
+                                    <GroupStyle.HeaderTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Name}" FontSize="10.5" FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource Brush_MutedText}" Margin="12,8,0,2"/>
+                                        </DataTemplate>
+                                    </GroupStyle.HeaderTemplate>
+                                </GroupStyle>
+                            </ListBox.GroupStyle>
                             <ListBox.ItemContainerStyle>
                                 <Style TargetType="ListBoxItem">
                                     <Setter Property="Background" Value="Transparent"/>
@@ -142,12 +125,12 @@
                                                 </Border>
                                                 <ControlTemplate.Triggers>
                                                     <Trigger Property="IsMouseOver" Value="True">
-                                                        <Setter TargetName="ItemBorder" Property="Background" Value="#1AFFFFFF"/>
-                                                        <Setter TargetName="ItemBorder" Property="BorderBrush" Value="#25FFFFFF"/>
+                                                        <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource Brush_SurfaceChrome}"/>
+                                                        <Setter TargetName="ItemBorder" Property="BorderBrush" Value="{DynamicResource Brush_SurfaceFieldStroke}"/>
                                                     </Trigger>
                                                     <Trigger Property="IsSelected" Value="True">
-                                                        <Setter TargetName="ItemBorder" Property="Background" Value="#2600E5FF"/>
-                                                        <Setter TargetName="ItemBorder" Property="BorderBrush" Value="#6600E5FF"/>
+                                                        <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource Brush_SurfaceField}"/>
+                                                        <Setter TargetName="ItemBorder" Property="BorderBrush" Value="{DynamicResource Brush_Accent}"/>
                                                     </Trigger>
                                                 </ControlTemplate.Triggers>
                                             </ControlTemplate>
@@ -167,7 +150,7 @@
 
                                         <!-- Icon Container -->
                                         <Border Grid.Column="0" Width="26" Height="26" CornerRadius="6"
-                                                Background="#18FFFFFF" BorderBrush="#20FFFFFF" BorderThickness="1"
+                                                Background="{DynamicResource Brush_SurfaceChrome}" BorderBrush="{DynamicResource Brush_SurfaceFieldStroke}" BorderThickness="1"
                                                 HorizontalAlignment="Left" VerticalAlignment="Center">
                                             <TextBlock Text="{Binding DisplayIcon}" FontSize="13"
                                                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -175,25 +158,25 @@
 
                                         <!-- Title and Description Stack -->
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="8,0,10,0">
-                                            <TextBlock Text="{Binding Title}" Foreground="White" FontSize="13"
+                                            <TextBlock Text="{Binding Title}" Foreground="{DynamicResource Brush_Text}" FontSize="13"
                                                        FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
-                                            <TextBlock Text="{Binding Subtitle}" Foreground="#8E9297" FontSize="11"
+                                            <TextBlock Text="{Binding Subtitle}" Foreground="{DynamicResource Brush_MutedText}" FontSize="11"
                                                        Margin="0,1,0,0" TextTrimming="CharacterEllipsis"/>
                                         </StackPanel>
 
                                         <!-- Action Hint / Tag / Hotkey -->
                                         <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                                             <!-- Hotkey badge if any -->
-                                            <Border CornerRadius="4" Background="#20FFFFFF" Padding="6,2" Margin="0,0,8,0"
+                                            <Border CornerRadius="4" Background="{DynamicResource Brush_SurfaceField}" Padding="6,2" Margin="0,0,8,0"
                                                     Visibility="{Binding KeyGestureVisibility}">
                                                 <TextBlock Text="{Binding KeyGesture}" FontSize="10.5" FontFamily="Segoe UI"
-                                                           FontWeight="SemiBold" Foreground="#00E5FF"/>
+                                                           FontWeight="SemiBold" Foreground="{DynamicResource Brush_Accent}"/>
                                             </Border>
                                             <!-- Action Arrow Hint (Arc style: Learning Arc ->) -->
-                                            <Border CornerRadius="6" Background="#12FFFFFF" Padding="8,3">
+                                            <Border CornerRadius="6" Background="{DynamicResource Brush_SurfaceChrome}" Padding="8,3">
                                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                    <TextBlock Text="{Binding ActionHint}" FontSize="10.5" Foreground="#BBB" Margin="0,0,4,0"/>
-                                                    <TextBlock Text="&#x2192;" FontSize="11" Foreground="#00E5FF"/>
+                                                    <TextBlock Text="{Binding ActionHint}" FontSize="10.5" Foreground="{DynamicResource Brush_SoftText}" Margin="0,0,4,0"/>
+                                                    <TextBlock Text="&#x2192;" FontSize="11" Foreground="{DynamicResource Brush_Accent}"/>
                                                 </StackPanel>
                                             </Border>
                                         </StackPanel>
@@ -203,7 +186,7 @@
                         </ListBox>
 
                         <!-- Inline Custom Shortcut / Script Creator Drawer -->
-                        <Border x:Name="PnlNewShortcut" Background="#F00E1119" BorderBrush="#30FFFFFF" BorderThickness="0,1,0,0"
+                        <Border x:Name="PnlNewShortcut" Background="{DynamicResource Brush_SurfaceCard}" BorderBrush="{DynamicResource Brush_SurfaceChromeStroke}" BorderThickness="0,1,0,0"
                                 Padding="20,16" Visibility="Collapsed">
                             <ScrollViewer VerticalScrollBarVisibility="Auto">
                                 <StackPanel>
@@ -213,11 +196,11 @@
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <StackPanel Grid.Column="0">
-                                            <TextBlock Text="Create Custom Shortcut &amp; Script" FontSize="14.5" FontWeight="Bold" Foreground="White"/>
-                                            <TextBlock Text="Define a custom action, URL template, or JavaScript to run on active tabs." FontSize="11.5" Foreground="#8E9297" Margin="0,2,0,0"/>
+                                            <TextBlock x:Name="TxtNewHeader" Text="Create Custom Shortcut &amp; Script" FontSize="14.5" FontWeight="Bold" Foreground="{DynamicResource Brush_Text}"/>
+                                            <TextBlock Text="Define a custom action, URL template, or JavaScript to run on active tabs." FontSize="11.5" Foreground="{DynamicResource Brush_MutedText}" Margin="0,2,0,0"/>
                                         </StackPanel>
-                                        <Border Grid.Column="1" Width="24" Height="24" CornerRadius="12" Background="#20FFFFFF" Cursor="Hand" MouseLeftButtonUp="BtnCloseNewShortcut_Click">
-                                            <TextBlock Text="&#x2715;" FontSize="10.5" Foreground="#CCC" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <Border Grid.Column="1" Width="24" Height="24" CornerRadius="12" Background="{DynamicResource Brush_SurfaceField}" Cursor="Hand" MouseLeftButtonUp="BtnCloseNewShortcut_Click">
+                                            <TextBlock Text="&#x2715;" FontSize="10.5" Foreground="{DynamicResource Brush_SoftText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         </Border>
                                     </Grid>
 
@@ -228,12 +211,12 @@
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
                                         <StackPanel Grid.Column="0" Margin="0,0,8,0">
-                                            <TextBlock Text="Icon" FontSize="11" Foreground="#AAA" Margin="0,0,0,4"/>
-                                            <TextBox x:Name="TxtNewIcon" Text="&#x26A1;" Background="#161A24" BorderBrush="#35FFFFFF" Foreground="White" Height="30" FontSize="14" HorizontalContentAlignment="Center"/>
+                                            <TextBlock Text="Icon" FontSize="11" Foreground="{DynamicResource Brush_MutedText}" Margin="0,0,0,4"/>
+                                            <TextBox x:Name="TxtNewIcon" Text="&#x26A1;" Background="{DynamicResource Brush_SurfaceField}" BorderBrush="{DynamicResource Brush_SurfaceFieldStroke}" Foreground="{DynamicResource Brush_Text}" Height="30" FontSize="14" HorizontalContentAlignment="Center"/>
                                         </StackPanel>
                                         <StackPanel Grid.Column="1">
-                                            <TextBlock Text="Title" FontSize="11" Foreground="#AAA" Margin="0,0,0,4"/>
-                                            <TextBox x:Name="TxtNewTitle" Background="#161A24" BorderBrush="#35FFFFFF" Foreground="White" Height="30" FontSize="12.5" Padding="8,4"/>
+                                            <TextBlock Text="Title" FontSize="11" Foreground="{DynamicResource Brush_MutedText}" Margin="0,0,0,4"/>
+                                            <TextBox x:Name="TxtNewTitle" Background="{DynamicResource Brush_SurfaceField}" BorderBrush="{DynamicResource Brush_SurfaceFieldStroke}" Foreground="{DynamicResource Brush_Text}" Height="30" FontSize="12.5" Padding="8,4"/>
                                         </StackPanel>
                                     </Grid>
 
@@ -244,41 +227,120 @@
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
                                         <StackPanel Grid.Column="0" Margin="0,0,8,0">
-                                            <TextBlock Text="Action Type" FontSize="11" Foreground="#AAA" Margin="0,0,0,4"/>
-                                            <ComboBox x:Name="CmbNewActionType" Height="30" Background="#161A24" Foreground="White" SelectionChanged="CmbNewActionType_SelectionChanged">
+                                            <TextBlock Text="Action Type" FontSize="11" Foreground="{DynamicResource Brush_MutedText}" Margin="0,0,0,4"/>
+                                            <ComboBox x:Name="CmbNewActionType" Height="30" Background="{DynamicResource Brush_SurfaceField}" Foreground="{DynamicResource Brush_Text}" SelectionChanged="CmbNewActionType_SelectionChanged">
                                                 <ComboBoxItem Content="Run JavaScript on Tab (Script)" IsSelected="True"/>
                                                 <ComboBoxItem Content="Open Web URL Template (Url)"/>
+                                                <ComboBoxItem Content="Run Browser Command (Command)"/>
                                             </ComboBox>
                                         </StackPanel>
                                         <StackPanel Grid.Column="1">
-                                            <TextBlock Text="Hotkey Gesture (e.g. Ctrl+Shift+K)" FontSize="11" Foreground="#AAA" Margin="0,0,0,4"/>
-                                            <TextBox x:Name="TxtNewHotkey" Background="#161A24" BorderBrush="#35FFFFFF" Foreground="White" Height="30" FontSize="12.5" Padding="8,4"/>
+                                            <TextBlock Text="Hotkey (start with Ctrl, e.g. Ctrl+Shift+K)" FontSize="11" Foreground="{DynamicResource Brush_MutedText}" Margin="0,0,0,4"/>
+                                            <TextBox x:Name="TxtNewHotkey" Background="{DynamicResource Brush_SurfaceField}" BorderBrush="{DynamicResource Brush_SurfaceFieldStroke}" Foreground="{DynamicResource Brush_Text}" Height="30" FontSize="12.5" Padding="8,4"/>
                                         </StackPanel>
                                     </Grid>
 
                                     <!-- Payload / Script Editor -->
-                                    <StackPanel Margin="0,0,0,14">
-                                        <TextBlock x:Name="LblNewPayload" Text="JavaScript Code (Executes on current active tab):" FontSize="11" Foreground="#AAA" Margin="0,0,0,4"/>
-                                        <TextBox x:Name="TxtNewPayload" Background="#141720" BorderBrush="#35FFFFFF" Foreground="#00E5FF"
+                                    <StackPanel x:Name="PnlNewPayload" Margin="0,0,0,14">
+                                        <TextBlock x:Name="LblNewPayload" Text="JavaScript Code (Executes on current active tab):" FontSize="11" Foreground="{DynamicResource Brush_MutedText}" Margin="0,0,0,4"/>
+                                        <TextBox x:Name="TxtNewPayload" Background="{DynamicResource Brush_SurfaceField}" BorderBrush="{DynamicResource Brush_SurfaceFieldStroke}" Foreground="{DynamicResource Brush_Text}"
                                                  FontFamily="Consolas" FontSize="12" Height="100" TextWrapping="Wrap" AcceptsReturn="True"
                                                  VerticalScrollBarVisibility="Auto" Padding="10"/>
                                     </StackPanel>
 
+                                    <StackPanel x:Name="PnlNewCommand" Margin="0,0,0,14" Visibility="Collapsed">
+                                        <TextBlock Text="Browser Command" FontSize="11" Foreground="{DynamicResource Brush_MutedText}" Margin="0,0,0,4"/>
+                                        <ComboBox x:Name="CmbNewCommand" Height="30" Background="{DynamicResource Brush_SurfaceField}" Foreground="{DynamicResource Brush_Text}"/>
+                                    </StackPanel>
+
+                                    <TextBlock x:Name="TxtNewError" Foreground="#FF7777" FontSize="11.5" TextWrapping="Wrap"
+                                               Margin="0,0,0,10" Visibility="Collapsed"/>
+
                                     <!-- Buttons -->
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                                        <Border Height="30" CornerRadius="6" Background="#20FFFFFF" Padding="14,0" Cursor="Hand" Margin="0,0,8,0" MouseLeftButtonUp="BtnCloseNewShortcut_Click">
-                                            <TextBlock Text="Cancel" FontSize="12" Foreground="#CCC" VerticalAlignment="Center"/>
+                                        <Border Height="30" CornerRadius="6" Background="{DynamicResource Brush_SurfaceField}" Padding="14,0" Cursor="Hand" Margin="0,0,8,0" MouseLeftButtonUp="BtnCloseNewShortcut_Click">
+                                            <TextBlock Text="Cancel" FontSize="12" Foreground="{DynamicResource Brush_SoftText}" VerticalAlignment="Center"/>
                                         </Border>
-                                        <Border Height="30" CornerRadius="6" Background="#00E5FF" Padding="16,0" Cursor="Hand" MouseLeftButtonUp="BtnSaveNewShortcut_Click">
-                                            <TextBlock Text="Save Shortcut" FontSize="12" FontWeight="Bold" Foreground="#0A0C12" VerticalAlignment="Center"/>
+                                        <Border Height="30" CornerRadius="6" Background="{DynamicResource Brush_Accent}" Padding="16,0" Cursor="Hand" MouseLeftButtonUp="BtnSaveNewShortcut_Click">
+                                            <TextBlock x:Name="TxtSaveLabel" Text="Save Shortcut" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource Brush_OnAccent}" VerticalAlignment="Center"/>
                                         </Border>
                                     </StackPanel>
                                 </StackPanel>
                             </ScrollViewer>
                         </Border>
+
+                        <!-- Manage Shortcuts Panel -->
+                        <Border x:Name="PnlManage" Background="{DynamicResource Brush_SurfaceCard}" BorderBrush="{DynamicResource Brush_SurfaceChromeStroke}" BorderThickness="0,1,0,0"
+                                Padding="20,16" Visibility="Collapsed">
+                            <DockPanel>
+                                <Grid DockPanel.Dock="Top" Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="Manage Shortcuts" FontSize="14.5" FontWeight="Bold" Foreground="{DynamicResource Brush_Text}"/>
+                                        <TextBlock Text="Enable, disable, edit or delete. Built-in shortcuts can only be disabled." FontSize="11.5" Foreground="{DynamicResource Brush_MutedText}" Margin="0,2,0,0"/>
+                                    </StackPanel>
+                                    <Border Grid.Column="1" Width="24" Height="24" CornerRadius="12" Background="{DynamicResource Brush_SurfaceField}" Cursor="Hand" MouseLeftButtonUp="BtnCloseManage_Click">
+                                        <TextBlock Text="&#x2715;" FontSize="10.5" Foreground="{DynamicResource Brush_SoftText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </Grid>
+                                <ListBox x:Name="ListManage" Background="Transparent" BorderThickness="0"
+                                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                         ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                    <ListBox.ItemContainerStyle>
+                                        <Style TargetType="ListBoxItem">
+                                            <Setter Property="Focusable" Value="False"/>
+                                            <Setter Property="Margin" Value="0,2"/>
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="ListBoxItem">
+                                                        <ContentPresenter/>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </ListBox.ItemContainerStyle>
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border CornerRadius="8" Background="{DynamicResource Brush_SurfaceChrome}" Padding="10,6">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="30"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <CheckBox Grid.Column="0" IsChecked="{Binding IsEnabled, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                                    <TextBlock Grid.Column="1" Text="{Binding Icon}" FontSize="14" VerticalAlignment="Center"/>
+                                                    <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="4,0,8,0">
+                                                        <TextBlock Text="{Binding Title}" Foreground="{DynamicResource Brush_Text}" FontSize="12.5" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                                        <TextBlock Text="{Binding Subtitle}" Foreground="{DynamicResource Brush_MutedText}" FontSize="10.5" TextTrimming="CharacterEllipsis"/>
+                                                    </StackPanel>
+                                                    <Border Grid.Column="3" CornerRadius="6" Background="{DynamicResource Brush_SurfaceField}" Padding="10,3" Margin="0,0,6,0"
+                                                            Cursor="Hand" Visibility="{Binding ManageVisibility}" MouseLeftButtonUp="BtnEditShortcut_Click">
+                                                        <TextBlock Text="Edit" FontSize="11" Foreground="{DynamicResource Brush_SoftText}"/>
+                                                    </Border>
+                                                    <Border Grid.Column="4" CornerRadius="6" Background="{DynamicResource Brush_SurfaceField}" Padding="10,3"
+                                                            Cursor="Hand" Visibility="{Binding ManageVisibility}" MouseLeftButtonUp="BtnDeleteShortcut_Click">
+                                                        <TextBlock Text="Delete" FontSize="11" Foreground="#FF7777"/>
+                                                    </Border>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </DockPanel>
+                        </Border>
                     </Grid>
                 </DockPanel>
             </Grid>
-        </Border>
+        </Grid>
+
+        <Border x:Name="CardOuterBorder" CornerRadius="16"
+                BorderBrush="#33FFFFFF" BorderThickness="1"
+                IsHitTestVisible="False"/>
     </Grid>
 </Window>
