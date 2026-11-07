@@ -100,6 +100,7 @@ public partial class ArcCommandBarWindow : Window
     private string? _editingShortcutId;
     private bool _returnToManage;
     private string? _pendingDeleteId;
+    private string? _urlWarnedPayload;
 
     public ArcCommandBarWindow(MainWindow mainWindow)
     {
@@ -690,6 +691,7 @@ public partial class ArcCommandBarWindow : Window
     private void ResetNewShortcutForm()
     {
         _editingShortcutId = null;
+        _urlWarnedPayload = null;
         TxtNewHeader.Text = "Create Custom Shortcut & Script";
         TxtSaveLabel.Text = "Save Shortcut";
         TxtNewIcon.Text = "\u26A1";
@@ -869,6 +871,13 @@ public partial class ArcCommandBarWindow : Window
         if (typeIndex == 1 && (!IsHttpUrl(payload) || payload.Length <= "https://".Length))
         {
             ShowNewShortcutError("The URL template must start with http:// or https:// and contain an address.");
+            return;
+        }
+
+        if (typeIndex == 1 && !payload.Contains("{query}") && _urlWarnedPayload != payload)
+        {
+            _urlWarnedPayload = payload;
+            ShowNewShortcutError("This URL has no {query}, so text typed in the command bar will be ignored. Click save again to keep it as is.");
             return;
         }
 

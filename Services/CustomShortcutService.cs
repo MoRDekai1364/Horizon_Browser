@@ -122,10 +122,7 @@ public static class CustomShortcutService
         return changed;
     }
 
-    private static readonly HashSet<string> RetiredBuiltInIds = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "cmd_split_view"
-    };
+    private static readonly HashSet<string> RetiredBuiltInIds = new(StringComparer.OrdinalIgnoreCase);
 
     private static bool RemoveRetiredBuiltIns()
     {
@@ -134,6 +131,8 @@ public static class CustomShortcutService
 
     public static readonly (string Command, string Label)[] KnownBrowserCommands =
     {
+        ("split_view", "Split View (Toggle)"),
+        ("close_split_view", "Close Split View"),
         ("new_tab", "New Tab"),
         ("close_tab", "Close Tab"),
         ("reopen_closed_tab", "Reopen Closed Tab"),
@@ -427,6 +426,19 @@ public static class CustomShortcutService
                 ActionType = ShortcutActionType.BrowserCommand,
                 Payload = "toggle_mini_mode",
                 Keywords = "mini mode rail compact 52px slim",
+                IsBuiltIn = true
+            },
+            new CustomShortcut
+            {
+                Id = "cmd_split_view",
+                Title = "Split View",
+                Description = "Show two tabs side by side, or close the split",
+                Icon = "\u25EB",
+                Category = "Action",
+                ActionType = ShortcutActionType.BrowserCommand,
+                Payload = "split_view",
+                KeyGesture = "Ctrl+Shift+S",
+                Keywords = "split view dual tab side by side snap two pages",
                 IsBuiltIn = true
             },
             new CustomShortcut

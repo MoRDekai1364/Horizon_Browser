@@ -1061,6 +1061,7 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
         ChkDisableBlur.IsChecked = s.DisableBlurEffects;
         ChkTabSwitcherGrid.IsChecked = s.TabSwitcherGridMode;
         ChkCompactTabs.IsChecked = s.CompactTabsEnabled;
+        CboSplitPickMode.SelectedIndex = s.SplitViewPickMode == 2 ? 1 : 0;
         SliderCompactHoverDelay.Value = Math.Clamp(s.CompactTabHoverDelayMs, 0, 500);
         TblCompactHoverDelayValue.Text = $"{(int)SliderCompactHoverDelay.Value} ms";
         ChkStartupVideo.IsChecked = s.ShowStartupVideo;
@@ -1356,6 +1357,7 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
         s.DisableBlurEffects   = ChkDisableBlur.IsChecked == true;
         s.TabSwitcherGridMode  = ChkTabSwitcherGrid.IsChecked == true;
         s.CompactTabsEnabled   = ChkCompactTabs.IsChecked == true;
+        s.SplitViewPickMode    = CboSplitPickMode.SelectedIndex == 1 ? 2 : 1;
         s.CompactTabHoverDelayMs = (int)SliderCompactHoverDelay.Value;
         Horizon.Stealth.Controls.HomeGlassMotion.RaiseBlurSettingChanged();
 

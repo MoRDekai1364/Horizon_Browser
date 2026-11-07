@@ -8822,7 +8822,7 @@ return colors.length > 0 ? colors : null;
 
 
 
-            if (_activeTabView != null) _activeTabView.Visibility = Visibility.Collapsed;
+            if (_activeTabView != null && !SplitViewPrepareSwitch(selectedTab)) _activeTabView.Visibility = Visibility.Collapsed;
 
 
 
@@ -9003,6 +9003,7 @@ return colors.length > 0 ? colors : null;
 
 
         if (_closingTabs.Contains(tabToClose)) return;
+        SplitViewOnTabClosing(tabToClose);
 
 
 
@@ -20422,6 +20423,7 @@ return colors.length > 0 ? colors : null;
 
 
 
+        if (on) ExitSplitView();
         RequestFullscreen(on);
 
 
@@ -46430,7 +46432,7 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
 
 
 
-        if (tab.IsSleeping || tab.NeverSleep) return;
+        if (tab.IsSleeping || tab.NeverSleep || SplitViewOwnsTab(tab)) return;
 
 
 

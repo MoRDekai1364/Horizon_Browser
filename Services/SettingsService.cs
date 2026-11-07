@@ -438,6 +438,8 @@ public class SettingsData
     public bool DisableBlurEffects           { get; set; } = false;
     public bool TabSwitcherGridMode          { get; set; } = false;
     public bool CompactTabsEnabled           { get; set; } = true;
+    public int  SplitViewPickMode            { get; set; } = 1;
+    public double SplitViewRatio             { get; set; } = 0.5;
     public int  CompactTabHoverDelayMs       { get; set; } = 80;
     public string HomeFontFamily            { get; set; } = "Segoe UI"; 
     public double HomeInactivityTimeoutSeconds { get; set; } = 15.0; 

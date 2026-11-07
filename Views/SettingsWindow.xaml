@@ -478,6 +478,15 @@
                                   Foreground="{StaticResource Brush_Text}" Margin="0,0,0,10"
                                   ToolTip="On by default. Applies the next time the tab bar re-lays out (resize, open or close a tab)."/>
 
+                        <TextBlock Text="Split View" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" Margin="0,10,0,5"/>
+                        <TextBlock Text="How the second tab is chosen when you start a split (Ctrl + Shift + S)." Foreground="#AAA" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,6"/>
+                        <ComboBox x:Name="CboSplitPickMode" Height="30" Margin="0,0,0,10"
+                                  local:SearchIndex.Label="Split View" local:SearchIndex.Description="Choose between picking the second tab from a list of thumbnails or automatically using the most recently used tab."
+                                  Foreground="{StaticResource Brush_Text}">
+                            <ComboBoxItem Content="Pick from a list (like Windows 11 Snap Assist)" Tag="1"/>
+                            <ComboBoxItem Content="Use the most recently used tab automatically" Tag="2"/>
+                        </ComboBox>
+
                         <TextBlock Text="Visualizer Color Scheme" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" Margin="0,10,0,5"/>
                         <TextBlock Text="Source used for tab colors when media is playing." Foreground="#AAA" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,6"/>
                         <ComboBox x:Name="CboVisualizerScheme" Height="30" Margin="0,0,0,6"
@@ -1112,6 +1121,14 @@
                                 <TextBlock Text="Ctrl + T" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" FontFamily="Consolas"/>
                             </Border>
                             <TextBlock Grid.Column="1" Text="Open new tab" Foreground="#DDD" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <Border Background="#1A1A1A" CornerRadius="3" Padding="8,4">
+                                <TextBlock Text="Ctrl + Shift + S" Foreground="{StaticResource Brush_Accent}" FontWeight="Bold" FontFamily="Consolas"/>
+                            </Border>
+                            <TextBlock Grid.Column="1" Text="Toggle Split View (two tabs side by side)" Foreground="#DDD" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
                         </Grid>
 
                         <Grid Margin="0,0,0,6">

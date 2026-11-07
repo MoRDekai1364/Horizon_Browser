@@ -19,6 +19,12 @@ public partial class MainWindow : Window
                 SettingsService.Save();
                 ApplySidebarMode();
                 break;
+            case "split_view":
+                ToggleSplitView();
+                break;
+            case "close_split_view":
+                ExitSplitView();
+                break;
             case "new_tab":
                 CreateNewTab();
                 break;
