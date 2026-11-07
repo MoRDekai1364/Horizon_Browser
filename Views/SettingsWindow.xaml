@@ -544,7 +544,9 @@
                                   Checked="ChkStartupVideo_Toggled" Unchecked="ChkStartupVideo_Toggled"
                                   ToolTip="Plays a video from start_videos\ before the browser window opens. Click, Esc, Space or Enter skips it."/>
 
-                        <StackPanel x:Name="PnlStartupVideoOptions" Margin="18,4,0,0">
+                        <Button x:Name="BtnManageMedia" Content="Manage Wallpapers &amp; Startup Video..." HorizontalAlignment="Left"
+                                Padding="10,4" Margin="0,2,0,6" Click="BtnManageMedia_Click"/>
+                        <StackPanel x:Name="PnlStartupVideoOptions" Margin="18,4,0,0" Visibility="Collapsed">
                             <Grid Margin="0,0,0,6">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>

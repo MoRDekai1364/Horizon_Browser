@@ -2180,6 +2180,16 @@ public partial class HomePageView : UserControl
 
 
     private static string ResolveWallpaperPath()
+    {
+        if (WallpaperResolver.UseLibrary)
+        {
+            string next = WallpaperResolver.ResolveNext();
+            if (!string.IsNullOrEmpty(next)) return next;
+        }
+        return ResolveWallpaperPathLegacy();
+    }
+
+    private static string ResolveWallpaperPathLegacy()
 
     {
 
@@ -2551,6 +2561,11 @@ public partial class HomePageView : UserControl
                 var s = SettingsService.Current;
 
                 var upcoming = new List<string>();
+                if (WallpaperResolver.UseLibrary)
+                {
+                    upcoming.AddRange(WallpaperResolver.PeekUpcoming(2));
+                }
+                else
 
 
 
@@ -2728,7 +2743,7 @@ public partial class HomePageView : UserControl
 
         {
 
-            if (_wallpaperBitmapCache.Count >= 8)
+            while (_wallpaperBitmapCache.Count > 0 && (_wallpaperBitmapCache.Count >= 8 || WallpaperResolver.CacheExceeds(_wallpaperBitmapCache.Values, display)))
 
             {
 
@@ -3071,7 +3086,9 @@ public partial class HomePageView : UserControl
 
             string path = "";
 
-            if (!string.IsNullOrEmpty(SettingsService.Current.WallpaperFileName))
+            if (WallpaperResolver.UseLibrary)
+                path = WallpaperResolver.ResolveStatic();
+            else if (!string.IsNullOrEmpty(SettingsService.Current.WallpaperFileName))
 
                 path = Path.Combine(folder, SettingsService.Current.WallpaperFileName);
 

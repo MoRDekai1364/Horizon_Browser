@@ -225,6 +225,12 @@ public partial class SettingsWindow : Window
                 s.StartupVideoOrder = oi.Tag?.ToString() ?? "Sequential";
         }
 
+        private void BtnManageMedia_Click(object sender, RoutedEventArgs e)
+        {
+            var mgr = new MediaManagerWindow { Owner = this, InitialKind = MediaKind.StartupVideo };
+            mgr.ShowDialog();
+        }
+
         private void ChkStartupVideo_Toggled(object sender, RoutedEventArgs e) => UpdateStartupVideoOptionsVisibility();
 
         private void VideoMode_Changed(object sender, RoutedEventArgs e)

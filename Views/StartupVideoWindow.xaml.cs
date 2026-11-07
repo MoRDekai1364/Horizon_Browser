@@ -109,6 +109,16 @@ public partial class StartupVideoWindow : Window
 
     private static string ResolveVideoPath()
     {
+        if (StartupVideoResolver.UseLibrary)
+        {
+            string next = StartupVideoResolver.ResolveNext();
+            if (!string.IsNullOrEmpty(next)) return next;
+        }
+        return ResolveVideoPathLegacy();
+    }
+
+    private static string ResolveVideoPathLegacy()
+    {
         var folder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "start_videos");
         var s = SettingsService.Current;
 

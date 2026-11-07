@@ -262,13 +262,27 @@
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
-            <TabItem Header="BACKGROUND">
+            <TabItem Header="BACKGROUND" Loaded="TabBackground_Loaded">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" PanningMode="VerticalOnly">
+                    <StackPanel Margin="10">
+                        <TextBlock Text="Wallpaper" Foreground="{DynamicResource Brush_Accent}" FontSize="13" Margin="0,0,0,6"/>
+                        <TextBlock x:Name="TblWallpaperSummary" Text="" Foreground="#888888" FontSize="11" Margin="0,0,0,12"
+                                   TextWrapping="Wrap" MaxWidth="440" HorizontalAlignment="Left"/>
+                        <Button x:Name="BtnOpenMediaManager" Content="Manage Wallpapers &amp; Startup Video..." Height="32" Padding="14,0"
+                                HorizontalAlignment="Left" Click="BtnManageWallpapers_Click"/>
+                        <TextBlock Text="Pick a single wallpaper or a rotation, add your own images, organize collections, and drag and drop images or folders."
+                                   Foreground="#888888" FontSize="10" TextWrapping="Wrap" MaxWidth="440" HorizontalAlignment="Left" Margin="0,10,0,0"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+            <TabItem Header="BACKGROUND (old)" Visibility="Collapsed">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" PanningMode="VerticalOnly">
                     <StackPanel Margin="10">
                         <TextBlock Text="Wallpaper" Foreground="{DynamicResource Brush_Accent}" FontSize="13" Margin="0,0,0,6"/>
                         <TextBlock x:Name="TblWallpaperFolderPath" Text="Default (app folder)" Foreground="#888888" FontSize="11"
                                    Margin="0,0,0,8" MaxWidth="440" TextTrimming="CharacterEllipsis"/>
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
+                            <Button x:Name="BtnManageWallpapers" Content="Manage Wallpapers..." Height="28" Padding="10,0" Margin="0,0,10,0" Click="BtnManageWallpapers_Click"/>
                             <Button x:Name="BtnOpenWallpaperFolder" Content="Open Wallpapers Folder" Height="28" Padding="10,0" Click="BtnOpenWallpaperFolder_Click"/>
                             <Button x:Name="BtnAddWallpaper" Content="Add Wallpaper..." Height="28" Padding="10,0" Margin="10,0,0,0" Click="BtnAddWallpaper_Click"/>
                             <Button x:Name="BtnChooseWallpaperFolder" Content="Choose Folder..." Height="28" Padding="10,0" Margin="10,0,0,0" Click="BtnChooseWallpaperFolder_Click"/>

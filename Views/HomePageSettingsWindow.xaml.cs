@@ -791,6 +791,34 @@ public partial class HomePageSettingsWindow : Window
         _loadingWallpaperUi = false;
     }
 
+    private void TabBackground_Loaded(object sender, RoutedEventArgs e) => UpdateWallpaperSummary();
+
+    private void UpdateWallpaperSummary()
+    {
+        var s = SettingsService.Current;
+        string order = s.WallpaperPlayOrder == MediaSource.Sequential ? "in order" : "shuffled";
+        string text;
+        if (!s.UseMediaLibrary)
+            text = "Using the built-in wallpaper rotation.";
+        else if (s.WallpaperSource == MediaSource.Single)
+            text = "Fixed wallpaper: " + s.WallpaperSingle.FileName;
+        else if (s.WallpaperSource == MediaSource.Selection)
+            text = $"Rotating {s.WallpaperSelection.Count} selected wallpapers ({order})";
+        else
+            text = (string.IsNullOrEmpty(s.WallpaperActiveCollection)
+                ? "Playing: Loose wallpapers"
+                : "Playing collection: " + s.WallpaperActiveCollection) + $" ({order})";
+        TblWallpaperSummary.Text = text;
+    }
+
+    private void BtnManageWallpapers_Click(object sender, RoutedEventArgs e)
+    {
+        var mgr = new MediaManagerWindow { Owner = this };
+        mgr.ShowDialog();
+        if (mgr.WallpaperChanged) WallpaperChanged = true;
+        UpdateWallpaperSummary();
+    }
+
     private void BtnOpenWallpaperFolder_Click(object sender, RoutedEventArgs e)
     {
         Directory.CreateDirectory(HomePageView.WallpaperFolder);

@@ -175,6 +175,8 @@ public partial class App : Application
             _ = HorizonEnvironment.InitializeAsync();
             GeoIpService.KickOffBackgroundRefresh();
             VpnThroughputHistoryService.Start();
+            WallpaperResolver.StartMigrationInBackground();
+            StartupVideoResolver.StartMigrationInBackground();
             _mainServicesStarted = true;
 
             try

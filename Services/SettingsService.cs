@@ -56,7 +56,7 @@ public static class SettingsService
 
     public static SettingsData Current { get; private set; } = DefaultSettingsService.Apply(new SettingsData());
 
-    public const int CurrentConfigVersion = 5;
+    public const int CurrentConfigVersion = 6;
 
     private static SettingsData? ReadFile(string path)
     {
@@ -113,6 +113,11 @@ public static class SettingsService
             if (data.NarrowWindowThresholdPx <= 600)
                 data.NarrowWindowThresholdPx = 700;
         }
+        if (data.ConfigVersion < 6)
+        {
+            MediaSelectionSync.MapLegacy(data);
+        }
+        MediaSelectionSync.Normalize(data);
         data.ConfigVersion = CurrentConfigVersion;
     }
 
@@ -144,6 +149,7 @@ public static class SettingsService
         }
 
         Migrate(Current);
+        MediaSelectionSync.Attach();
         LogService.DebugEnabled = Current.DebugLogging;
 
         // v2 migration: old default (1270) was nearly identical to the default window width
@@ -181,7 +187,8 @@ public static class SettingsService
         "WidgetNotes", "WidgetNoteTabs", "WidgetWeatherCity", "WeatherFavoriteCities",
         "VpnActiveProfileId", "NextDnsId", "PendingUpdateInstallerPath",
         "WallpaperCustomList", "WallpaperFolderPath",
-        "StartupVideoCustomList", "HomeVisualizerWebsites"
+        "StartupVideoCustomList", "HomeVisualizerWebsites",
+        "WallpaperSelection", "StartupVideoSelection", "MediaSourcePaths"
     };
 
     public static int ResetSettingsOnly()
@@ -370,6 +377,25 @@ public class SettingsData
     public string       WallpaperOrder       { get; set; } = "Sequential";
     public int          WallpaperCustomIndex { get; set; } = -1;
     public string       WallpaperFolderPath  { get; set; } = "";
+
+    // ── Media manager model (config v6). The legacy Wallpaper* fields above stay for the old UI until Phase 6. ──
+    // "Single" | "Selection" | "Collection"
+    public string         WallpaperSource           { get; set; } = "Collection";
+    // Collection mode: folder name, "" = loose files in the library root
+    public string         WallpaperActiveCollection { get; set; } = "";
+    public MediaRef       WallpaperSingle           { get; set; } = new();
+    public List<MediaRef> WallpaperSelection        { get; set; } = new();
+    // "Random" | "Sequential" - used by Collection and Selection
+    public string         WallpaperPlayOrder        { get; set; } = "Random";
+    public int            WallpaperPlayIndex        { get; set; } = -1;
+
+    // Shared by wallpapers and startup videos. Default false: files are copied and the source path is forgotten.
+    public bool                       MediaRememberSourcePaths { get; set; } = false;
+    // true = wallpapers come from the media library (collections). false = the old folder-based code, kept only as a fallback.
+    public bool UseMediaLibrary { get; set; } = true;
+
+    // Only filled while the option above is on. Key = "W:Collection/File" or "V:Collection/File".
+    public Dictionary<string, string> MediaSourcePaths         { get; set; } = new();
 
     public bool HomeShowClockWeatherSection { get; set; } = true;
     public bool HomeShowSearchSection       { get; set; } = true;
@@ -614,6 +640,15 @@ public class SettingsData
     // "Sequential" | "Random" — only applies to Custom mode
     public string       StartupVideoOrder         { get; set; } = "Sequential";
     public int          StartupVideoCustomIndex   { get; set; } = -1;
+
+    // ── Media manager model (config v6). The legacy StartupVideo* fields above stay until Phase 7. ──
+    // "Single" | "Selection" | "Collection"
+    public string         StartupVideoSource           { get; set; } = "Single";
+    public string         StartupVideoActiveCollection { get; set; } = "";
+    public MediaRef       StartupVideoSingle           { get; set; } = new MediaRef { FileName = "Animate_this_image.mp4" };
+    public List<MediaRef> StartupVideoSelection        { get; set; } = new();
+    public string         StartupVideoPlayOrder        { get; set; } = "Sequential";
+    public int            StartupVideoPlayIndex        { get; set; } = -1;
 
     // ── Existing Installation Warnings ───────────────────────────────────────
     public List<string> DismissedInstallationPaths { get; set; } = new();
