@@ -9939,7 +9939,8 @@ return colors.length > 0 ? colors : null;
             // OVERLAY MODE (Homepage):
             // ColSidebar stays 0 -> homepage never shifts or resizes!
             ColSidebar.Width = new GridLength(0);
-            SidebarContainer.Width = contentW;
+            SidebarContainer.BeginAnimation(FrameworkElement.WidthProperty, null);
+            SidebarContainer.Width = contentW;  
             SidebarContainer.ClipToBounds = true;
             SidebarContainer.HorizontalAlignment = HorizontalAlignment.Right;
             if (SidebarSlideHost != null) SidebarSlideHost.HorizontalAlignment = HorizontalAlignment.Right;
@@ -9966,6 +9967,7 @@ return colors.length > 0 ? colors : null;
                     if (RightSidebar != null) RightSidebar.CacheMode = null;
                     if (!isOpen)
                     {
+                        SidebarContainer.BeginAnimation(FrameworkElement.WidthProperty, null);
                         SidebarContainer.Width = 0;
                     }
                     if (SidebarSlideTransform != null) SidebarSlideTransform.X = toX;
@@ -10019,6 +10021,7 @@ return colors.length > 0 ? colors : null;
             {
                 IsSidebarAnimating = false;
                 if (RightSidebar != null) RightSidebar.CacheMode = null;
+                SidebarContainer.BeginAnimation(FrameworkElement.WidthProperty, null);
                 if (!isOpen)
                 {
                     ColSidebar.Width = new GridLength(0);

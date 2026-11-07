@@ -113,9 +113,15 @@ public static class CustomShortcutService
         var defaults = GetDefaultShortcuts();
         foreach (var def in defaults)
         {
-            if (!_shortcuts.Any(s => s.Id == def.Id || s.Title.Equals(def.Title, StringComparison.OrdinalIgnoreCase)))
+            var existing = _shortcuts.FirstOrDefault(s => s.Id == def.Id || s.Title.Equals(def.Title, StringComparison.OrdinalIgnoreCase));
+            if (existing == null)
             {
                 _shortcuts.Add(def);
+                changed = true;
+            }
+            else if (def.Id == "cmd_split_view" && string.IsNullOrWhiteSpace(existing.KeyGesture) && !string.IsNullOrWhiteSpace(def.KeyGesture))
+            {
+                existing.KeyGesture = def.KeyGesture;
                 changed = true;
             }
         }

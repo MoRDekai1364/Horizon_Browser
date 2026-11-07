@@ -18,7 +18,43 @@ public partial class MainWindow : Window
     private bool _splitActive;
     private bool _splitPicking;
     private bool _splitAwaitNewTab;
-    private TabViewModel? _splitOtherTab;
+    private const int SplitMaxSlots = 6;
+    private readonly TabViewModel?[] _splitSlots = new TabViewModel?[SplitMaxSlots];
+    private string _splitLayoutId = SplitLayoutCatalog.DefaultId;
+
+    private TabViewModel? _splitOtherTab
+    {
+        get => _splitSlots[1];
+        set => _splitSlots[1] = value;
+    }
+
+    private SplitMonitorShape SplitCurrentMonitorShape()
+    {
+        try
+        {
+            var hwnd = new System.Windows.Interop.WindowInteropHelper(this).Handle;
+            var monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
+            if (monitor == IntPtr.Zero) return SplitMonitorShape.Standard;
+            var mi = new WMI { cbSize = System.Runtime.InteropServices.Marshal.SizeOf(typeof(WMI)) };
+            if (!GetMonitorInfo(monitor, ref mi)) return SplitMonitorShape.Standard;
+            double w = mi.rcMonitor.right - mi.rcMonitor.left;
+            double h = mi.rcMonitor.bottom - mi.rcMonitor.top;
+            if (w <= 0 || h <= 0) return SplitMonitorShape.Standard;
+            var shape = SplitLayoutCatalog.ShapeOf(w / h);
+            LogService.Debug("split", () => $"monitor {w:F0}x{h:F0} shape={shape}");
+            return shape;
+        }
+        catch (Exception ex)
+        {
+            LogService.Debug("split", () => $"monitor shape failed: {ex.Message}");
+            return SplitMonitorShape.Standard;
+        }
+    }
+
+    private IReadOnlyList<SplitLayoutDef> SplitLayoutsForCurrentMonitor()
+    {
+        return SplitLayoutCatalog.For(SplitCurrentMonitorShape());
+    }
     private Border? _splitPickerHost;
     private GridSplitter? _splitDivider;
     private Border? _splitIndicatorLeft;

@@ -1177,9 +1177,10 @@ public partial class HomePageView : UserControl
 
             ApplySearchRowLayout(true);
 
+            ApplySearchBoxMetrics(true);
             SetSwitchIconMode(totalWidth < 460);
 
-            CmbSearchEngine.Width = Math.Clamp(narrowIslandWidth * 0.22, 60.0, 95.0);
+            CmbSearchEngine.Width = Math.Clamp(narrowIslandWidth * 0.3, 84.0, 120.0);
 
             SyncSearchBarMinWidth();
 
@@ -1220,6 +1221,7 @@ public partial class HomePageView : UserControl
         TxtHomeSearch.FontSize = 18;
 
         TxtHomeSearchPlaceholder.FontSize = 18;
+        ApplySearchBoxMetrics(false);
 
 
 
@@ -6799,6 +6801,27 @@ public partial class HomePageView : UserControl
     private bool? _searchRowCompact;
 
 
+
+    private void ApplySearchBoxMetrics(bool compact)
+    {
+        if (CmbSearchEngine.Parent is FrameworkElement host)
+        {
+            host.Margin = compact ? new Thickness(5, 0, 0, 0) : new Thickness(8, 8, 0, 8);
+            host.VerticalAlignment = compact ? VerticalAlignment.Center : VerticalAlignment.Top;
+        }
+        double comboHeight = compact ? 30.0 : 40.0;
+        Thickness comboPadding = compact ? new Thickness(10, 0, 22, 0) : new Thickness(14, 0, 28, 0);
+        CmbSearchEngine.Height = comboHeight;
+        CmbSearchEngine.Padding = comboPadding;
+        if (CmbCategoryFilter != null)
+        {
+            CmbCategoryFilter.Height = comboHeight;
+            CmbCategoryFilter.Padding = comboPadding;
+        }
+        Thickness textMargin = compact ? new Thickness(8, 0, 10, 0) : new Thickness(12, 12, 20, 12);
+        TxtHomeSearch.Margin = textMargin;
+        TxtHomeSearchPlaceholder.Margin = textMargin;
+    }
 
     private void ApplySearchRowLayout(bool compact)
 
