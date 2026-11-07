@@ -440,6 +440,8 @@ public class SettingsData
     public bool CompactTabsEnabled           { get; set; } = true;
     public int  SplitViewPickMode            { get; set; } = 1;
     public double SplitViewRatio             { get; set; } = 0.5;
+    public Dictionary<string, string> SplitViewLayoutRatios { get; set; } = new();
+    public string SplitViewLastLayout        { get; set; } = "";
     public int  CompactTabHoverDelayMs       { get; set; } = 80;
     public string HomeFontFamily            { get; set; } = "Segoe UI"; 
     public double HomeInactivityTimeoutSeconds { get; set; } = 15.0; 

@@ -533,7 +533,7 @@ public static class HorizonEnvironment
 
                 await webView.CallDevToolsProtocolMethodAsync(
                     "Target.setAutoAttach",
-                    "{\"autoAttach\":true,\"waitForDebuggerOnStart\":true,\"flatten\":true}");
+                    "{\"autoAttach\":true,\"waitForDebuggerOnStart\":true,\"flatten\":true,\"filter\":[{\"type\":\"worker\"},{\"type\":\"shared_worker\"},{\"exclude\":true}]}");
             }
             await webView.AddScriptToExecuteOnDocumentCreatedAsync(SCRIPT_YOUTUBE_INTERVENTION);
             await webView.AddScriptToExecuteOnDocumentCreatedAsync(SCRIPT_YOUTUBE_SCROLL_FIX);

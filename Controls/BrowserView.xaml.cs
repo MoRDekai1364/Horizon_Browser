@@ -801,7 +801,7 @@ public partial class BrowserView : UserControl
                             else
                             {
                                 _processCrashed = false;
-                                try { MainWebView.Reload(); } catch { }
+                                if (ShouldReloadAfterCrash()) { try { MainWebView.Reload(); } catch { } }
                             }
                         }
                         catch (Exception ex)
@@ -1471,6 +1471,34 @@ public partial class BrowserView : UserControl
     }
 
     private async Task RefreshHostCheckScriptAsync()
+    {
+        try
+        {
+            await RefreshHostCheckScriptCoreAsync();
+        }
+        catch (Exception ex)
+        {
+            _hostCheckScriptId = null;
+            LogService.Write("CRASH", $"HostCheckScript refresh failed: {ex.GetType().Name}: {ex.Message}");
+        }
+    }
+
+    private readonly System.Collections.Generic.Queue<DateTime> _crashTimes = new();
+
+    private bool ShouldReloadAfterCrash()
+    {
+        var now = DateTime.UtcNow;
+        _crashTimes.Enqueue(now);
+        while (_crashTimes.Count > 0 && (now - _crashTimes.Peek()).TotalSeconds > 20) _crashTimes.Dequeue();
+        if (_crashTimes.Count > 3)
+        {
+            LogService.Write("CRASH", "Renderer crash loop detected, auto-reload stopped");
+            return false;
+        }
+        return true;
+    }
+
+    private async Task RefreshHostCheckScriptCoreAsync()
     {
         if (MainWebView?.CoreWebView2 == null) return;
         if (_hostCheckScriptId != null)

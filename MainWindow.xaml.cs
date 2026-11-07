@@ -22480,6 +22480,7 @@ return colors.length > 0 ? colors : null;
 
 
 
+        if (SplitDragUpdate()) return;
         UpdateDropIndicator(e.GetPosition(ListTabs));
 
 
@@ -22500,7 +22501,9 @@ return colors.length > 0 ? colors : null;
 
 
 
-        if (_isDragging && _draggedTab != null && _dragInsertIndex >= 0)
+        bool splitDropped = _isDragging && _draggedTab != null && SplitDragDrop(_draggedTab);
+        SplitDragEnd();
+        if (!splitDropped && _isDragging && _draggedTab != null && _dragInsertIndex >= 0)
 
 
 
