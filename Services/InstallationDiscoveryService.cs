@@ -393,7 +393,7 @@ public static class InstallationDiscoveryService
                 string currentAppDataDir = Path.Combine(localAppData, "Horizon_Browser");
                 string currentAppDataHorizonData = Path.Combine(currentAppDataDir, "HorizonData");
 
-                Directory.CreateDirectory(currentDataDir);
+                try { Directory.CreateDirectory(currentDataDir); } catch { }
                 Directory.CreateDirectory(currentAppDataDir);
                 Directory.CreateDirectory(currentAppDataHorizonData);
 

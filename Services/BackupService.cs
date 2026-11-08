@@ -240,7 +240,7 @@ public static class BackupService
 
                 string appDir = AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\', '/');
                 string appDirHorizonData = Path.Combine(appDir, "HorizonData");
-                Directory.CreateDirectory(appDirHorizonData);
+                try { Directory.CreateDirectory(appDirHorizonData); } catch { }
 
                 // 1. Restore core user files to BOTH LocalAppData and AppDir
                 progress?.Report(("Restoring settings and security vault...", 30));

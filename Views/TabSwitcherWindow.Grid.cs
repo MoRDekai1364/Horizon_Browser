@@ -83,6 +83,41 @@ public partial class TabSwitcherWindow
         }
     }
 
+    [StructLayout(LayoutKind.Sequential)]
+    private struct GlassMargins
+    {
+        public int Left;
+        public int Right;
+        public int Top;
+        public int Bottom;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct IslandAccentPolicy
+    {
+        public int AccentState;
+        public int AccentFlags;
+        public int GradientColor;
+        public int AnimationId;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct IslandCompositionData
+    {
+        public int Attribute;
+        public IntPtr Data;
+        public int SizeOfData;
+    }
+
+    [DllImport("dwmapi.dll", EntryPoint = "DwmExtendFrameIntoClientArea")]
+    private static extern int DwmExtendFrameRaw(IntPtr hwnd, ref GlassMargins margins);
+
+    [DllImport("dwmapi.dll")]
+    private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
+
+    [DllImport("user32.dll")]
+    private static extern int SetWindowCompositionAttribute(IntPtr hwnd, ref IslandCompositionData data);
+
     private void AttachSnapshotBackdrop()
     {
         var mainWin = Application.Current?.MainWindow;
@@ -112,49 +147,54 @@ public partial class TabSwitcherWindow
             return;
         }
 
-        if (_screenBoundsPx.Width <= 0 || _screenBoundsPx.Height <= 0) return;
+        CardBaseBg.Background = new SolidColorBrush(Color.FromArgb(0x8C, 0x0E, 0x0E, 0x0E));
+        SourceInitialized += (_, _) => EnableNativeBlur();
+    }
 
-        _snapshot = CaptureScreenArea(
-            (int)_screenBoundsPx.X, (int)_screenBoundsPx.Y,
-            (int)_screenBoundsPx.Width, (int)_screenBoundsPx.Height);
-        if (_snapshot == null) return;
-
-        CardBaseBg.Background = Brushes.Transparent;
-
-        _snapshotWall = new Border
+    private void EnableNativeBlur()
+    {
+        IntPtr ptr = IntPtr.Zero;
+        try
         {
-            Margin = new Thickness(-BleedPad),
-            Background = new ImageBrush(_snapshot)
+            IntPtr hwnd = new WindowInteropHelper(this).Handle;
+            if (hwnd == IntPtr.Zero) return;
+            var source = HwndSource.FromHwnd(hwnd);
+            if (source?.CompositionTarget != null) source.CompositionTarget.BackgroundColor = Colors.Transparent;
+            var margins = new GlassMargins { Left = -1, Right = -1, Top = -1, Bottom = -1 };
+            DwmExtendFrameRaw(hwnd, ref margins);
+            int cornerPreference = 2;
+            DwmSetWindowAttribute(hwnd, 33, ref cornerPreference, sizeof(int));
+            var accent = new IslandAccentPolicy
             {
-                Stretch = Stretch.Fill,
-                ViewboxUnits = BrushMappingMode.RelativeToBoundingBox
-            },
-            Effect = new BlurEffect
+                AccentState = 3,
+                AccentFlags = 0,
+                GradientColor = 0,
+                AnimationId = 0
+            };
+            int size = Marshal.SizeOf(accent);
+            ptr = Marshal.AllocHGlobal(size);
+            Marshal.StructureToPtr(accent, ptr, false);
+            var data = new IslandCompositionData
             {
-                Radius = 36,
-                KernelType = KernelType.Gaussian,
-                RenderingBias = RenderingBias.Performance
+                Attribute = 19,
+                Data = ptr,
+                SizeOfData = size
+            };
+            int result = SetWindowCompositionAttribute(hwnd, ref data);
+            if (result == 0)
+            {
+                NativeGlassFallbackService.ApplyFallbackCascade(this, hwnd, CardBaseBg, GlassBackdropHost);
             }
-        };
-
-        var tint = new Border
+        }
+        catch (Exception ex)
         {
-            Background = new SolidColorBrush(Color.FromArgb(0xA6, 0x0E, 0x0E, 0x0E))
-        };
-
-        var host = new Grid();
-        host.Children.Add(_snapshotWall);
-        host.Children.Add(tint);
-        GlassBackdropHost.Children.Add(host);
-
-        _updateGlassAction = UpdateSnapshotCrop;
-        LocationChanged += (_, _) => UpdateSnapshotCrop();
-        _detachGlassBackdrop = () =>
+            LogService.Debug("glass", () => $"native blur failed: {ex.Message}");
+            NativeGlassFallbackService.ApplyFallbackCascade(this, new WindowInteropHelper(this).Handle, CardBaseBg, GlassBackdropHost);
+        }
+        finally
         {
-            _updateGlassAction = null;
-            _snapshot = null;
-            _snapshotWall = null;
-        };
+            if (ptr != IntPtr.Zero) Marshal.FreeHGlobal(ptr);
+        }
     }
 
     private void UpdateSnapshotCrop()

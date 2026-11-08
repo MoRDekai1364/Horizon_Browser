@@ -1,4 +1,3 @@
 version.txt
 LICENSE.txt
-Horizon.Browser.csproj
 horizon.conf

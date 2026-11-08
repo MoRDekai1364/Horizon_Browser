@@ -138,7 +138,7 @@ public partial class MainWindow : Window
         string localTargetData = Path.Combine(targetDir, "HorizonData");
 
         Directory.CreateDirectory(appDataTarget);
-        Directory.CreateDirectory(localTargetData);
+        try { Directory.CreateDirectory(localTargetData); } catch { }
 
         // 1. Restore Vault
         string srcVault = File.Exists(Path.Combine(sourceDir, "vault.dat"))

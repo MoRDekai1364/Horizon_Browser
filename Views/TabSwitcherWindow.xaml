@@ -1,7 +1,7 @@
 <Window x:Class="Horizon.Stealth.Views.TabSwitcherWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        WindowStyle="None" AllowsTransparency="False" Background="Transparent"
         Width="1000" Height="580"
         WindowStartupLocation="Manual"
         ShowInTaskbar="False" Topmost="True" ResizeMode="NoResize"
@@ -18,7 +18,7 @@
 
         <!-- Rounded-clipped frosted glass card -->
         <Grid x:Name="CardClipHost">
-            <Border x:Name="CardBaseBg" CornerRadius="16" Background="{DynamicResource Brush_SurfaceCard}" IsHitTestVisible="False"/>
+            <Border x:Name="CardBaseBg" CornerRadius="8" Background="{DynamicResource Brush_SurfaceCard}" IsHitTestVisible="False"/>
 
             <!-- Live wallpaper glass backdrop host -->
             <Grid x:Name="GlassBackdropHost" IsHitTestVisible="False" ClipToBounds="True"/>
@@ -27,7 +27,7 @@
                 <!-- Top Header Bar -->
                 <Border DockPanel.Dock="Top" Background="{DynamicResource Brush_SurfaceChrome}"
                         BorderBrush="{DynamicResource Brush_SurfaceChromeStroke}" BorderThickness="0,0,0,1"
-                        CornerRadius="16,16,0,0"
+                        CornerRadius="8,8,0,0"
                         Padding="18,12,18,12">
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -84,7 +84,7 @@
                 <!-- Bottom Hint Bar -->
                 <Border DockPanel.Dock="Bottom" Background="{DynamicResource Brush_SurfaceChrome}"
                         BorderBrush="{DynamicResource Brush_SurfaceChromeStroke}" BorderThickness="0,1,0,0"
-                        CornerRadius="0,0,16,16"
+                        CornerRadius="0,0,8,8"
                         Padding="16,8">
                     <TextBlock x:Name="TxtHintBar"
                                Text="&#x2191;&#x2193; navigate   ·   &#x21B5; switch   ·   Ctrl+click: select   ·   Shift+click: range   ·   Del: close   ·   Esc: dismiss"
@@ -214,8 +214,8 @@
             </DockPanel>
         </Grid>
 
-        <!-- Crisp outer border aligned to the 16px rounded card -->
-        <Border x:Name="SwitcherCardBorder" CornerRadius="16"
+        <!-- Crisp outer border aligned to the 8px rounded card -->
+        <Border x:Name="SwitcherCardBorder" CornerRadius="8"
                 BorderBrush="#33FFFFFF" BorderThickness="1"
                 IsHitTestVisible="False"/>
     </Grid>

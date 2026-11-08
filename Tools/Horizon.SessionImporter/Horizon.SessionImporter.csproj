@@ -7,6 +7,13 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Platforms>x64</Platforms>
     <PlatformTarget>x64</PlatformTarget>
+    <Version>2.7.9</Version>
+    <AssemblyVersion>2.7.9.0</AssemblyVersion>
+    <FileVersion>2.7.9.0</FileVersion>
+    <Company>Swordmaster_Studios Inc.</Company>
+    <Product>Horizon Session Importer</Product>
+    <Description>Horizon Browser Native Session &amp; Cookie Migration Tool</Description>
+    <Copyright>Copyright (C) 2026 Swordmaster_Studios Inc.</Copyright>
   </PropertyGroup>
 
   <ItemGroup>

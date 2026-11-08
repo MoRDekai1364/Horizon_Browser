@@ -90,7 +90,6 @@ public partial class TabSwitcherWindow : Window
 
         if (_isPersistent)
         {
-            ResizeMode                  = ResizeMode.CanResize;
             TxtCtrlTabLabel.Text        = "TABS";
             TxtHintBar.Text             = "\u2191\u2193/click: switch  \u00B7  Ctrl+click: select  \u00B7  Shift+click: range  \u00B7  Ctrl+A: all  \u00B7  Del: close  \u00B7  Esc: dismiss";
             BtnSwitcherClose.Visibility = Visibility.Visible;
@@ -109,7 +108,7 @@ public partial class TabSwitcherWindow : Window
         if (CardClipHost.ActualWidth > 0 && CardClipHost.ActualHeight > 0)
         {
             CardClipHost.Clip = new RectangleGeometry(
-                new Rect(0, 0, CardClipHost.ActualWidth, CardClipHost.ActualHeight), 16, 16);
+                new Rect(0, 0, CardClipHost.ActualWidth, CardClipHost.ActualHeight), 8, 8);
         }
         _updateGlassAction?.Invoke();
     }

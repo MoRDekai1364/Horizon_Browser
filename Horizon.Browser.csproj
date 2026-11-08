@@ -12,6 +12,15 @@
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <CodePage>65001</CodePage>
+    <Version>2.7.9</Version>
+    <AssemblyVersion>2.7.9.0</AssemblyVersion>
+    <FileVersion>2.7.9.0</FileVersion>
+    <InformationalVersion>2.7.9</InformationalVersion>
+    <Company>Swordmaster_Studios Inc.</Company>
+    <Authors>Swordmaster_Studios Inc.</Authors>
+    <Product>Horizon Browser</Product>
+    <Description>Horizon Browser — High-Performance Privacy &amp; Spatial Web Browser</Description>
+    <Copyright>Copyright (C) 2026 Swordmaster_Studios Inc.</Copyright>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(ApplicationIcon)' == '' And Exists('$(MSBuildProjectDirectory)\default_settings.txt')">
@@ -58,5 +67,16 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Native\horizon_core\target\release\horizon_core.dll" Link="horizon_core.dll" CopyToOutputDirectory="PreserveNewest" Condition="Exists('Native\horizon_core\target\release\horizon_core.dll')" />
+    <None Include="version.txt" CopyToOutputDirectory="PreserveNewest" Condition="Exists('version.txt')" />
+    <None Include="update.txt" CopyToOutputDirectory="PreserveNewest" Condition="Exists('update.txt')" />
   </ItemGroup>
+
+  <Target Name="BuildAndCopyNativeTools" AfterTargets="Build">
+    <MSBuild Projects="Tools\Horizon.Updater\Horizon.Updater.csproj" Targets="Restore;Build" Properties="Configuration=$(Configuration);Platform=x64;OutDir=$(TargetDir)Tools\" RemoveProperties="RuntimeIdentifier;SelfContained" Condition="Exists('Tools\Horizon.Updater\Horizon.Updater.csproj')" ContinueOnError="WarnAndContinue" />
+    <MSBuild Projects="Tools\Horizon.SessionImporter\Horizon.SessionImporter.csproj" Targets="Restore;Build" Properties="Configuration=$(Configuration);Platform=x64;OutDir=$(TargetDir)Tools\" RemoveProperties="RuntimeIdentifier;SelfContained" Condition="Exists('Tools\Horizon.SessionImporter\Horizon.SessionImporter.csproj')" ContinueOnError="WarnAndContinue" />
+    <ItemGroup>
+      <_UpdaterBins Include="$(TargetDir)Tools\Horizon.Updater.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_UpdaterBins)" DestinationFolder="$(TargetDir)" SkipUnchangedFiles="true" ContinueOnError="WarnAndContinue" />
+  </Target>
 </Project>

@@ -64,13 +64,13 @@ public partial class CommandBarWindow
             int result = SetWindowCompositionAttribute(hwnd, ref data);
             if (result == 0)
             {
-                CardBaseBg.Background = new SolidColorBrush(Color.FromArgb(0xE6, 0x12, 0x12, 0x12));
+                NativeGlassFallbackService.ApplyFallbackCascade(this, hwnd, CardBaseBg, GlassBackdropHost);
             }
         }
         catch (Exception ex)
         {
             LogService.Debug("glass", () => $"native blur failed: {ex.Message}");
-            CardBaseBg.Background = new SolidColorBrush(Color.FromArgb(0xE6, 0x12, 0x12, 0x12));
+            NativeGlassFallbackService.ApplyFallbackCascade(this, new WindowInteropHelper(this).Handle, CardBaseBg, GlassBackdropHost);
         }
         finally
         {

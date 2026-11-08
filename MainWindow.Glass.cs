@@ -68,13 +68,13 @@ public partial class MainWindow
             int result = SetWindowCompositionAttribute(hwnd, ref data);
             if (result == 0)
             {
-                root.Background = new SolidColorBrush(Color.FromArgb(0xE6, 0x12, 0x12, 0x12));
+                NativeGlassFallbackService.ApplyFallbackCascade(win, hwnd, root, root.Child as Panel);
             }
         }
         catch (Exception ex)
         {
             LogService.Debug("glass", () => $"native blur failed: {ex.Message}");
-            root.Background = new SolidColorBrush(Color.FromArgb(0xE6, 0x12, 0x12, 0x12));
+            NativeGlassFallbackService.ApplyFallbackCascade(win, new WindowInteropHelper(win).Handle, root, root.Child as Panel);
         }
         finally
         {

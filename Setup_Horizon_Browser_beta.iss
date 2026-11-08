@@ -17,11 +17,17 @@
 AppId={{06A644B6-B05C-4E24-928F-296EFB497E0C}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
-;AppVerName={#MyAppName} {#MyAppVersion}
+AppVerName={#MyAppName} {#MyAppVersion}
 AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
+VersionInfoVersion=2.7.9.0
+VersionInfoCompany={#MyAppPublisher}
+VersionInfoProductName={#MyAppName}
+VersionInfoProductVersion={#MyAppVersion}
+VersionInfoDescription=Horizon Browser — High-Performance Desktop Web Browser
+VersionInfoCopyright=Copyright (C) 2026 {#MyAppPublisher}
 DefaultDirName={autopf}\Horizon_Browser_Beta
 UninstallDisplayIcon={app}\{#MyAppExeName}
 ; "ArchitecturesAllowed=x64compatible" specifies that Setup cannot run
@@ -55,7 +61,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "D:\Programming\Personal_projects_D\Horizon_Browser\Horizon_Browser_AI_channel\horizon-browser\bin\Release\*"; DestDir: "{app}"; Excludes: "net8.0-windows*,logs\*,*.pdb"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "D:\Programming\Personal_projects_D\Horizon_Browser\Horizon_Browser_AI_channel\horizon-browser\bin\Release\*"; DestDir: "{app}"; Excludes: "net8.0-windows*,logs\*,*.pdb,*.bat,*.hta,*.ps1"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Registry]
@@ -73,6 +79,133 @@ Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChang
 Filename: "{app}\bin\Release\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent; Check: ExeExistsAtBinRelease
 
 [Code]
+var
+  DownloadPage: TDownloadWizardPage;
+
+const
+  DotNet8DesktopUrl = 'https://aka.ms/dotnet/8.0/windowsdesktop-runtime-win-x64.exe';
+  DotNet8InstallerName = 'windowsdesktop-runtime-8.0-win-x64.exe';
+  WebView2BootstrapperUrl = 'https://go.microsoft.com/fwlink/p/?LinkId=2124703';
+  WebView2InstallerName = 'MicrosoftEdgeWebview2Setup.exe';
+
+function OnDownloadProgress(const Url, FileName: String; const Progress, ProgressMax: Int64): Boolean;
+begin
+  if Progress = ProgressMax then
+    Log(Format('Successfully downloaded %s (%d bytes)', [FileName, ProgressMax]));
+  Result := True;
+end;
+
+procedure InitializeWizard;
+begin
+  DownloadPage := CreateDownloadPage(SetupMessage(msgWizardPreparing), SetupMessage(msgPreparingDesc), @OnDownloadProgress);
+end;
+
+function IsDotNet8DesktopInstalled: Boolean;
+var
+  Names: TArrayOfString;
+  I: Integer;
+  FindRec: TFindRec;
+begin
+  Result := False;
+  if RegGetValueNames(HKLM64, 'SOFTWARE\dotnet\Setup\InstalledVersions\x64\sharedfx\Microsoft.WindowsDesktop.App', Names) then
+  begin
+    for I := 0 to GetArrayLength(Names) - 1 do
+    begin
+      if Copy(Names[I], 1, 4) = '8.0.' then
+      begin
+        Result := True;
+        Exit;
+      end;
+    end;
+  end;
+
+  if FindFirst(ExpandConstant('{commonpf64}\dotnet\shared\Microsoft.WindowsDesktop.App\8.0.*'), FindRec) then
+  begin
+    try
+      repeat
+        if (FindRec.Attributes and FILE_ATTRIBUTE_DIRECTORY) <> 0 then
+        begin
+          Result := True;
+          Exit;
+        end;
+      until not FindNext(FindRec);
+    finally
+      FindClose(FindRec);
+    end;
+  end;
+end;
+
+function IsWebView2Installed: Boolean;
+var
+  Version: String;
+begin
+  Result :=
+    (RegQueryStringValue(HKLM, 'SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}', 'pv', Version) and (Version <> '') and (Version <> '0.0.0.0')) or
+    (RegQueryStringValue(HKLM, 'SOFTWARE\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}', 'pv', Version) and (Version <> '') and (Version <> '0.0.0.0')) or
+    (RegQueryStringValue(HKCU, 'Software\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}', 'pv', Version) and (Version <> '') and (Version <> '0.0.0.0'));
+end;
+
+function PrepareToInstall(var NeedsRestart: Boolean): String;
+var
+  NeedDotNet, NeedWebView2: Boolean;
+  ResultCode: Integer;
+  DotNetPath, WebView2Path: String;
+begin
+  Result := '';
+  NeedDotNet := not IsDotNet8DesktopInstalled;
+  NeedWebView2 := not IsWebView2Installed;
+
+  if (not NeedDotNet) and (not NeedWebView2) then
+    Exit;
+
+  DownloadPage.Clear;
+  if NeedDotNet then
+    DownloadPage.Add(DotNet8DesktopUrl, DotNet8InstallerName, '');
+  if NeedWebView2 then
+    DownloadPage.Add(WebView2BootstrapperUrl, WebView2InstallerName, '');
+
+  DownloadPage.Show;
+  try
+    try
+      DownloadPage.Download;
+    except
+      if DownloadPage.AbortedByUser then
+        Log('Prerequisite download aborted by user.')
+      else
+        SuppressibleMsgBox(AddPeriod(GetExceptionMessage), mbCriticalError, MB_OK, IDOK);
+      Result := 'Failed to download required system runtimes (.NET 8.0 Desktop Runtime / WebView2). Please check your internet connection and try again.';
+      Exit;
+    end;
+
+    if NeedDotNet then
+    begin
+      DotNetPath := ExpandConstant('{tmp}\' + DotNet8InstallerName);
+      DownloadPage.SetText('Installing .NET 8.0 Desktop Runtime (x64)...', 'Please wait while the .NET Desktop Runtime is installed.');
+      if not Exec(DotNetPath, '/install /quiet /norestart', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
+      begin
+        Result := 'Failed to launch the .NET 8.0 Desktop Runtime installer.';
+        Exit;
+      end;
+      if (ResultCode <> 0) and (ResultCode <> 1638) and (ResultCode <> 3010) then
+      begin
+        Result := Format('.NET 8.0 Desktop Runtime installation failed with exit code %d.', [ResultCode]);
+        Exit;
+      end;
+      if ResultCode = 3010 then
+        NeedsRestart := True;
+    end;
+
+    if NeedWebView2 then
+    begin
+      WebView2Path := ExpandConstant('{tmp}\' + WebView2InstallerName);
+      DownloadPage.SetText('Installing Microsoft Edge WebView2 Runtime...', 'Please wait while the WebView2 Runtime is installed.');
+      Exec(WebView2Path, '/silent /install', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+    end;
+  finally
+    DownloadPage.Hide;
+  end;
+end;
+
 procedure CurStepChanged(CurStep: TSetupStep);
 var
   AppRootExe, SubBinExe: string;

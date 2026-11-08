@@ -148,10 +148,7 @@ if exist "Languages" (
 echo [2e/3] Packaging Update and Version Configs...
 if exist "version.txt" copy /y "version.txt" "%OUT_DIR%\" >nul
 if exist "update.txt" copy /y "update.txt" "%OUT_DIR%\" >nul
-for %%F in (update_orchestrator.bat install_auto.ps1 overlay.hta backup.bat restore.bat) do (
-    if exist "%%F" copy /y "%%F" "%OUT_DIR%\" >nul
-)
-echo [INFO] Update scripts and configs packaged.
+echo [INFO] Update configs packaged (native Horizon.Updater.exe active; legacy .bat/.hta/.ps1 omitted).
 
 echo [3/3] Creating desktop shortcut...
 set "SHORTCUT_PATH=%~dp0!START_Horizon_Browser.lnk"
@@ -162,14 +159,6 @@ if exist "%SHORTCUT_PATH%" (
     echo [INFO] Shortcut created: !START_Horizon_Browser.lnk
 ) else (
     echo [WARN] Shortcut creation failed.
-)
-
-echo [4/3] Packaging Update Manager...
-if exist "%UPDATE_MGR%" (
-    copy "%UPDATE_MGR%" "%OUT_DIR%\" >nul
-    echo [INFO] Update Manager included.
-) else (
-    echo [WARN] %UPDATE_MGR% not found in source directory.
 )
 
 echo [5/3] Copying additional build files...
