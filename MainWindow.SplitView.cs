@@ -438,11 +438,13 @@ public partial class MainWindow : Window
     {
         try
         {
-            var core = view.MainWebView?.CoreWebView2;
+            if (view == null || view.IsProcessCrashed || view.IsCrashLoopHalted || view.IsHomeActive) return;
+            if (view.MainWebView == null || view.MainWebView.Visibility != Visibility.Visible) return;
+            var core = view.MainWebView.CoreWebView2;
             if (core == null) return;
             await core.CallDevToolsProtocolMethodAsync(
                 "Runtime.evaluate",
-                "{\"expression\":\"new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(()=>setTimeout(r,30))))\",\"awaitPromise\":true}");
+                "{\"expression\":\"new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)))\",\"awaitPromise\":true}");
         }
         catch
         {
@@ -454,13 +456,13 @@ public partial class MainWindow : Window
         try
         {
             var total = System.Diagnostics.Stopwatch.StartNew();
-            await System.Threading.Tasks.Task.Delay(300);
+            await System.Threading.Tasks.Task.Delay(40);
 
             string sig = SplitPaneSignature();
             var stableSince = System.Diagnostics.Stopwatch.StartNew();
-            while (ReferenceEquals(_splitMorphWin, win) && total.ElapsedMilliseconds < 5000)
+            while (ReferenceEquals(_splitMorphWin, win) && total.ElapsedMilliseconds < 350)
             {
-                await System.Threading.Tasks.Task.Delay(40);
+                await System.Threading.Tasks.Task.Delay(25);
                 var now = SplitPaneSignature();
                 if (!string.Equals(now, sig, StringComparison.Ordinal))
                 {
@@ -468,7 +470,7 @@ public partial class MainWindow : Window
                     stableSince.Restart();
                     continue;
                 }
-                if (stableSince.ElapsedMilliseconds >= 160) break;
+                if (stableSince.ElapsedMilliseconds >= 50) break;
             }
 
             if (!ReferenceEquals(_splitMorphWin, win)) return;
@@ -478,7 +480,9 @@ public partial class MainWindow : Window
             for (int i = 0; i < n; i++)
             {
                 var tab = _splitSlots[i];
-                if (tab != null && _tabViews.TryGetValue(tab, out var view) && view.Visibility == Visibility.Visible)
+                if (tab != null && _tabViews.TryGetValue(tab, out var view) &&
+                    view.Visibility == Visibility.Visible &&
+                    !view.IsProcessCrashed && !view.IsCrashLoopHalted && !view.IsHomeActive)
                 {
                     waits.Add(SplitWaitFramesAsync(view));
                 }
@@ -487,9 +491,9 @@ public partial class MainWindow : Window
             {
                 await System.Threading.Tasks.Task.WhenAny(
                     System.Threading.Tasks.Task.WhenAll(waits),
-                    System.Threading.Tasks.Task.Delay(2500));
+                    System.Threading.Tasks.Task.Delay(180));
             }
-            await System.Threading.Tasks.Task.Delay(60);
+            await System.Threading.Tasks.Task.Delay(16);
         }
         catch (Exception ex)
         {
@@ -497,7 +501,7 @@ public partial class MainWindow : Window
         }
 
         if (!ReferenceEquals(_splitMorphWin, win)) return;
-        var fade = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(160));
+        var fade = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(120));
         fade.Completed += (_, _) =>
         {
             if (ReferenceEquals(_splitMorphWin, win))
@@ -2037,11 +2041,15 @@ public partial class MainWindow : Window
         var ordered = new List<TabViewModel>();
         foreach (var t in _mruTabs)
         {
-            if (!ReferenceEquals(t, current) && _allTabs.Contains(t) && _tabViews.ContainsKey(t)) ordered.Add(t);
+            if (!ReferenceEquals(t, current) && _allTabs.Contains(t) && _tabViews.TryGetValue(t, out var bv) &&
+                !bv.IsProcessCrashed && !bv.IsCrashLoopHalted)
+                ordered.Add(t);
         }
         foreach (var t in _allTabs)
         {
-            if (!ReferenceEquals(t, current) && !ordered.Contains(t) && _tabViews.ContainsKey(t)) ordered.Add(t);
+            if (!ReferenceEquals(t, current) && !ordered.Contains(t) && _tabViews.TryGetValue(t, out var bv) &&
+                !bv.IsProcessCrashed && !bv.IsCrashLoopHalted)
+                ordered.Add(t);
         }
         return ordered;
     }

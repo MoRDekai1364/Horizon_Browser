@@ -8121,6 +8121,13 @@ public partial class MainWindow : Window
 
 
 
+                        if (args2.ProcessFailedKind != CoreWebView2ProcessFailedKind.BrowserProcessExited &&
+                            args2.ProcessFailedKind != CoreWebView2ProcessFailedKind.RenderProcessExited)
+                        {
+                            LogService.Write("PERF", $"WebView2 non-fatal process event [{newTab.Title}]: Kind={args2.ProcessFailedKind} | Reason={args2.Reason} | Exit={args2.ExitCode}");
+                            return;
+                        }
+
                         LogService.Write("CRASH", $"WebView2 process failed [{newTab.Title}]: Kind={args2.ProcessFailedKind} | Reason={args2.Reason} | Exit={args2.ExitCode} | Process='{args2.ProcessDescription}'");
 
 
@@ -8254,21 +8261,11 @@ public partial class MainWindow : Window
 
 
                         else
-
-
-
                         {
-
-
-
-                            try { newBrowser.MainWebView.Reload(); }
-
-
-
-                            catch { newBrowser.MainWebView.Source = new Uri(lastUrl); }
-
-
-
+                            if (newBrowser.IsCrashLoopHalted)
+                            {
+                                newTab.Title = "\u26A0 Crash Loop";
+                            }
                         }
 
 

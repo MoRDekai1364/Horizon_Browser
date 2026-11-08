@@ -3,6 +3,72 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
              xmlns:local="clr-namespace:Horizon.Stealth.Views">
+    <UserControl.Resources>
+        <Style x:Key="BannerPillButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#22FFFFFF"/>
+            <Setter Property="Foreground" Value="#F3F4F6"/>
+            <Setter Property="BorderBrush" Value="#33FFFFFF"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="12,5"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="7" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#36FFFFFF"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#55FFFFFF"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#18FFFFFF"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.45"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="BannerAccentButtonStyle" TargetType="Button" BasedOn="{StaticResource BannerPillButtonStyle}">
+            <Setter Property="Background" Value="#FF3B82F6"/>
+            <Setter Property="BorderBrush" Value="#6693C5FD"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="7" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#FF2563EB"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#FF1D4ED8"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.45"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -10,50 +76,109 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
+
+        <!-- Modern Anti-Automation / Site Fallback Bar -->
         <Border x:Name="ScriptWarningBar" Grid.Row="0" Visibility="Collapsed"
-                Background="#1e1200" BorderBrush="#cc7000" BorderThickness="0,0,0,1">
-            <DockPanel Margin="12,6">
-                <Button x:Name="DisableScriptBtn" DockPanel.Dock="Right"
-                        Content="Disable for this site" Margin="8,0,0,0" Padding="10,4"
-                        Cursor="Hand" Background="#cc7000" Foreground="White" BorderThickness="0"/>
+                Background="#F4171A24" BorderBrush="#33F59E0B" BorderThickness="0,0,0,1">
+            <DockPanel Margin="14,7">
                 <Button x:Name="DismissWarningBtn" DockPanel.Dock="Right"
-                        Content="&#x2715;" Margin="6,0,0,0" Padding="7,4"
-                        Cursor="Hand" Background="Transparent" Foreground="#888" BorderThickness="0"/>
-                <TextBlock x:Name="ScriptWarningText" VerticalAlignment="Center"
-                           Foreground="#ffcc80" FontSize="13"
-                           Text="&#x26A0;  Automation script may be causing a reload loop on this page."/>
+                        Content="&#x2715;" Margin="6,0,0,0" Padding="8,4"
+                        Style="{StaticResource BannerPillButtonStyle}" Background="Transparent" BorderThickness="0" Foreground="#9CA3AF"/>
+                <Button x:Name="SyncSessionBtn" DockPanel.Dock="Right"
+                        Content="&#x1F6E1; Identity Bridge" Margin="8,0,0,0"
+                        Style="{StaticResource BannerPillButtonStyle}"/>
+                <Button x:Name="DisableScriptBtn" DockPanel.Dock="Right"
+                        Content="&#x26A1; Bypass Protections (Safe Mode)" Margin="8,0,0,0"
+                        Style="{StaticResource BannerAccentButtonStyle}" Background="#FFD97706" BorderBrush="#66FBBF24"/>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Width="22" Height="22" CornerRadius="6" Background="#26F59E0B" BorderBrush="#4DF59E0B" BorderThickness="1" Margin="0,0,9,0">
+                        <TextBlock Text="&#x26A0;" FontSize="11.5" Foreground="#FBBF24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <TextBlock x:Name="ScriptWarningText" VerticalAlignment="Center"
+                               Foreground="#F3F4F6" FontSize="12.5" TextTrimming="CharacterEllipsis"
+                               Text="Site reload loop or anti-bot check detected. Switch to Safe Mode or sync your session."/>
+                </StackPanel>
             </DockPanel>
         </Border>
+
+        <!-- Modern Save Password Bar -->
         <Border x:Name="SavePasswordBar" Grid.Row="1" Visibility="Collapsed"
-                Background="#0d1a0d" BorderBrush="#00BB00" BorderThickness="0,0,0,1">
-            <DockPanel Margin="12,6">
+                Background="#F4151D1A" BorderBrush="#3310B981" BorderThickness="0,0,0,1">
+            <DockPanel Margin="14,7">
                 <Button x:Name="SavePassDismissBtn" DockPanel.Dock="Right"
-                        Content="&#x2715;" Margin="6,0,0,0" Padding="7,4"
-                        Cursor="Hand" Background="Transparent" Foreground="#888" BorderThickness="0"/>
+                        Content="&#x2715;" Margin="6,0,0,0" Padding="8,4"
+                        Style="{StaticResource BannerPillButtonStyle}" Background="Transparent" BorderThickness="0" Foreground="#9CA3AF"/>
                 <Button x:Name="SavePassSaveBtn" DockPanel.Dock="Right"
-                        Content="Save" Margin="8,0,0,0" Padding="10,4"
-                        Cursor="Hand" Background="#00BB00" Foreground="Black" BorderThickness="0" FontWeight="Bold"/>
-                <TextBlock x:Name="SavePasswordText" VerticalAlignment="Center"
-                           Foreground="#88ff88" FontSize="13"
-                           Text="&#x1F511;  Save password for this site?"/>
+                        Content="Save to Vault" Margin="8,0,0,0"
+                        Style="{StaticResource BannerAccentButtonStyle}" Background="#FF059669" BorderBrush="#6634D399"/>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Width="22" Height="22" CornerRadius="6" Background="#2610B981" BorderBrush="#4D10B981" BorderThickness="1" Margin="0,0,9,0">
+                        <TextBlock Text="&#x1F511;" FontSize="11.5" Foreground="#34D399" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <TextBlock x:Name="SavePasswordText" VerticalAlignment="Center"
+                               Foreground="#ECFDF5" FontSize="12.5"
+                               Text="Save password for this site?"/>
+                </StackPanel>
             </DockPanel>
         </Border>
+
+        <!-- Modern Extension Install Bar -->
         <Border x:Name="ExtensionInstallBar" Grid.Row="2" Visibility="Collapsed"
-                Background="#0d0d1a" BorderBrush="#4466cc" BorderThickness="0,0,0,1">
-            <DockPanel Margin="12,6">
+                Background="#F4151824" BorderBrush="#333B82F6" BorderThickness="0,0,0,1">
+            <DockPanel Margin="14,7">
                 <Button x:Name="InstallExtDismissBtn" DockPanel.Dock="Right"
-                        Content="&#x2715;" Margin="6,0,0,0" Padding="7,4"
-                        Cursor="Hand" Background="Transparent" Foreground="#888" BorderThickness="0"/>
+                        Content="&#x2715;" Margin="6,0,0,0" Padding="8,4"
+                        Style="{StaticResource BannerPillButtonStyle}" Background="Transparent" BorderThickness="0" Foreground="#9CA3AF"/>
                 <Button x:Name="InstallExtensionBtn" DockPanel.Dock="Right"
-                        Content="Install" Margin="8,0,0,0" Padding="10,4"
-                        Cursor="Hand" Background="#4466cc" Foreground="White" BorderThickness="0" FontWeight="Bold"/>
-                <TextBlock x:Name="ExtensionInstallText" VerticalAlignment="Center"
-                           Foreground="#aabbff" FontSize="13"
-                           Text="&#x1F9E9;  Install extension?"/>
+                        Content="Install Extension" Margin="8,0,0,0"
+                        Style="{StaticResource BannerAccentButtonStyle}"/>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Width="22" Height="22" CornerRadius="6" Background="#263B82F6" BorderBrush="#4D3B82F6" BorderThickness="1" Margin="0,0,9,0">
+                        <TextBlock Text="&#x1F9E9;" FontSize="11.5" Foreground="#60A5FA" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <TextBlock x:Name="ExtensionInstallText" VerticalAlignment="Center"
+                               Foreground="#EFF6FF" FontSize="12.5"
+                               Text="Install extension?"/>
+                </StackPanel>
             </DockPanel>
         </Border>
+
         <Rectangle Grid.Row="3" Fill="#131313"/>
         <wv2:WebView2 x:Name="MainWebView" Grid.Row="3"/>
+
+        <!-- Isolated Crashed Tab Overlay (prevents dead WebView2 HWND from stalling Split View or UI) -->
+        <Border x:Name="CrashIsolationOverlay" Grid.Row="3" Visibility="Collapsed" Background="#FF0F1117">
+            <Border Width="440" VerticalAlignment="Center" HorizontalAlignment="Center"
+                    Background="#F4171B26" BorderBrush="#2EFFFFFF" BorderThickness="1" CornerRadius="14" Padding="26,24">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="28" ShadowDepth="8" Direction="270" Color="#000000" Opacity="0.6"/>
+                </Border.Effect>
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                        <Border Width="36" Height="36" CornerRadius="9" Background="#26EF4444" BorderBrush="#4DEF4444" BorderThickness="1" Margin="0,0,12,0">
+                            <TextBlock Text="&#x26A0;" FontSize="17" Foreground="#F87171" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="Tab Isolated &#x2014; Renderer Stopped" Foreground="#F9FAFB" FontSize="15.5" FontWeight="SemiBold"/>
+                            <TextBlock x:Name="TxtCrashHost" Text="This page crashed repeatedly and was isolated." Foreground="#9CA3AF" FontSize="12" TextTrimming="CharacterEllipsis"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <TextBlock Text="This tab has been isolated so Split Screen and other tabs continue running at full speed. You can reload it normally or launch it in Safe Mode (bypassing site scripts &amp; fingerprint hooks)."
+                               Foreground="#CBD5E1" FontSize="12.5" TextWrapping="Wrap" Margin="0,0,0,18"/>
+
+                    <WrapPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button x:Name="CrashIdentityBridgeBtn" Content="Identity Bridge"
+                                Style="{StaticResource BannerPillButtonStyle}" Margin="0,0,8,0"/>
+                        <Button x:Name="CrashSafeModeBtn" Content="Reload in Safe Mode"
+                                Style="{StaticResource BannerPillButtonStyle}" Margin="0,0,8,0"/>
+                        <Button x:Name="CrashReloadBtn" Content="Reload Tab"
+                                Style="{StaticResource BannerAccentButtonStyle}"/>
+                    </WrapPanel>
+                </StackPanel>
+            </Border>
+        </Border>
+
         <local:HomePageView x:Name="NativeHomePage" Grid.Row="3" Visibility="Collapsed"/>
     </Grid>
 </UserControl>

@@ -99,6 +99,7 @@ public static class FingerprintProfile
             try { host = new URL(self.location.origin).hostname; } catch (e) {}
 
             var fullHost = (host || '').toLowerCase();
+            if (fullHost.endsWith('youtube.com') || fullHost === 'youtu.be' || fullHost.endsWith('googlevideo.com') || fullHost.endsWith('youtube-nocookie.com')) return;
             var exemptHosts = __EXEMPT__;
             for (var xi = 0; xi < exemptHosts.length; xi++) {
                 var xe = exemptHosts[xi];
@@ -167,6 +168,7 @@ public static class FingerprintProfile
             if (!host) host = location.hostname || '';
 
             var fullHost = (host || '').toLowerCase();
+            if (fullHost.endsWith('youtube.com') || fullHost === 'youtu.be' || fullHost.endsWith('googlevideo.com') || fullHost.endsWith('youtube-nocookie.com')) return;
             var exemptHosts = __EXEMPT__;
             for (var xi = 0; xi < exemptHosts.length; xi++) {
                 var xe = exemptHosts[xi];

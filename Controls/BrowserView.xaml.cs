@@ -19,6 +19,7 @@ public partial class BrowserView : UserControl
 {
     private string? _pendingUrl = null;
     private bool _processCrashed = false;
+    private bool _recoveringBrowserProcess = false;
     public bool IsProcessCrashed => _processCrashed;
     private string? _pendingSaveTitle;
     private string? _pendingSaveUrl;
@@ -652,7 +653,11 @@ public partial class BrowserView : UserControl
         MainWebView.DefaultBackgroundColor = System.Drawing.Color.FromArgb(255, 19, 19, 19);
         _ = Task.Run(EnsureWhitelistLoaded);
         DisableScriptBtn.Click   += (_, _) => _ = DisableScriptForCurrentSiteAsync();
+        SyncSessionBtn.Click     += (_, _) => _ = AttemptActiveRecovery();
         DismissWarningBtn.Click  += (_, _) => HideScriptWarning();
+        CrashReloadBtn.Click     += (_, _) => RestoreFromIsolationAndReload();
+        CrashSafeModeBtn.Click   += (_, _) => _ = DisableScriptForCurrentSiteAsync();
+        CrashIdentityBridgeBtn.Click += (_, _) => _ = AttemptActiveRecovery();
         SavePassSaveBtn.Click    += (_, _) => CommitSavePassword();
         SavePassDismissBtn.Click   += (_, _) => HideSavePasswordBar();
         InstallExtensionBtn.Click  += async (_, _) =>
@@ -763,22 +768,7 @@ public partial class BrowserView : UserControl
                      await MainWebView.EnsureCoreWebView2Async(HorizonEnvironment.Instance);
                  }
  
-                  MainWebView.CoreWebView2!.Settings.UserAgent = Core.HorizonEnvironment.GlobalUserAgent;
-
-                MainWebView.CoreWebView2.WebResourceRequested += (s, e) =>
-                {
-                    if (!e.Request.Headers.Contains("Sec-CH-UA"))
-                        e.Request.Headers.SetHeader("Sec-CH-UA", "\"Chromium\";v=\"122\", \"Not(A:Brand\";v=\"24\", \"Google Chrome\";v=\"122\"");
-                    if (!e.Request.Headers.Contains("Sec-CH-UA-Mobile"))
-                        e.Request.Headers.SetHeader("Sec-CH-UA-Mobile", "?0");
-                    if (!e.Request.Headers.Contains("Sec-CH-UA-Platform"))
-                        e.Request.Headers.SetHeader("Sec-CH-UA-Platform", "\"Windows\"");
-                    if (!e.Request.Headers.Contains("Accept"))
-                        e.Request.Headers.SetHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8");
-                    if (!e.Request.Headers.Contains("Accept-Language"))
-                        e.Request.Headers.SetHeader("Accept-Language", "en-US,en;q=0.9");
-                };
-                MainWebView.CoreWebView2.AddWebResourceRequestedFilter("*", CoreWebView2WebResourceContext.Document);
+                MainWebView.CoreWebView2!.Settings.UserAgent = Core.HorizonEnvironment.GlobalUserAgent;
 
                 MainWebView.PreviewTouchDown += (_, _) =>
                 {
@@ -789,6 +779,17 @@ public partial class BrowserView : UserControl
 
                 MainWebView.CoreWebView2.ProcessFailed += (s, e) =>
                 {
+                    // Only BrowserProcessExited and RenderProcessExited mean the main page/browser actually died.
+                    // RenderProcessUnresponsive (Exit=259 STILL_ACTIVE), FrameRenderProcessExited (ad/tracker iframe),
+                    // GpuProcessExited, and UtilityProcessExited recover automatically in Chromium and MUST NOT
+                    // mark the tab as crashed, reload the page, or interrupt the user.
+                    if (e.ProcessFailedKind != CoreWebView2ProcessFailedKind.BrowserProcessExited &&
+                        e.ProcessFailedKind != CoreWebView2ProcessFailedKind.RenderProcessExited)
+                    {
+                        LogService.Write("PERF", $"BrowserView non-fatal ProcessFailed ignored: Kind={e.ProcessFailedKind} Reason={e.Reason}");
+                        return;
+                    }
+
                     _processCrashed = true;
                     FullscreenChanged?.Invoke(false);
                     Dispatcher.Invoke(async () =>
@@ -797,11 +798,23 @@ public partial class BrowserView : UserControl
                         {
                             LogService.Write("CRASH", $"BrowserView ProcessFailed: Kind={e.ProcessFailedKind} Reason={e.Reason}");
                             if (e.ProcessFailedKind == CoreWebView2ProcessFailedKind.BrowserProcessExited)
-                                await RecoverFromCrashAsync();
-                            else
                             {
-                                _processCrashed = false;
-                                if (ShouldReloadAfterCrash()) { try { MainWebView.Reload(); } catch { } }
+                                _recoveringBrowserProcess = true;
+                                await RecoverFromCrashAsync();
+                            }
+                            else if (e.ProcessFailedKind == CoreWebView2ProcessFailedKind.RenderProcessExited)
+                            {
+                                if (ShouldReloadAfterCrash())
+                                {
+                                    string crashHost = MainWebView?.Source?.Host ?? string.Empty;
+                                    if (!string.IsNullOrEmpty(crashHost))
+                                        ShowScriptWarning(crashHost);
+                                    try { MainWebView?.Reload(); } catch { }
+                                }
+                                else
+                                {
+                                    IsolateCrashedTab();
+                                }
                             }
                         }
                         catch (Exception ex)
@@ -897,6 +910,7 @@ public partial class BrowserView : UserControl
                     }
                 }
                 InjectRecoveryCookies();
+                if (!_extensionsLoaded) _ = LoadExtensionsAsync();
 
 
 
@@ -1011,6 +1025,7 @@ public partial class BrowserView : UserControl
 
         // ── Build the list of extension dirs to load (filter first, then load in parallel) ──
         var toLoad = new List<(string dir, string folderName)>();
+        var seenManifestNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         foreach (var extDir in System.IO.Directory.GetDirectories(extensionsRoot))
         {
@@ -1024,6 +1039,23 @@ public partial class BrowserView : UserControl
                 LogService.Write("EXT", $"Skipped Firefox-only extension: '{folderName}'");
                 continue;
             }
+
+            try
+            {
+                using var mDoc = System.Text.Json.JsonDocument.Parse(System.IO.File.ReadAllText(manifest));
+                string extName = mDoc.RootElement.TryGetProperty("name", out var nameProp) ? (nameProp.GetString() ?? "") : "";
+                string extVer  = mDoc.RootElement.TryGetProperty("version", out var verProp) ? (verProp.GetString() ?? "") : "";
+                string extHome = mDoc.RootElement.TryGetProperty("homepage_url", out var homeProp) ? (homeProp.GetString() ?? "") : "";
+                string dedupKey = !string.IsNullOrWhiteSpace(extName) && !extName.StartsWith("__MSG_", StringComparison.Ordinal)
+                    ? extName.Trim()
+                    : $"{extName}|{extVer}|{extHome}";
+                if (!string.IsNullOrWhiteSpace(dedupKey) && dedupKey != "||" && !seenManifestNames.Add(dedupKey))
+                {
+                    LogService.Write("EXT", $"Skipped duplicate extension folder '{folderName}' ('{dedupKey}')");
+                    continue;
+                }
+            }
+            catch { }
 
             var rec = ExtensionService.Find(folderName);
             if (rec != null && !rec.Enabled)
@@ -1073,6 +1105,22 @@ public partial class BrowserView : UserControl
 
         await Task.WhenAll(tasks);
 
+        try
+        {
+            var installed = await MainWebView.CoreWebView2.Profile.GetBrowserExtensionsAsync();
+            var seenNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var inst in installed)
+            {
+                if (string.IsNullOrWhiteSpace(inst.Name)) continue;
+                if (!seenNames.Add(inst.Name.Trim()))
+                {
+                    LogService.Write("EXT", $"Removing duplicate persisted extension '{inst.Name}' (ID={inst.Id})");
+                    try { await inst.RemoveAsync(); } catch { }
+                }
+            }
+        }
+        catch { }
+
         LogService.Write("EXT", $"Extension loading done \u2014 {loaded} loaded, {failed} failed.");
 
         if (loaded == 0 && failed > 0)
@@ -1109,9 +1157,20 @@ public partial class BrowserView : UserControl
 
         if (e.IsSuccess)
         {
+            _processCrashed = false;
+            _recoveringBrowserProcess = false;
+            IsCrashLoopHalted = false;
             string storeCheckUrl = MainWebView?.Source?.ToString() ?? string.Empty;
             var storeInfo = ExtensionInstaller.Detect(storeCheckUrl);
-            Dispatcher.Invoke(() => { if (storeInfo.IsStorePage) ShowExtensionInstallBar(storeInfo); else HideExtensionInstallBar(); });
+            Dispatcher.Invoke(() =>
+            {
+                if (CrashIsolationOverlay.Visibility == Visibility.Visible)
+                {
+                    CrashIsolationOverlay.Visibility = Visibility.Collapsed;
+                    if (!IsHomeActive && MainWebView != null) MainWebView.Visibility = Visibility.Visible;
+                }
+                if (storeInfo.IsStorePage) ShowExtensionInstallBar(storeInfo); else HideExtensionInstallBar();
+            });
         }
 
         _ = TryDetectGoogleAccountsAsync();
@@ -1128,9 +1187,9 @@ public partial class BrowserView : UserControl
 
         // Fix: hardware-accelerated video (e.g. YouTube Music watch pages) can init
         // with audio playing but a black/uncomposited frame when the WebView2 surface
-        // wasn't already "warm" (i.e. direct/deep-link navigation). Nudging the size
-        // forces WPF to recomposite the WebView2 visual instead of leaving it black.
-        _ = Dispatcher.InvokeAsync(() => ForceWebViewRepaint(), System.Windows.Threading.DispatcherPriority.Background);
+        // wasn't already "warm" (i.e. direct/deep-link navigation).
+        if (navHost.Contains("music.youtube.com", StringComparison.OrdinalIgnoreCase))
+            _ = Dispatcher.InvokeAsync(() => ForceWebViewRepaint(), System.Windows.Threading.DispatcherPriority.Background);
 
         // Apply per-tab language preference
         if (SettingsService.Current.PerTabLanguageEnabled && !string.IsNullOrEmpty(_tabViewModel.Language))
@@ -1242,21 +1301,38 @@ public partial class BrowserView : UserControl
         }
     }
 
-    public Task AttemptActiveRecovery()
+    public async Task AttemptActiveRecovery()
     {
         string targetDomain = "twitch.tv";
         try
         {
-            if (MainWebView != null && MainWebView.Source != null)
+            if (MainWebView != null && MainWebView.Source != null && !string.IsNullOrEmpty(MainWebView.Source.Host))
                 targetDomain = MainWebView.Source.Host.Replace("www.", "");
+            else if (_tabViewModel != null && Uri.TryCreate(_tabViewModel.Url, UriKind.Absolute, out var tabUri) && !string.IsNullOrEmpty(tabUri.Host))
+                targetDomain = tabUri.Host.Replace("www.", "");
         }
         catch { }
 
-        var dialog = new LoginRecoveryDialog(targetDomain);
-        dialog.Owner = Window.GetWindow(this);
+        var dialog = new LoginRecoveryDialog(targetDomain)
+        {
+            Owner = Window.GetWindow(this)
+        };
 
         if (dialog.ShowDialog() == true)
         {
+            if (dialog.BypassProtectionsRequested)
+            {
+                await DisableScriptForCurrentSiteAsync();
+                return;
+            }
+
+            if (!string.IsNullOrEmpty(dialog.SelectedJsonFilePath))
+            {
+                InjectRecoveryCookies(dialog.SelectedJsonFilePath);
+                RestoreFromIsolationAndReload();
+                return;
+            }
+
             var browserInfo = BrowserDetectionService.DetectDefaultBrowser();
             int injectedCount = 0;
 
@@ -1264,7 +1340,7 @@ public partial class BrowserView : UserControl
             {
                 try
                 {
-                    var cookies = ChromiumHarvester.Harvest(browserInfo.UserDataPath, targetDomain);
+                    var cookies = await Task.Run(() => ChromiumHarvester.Harvest(browserInfo.UserDataPath, targetDomain));
                     injectedCount = InjectCookieList(cookies);
                 }
                 catch (Exception ex)
@@ -1275,69 +1351,19 @@ public partial class BrowserView : UserControl
 
             if (injectedCount > 0)
             {
-                MainWebView?.Reload();
-                MessageBox.Show($"Success! Synced {injectedCount} session tokens for {targetDomain}.", "Identity Bridge");
+                RestoreFromIsolationAndReload();
+                MessageBox.Show($"Synced {injectedCount} session tokens for {targetDomain}.", "Identity Bridge", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             else
             {
-                var askManual = MessageBox.Show(
-                    $"AUTOMATIC SYNC FAILED.\n\n" +
-                    $"We could not find a session for '{targetDomain}' in {browserInfo.Name}.\n" +
-                    $"Do you want to try the Manual Method instead?",
-                    "Manual Recovery",
-                    MessageBoxButton.YesNo,
-                    MessageBoxImage.Question);
-
-                if (askManual == MessageBoxResult.Yes)
-                {
-                    var askExt = MessageBox.Show(
-                        "Do you need the 'Cookie-Editor' extension?\n\n" +
-                        "Click YES to open the download page in your default browser.\n" +
-                        "Click NO if you already have it installed.",
-                        "Step 1: Preparation",
-                        MessageBoxButton.YesNo,
-                        MessageBoxImage.Information);
-
-                    if (askExt == MessageBoxResult.Yes)
-                    {
-                        try
-                        {
-                            var ps = new System.Diagnostics.ProcessStartInfo("https://chromewebstore.google.com/detail/ojfebgpkimhlhcblbalbfjblapadhbol")
-                            { UseShellExecute = true };
-                            System.Diagnostics.Process.Start(ps);
-                        }
-                        catch { MessageBox.Show("Could not open link. Please search for 'Cookie-Editor' on Google."); }
-                    }
-
-                    MessageBox.Show(
-                        "INSTRUCTIONS:\n\n" +
-                        $"1. Go to {targetDomain} in your main browser and Log In.\n\n" +
-                        "2. Open Cookie-Editor -> Click 'Export' (Arrow UP ⬆️) -> 'Export as JSON'.\n" +
-                        "   (Do NOT use the Arrow Down ⬇️ button!)\n\n" +
-                        "3. I will open the App Folder next.\n\n" +
-                        "4. Create a file named 'cookies.json', paste the code inside, and Save.\n\n" +
-                        "💡 TIP: To fix other websites later, just repeat this process and overwrite 'cookies.json' again.",
-                        "Step 2: The Harvest",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Information);
-
-                    System.Diagnostics.Process.Start("explorer.exe", AppDomain.CurrentDomain.BaseDirectory);
-
-                    var confirm = MessageBox.Show(
-                        "Did you save the 'cookies.json' file?\n\nClick Yes to inject it now.",
-                        "Step 3: Injection",
-                        MessageBoxButton.YesNo,
-                        MessageBoxImage.Question);
-
-                    if (confirm == MessageBoxResult.Yes)
-                    {
-                        InjectRecoveryCookies("cookies.json");
-                        MainWebView?.Reload();
-                    }
-                }
+                MessageBox.Show(
+                    $"No saved session tokens were found for '{targetDomain}' in {browserInfo.Name}.\n\n" +
+                    "Tip: You can click 'Enable Safe Mode' or 'Import JSON...' inside Identity Bridge.",
+                    "Identity Bridge",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
             }
         }
-        return Task.CompletedTask;
     }
 
     private int InjectCookieList(List<ExtractedCookie> cookies)
@@ -1484,6 +1510,7 @@ public partial class BrowserView : UserControl
     }
 
     private readonly System.Collections.Generic.Queue<DateTime> _crashTimes = new();
+    public bool IsCrashLoopHalted { get; private set; }
 
     private bool ShouldReloadAfterCrash()
     {
@@ -1492,9 +1519,11 @@ public partial class BrowserView : UserControl
         while (_crashTimes.Count > 0 && (now - _crashTimes.Peek()).TotalSeconds > 20) _crashTimes.Dequeue();
         if (_crashTimes.Count > 3)
         {
+            IsCrashLoopHalted = true;
             LogService.Write("CRASH", "Renderer crash loop detected, auto-reload stopped");
             return false;
         }
+        IsCrashLoopHalted = false;
         return true;
     }
 
@@ -1622,20 +1651,66 @@ public partial class BrowserView : UserControl
         App.Restart();
     }
 
+    private void IsolateCrashedTab()
+    {
+        _processCrashed = true;
+        IsCrashLoopHalted = true;
+        string host = MainWebView?.Source?.Host ?? _tabViewModel?.Url ?? "current page";
+        TxtCrashHost.Text = $"Isolated '{host}' after repeated renderer failures.";
+        if (MainWebView != null)
+            MainWebView.Visibility = Visibility.Collapsed;
+        CrashIsolationOverlay.Visibility = Visibility.Visible;
+    }
+
+    public void RestoreFromIsolationAndReload()
+    {
+        _crashTimes.Clear();
+        _processCrashed = false;
+        IsCrashLoopHalted = false;
+        CrashIsolationOverlay.Visibility = Visibility.Collapsed;
+        if (!IsHomeActive && MainWebView != null)
+            MainWebView.Visibility = Visibility.Visible;
+
+        string targetUrl = MainWebView?.Source?.ToString() ?? _tabViewModel?.Url ?? "";
+        try
+        {
+            if (MainWebView?.CoreWebView2 != null)
+                MainWebView.Reload();
+            else if (!string.IsNullOrEmpty(targetUrl))
+                Navigate(targetUrl);
+        }
+        catch
+        {
+            if (!string.IsNullOrEmpty(targetUrl))
+                Navigate(targetUrl);
+        }
+    }
+
     private async Task DisableScriptForCurrentSiteAsync()
     {
         string host = MainWebView?.Source?.Host ?? string.Empty;
+        if (string.IsNullOrEmpty(host) && _tabViewModel != null && Uri.TryCreate(_tabViewModel.Url, UriKind.Absolute, out var u))
+            host = u.Host;
         if (string.IsNullOrEmpty(host)) return;
+
         lock (_whitelistLock) _scriptWhitelist.Add(host);
         SaveWhitelist();
         HideScriptWarning();
+
+        try
+        {
+            if (!FingerprintExemptions.IsExempt(host))
+                await FingerprintProfile.ToggleAsync(host);
+        }
+        catch { }
+
         await RefreshHostCheckScriptAsync();
         var scriptCore = MainWebView?.CoreWebView2;
-        if (scriptCore != null)
+        if (scriptCore != null && !_processCrashed)
         {
             try { await scriptCore.ExecuteScriptAsync("window.__horizonScriptDisabled = true;"); } catch { }
         }
-        MainWebView?.Reload();
+        RestoreFromIsolationAndReload();
     }
 
     private void CoreWebView2_HistoryChanged(object? sender, object e)
@@ -1676,18 +1751,8 @@ public partial class BrowserView : UserControl
                 if (__HZ_MUSIC_HOST__) return;
 
                 // ── Ad skipping ──────────────────────────────────────────────────────
-                const manageAds = () => {
-                    const adOverlay = document.querySelector('.ad-interrupting');
-                    const video = document.querySelector('video');
-                    if (adOverlay && video) {
-                        const isLive = video.duration === Infinity
-                                    || !!document.querySelector('.ytp-live');
-                        if (!isLive) {
-                            video.playbackRate = 20.0;
-                            video.muted = true;
-                        }
-                    }
-                };
+                const isYouTube = window.location.hostname.includes('youtube.com');
+                const manageAds = () => {};
 
                 // ── Comprehensive consent / gate dismissal ───────────────────────────
                 //
@@ -1780,85 +1845,59 @@ public partial class BrowserView : UserControl
                     return false;
                 };
 
-                // Keyword match on all visible buttons / links
+                // Keyword match scoped strictly to consent/cookie dialog containers (never full-DOM layout thrashing)
+                const CONSENT_CONTAINERS = '[id*=""consent"" i], [class*=""consent"" i], [id*=""cookie"" i], [class*=""cookie"" i], [id*=""gdpr"" i], [class*=""gdpr"" i], [aria-modal=""true""], dialog[open]';
                 const tryKeywordsOnRoot = (root) => {
-                    const candidates = root.querySelectorAll(
-                        'button, [role=""button""], a[href=""#""], input[type=""button""], input[type=""submit""]'
-                    );
-                    for (const el of candidates) {
-                        if (el.offsetParent === null && !el.closest('dialog[open]')) continue;
-                        const text = (el.innerText || el.textContent || el.value || '').trim().toLowerCase();
-                        if (!text || text.length > 80) continue;
-                        if (REJECT_KEYWORDS.some(kw => text === kw || text.startsWith(kw))) {
-                            el.click();
-                            console.log('[Horizon] Consent dismissed via keyword:', text);
-                            window.__horizonConsentDismissed = true;
-                            return true;
+                    const containers = root.querySelectorAll ? root.querySelectorAll(CONSENT_CONTAINERS) : [];
+                    for (const container of containers) {
+                        const candidates = container.querySelectorAll(
+                            'button, [role=""button""], input[type=""button""], input[type=""submit""]'
+                        );
+                        for (const el of candidates) {
+                            const text = (el.textContent || el.value || '').trim().toLowerCase();
+                            if (!text || text.length > 80) continue;
+                            if (REJECT_KEYWORDS.some(kw => text === kw || text.startsWith(kw))) {
+                                el.click();
+                                console.log('[Horizon] Consent dismissed via keyword:', text);
+                                window.__horizonConsentDismissed = true;
+                                return true;
+                            }
                         }
                     }
                     return false;
                 };
 
-                // Walk shadow roots recursively
-                const walkShadow = (root) => {
-                    if (trySelectorsOnRoot(root) || tryKeywordsOnRoot(root)) return true;
-                    for (const el of root.querySelectorAll('*')) {
-                        if (el.shadowRoot && walkShadow(el.shadowRoot)) return true;
-                    }
-                    return false;
-                };
-
-                // Main consent handler — checks main doc + all same-origin iframes
+                // Check selectors and scoped consent containers without crawling all Shadow DOMs
                 const rejectConsent = () => {
                     if (window.__horizonConsentDismissed) return;
-                    if (walkShadow(document)) return;
-                    try {
-                        for (const frame of document.querySelectorAll('iframe')) {
-                            try {
-                                const doc = frame.contentDocument;
-                                if (doc) walkShadow(doc);
-                            } catch(e) {}
-                        }
-                    } catch(e) {}
+                    if (trySelectorsOnRoot(document) || tryKeywordsOnRoot(document)) return;
                 };
 
                 // ── YouTube 'Video paused, continue watching?' suppressor ────────────
                 const suppressYtPause = () => {
+                    if (!isYouTube) return;
                     document.querySelectorAll(
                         '.ytp-pause-overlay, .ytp-pause-overlay-container'
                     ).forEach(el => el.remove());
                 };
 
-                // Intercept YouTube's idle setInterval timers
-                const _origSetInterval = window.setInterval;
-                window.setInterval = function(fn, delay, ...rest) {
-                    if (typeof delay === 'number' && delay >= 55000) {
-                        try {
-                            const s = (typeof fn === 'function' ? fn.toString() : String(fn));
-                            if (/pauseVideo|pause-overlay|idleTime|confirmDialo|pauseObserv/i.test(s))
-                                return 0;
-                        } catch(e) {}
-                    }
-                    return _origSetInterval.call(this, fn, delay, ...rest);
-                };
-
-                // MutationObserver: covers YouTube pause overlay + consent dialogs with debounce & rate-limiting
+                // MutationObserver: runs only during initial 5s consent window so pages never suffer ongoing DOM observer overhead
                 let _mutationDebounceTimer = null;
                 let _consentAttempts = 0;
                 const runScheduledChecks = () => {
-                    suppressYtPause();
-                    // Remove YouTube confirm dialogs
-                    document.querySelectorAll('yt-confirm-dialog-renderer').forEach(el => {
-                        const t = (el.innerText || '').toLowerCase();
-                        if (t.includes('pause') || t.includes('continue')) el.remove();
-                    });
-                    if (!window.__horizonConsentDismissed && _consentAttempts < 5) {
+                    if (isYouTube) {
+                        suppressYtPause();
+                        manageAds();
+                    }
+                    if (!window.__horizonConsentDismissed && _consentAttempts < 4) {
                         _consentAttempts++;
                         rejectConsent();
-                    } else if (_consentAttempts >= 5) {
+                    } else {
                         window.__horizonConsentDismissed = true;
+                        if (!isYouTube) {
+                            try { masterObserver.disconnect(); } catch(e) {}
+                        }
                     }
-                    manageAds();
                 };
 
                 const masterObserver = new MutationObserver(() => {
@@ -1866,13 +1905,17 @@ public partial class BrowserView : UserControl
                     _mutationDebounceTimer = setTimeout(() => {
                         _mutationDebounceTimer = null;
                         runScheduledChecks();
-                    }, 400);
+                    }, 500);
                 });
 
                 const startObserver = () => {
+                    if (!document.documentElement) return;
                     masterObserver.observe(document.documentElement, { childList: true, subtree: true });
                     runScheduledChecks();
-                    setTimeout(() => { window.__horizonConsentDismissed = true; }, 5000);
+                    setTimeout(() => {
+                        window.__horizonConsentDismissed = true;
+                        try { masterObserver.disconnect(); } catch(e) {}
+                    }, 5000);
                 };
 
                 if (document.readyState === 'loading') {
@@ -2653,10 +2696,21 @@ public partial class BrowserView : UserControl
                 url = $"https://www.google.com/search?q={Uri.EscapeDataString(url)}";
         }
 
-        if (MainWebView == null || _processCrashed)
+        if (MainWebView == null || _recoveringBrowserProcess)
         {
             _pendingUrl = url;
             return;
+        }
+
+        if (_processCrashed || IsCrashLoopHalted)
+        {
+            _processCrashed = false;
+            _recoveringBrowserProcess = false;
+            IsCrashLoopHalted = false;
+            _crashTimes.Clear();
+            CrashIsolationOverlay.Visibility = Visibility.Collapsed;
+            if (!IsHomeActive)
+                MainWebView.Visibility = Visibility.Visible;
         }
 
         try
@@ -2684,6 +2738,7 @@ public partial class BrowserView : UserControl
         {
             LogService.Write("CRASH", "Navigate() hit a dead WebView2 process, queuing reinit.");
             _processCrashed = true;
+            _recoveringBrowserProcess = true;
             _pendingUrl = url;
             _ = RecoverFromCrashAsync();
         }
@@ -2731,6 +2786,9 @@ public partial class BrowserView : UserControl
             }
 
             _processCrashed = false;
+            _recoveringBrowserProcess = false;
+            IsCrashLoopHalted = false;
+            CrashIsolationOverlay.Visibility = Visibility.Collapsed;
 
             if (!string.IsNullOrEmpty(urlToRestore))
                 _pendingUrl = urlToRestore;

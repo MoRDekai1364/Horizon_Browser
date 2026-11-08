@@ -14,257 +14,170 @@ public static class HorizonEnvironment
     private static bool        _initFailed = false;
     private static readonly object _initLock = new();
 
-    public const string GlobalUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36";
+    public static readonly string GlobalUserAgent = BuildGlobalUserAgent();
+
+    private static string BuildGlobalUserAgent()
+    {
+        try
+        {
+            string? ver = CoreWebView2Environment.GetAvailableBrowserVersionString();
+            if (!string.IsNullOrWhiteSpace(ver))
+            {
+                int dot = ver.IndexOf('.');
+                string major = dot > 0 ? ver[..dot] : ver;
+                if (int.TryParse(major, out int m) && m >= 120)
+                    return $"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/{m}.0.0.0 Safari/537.36";
+            }
+        }
+        catch { }
+        return "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36";
+    }
 
     private const string SCRIPT_YOUTUBE_INTERVENTION = @"
         (function() {
+            if (window.__horizonScriptDisabled) return;
             if (!window.location.hostname.includes('youtube.com') || window.location.hostname.includes('music.youtube.com')) return;
             
             setInterval(() => {
+                if (window.__horizonScriptDisabled || document.hidden) return;
                 const adShowing = document.querySelector('.ad-showing') || document.querySelector('.ad-interrupting');
-                const video = document.querySelector('video');
-                
-                if (adShowing && video) {
-                    video.playbackRate = 16.0;
-                    video.muted = true;
-                    
-                    const skipBtn = document.querySelector('.ytp-ad-skip-button') || document.querySelector('.videoAdUiSkipButton');
-                    if (skipBtn) skipBtn.click();
+                if (!adShowing) return;
+                const skipBtn = document.querySelector('.ytp-ad-skip-button, .ytp-skip-ad-button, .ytp-ad-skip-button-modern, .videoAdUiSkipButton');
+                if (skipBtn) {
+                    try { skipBtn.click(); } catch(e) {}
                 }
-            }, 250);
-
-            setInterval(() => {
-                const enforcement = document.querySelector('ytd-enforcement-message-view-model') 
-                                 || document.querySelector('[test-id=""enforcement-message-view-model""]');
-                
-                if (enforcement && document.querySelector('video')?.paused) {
-                    window.location.reload(); 
-                }
-            }, 1000); 
+            }, 600);
         })();
     ";
 
     private const string SCRIPT_YOUTUBE_SCROLL_FIX = @"
         (function() {
-            if (!window.location.hostname.includes('youtube.com') || window.location.hostname.includes('music.youtube.com')) return;
-
-            const CSS = `
-                ytd-rich-item-renderer,
-                ytd-video-renderer,
-                ytd-compact-video-renderer,
-                ytd-shelf-renderer,
-                ytd-reel-shelf-renderer {
-                    contain: layout style;
-                }
-                #primary, ytd-browse, #page-manager {
-                    will-change: scroll-position;
-                }
-            `;
-
-            const inject = () => {
-                if (document.getElementById('hz-scroll-fix')) return;
-                const s = document.createElement('style');
-                s.id = 'hz-scroll-fix';
-                s.textContent = CSS;
-                (document.head || document.documentElement).appendChild(s);
-            };
-
-            document.readyState === 'loading'
-                ? document.addEventListener('DOMContentLoaded', inject)
-                : inject();
-
-            const orig = history.pushState;
-            history.pushState = function() {
-                orig.apply(this, arguments);
-                setTimeout(inject, 600);
-            };
+            if (window.__horizonScriptDisabled) return;
         })();
     ";
 
-        private const string SCRIPT_TIKTOK_INTERVENTION = @"
-
+    private const string SCRIPT_TIKTOK_INTERVENTION = @"
         (function() {
-
+            if (window.__horizonScriptDisabled) return;
             if (!window.location.hostname.includes('tiktok.com')) return;
 
+            const origPlay = HTMLMediaElement.prototype.play;
+            HTMLMediaElement.prototype.play = function() {
+                if (!window.__hzUserInteracted && !window.__horizonScriptDisabled) {
+                    try { this.pause(); } catch(e) {}
+                    return Promise.resolve();
+                }
+                return origPlay.apply(this, arguments);
+            };
 
+            const blockAutoplay = (e) => {
+                if (window.__horizonScriptDisabled || window.__hzUserInteracted) return;
+                if (e.target && e.target.tagName === 'VIDEO') {
+                    try { e.target.pause(); } catch(err) {}
+                }
+            };
+            document.addEventListener('play', blockAutoplay, true);
+            document.addEventListener('playing', blockAutoplay, true);
+
+            const markTrustedInteraction = (e) => {
+                if (e && e.isTrusted) {
+                    window.__hzUserInteracted = true;
+                }
+            };
+            document.addEventListener('pointerdown', markTrustedInteraction, true);
+            document.addEventListener('keydown', markTrustedInteraction, true);
+            document.addEventListener('wheel', markTrustedInteraction, { capture: true, passive: true });
 
             const CSS = `
-
+                #login-modal,
                 [id*=""login-modal""],
-
                 [id*=""loginContainer""],
-
                 [class*=""DivLoginContainer""],
-
                 [class*=""DivModalContainer""],
-
                 [class*=""DivLoginModal""],
-
                 [class*=""DivLoginWall""],
-
                 [class*=""DivLoginGate""],
-
                 [class*=""DivGuestMode""],
-
                 [class*=""login-modal-mask""],
-
                 [class*=""tiktok-modal__mask""],
-
                 [class*=""DivMask-StyledMask""],
-
+                [class*=""DivModalMask""],
                 [class*=""DivModalWrap""],
-
                 [class*=""DivPopupContainer""],
-
+                [class*=""DivBannerContainer""],
+                [data-floating-ui-portal],
+                #tiktok-portal-container,
                 [data-e2e=""feed-follow-popup""],
-
                 [data-e2e=""login-modal""] {
-
                     display: none !important;
-
                     visibility: hidden !important;
-
                     opacity: 0 !important;
-
                     pointer-events: none !important;
-
                 }
-
-                html, body {
-
+                html, body, #app, #main-content-homepage_hot {
                     overflow: auto !important;
-
-                    position: static !important;
-
+                    pointer-events: auto !important;
                 }
-
             `;
 
-
-
             const injectStyle = () => {
-
+                if (window.__horizonScriptDisabled) return;
                 if (document.getElementById('hz-tiktok-bypass')) return;
-
                 const s = document.createElement('style');
-
                 s.id = 'hz-tiktok-bypass';
-
                 s.textContent = CSS;
-
                 (document.head || document.documentElement).appendChild(s);
-
             };
-
-
 
             const unlockScrollAndDismiss = () => {
-
-                const closeBtn = document.querySelector('[data-e2e=""modal-close-icon""]') 
-
+                if (window.__horizonScriptDisabled) return;
+                const closeBtn = document.querySelector('[data-e2e=""modal-close-inner-button""]')
+                              || document.querySelector('[data-e2e=""modal-close-icon""]')
                               || document.querySelector('[class*=""DivCloseWrapper""]')
-
+                              || document.querySelector('div[role=""dialog""] button[aria-label=""Close""]')
                               || document.querySelector('button[aria-label=""Close""]');
-
                 if (closeBtn && !closeBtn.dataset.hzDismissed) {
-
                     closeBtn.dataset.hzDismissed = 'true';
-
                     try { closeBtn.click(); } catch(e) {}
-
                 }
 
+                const appRoot = document.getElementById('app');
+                if (appRoot) {
+                    if (appRoot.hasAttribute('inert')) appRoot.removeAttribute('inert');
+                    if (appRoot.getAttribute('aria-hidden') === 'true') appRoot.removeAttribute('aria-hidden');
+                }
 
-
-                const video = document.querySelector('video');
-
-                if (video) {
-
-                    if (window.__hzTikTokAutoplay === true) {
-
-                        if (video.paused && !video.ended && video.readyState >= 2 && video.dataset.hzUserPaused !== 'true') {
-
-                            video.play().catch(() => {});
-
+                if (!window.__hzUserInteracted) {
+                    const videos = document.querySelectorAll('video');
+                    for (let i = 0; i < videos.length; i++) {
+                        const v = videos[i];
+                        if (v.hasAttribute('autoplay')) v.removeAttribute('autoplay');
+                        if (!v.paused) {
+                            try { v.pause(); } catch(e) {}
                         }
-
-                    } else {
-
-                        if (!video.dataset.hzUserInteracted && !video.paused) {
-
-                            try { video.pause(); } catch(e) {}
-
-                        }
-
                     }
-
                 }
-
             };
-
-
-
-            document.addEventListener('click', (e) => {
-
-                const v = document.querySelector('video');
-
-                if (v) {
-
-                    v.dataset.hzUserInteracted = 'true';
-
-                    const target = e.target;
-
-                    if (target && (target.tagName === 'VIDEO' || target.closest('video') || target.closest('[data-e2e=""video-player""]'))) {
-
-                        v.dataset.hzUserPaused = v.paused ? 'false' : 'true';
-
-                    }
-
-                }
-
-            }, true);
-
-
 
             document.readyState === 'loading'
-
                 ? document.addEventListener('DOMContentLoaded', () => { injectStyle(); unlockScrollAndDismiss(); })
-
                 : (injectStyle(), unlockScrollAndDismiss());
 
-
-
             let _timer = null;
-
             const debouncedCheck = () => {
-
-                if (_timer) return;
-
+                if (_timer || window.__horizonScriptDisabled) return;
                 _timer = setTimeout(() => {
-
                     _timer = null;
-
                     unlockScrollAndDismiss();
-
                 }, 400);
-
             };
 
-
-
             if (window.MutationObserver) {
-
                 const observer = new MutationObserver(debouncedCheck);
-
                 const root = document.body || document.documentElement;
-
                 if (root) observer.observe(root, { childList: true, subtree: true });
-
             }
-
         })();
-
     ";
 
 
@@ -395,6 +308,7 @@ public static class HorizonEnvironment
 
     private const string SCRIPT_HIDE_SPONSORED_RESULTS = @"
         (function() {
+            if (window.__horizonScriptDisabled) return;
             if (window.location.hostname.includes('music.youtube.com')) return;
             var host = window.location.hostname;
 
@@ -411,6 +325,7 @@ public static class HorizonEnvironment
             for (var key in engineSelectors) {
                 if (host.indexOf(key) !== -1) { selectors = engineSelectors[key]; break; }
             }
+            if (selectors.length === 0) return;
 
             var injectCss = function() {
                 if (selectors.length === 0) return;
@@ -500,45 +415,12 @@ public static class HorizonEnvironment
             if (SettingsService.Current.FingerprintSpoofEnabled)
                 await FingerprintProfile.RegisterAsync(webView);
 
-            if (SettingsService.Current.FingerprintSpoofEnabled && SettingsService.Current.FingerprintWorkerCoverageEnabled)
-            {
-
-
-                webView.GetDevToolsProtocolEventReceiver("Target.attachedToTarget").DevToolsProtocolEventReceived += async (s, e) =>
-                {
-                    string sessionId = "";
-                    try
-                    {
-                        using var doc = System.Text.Json.JsonDocument.Parse(e.ParameterObjectAsJson);
-                        var root = doc.RootElement;
-                        sessionId = root.GetProperty("sessionId").GetString() ?? "";
-                        string targetType = root.GetProperty("targetInfo").GetProperty("type").GetString() ?? "";
-                        if (sessionId.Length > 0 && (targetType == "worker" || targetType == "shared_worker"))
-                            await webView.CallDevToolsProtocolMethodForSessionAsync(sessionId, "Runtime.evaluate",
-                                System.Text.Json.JsonSerializer.Serialize(new { expression = FingerprintProfile.BuildWorkerScript() }));
-                    }
-                    catch (Exception ex)
-                    {
-                        LogService.Write("FP", $"Worker inject failed: {ex.Message}");
-                    }
-                    finally
-                    {
-                        if (sessionId.Length > 0)
-                        {
-                            try { await webView.CallDevToolsProtocolMethodForSessionAsync(sessionId, "Runtime.runIfWaitingForDebugger", "{}"); }
-                            catch { }
-                        }
-                    }
-                };
-
-                await webView.CallDevToolsProtocolMethodAsync(
-                    "Target.setAutoAttach",
-                    "{\"autoAttach\":true,\"waitForDebuggerOnStart\":true,\"flatten\":true,\"filter\":[{\"type\":\"worker\"},{\"type\":\"shared_worker\"},{\"exclude\":true}]}");
-            }
+            // NOTE: CDP Target.setAutoAttach with waitForDebuggerOnStart:true on worker/shared_worker
+            // targets is intentionally omitted — in Edge WebView2 (msedge.dll) it triggers a fatal
+            // 0x80000003 STATUS_BREAKPOINT crash on DedicatedWorker thread (e.g. claude.ai,
+            // bg.z-library.sk, tiktok.com, web.whatsapp.com, twitch.tv) and sets devtools_present=true.
             await webView.AddScriptToExecuteOnDocumentCreatedAsync(SCRIPT_YOUTUBE_INTERVENTION);
             await webView.AddScriptToExecuteOnDocumentCreatedAsync(SCRIPT_YOUTUBE_SCROLL_FIX);
-            await webView.AddScriptToExecuteOnDocumentCreatedAsync($"window.__hzTikTokAutoplay = {(SettingsService.Current.TikTokAutoplayOnLoad ? "true" : "false")};");
-
             await webView.AddScriptToExecuteOnDocumentCreatedAsync(SCRIPT_TIKTOK_INTERVENTION);
 
             if (SettingsService.Current.HideSponsoredResults)
