@@ -93,18 +93,18 @@ public static class SplitLayoutCatalog
             new SplitSlot(0, 0, 0.25, 0.5), new SplitSlot(0, 0.5, 0.25, 0.5), new SplitSlot(0.25, 0, 0.5, 1),
             new SplitSlot(0.75, 0, 0.25, 0.5), new SplitSlot(0.75, 0.5, 0.25, 0.5)
         }, U),
-        new("rows-half", "Rows 50/50", new[]
+        new("rows-half", "Top / bottom", new[]
         {
             new SplitSlot(0, 0, 1, 0.5), new SplitSlot(0, 0.5, 1, 0.5)
-        }, P),
-        new("one-two-bottom", "1 top + 2", new[]
+        }, S, U, P),
+        new("one-two-bottom", "1 top + 2 below", new[]
         {
             new SplitSlot(0, 0, 1, 0.5), new SplitSlot(0, 0.5, 0.5, 0.5), new SplitSlot(0.5, 0.5, 0.5, 0.5)
-        }, P),
-        new("two-one-bottom", "2 top + 1", new[]
+        }, S, U, P),
+        new("two-one-bottom", "2 above + 1 bottom", new[]
         {
             new SplitSlot(0, 0, 0.5, 0.5), new SplitSlot(0.5, 0, 0.5, 0.5), new SplitSlot(0, 0.5, 1, 0.5)
-        }, P),
+        }, S, U, P),
         new("rows-3", "3 rows", new[]
         {
             new SplitSlot(0, 0, 1, 1.0 / 3.0), new SplitSlot(0, 1.0 / 3.0, 1, 1.0 / 3.0), new SplitSlot(0, 2.0 / 3.0, 1, 1.0 / 3.0)

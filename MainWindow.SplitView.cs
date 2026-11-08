@@ -264,6 +264,262 @@ public partial class MainWindow : Window
         return SplitNormalize(list.ToArray());
     }
 
+    private bool _splitMorphPending;
+    private Window? _splitMorphWin;
+    private System.Windows.Media.Effects.BlurEffect? _splitMorphBlur;
+    private Border? _splitMorphTint;
+    private TextBlock? _splitMorphTitle;
+    private System.Windows.Media.Imaging.BitmapSource? _splitAreaSnap;
+    private DateTime _splitAreaSnapAt = DateTime.MinValue;
+
+    private System.Windows.Media.Imaging.BitmapSource? SplitCaptureArea()
+    {
+        try
+        {
+            var r = SplitElementDeviceRect(ViewContainer);
+            if (r.IsEmpty) return null;
+            int w = (int)Math.Round(r.Width);
+            int h = (int)Math.Round(r.Height);
+            if (w <= 0 || h <= 0) return null;
+            using var bmp = new System.Drawing.Bitmap(w, h, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+            using (var g = System.Drawing.Graphics.FromImage(bmp))
+            {
+                g.CopyFromScreen((int)Math.Round(r.X), (int)Math.Round(r.Y), 0, 0, new System.Drawing.Size(w, h), System.Drawing.CopyPixelOperation.SourceCopy);
+            }
+            using var ms = new System.IO.MemoryStream();
+            bmp.Save(ms, System.Drawing.Imaging.ImageFormat.Bmp);
+            ms.Position = 0;
+            var img = new System.Windows.Media.Imaging.BitmapImage();
+            img.BeginInit();
+            img.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
+            img.StreamSource = ms;
+            img.EndInit();
+            img.Freeze();
+            return img;
+        }
+        catch (Exception ex)
+        {
+            LogService.Debug("split", () => $"area capture failed: {ex.Message}");
+            return null;
+        }
+    }
+
+    private void SplitMorphAbort()
+    {
+        var w = _splitMorphWin;
+        _splitMorphWin = null;
+        _splitMorphBlur = null;
+        _splitMorphTint = null;
+        _splitMorphTitle = null;
+        _splitMorphPending = false;
+        if (w == null) return;
+        try
+        {
+            w.Close();
+        }
+        catch (Exception ex)
+        {
+            LogService.Debug("split", () => $"morph close failed: {ex.Message}");
+        }
+    }
+
+    private void SplitMorphBegin()
+    {
+        SplitMorphAbort();
+        var cr = SplitElementDeviceRect(ViewContainer);
+        if (cr.IsEmpty) return;
+        var snap = _splitAreaSnap != null && (DateTime.UtcNow - _splitAreaSnapAt).TotalSeconds < 20 ? _splitAreaSnap : SplitCaptureArea();
+        _splitAreaSnap = null;
+        if (snap == null) return;
+        var dpi = VisualTreeHelper.GetDpi(this);
+
+        var blur = new System.Windows.Media.Effects.BlurEffect
+        {
+            Radius = 0,
+            KernelType = System.Windows.Media.Effects.KernelType.Gaussian,
+            RenderingBias = System.Windows.Media.Effects.RenderingBias.Performance
+        };
+        var chrome = SplitBrush("Brush_SurfaceChrome", Brushes.Black);
+        var picture = new Image
+        {
+            Source = snap,
+            Stretch = Stretch.Fill,
+            Margin = new Thickness(-28),
+            Effect = blur
+        };
+        var tint = new Border { Background = chrome, Opacity = 0, IsHitTestVisible = false };
+        var title = new TextBlock
+        {
+            Text = "",
+            FontSize = 30,
+            FontWeight = FontWeights.SemiBold,
+            Foreground = SplitBrush("Brush_Text", Brushes.White),
+            Opacity = 0,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            IsHitTestVisible = false
+        };
+        var root = new Grid { Background = chrome, ClipToBounds = true };
+        root.Children.Add(picture);
+        root.Children.Add(tint);
+        root.Children.Add(title);
+
+        var win = new Window
+        {
+            Style = null,
+            WindowStyle = WindowStyle.None,
+            AllowsTransparency = true,
+            Background = Brushes.Transparent,
+            ShowInTaskbar = false,
+            ShowActivated = false,
+            Topmost = true,
+            ResizeMode = ResizeMode.NoResize,
+            Focusable = false,
+            IsHitTestVisible = false,
+            WindowStartupLocation = WindowStartupLocation.Manual,
+            Left = cr.X / dpi.DpiScaleX,
+            Top = cr.Y / dpi.DpiScaleY,
+            Width = cr.Width / dpi.DpiScaleX,
+            Height = cr.Height / dpi.DpiScaleY,
+            Content = root
+        };
+        _splitMorphWin = win;
+        _splitMorphBlur = blur;
+        _splitMorphTint = tint;
+        _splitMorphTitle = title;
+        win.Show();
+        win.UpdateLayout();
+        Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Render, new Action(() => { }));
+    }
+
+    private void SplitCaptureTabRects(TabViewModel? extraTab = null, FrameworkElement? extraEl = null)
+    {
+        SplitMorphBegin();
+    }
+
+    private void SplitStartMorphIfPending()
+    {
+        if (!_splitMorphPending) return;
+        _splitMorphPending = false;
+        var win = _splitMorphWin;
+        if (win == null || _splitLayout == null || !_splitActive)
+        {
+            SplitMorphAbort();
+            return;
+        }
+
+        var dur = TimeSpan.FromMilliseconds(130);
+        var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
+        if (_splitMorphTitle != null) _splitMorphTitle.Text = _splitLayout.Name ?? "";
+        _splitMorphBlur?.BeginAnimation(System.Windows.Media.Effects.BlurEffect.RadiusProperty, new DoubleAnimation(0, 26, dur) { EasingFunction = ease });
+        _splitMorphTint?.BeginAnimation(UIElement.OpacityProperty, new DoubleAnimation(0, 0.22, dur) { EasingFunction = ease });
+        _splitMorphTitle?.BeginAnimation(UIElement.OpacityProperty, new DoubleAnimation(0, 1, dur) { BeginTime = TimeSpan.FromMilliseconds(30), EasingFunction = ease });
+
+        SplitMorphFinishWhenSettled(win);
+    }
+
+    private string SplitPaneSignature()
+    {
+        var sb = new System.Text.StringBuilder();
+        int n = Math.Min(_splitLayout?.Slots.Count ?? 0, SplitMaxSlots);
+        for (int i = 0; i < n; i++)
+        {
+            FrameworkElement? el = _splitPlaceholders[i];
+            var tab = _splitSlots[i];
+            if (el == null && tab != null && _tabViews.TryGetValue(tab, out var v)) el = v;
+            if (el == null) continue;
+            sb.Append(i).Append(':').Append(Math.Round(el.ActualWidth)).Append('x').Append(Math.Round(el.ActualHeight)).Append(';');
+        }
+        sb.Append(Math.Round(ViewContainer.ActualWidth)).Append('x').Append(Math.Round(ViewContainer.ActualHeight));
+        return sb.ToString();
+    }
+
+    private static async System.Threading.Tasks.Task SplitWaitFramesAsync(Controls.BrowserView view)
+    {
+        try
+        {
+            var core = view.MainWebView?.CoreWebView2;
+            if (core == null) return;
+            await core.CallDevToolsProtocolMethodAsync(
+                "Runtime.evaluate",
+                "{\"expression\":\"new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(()=>setTimeout(r,30))))\",\"awaitPromise\":true}");
+        }
+        catch
+        {
+        }
+    }
+
+    private async void SplitMorphFinishWhenSettled(Window win)
+    {
+        try
+        {
+            var total = System.Diagnostics.Stopwatch.StartNew();
+            await System.Threading.Tasks.Task.Delay(300);
+
+            string sig = SplitPaneSignature();
+            var stableSince = System.Diagnostics.Stopwatch.StartNew();
+            while (ReferenceEquals(_splitMorphWin, win) && total.ElapsedMilliseconds < 5000)
+            {
+                await System.Threading.Tasks.Task.Delay(40);
+                var now = SplitPaneSignature();
+                if (!string.Equals(now, sig, StringComparison.Ordinal))
+                {
+                    sig = now;
+                    stableSince.Restart();
+                    continue;
+                }
+                if (stableSince.ElapsedMilliseconds >= 160) break;
+            }
+
+            if (!ReferenceEquals(_splitMorphWin, win)) return;
+
+            var waits = new List<System.Threading.Tasks.Task>();
+            int n = Math.Min(_splitLayout?.Slots.Count ?? 0, SplitMaxSlots);
+            for (int i = 0; i < n; i++)
+            {
+                var tab = _splitSlots[i];
+                if (tab != null && _tabViews.TryGetValue(tab, out var view) && view.Visibility == Visibility.Visible)
+                {
+                    waits.Add(SplitWaitFramesAsync(view));
+                }
+            }
+            if (waits.Count > 0)
+            {
+                await System.Threading.Tasks.Task.WhenAny(
+                    System.Threading.Tasks.Task.WhenAll(waits),
+                    System.Threading.Tasks.Task.Delay(2500));
+            }
+            await System.Threading.Tasks.Task.Delay(60);
+        }
+        catch (Exception ex)
+        {
+            LogService.Debug("split", () => $"settle wait failed: {ex.Message}");
+        }
+
+        if (!ReferenceEquals(_splitMorphWin, win)) return;
+        var fade = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(160));
+        fade.Completed += (_, _) =>
+        {
+            if (ReferenceEquals(_splitMorphWin, win))
+            {
+                SplitMorphAbort();
+                SplitUpdateIndicator();
+                SplitSyncGrips();
+            }
+            else
+            {
+                try
+                {
+                    win.Close();
+                }
+                catch
+                {
+                }
+            }
+        };
+        win.BeginAnimation(UIElement.OpacityProperty, fade);
+    }
+
     private void SplitStopAnimation()
     {
         if (_splitAnimHooked)
@@ -496,10 +752,15 @@ public partial class MainWindow : Window
         LocationChanged += SplitOnWindowMoved;
         StateChanged -= SplitOnWindowMoved;
         StateChanged += SplitOnWindowMoved;
+        Activated -= SplitOnWindowMoved;
+        Activated += SplitOnWindowMoved;
+        Deactivated -= SplitOnWindowMoved;
+        Deactivated += SplitOnWindowMoved;
         PreviewKeyDown -= SplitOnPreviewKey;
         PreviewKeyDown += SplitOnPreviewKey;
         SplitUpdateIndicator();
-        if (animate && (cols > 1 || rows > 1)) SplitStartAnimation(prevCols, prevRows, targetCols, targetRows);
+        if (animate && _splitMorphWin != null) _splitMorphPending = true;
+        else if (animate && (cols > 1 || rows > 1)) SplitStartAnimation(prevCols, prevRows, targetCols, targetRows);
         LogService.Debug("split", () => $"layout {def.Id} cols={cols} rows={rows} slots={def.Slots.Count}");
     }
 
@@ -609,10 +870,14 @@ public partial class MainWindow : Window
     private void SplitRemoveLayout()
     {
         SplitStopAnimation();
+        SplitMorphAbort();
+        _splitAreaSnap = null;
         ViewContainer.SizeChanged -= SplitContainerSizeChanged;
         ViewContainer.LayoutUpdated -= SplitOnLayoutUpdated;
         LocationChanged -= SplitOnWindowMoved;
         StateChanged -= SplitOnWindowMoved;
+        Activated -= SplitOnWindowMoved;
+        Deactivated -= SplitOnWindowMoved;
         SplitDestroyGrips();
         SplitClosePicker();
         SplitClearGridChildren();
@@ -690,6 +955,7 @@ public partial class MainWindow : Window
 
     private void SplitApplyLayout(SplitLayoutDef def)
     {
+        if (_splitMorphWin == null) SplitCaptureTabRects();
         var active = CurrentTab;
         int count = Math.Min(def.Slots.Count, SplitMaxSlots);
 
@@ -724,8 +990,8 @@ public partial class MainWindow : Window
         _splitAnimateNext = true;
         SplitBuildLayout(def);
         SplitFillEmpty(count);
+        SplitStartMorphIfPending();
         SplitScheduleIndicator();
-        SplitLayoutPop();
     }
 
     private sealed class SplitDropTarget
@@ -1025,25 +1291,6 @@ public partial class MainWindow : Window
         card.BeginAnimation(UIElement.OpacityProperty, fade);
     }
 
-    private async void SplitLayoutPop()
-    {
-        try
-        {
-            await System.Threading.Tasks.Task.Delay(190);
-            int n = Math.Min(_splitLayout?.Slots.Count ?? 0, SplitMaxSlots);
-            for (int i = 0; i < n; i++)
-            {
-                if (!_splitActive) return;
-                SplitFlashSlot(i);
-                await System.Threading.Tasks.Task.Delay(55);
-            }
-        }
-        catch (Exception ex)
-        {
-            LogService.Debug("split", () => $"layout pop failed: {ex.Message}");
-        }
-    }
-
     private void SplitScheduleFlash(params int[] slots)
     {
         Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded, new Action(() =>
@@ -1204,6 +1451,7 @@ public partial class MainWindow : Window
 
         if (_splitActive)
         {
+            SplitCaptureTabRects();
             int from = SplitSlotOf(tab);
             var occupant = _splitSlots[slot];
             if (from >= 0)
@@ -1228,6 +1476,7 @@ public partial class MainWindow : Window
         _splitPicking = false;
         _splitAwaitNewTab = false;
         _splitAnimateNext = true;
+        SplitCaptureTabRects(current, _activeTabView);
         Array.Clear(_splitSlots, 0, _splitSlots.Length);
         SplitPrepareDropTab(tab);
         _splitSlots[slot] = tab;
@@ -1243,17 +1492,18 @@ public partial class MainWindow : Window
         SplitBuildLayout(def);
         SplitHookFocus(_activeTabView);
         SplitFillEmpty(count);
+        SplitStartMorphIfPending();
         SplitScheduleIndicator();
-        SplitLayoutPop();
     }
 
-    private readonly Window?[] _splitGrips = new Window?[SplitMaxSlots];
+    private readonly System.Windows.Controls.Primitives.Popup?[] _splitGrips = new System.Windows.Controls.Primitives.Popup?[SplitMaxSlots];
     private TabViewModel? _splitGripTab;
     private bool _splitGripDragging;
     private System.Drawing.Point _splitGripStart;
     private bool _splitSyncing;
 
     private UIElement? _splitGripPill;
+    private Action? _splitGripRestore;
 
     private void SplitOnPreviewKey(object sender, KeyEventArgs e)
     {
@@ -1271,6 +1521,8 @@ public partial class MainWindow : Window
         }
         _splitGripTab = null;
         _splitGripDragging = false;
+        _splitGripRestore?.Invoke();
+        _splitGripRestore = null;
         if (_isDragging)
         {
             any = true;
@@ -1321,7 +1573,7 @@ public partial class MainWindow : Window
             _splitGrips[i] = null;
             try
             {
-                g.Close();
+                g.IsOpen = false;
             }
             catch (Exception ex)
             {
@@ -1333,100 +1585,60 @@ public partial class MainWindow : Window
     private const double SplitGripWidth = 46;
     private const double SplitGripHeight = 12;
 
-    private static class SplitWin
-    {
-        [System.Runtime.InteropServices.DllImport("gdi32.dll")]
-        public static extern IntPtr CreateRoundRectRgn(int l, int t, int r, int b, int w, int h);
-
-        [System.Runtime.InteropServices.DllImport("user32.dll")]
-        public static extern int SetWindowRgn(IntPtr hWnd, IntPtr hRgn, bool redraw);
-
-        [System.Runtime.InteropServices.DllImport("dwmapi.dll")]
-        public static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int value, int size);
-    }
-
     private static Color SplitBrushColor(Brush brush, Color fallback)
     {
         return brush is SolidColorBrush sb ? sb.Color : fallback;
     }
 
-    private static Color SplitMix(Color a, Color b, double t)
-    {
-        return Color.FromRgb(
-            (byte)Math.Round(a.R * t + b.R * (1 - t)),
-            (byte)Math.Round(a.G * t + b.G * (1 - t)),
-            (byte)Math.Round(a.B * t + b.B * (1 - t)));
-    }
-
-    private void SplitShapeGrip(Window win)
-    {
-        try
-        {
-            var hwnd = new System.Windows.Interop.WindowInteropHelper(win).Handle;
-            if (hwnd == IntPtr.Zero) return;
-            int off = 1;
-            SplitWin.DwmSetWindowAttribute(hwnd, 2, ref off, sizeof(int));
-            int noRound = 1;
-            SplitWin.DwmSetWindowAttribute(hwnd, 33, ref noRound, sizeof(int));
-            var dpi = VisualTreeHelper.GetDpi(this);
-            int wpx = (int)Math.Ceiling(SplitGripWidth * dpi.DpiScaleX);
-            int hpx = (int)Math.Ceiling(SplitGripHeight * dpi.DpiScaleY);
-            var rgn = SplitWin.CreateRoundRectRgn(0, 0, wpx + 1, hpx + 1, hpx, hpx);
-            SplitWin.SetWindowRgn(hwnd, rgn, true);
-        }
-        catch (Exception ex)
-        {
-            LogService.Debug("split", () => $"grip shape failed: {ex.Message}");
-        }
-    }
-
-    private Window SplitCreateGrip(int slot)
+    private System.Windows.Controls.Primitives.Popup SplitCreateGrip(int slot)
     {
         var accentColor = SplitBrushColor(SplitBrush("Brush_Accent", Brushes.DodgerBlue), Colors.DodgerBlue);
         var mutedColor = SplitBrushColor(SplitBrush("Brush_MutedText", Brushes.Gray), Colors.Gray);
-        var idle = new SolidColorBrush(SplitMix(mutedColor, Color.FromRgb(32, 32, 32), 0.75));
+        var idle = new SolidColorBrush(mutedColor);
         var hot = new SolidColorBrush(accentColor);
+        var inverted = new SolidColorBrush(Color.FromRgb((byte)(255 - mutedColor.R), (byte)(255 - mutedColor.G), (byte)(255 - mutedColor.B)));
+        var ring = new SolidColorBrush(accentColor);
         idle.Freeze();
         hot.Freeze();
+        inverted.Freeze();
+        ring.Freeze();
 
-        var gripWindow = new Window
+        var pill = new Border
         {
-            Owner = this,
-            Style = null,
-            WindowStyle = WindowStyle.None,
-            AllowsTransparency = false,
-            Background = idle,
-            BorderThickness = new Thickness(0),
-            Padding = new Thickness(0),
-            ShowInTaskbar = false,
-            ShowActivated = false,
-            ResizeMode = ResizeMode.NoResize,
-            SizeToContent = SizeToContent.Manual,
             Width = SplitGripWidth,
             Height = SplitGripHeight,
-            WindowStartupLocation = WindowStartupLocation.Manual,
+            CornerRadius = new CornerRadius(SplitGripHeight / 2),
+            Background = idle,
             Cursor = Cursors.SizeAll,
-            Content = new Border { Background = Brushes.Transparent }
+            SnapsToDevicePixels = true
         };
-        gripWindow.SourceInitialized += (_, _) => SplitShapeGrip(gripWindow);
 
-        gripWindow.MouseEnter += (_, _) => gripWindow.Background = hot;
-        gripWindow.MouseLeave += (_, _) =>
+        pill.MouseEnter += (_, _) =>
         {
-            if (!_splitGripDragging) gripWindow.Background = idle;
+            if (!_splitGripDragging) pill.Background = hot;
         };
-        gripWindow.MouseLeftButtonDown += (_, e) =>
+        pill.MouseLeave += (_, _) =>
+        {
+            if (!_splitGripDragging) pill.Background = idle;
+        };
+        pill.MouseLeftButtonDown += (_, e) =>
         {
             var tab = slot < SplitMaxSlots ? _splitSlots[slot] : null;
             if (tab == null) return;
             _splitGripTab = tab;
-            _splitGripPill = gripWindow;
+            _splitGripPill = pill;
+            _splitGripRestore = () =>
+            {
+                pill.Background = idle;
+                pill.BorderBrush = null;
+                pill.BorderThickness = new Thickness(0);
+            };
             _splitGripDragging = false;
             _splitGripStart = SplitCursorDevice();
-            gripWindow.CaptureMouse();
+            pill.CaptureMouse();
             e.Handled = true;
         };
-        gripWindow.MouseMove += (_, e) =>
+        pill.MouseMove += (_, e) =>
         {
             if (_splitGripTab == null || e.LeftButton != MouseButtonState.Pressed) return;
             var cur = SplitCursorDevice();
@@ -1438,19 +1650,23 @@ public partial class MainWindow : Window
                 if (dx < SystemParameters.MinimumHorizontalDragDistance * dpi.DpiScaleX &&
                     dy < SystemParameters.MinimumVerticalDragDistance * dpi.DpiScaleY) return;
                 _splitGripDragging = true;
+                pill.Background = inverted;
+                pill.BorderBrush = ring;
+                pill.BorderThickness = new Thickness(2);
                 CreateDragGhost(_splitGripTab, new Point(cur.X, cur.Y));
             }
             SplitMoveGhost();
             SplitDragUpdate();
         };
-        gripWindow.MouseLeftButtonUp += (_, e) =>
+        pill.MouseLeftButtonUp += (_, e) =>
         {
-            gripWindow.ReleaseMouseCapture();
+            pill.ReleaseMouseCapture();
             var tab = _splitGripTab;
             bool dragging = _splitGripDragging;
             _splitGripTab = null;
             _splitGripDragging = false;
-            gripWindow.Background = idle;
+            _splitGripRestore?.Invoke();
+            _splitGripRestore = null;
             e.Handled = true;
             try
             {
@@ -1469,13 +1685,18 @@ public partial class MainWindow : Window
             {
                 LogService.Write("SPLIT", $"grip release failed: {ex}");
             }
-            Activate();
         };
-        gripWindow.PreviewKeyDown += (_, e) =>
+
+        return new System.Windows.Controls.Primitives.Popup
         {
-            if (e.Key == Key.Escape && SplitCancelDrag()) e.Handled = true;
+            AllowsTransparency = true,
+            StaysOpen = true,
+            Focusable = false,
+            PopupAnimation = System.Windows.Controls.Primitives.PopupAnimation.None,
+            Placement = System.Windows.Controls.Primitives.PlacementMode.Absolute,
+            PlacementTarget = this,
+            Child = pill
         };
-        return gripWindow;
     }
 
     private void SplitSyncGrips()
@@ -1485,7 +1706,8 @@ public partial class MainWindow : Window
         try
         {
             if (!_splitActive || _splitLayout == null || _splitPicking || _splitAwaitNewTab ||
-                _splitPickerWindow != null || WindowState == WindowState.Minimized)
+                _splitPickerWindow != null || WindowState == WindowState.Minimized ||
+                (!IsActive && _splitGripTab == null) || _splitMorphWin != null)
             {
                 if (_splitGripTab == null) SplitDestroyGrips();
                 return;
@@ -1508,7 +1730,7 @@ public partial class MainWindow : Window
                     if (old != null && _splitGripTab == null)
                     {
                         _splitGrips[i] = null;
-                        old.Close();
+                        old.IsOpen = false;
                     }
                     continue;
                 }
@@ -1522,9 +1744,9 @@ public partial class MainWindow : Window
 
                 double left = (r.X + r.Width / 2) / dpi.DpiScaleX - SplitGripWidth / 2;
                 double top = r.Y / dpi.DpiScaleY + 2;
-                if (Math.Abs(grip.Left - left) > 0.5 || double.IsNaN(grip.Left)) grip.Left = left;
-                if (Math.Abs(grip.Top - top) > 0.5 || double.IsNaN(grip.Top)) grip.Top = top;
-                if (!grip.IsVisible) grip.Show();
+                if (Math.Abs(grip.HorizontalOffset - left) > 0.5) grip.HorizontalOffset = left;
+                if (Math.Abs(grip.VerticalOffset - top) > 0.5) grip.VerticalOffset = top;
+                if (!grip.IsOpen) grip.IsOpen = true;
             }
         }
         catch (Exception ex)
@@ -1561,6 +1783,7 @@ public partial class MainWindow : Window
 
         if (_splitActive)
         {
+            SplitCaptureTabRects();
             int ai = SplitSlotOf(CurrentTab);
             if (ai >= 0 && ai != slot)
             {
@@ -1582,14 +1805,15 @@ public partial class MainWindow : Window
         _splitActive = true;
         _splitPicking = false;
         _splitAwaitNewTab = false;
+        SplitCaptureTabRects(CurrentTab, _activeTabView);
         Array.Clear(_splitSlots, 0, _splitSlots.Length);
         _splitSlots[slot] = CurrentTab;
         _splitAnimateNext = true;
         SplitBuildLayout(def);
         SplitHookFocus(_activeTabView);
         SplitFillEmpty(Math.Min(def.Slots.Count, SplitMaxSlots));
+        SplitStartMorphIfPending();
         SplitScheduleIndicator();
-        SplitLayoutPop();
     }
 
     private FrameworkElement SplitBuildThumb(SplitLayoutDef def, double tw, double th, bool current, bool last, bool fits, Brush fieldBrush, Brush mutedBrush, Brush accentBrush)
@@ -1644,6 +1868,8 @@ public partial class MainWindow : Window
         if (_splitPickerWindow != null) return;
         if (CurrentTab == null || _activeTabView == null) return;
 
+        _splitAreaSnap = SplitCaptureArea();
+        _splitAreaSnapAt = DateTime.UtcNow;
         var shape = SplitCurrentMonitorShape();
         var layouts = SplitLayoutCatalog.For(shape);
         if (layouts.Count == 0) return;
