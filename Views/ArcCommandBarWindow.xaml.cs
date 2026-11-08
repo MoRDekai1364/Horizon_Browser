@@ -118,7 +118,7 @@ public partial class ArcCommandBarWindow : Window
 
         CardClipHost.Loaded      += (_, _) => UpdateCardClip();
         CardClipHost.SizeChanged += (_, _) => UpdateCardClip();
-        AttachSnapshotBackdrop();
+        AttachNativeBlur();
 
         Loaded += ArcCommandBarWindow_Loaded;
     }
@@ -183,7 +183,7 @@ public partial class ArcCommandBarWindow : Window
         if (CardClipHost.ActualWidth > 0 && CardClipHost.ActualHeight > 0)
         {
             CardClipHost.Clip = new RectangleGeometry(
-                new Rect(0, 0, CardClipHost.ActualWidth, CardClipHost.ActualHeight), 16, 16);
+                new Rect(0, 0, CardClipHost.ActualWidth, CardClipHost.ActualHeight), 8, 8);
         }
         UpdateSnapshotCrop();
     }

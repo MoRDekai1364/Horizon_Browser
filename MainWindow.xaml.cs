@@ -462,6 +462,9 @@ public partial class MainWindow : Window
 
 
 
+        void GetIids(out int iidCount, out IntPtr iids);
+        void GetRuntimeClassName(out IntPtr className);
+        void GetTrustLevel(out int trustLevel);
         IntPtr GetForWindow([In] IntPtr appWindow, [In] ref Guid riid);
 
 
@@ -10724,6 +10727,11 @@ return colors.length > 0 ? colors : null;
 
 
     private void BtnShare_Click(object sender, RoutedEventArgs e)
+    {
+        ShowSystemShare();
+    }
+
+    private void BtnShare_ClickLegacy(object sender, RoutedEventArgs e)
 
 
 
@@ -10787,7 +10795,7 @@ return colors.length > 0 ? colors : null;
 
 
 
-                var dataTransferManager = Marshal.GetObjectForIUnknown(dtmPtr) as DataTransferManager;
+                var dataTransferManager = global::WinRT.MarshalInspectable<DataTransferManager>.FromAbi(dtmPtr);
 
 
 

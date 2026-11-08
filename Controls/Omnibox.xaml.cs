@@ -14,6 +14,9 @@ public partial class Omnibox : UserControl
     public event EventHandler<string>? NavigateRequested;
     public event EventHandler<string>? ContainerCategoryChanged;
     public event EventHandler? DesaturateRequested;
+    public event EventHandler? UrlFocused;
+    public event EventHandler? UrlUnfocused;
+    public event EventHandler? UrlDismissed;
 
     private readonly List<string> _customCategories = new() { "Default", "Personal", "Work", "Finance", "Social" };
 
@@ -21,6 +24,12 @@ public partial class Omnibox : UserControl
     {
         InitializeComponent();
         Loaded += Omnibox_Loaded;
+        UrlInput.GotKeyboardFocus += (_, _) => UrlFocused?.Invoke(this, EventArgs.Empty);
+        UrlInput.LostKeyboardFocus += (_, _) => UrlUnfocused?.Invoke(this, EventArgs.Empty);
+        UrlInput.PreviewKeyDown += (_, e) =>
+        {
+            if (e.Key == Key.Enter || e.Key == Key.Escape) UrlDismissed?.Invoke(this, EventArgs.Empty);
+        };
     }
 
     private void Omnibox_Loaded(object sender, RoutedEventArgs e)

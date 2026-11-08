@@ -2025,6 +2025,7 @@ public partial class MainWindow : Window
 
         PreviewKeyDown -= SplitOnPreviewKey;
         PreviewKeyDown += SplitOnPreviewKey;
+        ApplyGlassBackdrop(win, root, centerX - root.DesiredSize.Width / 2, origin.Y + 12, 10);
         _splitPickerWindow = win;
         win.Show();
         win.Activate();
