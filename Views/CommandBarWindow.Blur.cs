@@ -7,7 +7,7 @@ using Horizon.Stealth.Services;
 
 namespace Horizon.Stealth.Views;
 
-public partial class ArcCommandBarWindow
+public partial class CommandBarWindow
 {
     [StructLayout(LayoutKind.Sequential)]
     private struct GlassMargins

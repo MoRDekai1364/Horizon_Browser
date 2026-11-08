@@ -65,91 +65,6 @@
                 <Setter Property="BorderThickness" Value="1"/>
             </Style>
 
-            <!-- Modern Homepage Dark Acrylic Glass Context Menu Style -->
-            <Style x:Key="HeaderContextMenuStyle" TargetType="ContextMenu">
-                <Setter Property="SnapsToDevicePixels" Value="True"/>
-                <Setter Property="OverridesDefaultStyle" Value="True"/>
-                <Setter Property="Grid.IsSharedSizeScope" Value="True"/>
-                <Setter Property="HasDropShadow" Value="True"/>
-                <Setter Property="Background" Value="#E612151E"/>
-                <Setter Property="BorderBrush" Value="#35FFFFFF"/>
-                <Setter Property="BorderThickness" Value="1"/>
-                <Setter Property="Padding" Value="4,6,4,6"/>
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="ContextMenu">
-                            <Border Background="{TemplateBinding Background}"
-                                    BorderBrush="{TemplateBinding BorderBrush}"
-                                    BorderThickness="{TemplateBinding BorderThickness}"
-                                    CornerRadius="12"
-                                    Padding="{TemplateBinding Padding}">
-                                <Border.Effect>
-                                    <DropShadowEffect Color="Black" BlurRadius="20" Direction="270" ShadowDepth="4" Opacity="0.6"/>
-                                </Border.Effect>
-                                <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle"/>
-                            </Border>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-                <Style.Resources>
-                    <Style TargetType="Separator">
-                        <Setter Property="Template">
-                            <Setter.Value>
-                                <ControlTemplate TargetType="Separator">
-                                    <Border Height="1" Background="#20FFFFFF" Margin="6,4,6,4"/>
-                                </ControlTemplate>
-                            </Setter.Value>
-                        </Setter>
-                    </Style>
-                    <Style TargetType="MenuItem">
-                        <Setter Property="Foreground" Value="#EEEEEE"/>
-                        <Setter Property="FontSize" Value="12.5"/>
-                        <Setter Property="FontFamily" Value="Segoe UI Variable Text, Segoe UI"/>
-                        <Setter Property="Padding" Value="12,7,12,7"/>
-                        <Setter Property="Margin" Value="2,1,2,1"/>
-                        <Setter Property="Template">
-                            <Setter.Value>
-                                <ControlTemplate TargetType="MenuItem">
-                                    <Border x:Name="Bd" Background="Transparent" CornerRadius="6" Padding="{TemplateBinding Padding}" Margin="{TemplateBinding Margin}">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto" SharedSizeGroup="IconGroup"/>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto" SharedSizeGroup="GestureGroup"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                            </Grid.ColumnDefinitions>
-                                            <ContentPresenter x:Name="Icon" ContentSource="Icon" Margin="0,0,10,0" VerticalAlignment="Center" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
-                                            <ContentPresenter Grid.Column="1" ContentSource="Header" RecognizesAccessKey="True" VerticalAlignment="Center" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
-                                            <TextBlock Grid.Column="2" Text="{TemplateBinding InputGestureText}" Foreground="#88FFFFFF" FontSize="11" Margin="24,0,0,0" VerticalAlignment="Center"/>
-                                            <Path x:Name="RightArrow" Grid.Column="3" Data="M0,0 L4,4 L0,8" Stroke="#99FFFFFF" StrokeThickness="1.5" Margin="12,0,0,0" VerticalAlignment="Center" Visibility="Collapsed"/>
-                                            <Popup x:Name="SubMenuPopup" AllowsTransparency="True" IsOpen="{Binding IsSubmenuOpen, RelativeSource={RelativeSource TemplatedParent}}" Placement="Right" Focusable="False" PopupAnimation="Fade">
-                                                <Border Background="#E612151E" BorderBrush="#35FFFFFF" BorderThickness="1" CornerRadius="12" Padding="4,6,4,6">
-                                                    <Border.Effect>
-                                                        <DropShadowEffect Color="Black" BlurRadius="20" Direction="270" ShadowDepth="4" Opacity="0.6"/>
-                                                    </Border.Effect>
-                                                    <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle"/>
-                                                </Border>
-                                            </Popup>
-                                        </Grid>
-                                    </Border>
-                                    <ControlTemplate.Triggers>
-                                        <Trigger Property="Role" Value="SubmenuHeader">
-                                            <Setter TargetName="RightArrow" Property="Visibility" Value="Visible"/>
-                                        </Trigger>
-                                        <Trigger Property="IsHighlighted" Value="True">
-                                            <Setter TargetName="Bd" Property="Background" Value="#25FFFFFF"/>
-                                        </Trigger>
-                                        <Trigger Property="IsEnabled" Value="False">
-                                            <Setter TargetName="Bd" Property="Opacity" Value="0.45"/>
-                                        </Trigger>
-                                    </ControlTemplate.Triggers>
-                                </ControlTemplate>
-                            </Setter.Value>
-                        </Setter>
-                    </Style>
-                </Style.Resources>
-            </Style>
-
             <!-- Header Window Caption Buttons: Stretch to upper/right edges, hit-test in chrome, sharp corners -->
 
             <Style x:Key="Style_HeaderCaptionButton" TargetType="Button">
@@ -886,24 +801,24 @@
 
                                                 <Grid.ContextMenu>
 
-                                                    <ContextMenu Opened="TabContextMenu_Opened">
+                                                    <ContextMenu Style="{StaticResource HeaderContextMenuStyle}" Opened="TabContextMenu_Opened">
 
-                                                        <MenuItem Header="Duplicate Tab"       Tag="dup"  Click="TabMenu_Duplicate"/>
+                                                        <MenuItem Header="&#x1F4CB;  Duplicate Tab"       Tag="dup"  Click="TabMenu_Duplicate"/>
 
-                                                        <MenuItem Header="Rename Tab"          Tag="ren"  Click="TabMenu_Rename"/>
+                                                        <MenuItem Header="&#x1F3F7;  Rename Tab&#x2026;"  Tag="ren"  Click="TabMenu_Rename"/>
 
-                                                        <MenuItem Header="Change Tab Position" Tag="pos"  Click="TabMenu_ChangePosition"/>
+                                                        <MenuItem Header="&#x2195;  Change Tab Position&#x2026;" Tag="pos"  Click="TabMenu_ChangePosition"/>
 
-                                                        <MenuItem Header="Bring Tab to Top"    Tag="top"  Click="TabMenu_BringToTop"/>
-
-                                                        <Separator/>
-
-                                                        <MenuItem Header="Tab Language" Tag="__lang_parent__"/>
-                                                        <MenuItem Header="Account Container" Tag="__account_container_parent__"/>
+                                                        <MenuItem Header="&#x2B06;  Bring Tab to Top"     Tag="top"  Click="TabMenu_BringToTop"/>
 
                                                         <Separator/>
 
-                                                        <MenuItem x:Name="MnuMultiTabActions2" Header="&#x26A1; Multi-Tab Actions&#x2026;" Tag="multi" Click="TabMenu_OpenMultiContext" FontWeight="SemiBold" Visibility="Collapsed"/>
+                                                        <MenuItem Header="&#x1F310;  Tab Language" Tag="__lang_parent__"/>
+                                                        <MenuItem Header="&#x1F464;  Account Container" Tag="__account_container_parent__"/>
+
+                                                        <Separator/>
+
+                                                        <MenuItem x:Name="MnuMultiTabActions2" Header="&#x26A1;  Multi-Tab Actions&#x2026;" Tag="multi" Click="TabMenu_OpenMultiContext" FontWeight="SemiBold" Visibility="Collapsed"/>
 
                                                     </ContextMenu>
 
@@ -2940,24 +2855,24 @@
 
                                             <Border.ContextMenu>
 
-                                                <ContextMenu Opened="TabContextMenu_Opened">
+                                                <ContextMenu Style="{StaticResource HeaderContextMenuStyle}" Opened="TabContextMenu_Opened">
 
-                                                    <MenuItem Header="Duplicate Tab"       Tag="dup"  Click="TabMenu_Duplicate"/>
+                                                    <MenuItem Header="&#x1F4CB;  Duplicate Tab"       Tag="dup"  Click="TabMenu_Duplicate"/>
 
-                                                    <MenuItem Header="Rename Tab"          Tag="ren"  Click="TabMenu_Rename"/>
+                                                    <MenuItem Header="&#x1F3F7;  Rename Tab&#x2026;"  Tag="ren"  Click="TabMenu_Rename"/>
 
-                                                    <MenuItem Header="Change Tab Position" Tag="pos"  Click="TabMenu_ChangePosition"/>
+                                                    <MenuItem Header="&#x2195;  Change Tab Position&#x2026;" Tag="pos"  Click="TabMenu_ChangePosition"/>
 
-                                                    <MenuItem Header="Bring Tab to Top"    Tag="top"  Click="TabMenu_BringToTop"/>
-
-                                                    <Separator/>
-
-                                                    <MenuItem Header="Tab Language" Tag="__lang_parent__"/>
-                                                        <MenuItem Header="Account Container" Tag="__account_container_parent__"/>
+                                                    <MenuItem Header="&#x2B06;  Bring Tab to Top"     Tag="top"  Click="TabMenu_BringToTop"/>
 
                                                     <Separator/>
 
-                                                    <MenuItem x:Name="MnuMultiTabActions1" Header="&#x26A1; Multi-Tab Actions&#x2026;" Tag="multi" Click="TabMenu_OpenMultiContext" FontWeight="SemiBold" Visibility="Collapsed"/>
+                                                    <MenuItem Header="&#x1F310;  Tab Language" Tag="__lang_parent__"/>
+                                                    <MenuItem Header="&#x1F464;  Account Container" Tag="__account_container_parent__"/>
+
+                                                    <Separator/>
+
+                                                    <MenuItem x:Name="MnuMultiTabActions1" Header="&#x26A1;  Multi-Tab Actions&#x2026;" Tag="multi" Click="TabMenu_OpenMultiContext" FontWeight="SemiBold" Visibility="Collapsed"/>
 
                                                 </ContextMenu>
 
@@ -3859,45 +3774,45 @@
 
             <!-- &#x2500;&#x2500; Tab Multi-select Context Popup &#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500; -->
 
-            <Popup x:Name="MultiTabContextPopup" StaysOpen="False" AllowsTransparency="True" Placement="MousePoint">
+            <Popup x:Name="MultiTabContextPopup" StaysOpen="False" AllowsTransparency="True" Placement="MousePoint" PopupAnimation="Fade">
 
-                <Border Background="#1e1e1e" BorderBrush="#2E6AA0" BorderThickness="1" CornerRadius="6" Padding="4">
+                <Border Background="{DynamicResource Brush_SurfaceCard}" BorderBrush="#2EFFFFFF" BorderThickness="1" CornerRadius="12" Padding="6" Margin="14">
 
-                    <Border.Effect><DropShadowEffect BlurRadius="10" ShadowDepth="3" Opacity="0.6"/></Border.Effect>
+                    <Border.Effect><DropShadowEffect Color="Black" BlurRadius="22" Direction="270" ShadowDepth="6" Opacity="0.68"/></Border.Effect>
 
-                    <StackPanel MinWidth="230">
+                    <StackPanel MinWidth="235">
 
                         <TextBlock x:Name="TxtMultiTabHeader" Text="2 TABS SELECTED"
 
-                                   Foreground="#2E6AA0" FontSize="10" FontWeight="Bold" Margin="8,6,8,6"/>
+                                   Foreground="{DynamicResource Brush_MutedText}" FontSize="10.5" FontWeight="SemiBold" Margin="10,6,10,6"/>
 
-                        <Separator Background="#2a2a2a" Margin="4,0"/>
+                        <Border Height="1" Background="#1FFFFFFF" Margin="8,4"/>
 
-                        <Button Content="&#x1F4CB;  Duplicate All"        Click="MultiTab_Duplicate"       Style="{StaticResource Style_StealthButton}" HorizontalContentAlignment="Left" Padding="10,7" FontSize="12" Foreground="#ddd"/>
+                        <Button Content="&#x1F4CB;  Duplicate All"        Click="MultiTab_Duplicate"       Style="{StaticResource Style_StealthButton}" HorizontalContentAlignment="Left" Padding="11,7" Margin="2,1" FontSize="12.5" Foreground="{DynamicResource Brush_Text}"/>
 
-                        <Button Content="&#x1F3F7;  Rename All&#x2026;"          Click="MultiTab_Rename"          Style="{StaticResource Style_StealthButton}" HorizontalContentAlignment="Left" Padding="10,7" FontSize="12" Foreground="#ddd"/>
+                        <Button Content="&#x1F3F7;  Rename All&#x2026;"          Click="MultiTab_Rename"          Style="{StaticResource Style_StealthButton}" HorizontalContentAlignment="Left" Padding="11,7" Margin="2,1" FontSize="12.5" Foreground="{DynamicResource Brush_Text}"/>
 
-                        <Separator Background="#2a2a2a" Margin="4,2"/>
+                        <Border Height="1" Background="#1FFFFFFF" Margin="8,4"/>
 
-                        <Button Content="&#x2B06;  Bring All to Top"     Click="MultiTab_BringToTop"      Style="{StaticResource Style_StealthButton}" HorizontalContentAlignment="Left" Padding="10,7" FontSize="12" Foreground="#ddd"/>
+                        <Button Content="&#x2B06;  Bring All to Top"     Click="MultiTab_BringToTop"      Style="{StaticResource Style_StealthButton}" HorizontalContentAlignment="Left" Padding="11,7" Margin="2,1" FontSize="12.5" Foreground="{DynamicResource Brush_Text}"/>
 
-                        <Button Content="&#x2B07;  Send All to End"      Click="MultiTab_SendToEnd"       Style="{StaticResource Style_StealthButton}" HorizontalContentAlignment="Left" Padding="10,7" FontSize="12" Foreground="#ddd"/>
+                        <Button Content="&#x2B07;  Send All to End"      Click="MultiTab_SendToEnd"       Style="{StaticResource Style_StealthButton}" HorizontalContentAlignment="Left" Padding="11,7" Margin="2,1" FontSize="12.5" Foreground="{DynamicResource Brush_Text}"/>
 
-                        <Button Content="&#x1F4E6;  Group Selected Tabs"  Click="MultiTab_Group"           Style="{StaticResource Style_StealthButton}" HorizontalContentAlignment="Left" Padding="10,7" FontSize="12" Foreground="#aaeebb"/>
+                        <Button Content="&#x1F4E6;  Group Selected Tabs"  Click="MultiTab_Group"           Style="{StaticResource Style_StealthButton}" HorizontalContentAlignment="Left" Padding="11,7" Margin="2,1" FontSize="12.5" Foreground="#aaeebb"/>
 
-                        <Separator Background="#2a2a2a" Margin="4,2"/>
+                        <Border Height="1" Background="#1FFFFFFF" Margin="8,4"/>
 
-                        <Button Content="&#x2715;  Close All Selected"   Click="MultiTab_CloseAll"        Style="{StaticResource Style_StealthButton}" HorizontalContentAlignment="Left" Padding="10,7" FontSize="12" Foreground="#ee8888"/>
+                        <Button Content="&#x1F4A4;  Sleep All Selected"  Click="MultiTab_SleepAll"        Style="{StaticResource Style_StealthButton}" HorizontalContentAlignment="Left" Padding="11,7" Margin="2,1" FontSize="12.5" Foreground="#aaaaff"/>
 
-                        <Separator Background="#2a2a2a" Margin="4,2"/>
+                        <Button Content="&#x2600;  Wake All Selected"   Click="MultiTab_WakeAll"         Style="{StaticResource Style_StealthButton}" HorizontalContentAlignment="Left" Padding="11,7" Margin="2,1" FontSize="12.5" Foreground="#aaffaa"/>
 
-                        <Button Content="&#x1F4A4;  Sleep All Selected"  Click="MultiTab_SleepAll"        Style="{StaticResource Style_StealthButton}" HorizontalContentAlignment="Left" Padding="10,7" FontSize="12" Foreground="#aaaaff"/>
+                        <Border Height="1" Background="#1FFFFFFF" Margin="8,4"/>
 
-                        <Button Content="&#x2600;  Wake All Selected"   Click="MultiTab_WakeAll"         Style="{StaticResource Style_StealthButton}" HorizontalContentAlignment="Left" Padding="10,7" FontSize="12" Foreground="#aaffaa"/>
+                        <Button Content="&#x2715;  Close All Selected"   Click="MultiTab_CloseAll"        Style="{StaticResource Style_StealthButton}" HorizontalContentAlignment="Left" Padding="11,7" Margin="2,1" FontSize="12.5" Foreground="#ee8888"/>
 
-                        <Separator Background="#2a2a2a" Margin="4,2"/>
+                        <Border Height="1" Background="#1FFFFFFF" Margin="8,4"/>
 
-                        <Button Content="&#x2716;  Cancel"               Click="MultiTab_Cancel"          Style="{StaticResource Style_StealthButton}" HorizontalContentAlignment="Left" Padding="10,7" FontSize="12" Foreground="#888888"/>
+                        <Button Content="&#x2716;  Cancel"               Click="MultiTab_Cancel"          Style="{StaticResource Style_StealthButton}" HorizontalContentAlignment="Left" Padding="11,7" Margin="2,1" FontSize="12.5" Foreground="{DynamicResource Brush_MutedText}"/>
 
                     </StackPanel>
 

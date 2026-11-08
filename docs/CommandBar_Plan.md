@@ -6,9 +6,9 @@ Handoff document. Written so any AI agent (or human) can execute one phase witho
 
 - Repo: MoRDekai1364/Horizon_Browser, branch `Stable_pre-release`, verified at commit `2a7480a` plus uncommitted restyle changes (see Phase 0).
 - Stack: WPF, .NET 8, WebView2, namespace `Horizon.Stealth`.
-- Feature: the Ctrl+T "Arc Command Bar".
-  - Window: `Views/ArcCommandBarWindow.xaml` and `.xaml.cs`
-  - Hotkey: `MainWindow.xaml.cs`, `if (ctrl && e.Key == Key.T)` calls `ArcCommandBarWindow.ShowCommandBar(this)`
+- Feature: the Ctrl+T "Command Bar".
+  - Window: `Views/CommandBarWindow.xaml` and `.xaml.cs`
+  - Hotkey: `MainWindow.xaml.cs`, `if (ctrl && e.Key == Key.T)` calls `CommandBarWindow.ShowCommandBar(this)`
   - Shortcut data and execution: `Services/CustomShortcutService.cs` (stored in `custom_shortcuts.json` under `ConfigService.UserDataRoot`)
   - Browser commands: `MainWindow.Commands.cs`, method `ExecuteBrowserCommand(string)`
   - Global hotkeys: `CustomShortcutService.TryExecuteHotkey`, called from `MainWindow.xaml.cs` key handler
@@ -56,7 +56,7 @@ These apply to whichever agent runs a phase:
 - If a finding in section 1 turns out to be wrong, stop and report it before continuing.
 - Report format when done: files changed, what was built or tested, anything not verified, open questions.
 
-Running several agents: phases touch different files except where noted. Phases 1, 2 and 3 all touch `ArcCommandBarWindow.xaml.cs` or `CustomShortcutService.cs`. Run them in order, or merge between them. Phase 4 is independent of 1 to 3 except the command registration step.
+Running several agents: phases touch different files except where noted. Phases 1, 2 and 3 all touch `CommandBarWindow.xaml.cs` or `CustomShortcutService.cs`. Run them in order, or merge between them. Phase 4 is independent of 1 to 3 except the command registration step.
 
 ## 5. Phases
 
@@ -64,7 +64,7 @@ Running several agents: phases touch different files except where noted. Phases 
 
 Goal: a known-good starting point.
 
-- Apply the pending restyle (already produced): `ArcCommandBarWindow.xaml`, `ArcCommandBarWindow.xaml.cs`, and in `TabSwitcherWindow.Grid.cs` change `private static BitmapSource? CaptureScreenArea` to `internal static`.
+- Apply the pending restyle (already produced): `CommandBarWindow.xaml`, `CommandBarWindow.xaml.cs`, and in `TabSwitcherWindow.Grid.cs` change `private static BitmapSource? CaptureScreenArea` to `internal static`.
 - Build, run, open Ctrl+T in Dark, Light and Redmond themes, with and without `DisableBlurEffects`.
 - Check: panel is centered, draggable by the search bar and bottom bar, blurred backdrop follows drag, panel closes on focus loss.
 - Commit locally.
@@ -88,7 +88,7 @@ Done when: every entry in an empty-query list does something visible; split view
 
 Goal: typing finds the right thing fast.
 
-Files: `Views/ArcCommandBarWindow.xaml.cs` (and `.xaml` for single-click).
+Files: `Views/CommandBarWindow.xaml.cs` (and `.xaml` for single-click).
 
 - Replace the hardcoded Google search with the user's configured engine: read `SettingsService.Current.SearchEngine`, resolve its `{query}` template from `BuiltInSearchEngines` plus user-added engines (find where custom engines are stored). Fix the subtitle text accordingly.
 - Add scoring: exact prefix > word prefix > subsequence > substring. Sort by score. Apply to tabs and shortcuts (title, keywords, category).
@@ -103,7 +103,7 @@ Done when: `dm` finds Dark Invert, tab switching by typing needs no extra arrow 
 
 Goal: the user can personalize without editing JSON.
 
-Files: `Views/ArcCommandBarWindow.xaml(.cs)` (or a new `Views/ShortcutManagerWindow` if cleaner, approval needed for new files), `Services/CustomShortcutService.cs`.
+Files: `Views/CommandBarWindow.xaml(.cs)` (or a new `Views/ShortcutManagerWindow` if cleaner, approval needed for new files), `Services/CustomShortcutService.cs`.
 
 - Manage view listing all shortcuts: edit, enable/disable, delete (custom only; built-ins can only be disabled, using `IsEnabled`).
 - Persist built-in disable state in a way `EnsureBuiltIns` does not undo (it currently re-adds missing built-ins by Id/title; a disabled built-in must stay present).
@@ -139,7 +139,7 @@ Done when: split opens and closes without crashes, both panes load and are inter
 - Smoke checklist: open bar, each command type, theme switch, drag, restart persistence.
 - Check `custom_shortcuts.json` migration from an older file.
 - Re-test Ctrl+Tab switcher after any change to `TabSwitcherWindow.Grid.cs`.
-- Remove the unused `ApplyBlur`, `IslandAccentPolicy` and DllImports in `ArcCommandBarWindow.xaml.cs` if the user approves.
+- Remove the unused `ApplyBlur`, `IslandAccentPolicy` and DllImports in `CommandBarWindow.xaml.cs` if the user approves.
 
 ## 6. Known risks
 

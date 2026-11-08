@@ -18,11 +18,11 @@ using Horizon.Stealth.ViewModels;
 
 namespace Horizon.Stealth.Views;
 
-public partial class ArcCommandBarWindow : Window
+public partial class CommandBarWindow : Window
 {
     private readonly MainWindow _mainWindow;
     private readonly ObservableCollection<CommandBarItem> _items = new();
-    private static ArcCommandBarWindow? _instance;
+    private static CommandBarWindow? _instance;
 
     private const double OuterMargin = 0;
     private const double BleedPad = 48;
@@ -102,11 +102,11 @@ public partial class ArcCommandBarWindow : Window
     private string? _pendingDeleteId;
     private string? _urlWarnedPayload;
 
-    public ArcCommandBarWindow(MainWindow mainWindow)
+    public CommandBarWindow(MainWindow mainWindow)
     {
         InitializeComponent();
         _mainWindow = mainWindow;
-        Owner = mainWindow;
+        Owner = null;
         ListResults.ItemsSource = _items;
         CollectionViewSource.GetDefaultView(_items).GroupDescriptions.Add(new PropertyGroupDescription(nameof(CommandBarItem.Group)));
 
@@ -120,7 +120,7 @@ public partial class ArcCommandBarWindow : Window
         CardClipHost.SizeChanged += (_, _) => UpdateCardClip();
         AttachNativeBlur();
 
-        Loaded += ArcCommandBarWindow_Loaded;
+        Loaded += CommandBarWindow_Loaded;
     }
 
     public static void ShowCommandBar(MainWindow mainWindow)
@@ -133,7 +133,7 @@ public partial class ArcCommandBarWindow : Window
             return;
         }
 
-        _instance = new ArcCommandBarWindow(mainWindow);
+        _instance = new CommandBarWindow(mainWindow);
 
         double left;
         double top;
@@ -160,7 +160,7 @@ public partial class ArcCommandBarWindow : Window
         _instance.TxtSearch.Focus();
     }
 
-    private void ArcCommandBarWindow_Loaded(object sender, RoutedEventArgs e)
+    private void CommandBarWindow_Loaded(object sender, RoutedEventArgs e)
     {
         UpdateSnapshotCrop();
         PopulateItems("");
@@ -978,6 +978,7 @@ public partial class ArcCommandBarWindow : Window
     protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
     {
         _isClosing = true;
+        Owner = null;
         base.OnClosing(e);
     }
 
@@ -985,7 +986,15 @@ public partial class ArcCommandBarWindow : Window
     {
         if (_isClosing) return;
         _isClosing = true;
-        Close();
+        Owner = null;
+        Dispatcher.BeginInvoke(new Action(() =>
+        {
+            try
+            {
+                Close();
+            }
+            catch { }
+        }));
     }
 
     protected override void OnClosed(EventArgs e)
@@ -997,5 +1006,16 @@ public partial class ArcCommandBarWindow : Window
         {
             _instance = null;
         }
+        Dispatcher.BeginInvoke(new Action(() =>
+        {
+            try
+            {
+                if (_mainWindow.WindowState != WindowState.Minimized)
+                {
+                    _mainWindow.Activate();
+                }
+            }
+            catch { }
+        }));
     }
 }

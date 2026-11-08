@@ -10374,7 +10374,7 @@ return colors.length > 0 ? colors : null;
 
 
 
-        var cm = new ContextMenu { StaysOpen = false };
+        var cm = new ContextMenu { StaysOpen = false, Style = FindResource("HeaderContextMenuStyle") as Style };
 
 
 
@@ -11098,7 +11098,7 @@ return colors.length > 0 ? colors : null;
 
         if (ctrl && e.Key == Key.T)
         {
-            Horizon.Stealth.Views.ArcCommandBarWindow.ShowCommandBar(this);
+            Horizon.Stealth.Views.CommandBarWindow.ShowCommandBar(this);
             e.Handled = true;
             return;
         }
@@ -24848,6 +24848,8 @@ return colors.length > 0 ? colors : null;
 
         if (sender is not ContextMenu cm) return;
 
+        cm.Style ??= FindResource("HeaderContextMenuStyle") as Style;
+
 
 
         // If ≥2 tabs are selected, suppress the normal menu and show the multi-tab popup instead
@@ -25569,6 +25571,12 @@ return colors.length > 0 ? colors : null;
 
 
         var tab = (cm.PlacementTarget as FrameworkElement)?.DataContext as TabViewModel;
+        if (tab != null)
+        {
+            var miMute = new MenuItem { Header = tab.IsMuted ? "\U0001F50A  Unmute Tab" : "\U0001F507  Mute Tab", Tag = "__mediaopt__" };
+            miMute.Click += (s2, e2) => Switcher_TabMuteToggle(tab);
+            cm.Items.Add(miMute);
+        }
 
 
 
@@ -25617,10 +25625,20 @@ return colors.length > 0 ? colors : null;
 
 
             miMarquee.Click += (s2, e2) => { tab.IsMarqueeEnabled = !tab.IsMarqueeEnabled; };
-
-
-
             cm.Items.Add(miMarquee);
+        }
+        if (tab != null)
+        {
+            cm.Items.Add(new Separator { Tag = "__mediaopt__" });
+            var miCloseTab = new MenuItem { Header = "\u2715  Close Tab", InputGestureText = "Ctrl+W", Foreground = new SolidColorBrush(Color.FromRgb(0xFF, 0x7B, 0x7B)), Tag = "__mediaopt__" };
+            miCloseTab.Click += (s2, e2) => CloseTab(tab);
+            if (false)
+            {
+
+
+
+            }
+            cm.Items.Add(miCloseTab);
 
 
 
@@ -26724,6 +26742,7 @@ return colors.length > 0 ? colors : null;
 
 
 
+            Style = FindResource("HeaderContextMenuStyle") as Style,
             PlacementTarget = BtnCreateWebApp,
 
 
@@ -47402,6 +47421,5 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
 
 
 }
-
 
 

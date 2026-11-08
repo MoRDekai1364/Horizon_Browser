@@ -141,4 +141,213 @@
         </Setter>
     </Style>
 
+    <!-- Modern Browser Dark Glass ContextMenu, MenuItem & Separator Styles -->
+    <Style x:Key="ModernContextMenuSeparatorStyle" TargetType="Separator">
+        <Setter Property="OverridesDefaultStyle" Value="True"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="Margin" Value="8,5,8,5"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Separator">
+                    <Border Height="1" Background="#1FFFFFFF"/>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="ModernContextMenuItemStyle" TargetType="MenuItem">
+        <Setter Property="OverridesDefaultStyle" Value="True"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="Foreground" Value="{DynamicResource Brush_Text}"/>
+        <Setter Property="FontSize" Value="12.5"/>
+        <Setter Property="FontFamily" Value="Segoe UI Variable Text, Segoe UI"/>
+        <Setter Property="Padding" Value="11,7,11,7"/>
+        <Setter Property="Margin" Value="2,1,2,1"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="MenuItem">
+                    <Border x:Name="Bd"
+                            Background="Transparent"
+                            BorderBrush="Transparent"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Padding="{TemplateBinding Padding}"
+                            Margin="{TemplateBinding Margin}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="MenuItemIconColumn"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="MenuItemGestureColumn"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Grid x:Name="IconHost" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,8,0">
+                                <ContentPresenter x:Name="IconPresenter"
+                                                  ContentSource="Icon"
+                                                  VerticalAlignment="Center"
+                                                  HorizontalAlignment="Center"
+                                                  SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                                <Border x:Name="CheckGlyph"
+                                        Width="18" Height="18"
+                                        CornerRadius="5"
+                                        Background="#26FFFFFF"
+                                        BorderBrush="#40FFFFFF"
+                                        BorderThickness="1"
+                                        Visibility="Collapsed">
+                                    <TextBlock Text="&#x2713;"
+                                               FontSize="10.5"
+                                               FontWeight="Bold"
+                                               Foreground="{DynamicResource Brush_Text}"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"/>
+                                </Border>
+                            </Grid>
+
+                            <ContentPresenter Grid.Column="1"
+                                              ContentSource="Header"
+                                              RecognizesAccessKey="True"
+                                              VerticalAlignment="Center"
+                                              SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+
+                            <Border x:Name="GestureBadge"
+                                    Grid.Column="2"
+                                    CornerRadius="5"
+                                    Background="#14FFFFFF"
+                                    BorderBrush="#22FFFFFF"
+                                    BorderThickness="1"
+                                    Padding="6,1.5"
+                                    Margin="18,0,0,0"
+                                    VerticalAlignment="Center">
+                                <TextBlock x:Name="GestureText"
+                                           Text="{TemplateBinding InputGestureText}"
+                                           Foreground="{DynamicResource Brush_MutedText}"
+                                           FontSize="10.5"
+                                           FontWeight="SemiBold"
+                                           VerticalAlignment="Center"/>
+                            </Border>
+
+                            <Path x:Name="RightArrow"
+                                  Grid.Column="3"
+                                  Data="M 0,0 L 4.5,4.5 L 0,9"
+                                  Stroke="#AAFFFFFF"
+                                  StrokeThickness="1.5"
+                                  StrokeStartLineCap="Round"
+                                  StrokeEndLineCap="Round"
+                                  StrokeLineJoin="Round"
+                                  Margin="12,0,2,0"
+                                  VerticalAlignment="Center"
+                                  Visibility="Collapsed"/>
+
+                            <Popup x:Name="SubMenuPopup"
+                                   AllowsTransparency="True"
+                                   IsOpen="{Binding IsSubmenuOpen, RelativeSource={RelativeSource TemplatedParent}}"
+                                   Placement="Right"
+                                   HorizontalOffset="-4"
+                                   VerticalOffset="-6"
+                                   Focusable="False"
+                                   PopupAnimation="Fade">
+                                <Border Background="{DynamicResource Brush_SurfaceCard}"
+                                        BorderBrush="#2EFFFFFF"
+                                        BorderThickness="1"
+                                        CornerRadius="12"
+                                        Padding="6"
+                                        Margin="14"
+                                        MinWidth="210">
+                                    <Border.Effect>
+                                        <DropShadowEffect Color="Black" BlurRadius="22" Direction="270" ShadowDepth="6" Opacity="0.68"/>
+                                    </Border.Effect>
+                                    <ScrollViewer CanContentScroll="True"
+                                                  VerticalScrollBarVisibility="Auto"
+                                                  HorizontalScrollBarVisibility="Disabled"
+                                                  MaxHeight="360">
+                                        <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle"/>
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="Icon" Value="{x:Null}"/>
+                                <Condition Property="IsChecked" Value="False"/>
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="IconHost" Property="Visibility" Value="Collapsed"/>
+                        </MultiTrigger>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="IconHost" Property="Visibility" Value="Visible"/>
+                            <Setter TargetName="CheckGlyph" Property="Visibility" Value="Visible"/>
+                            <Setter TargetName="IconPresenter" Property="Visibility" Value="Collapsed"/>
+                        </Trigger>
+                        <Trigger Property="InputGestureText" Value="">
+                            <Setter TargetName="GestureBadge" Property="Visibility" Value="Collapsed"/>
+                        </Trigger>
+                        <Trigger Property="InputGestureText" Value="{x:Null}">
+                            <Setter TargetName="GestureBadge" Property="Visibility" Value="Collapsed"/>
+                        </Trigger>
+                        <Trigger Property="Role" Value="SubmenuHeader">
+                            <Setter TargetName="RightArrow" Property="Visibility" Value="Visible"/>
+                            <Setter TargetName="GestureBadge" Property="Visibility" Value="Collapsed"/>
+                        </Trigger>
+                        <Trigger Property="IsHighlighted" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="#1FFFFFFF"/>
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="#2CFFFFFF"/>
+                            <Setter TargetName="RightArrow" Property="Stroke" Value="#FFFFFFFF"/>
+                        </Trigger>
+                        <Trigger Property="IsSubmenuOpen" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="#1FFFFFFF"/>
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="#2CFFFFFF"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="Bd" Property="Opacity" Value="0.42"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="HeaderContextMenuStyle" TargetType="ContextMenu">
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="OverridesDefaultStyle" Value="True"/>
+        <Setter Property="Grid.IsSharedSizeScope" Value="True"/>
+        <Setter Property="HasDropShadow" Value="False"/>
+        <Setter Property="Background" Value="{DynamicResource Brush_SurfaceCard}"/>
+        <Setter Property="BorderBrush" Value="#2EFFFFFF"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="6"/>
+        <Setter Property="MinWidth" Value="235"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ContextMenu">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="12"
+                            Padding="{TemplateBinding Padding}"
+                            Margin="14">
+                        <Border.Effect>
+                            <DropShadowEffect Color="Black" BlurRadius="22" Direction="270" ShadowDepth="6" Opacity="0.68"/>
+                        </Border.Effect>
+                        <ScrollViewer CanContentScroll="True"
+                                      VerticalScrollBarVisibility="Auto"
+                                      HorizontalScrollBarVisibility="Disabled"
+                                      MaxHeight="520">
+                            <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle"/>
+                        </ScrollViewer>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Resources>
+            <Style TargetType="Separator" BasedOn="{StaticResource ModernContextMenuSeparatorStyle}"/>
+            <Style TargetType="MenuItem" BasedOn="{StaticResource ModernContextMenuItemStyle}"/>
+        </Style.Resources>
+    </Style>
+
+    <Style TargetType="ContextMenu" BasedOn="{StaticResource HeaderContextMenuStyle}"/>
+    <Style TargetType="MenuItem" BasedOn="{StaticResource ModernContextMenuItemStyle}"/>
+    <Style TargetType="Separator" BasedOn="{StaticResource ModernContextMenuSeparatorStyle}"/>
+
 </ResourceDictionary>

@@ -951,7 +951,7 @@ public partial class BrowserView : UserControl
     /// Settings flags (ConsentOMaticEnabled / AdGuardEnabled) gate the relevant extensions.
     /// </summary>
     
-	/// <summary>
+    /// <summary>
     /// Returns true if the manifest.json contains Firefox-only markers that
     /// make the extension incompatible with WebView2/Chromium.
     /// </summary>
@@ -986,9 +986,9 @@ public partial class BrowserView : UserControl
         catch { }
         return false;
     }
-	
-	
-	private async Task LoadExtensionsAsync()
+    
+    
+    private async Task LoadExtensionsAsync()
     {
         lock (_extensionLock)
         {

@@ -1,7 +1,7 @@
 version 2.7.9
 + integrated native Rust core engine (horizon_core.dll) for SIMD wallpaper luminance, text fitting, and sub-millisecond memory audits
 + added Aegis Resource Governor managing tab lifecycle (Active -> Warm -> Dormant -> Suspended -> Cryo) with emergency RAM shedding
-+ added Arc-style Command Bar (Ctrl+T) with instant tab switching, browser commands, .new templates, and custom JS script execution
++ added Command Bar (Ctrl+T) with instant tab switching, browser commands, .new templates, and custom JS script execution
 + revamped Dynamic Island / Frosted Glass Executive Hub with dual states (resting micro-capsule & expanded 2-row command deck with live badges)
 + added Wave Arc Proximity Glow with fluid cubic Bezier cursor tracking along top and right window boundaries
 + implemented dynamic tab auto-widening with zero text truncation and proportional layout scaling

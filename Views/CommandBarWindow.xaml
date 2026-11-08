@@ -1,4 +1,4 @@
-<Window x:Class="Horizon.Stealth.Views.ArcCommandBarWindow"
+<Window x:Class="Horizon.Stealth.Views.CommandBarWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         WindowStyle="None" AllowsTransparency="False" Background="Transparent"
@@ -15,7 +15,7 @@
 
             <Grid>
                 <DockPanel LastChildFill="True">
-                    <!-- Top Search Input Bar (Arc Style) -->
+                    <!-- Top Search Input Bar -->
                     <Border DockPanel.Dock="Top" Height="56" Padding="18,0,18,0" MouseLeftButtonDown="DragArea_MouseLeftButtonDown" Background="{DynamicResource Brush_SurfaceChrome}" BorderBrush="{DynamicResource Brush_SurfaceChromeStroke}" BorderThickness="0,0,0,1" CornerRadius="8,8,0,0">
                         <Grid VerticalAlignment="Center">
                             <Grid.ColumnDefinitions>
@@ -82,7 +82,7 @@
                                 <TextBlock Text="&#x21B5; Execute / Open" FontSize="11" Foreground="{DynamicResource Brush_MutedText}" Margin="0,0,14,0"/>
                                 <TextBlock Text="Esc Dismiss" FontSize="11" Foreground="{DynamicResource Brush_MutedText}"/>
                             </StackPanel>
-                            <TextBlock Grid.Column="1" Text="Arc Command Bar" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource Brush_Accent}"/>
+                            <TextBlock Grid.Column="1" Text="Command Bar" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource Brush_Accent}"/>
                         </Grid>
                     </Border>
 
@@ -172,7 +172,7 @@
                                                 <TextBlock Text="{Binding KeyGesture}" FontSize="10.5" FontFamily="Segoe UI"
                                                            FontWeight="SemiBold" Foreground="{DynamicResource Brush_Accent}"/>
                                             </Border>
-                                            <!-- Action Arrow Hint (Arc style: Learning Arc ->) -->
+                                            <!-- Action Arrow Hint -->
                                             <Border CornerRadius="6" Background="{DynamicResource Brush_SurfaceChrome}" Padding="8,3">
                                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                     <TextBlock Text="{Binding ActionHint}" FontSize="10.5" Foreground="{DynamicResource Brush_SoftText}" Margin="0,0,4,0"/>
