@@ -262,152 +262,189 @@ public static class WidgetSyncGuard
 
 
 
-        void ReconcileText()
+        bool isReconciling = false;
+        double lastConstraintW = -1.0;
 
+        double GetStableTextContainerWidth()
         {
-
-            if (string.IsNullOrEmpty(textBlock.Text)) return;
-
-            double availW = container.ActualWidth > 0 ? container.ActualWidth : container.Width;
-
-            if (double.IsNaN(availW) || availW <= 10.0) return;
-
-
-
-            // Subtract text margins if any
-
-            availW -= (textBlock.Margin.Left + textBlock.Margin.Right);
-
-            if (availW <= 10.0) return;
-
-
-
-            var fit = HorizonCore.ComputeTextFit(
-
-                availW,
-
-                textBlock.Text,
-
-                minFontSize,
-
-                maxFontSize,
-
-                avgCharWidthAt12Pt);
-
-
-
-            textBlock.FontSize = fit.OptimalFontSize;
-
-            textBlock.TextTrimming = TextTrimming.CharacterEllipsis;
-
-
-
-            if (!fit.FitsWithoutClipping)
-
+            // When container is auto-sized (Width is NaN and not stretched), its ActualWidth
+            // is driven by its children. Using ActualWidth creates a layout feedback loop.
+            bool autoSized = double.IsNaN(container.Width) && container.HorizontalAlignment != HorizontalAlignment.Stretch;
+            if (autoSized)
             {
-
-                ToolTipService.SetToolTip(textBlock, textBlock.Text);
-
+                if (!double.IsNaN(container.MaxWidth) && !double.IsInfinity(container.MaxWidth) && container.MaxWidth > 10.0)
+                    return container.MaxWidth;
             }
-
-            else
-
-            {
-
-                ToolTipService.SetToolTip(textBlock, null);
-
-            }
-
+            double w = container.ActualWidth > 0 ? container.ActualWidth : container.Width;
+            if ((double.IsNaN(w) || w <= 10.0) && !double.IsNaN(container.MaxWidth) && !double.IsInfinity(container.MaxWidth))
+                w = container.MaxWidth;
+            return w;
         }
 
+        void ReconcileText(bool fromSizeChanged = false)
+        {
+            if (isReconciling || string.IsNullOrEmpty(textBlock.Text)) return;
 
+            double rawContainerW = GetStableTextContainerWidth();
+            if (double.IsNaN(rawContainerW) || rawContainerW <= 10.0) return;
 
-        container.SizeChanged += (_, _) => ReconcileText();
+            if (fromSizeChanged && Math.Abs(rawContainerW - lastConstraintW) < 2.0)
+                return;
+            lastConstraintW = rawContainerW;
 
+            double availW = rawContainerW - (textBlock.Margin.Left + textBlock.Margin.Right);
+            if (!double.IsNaN(textBlock.MaxWidth) && !double.IsInfinity(textBlock.MaxWidth) && textBlock.MaxWidth > 10.0)
+                availW = Math.Min(availW, textBlock.MaxWidth);
+            if (availW <= 10.0) return;
+
+            var fit = HorizonCore.ComputeTextFit(
+                availW,
+                textBlock.Text,
+                minFontSize,
+                maxFontSize,
+                avgCharWidthAt12Pt);
+
+            double targetFontSize = Math.Round(fit.OptimalFontSize * 2.0) / 2.0;
+            isReconciling = true;
+            try
+            {
+                if (Math.Abs(textBlock.FontSize - targetFontSize) >= 0.4)
+                    textBlock.FontSize = targetFontSize;
+
+                if (textBlock.TextTrimming != TextTrimming.CharacterEllipsis)
+                    textBlock.TextTrimming = TextTrimming.CharacterEllipsis;
+
+                if (!fit.FitsWithoutClipping)
+                {
+                    ToolTipService.SetToolTip(textBlock, textBlock.Text);
+                }
+                else
+                {
+                    ToolTipService.SetToolTip(textBlock, null);
+                }
+            }
+            finally
+            {
+                isReconciling = false;
+            }
+        }
+
+        container.SizeChanged += (_, _) => ReconcileText(fromSizeChanged: true);
         container.Loaded += (_, _) => ReconcileText();
-
         var dpd = System.ComponentModel.DependencyPropertyDescriptor.FromProperty(TextBlock.TextProperty, typeof(TextBlock));
-
         dpd?.AddValueChanged(textBlock, (_, _) => ReconcileText());
-
         ReconcileText();
-
     }
 
-
-
     /// <summary>
-
     /// Registers a TextBox with adaptive typography scaling so text scales smoothly
-
-    /// with the parent container width.
-
+    /// with the parent container width without triggering wrap/unwrap layout oscillation.
     /// </summary>
-
     public static void RegisterTextBoxFit(
-
         TextBox textBox,
-
         FrameworkElement container,
-
         double minFontSize,
-
         double maxFontSize,
-
         double avgCharWidthAt12Pt = 0.0)
-
     {
-
         if (textBox == null || container == null) return;
 
+        bool isReconciling = false;
+        double lastBudgetW = -1.0;
+        int lastTextLen = -1;
 
-
-        void ReconcileTextBox()
-
+        double ComputeStableWidthBudget()
         {
+            // Never feed back content-driven container.ActualWidth when container is auto-sized:
+            // wrapping a long word onto line 2 shrinks line 1 width -> shrinks container.ActualWidth
+            // -> lowers FontSize -> unwraps word back to line 1 -> grows container.ActualWidth
+            // -> raises FontSize -> wraps again in an infinite UpdateLayout() 2-cycle.
+            double budget = double.PositiveInfinity;
 
-            string sample = string.IsNullOrEmpty(textBox.Text) ? "Search here or enter URL" : textBox.Text;
+            if (!double.IsNaN(textBox.MaxWidth) && !double.IsInfinity(textBox.MaxWidth) && textBox.MaxWidth > 10.0)
+                budget = Math.Min(budget, textBox.MaxWidth);
 
-            double availW = container.ActualWidth > 0 ? container.ActualWidth : container.Width;
+            bool autoSized = double.IsNaN(container.Width) && container.HorizontalAlignment != HorizontalAlignment.Stretch;
+            if (autoSized)
+            {
+                if (!double.IsNaN(container.MaxWidth) && !double.IsInfinity(container.MaxWidth) && container.MaxWidth > 10.0)
+                {
+                    // Account for sibling columns (e.g. search engine picker ~128px) + text margins
+                    double containerCap = container.MaxWidth - (textBox.Margin.Left + textBox.Margin.Right) - 128.0;
+                    if (containerCap > 40.0)
+                        budget = Math.Min(budget, containerCap);
+                }
+            }
+            else
+            {
+                double cw = container.ActualWidth > 0 ? container.ActualWidth : container.Width;
+                if (!double.IsNaN(cw) && cw > 10.0)
+                    budget = Math.Min(budget, cw - (textBox.Margin.Left + textBox.Margin.Right));
+            }
 
-            if (double.IsNaN(availW) || availW <= 10.0) return;
+            if (double.IsInfinity(budget) || double.IsNaN(budget) || budget <= 10.0)
+            {
+                double fallback = container.ActualWidth > 0 ? container.ActualWidth : container.Width;
+                if (double.IsNaN(fallback) || fallback <= 10.0) return -1.0;
+                budget = fallback - (textBox.Margin.Left + textBox.Margin.Right);
+            }
 
-
-
-            availW -= (textBox.Margin.Left + textBox.Margin.Right);
-
-            if (availW <= 10.0) return;
-
-
-
-            var fit = HorizonCore.ComputeTextFit(
-
-                availW,
-
-                sample,
-
-                minFontSize,
-
-                maxFontSize,
-
-                avgCharWidthAt12Pt);
-
-
-
-            textBox.FontSize = fit.OptimalFontSize;
-
+            return budget;
         }
 
+        void ReconcileTextBox(bool fromSizeChanged = false)
+        {
+            if (isReconciling) return;
 
+            double availW = ComputeStableWidthBudget();
+            if (availW <= 10.0) return;
 
-        container.SizeChanged += (_, _) => ReconcileTextBox();
+            string text = textBox.Text ?? string.Empty;
+            int textLen = text.Length;
 
+            // Ignore container SizeChanged events triggered by the TextBox's own typing/wrapping
+            // when the external width budget has not meaningfully changed.
+            if (fromSizeChanged && Math.Abs(availW - lastBudgetW) < 2.0)
+                return;
+
+            string sample = textLen == 0 ? "Search here or enter URL" : text;
+            var fit = HorizonCore.ComputeTextFit(
+                availW,
+                sample,
+                minFontSize,
+                maxFontSize,
+                avgCharWidthAt12Pt);
+
+            double targetFontSize = Math.Round(fit.OptimalFontSize * 2.0) / 2.0;
+
+            // If the user is typing additional characters and the width budget hasn't grown,
+            // never allow FontSize to jump upward.
+            if (textLen > 0 && lastTextLen > 0 && textLen >= lastTextLen && Math.Abs(availW - lastBudgetW) < 2.0)
+            {
+                targetFontSize = Math.Min(targetFontSize, textBox.FontSize);
+            }
+
+            lastBudgetW = availW;
+            lastTextLen = textLen;
+
+            if (Math.Abs(textBox.FontSize - targetFontSize) >= 0.4)
+            {
+                isReconciling = true;
+                try
+                {
+                    textBox.FontSize = targetFontSize;
+                }
+                finally
+                {
+                    isReconciling = false;
+                }
+            }
+        }
+
+        container.SizeChanged += (_, _) => ReconcileTextBox(fromSizeChanged: true);
         container.Loaded += (_, _) => ReconcileTextBox();
-
         textBox.TextChanged += (_, _) => ReconcileTextBox();
-
         ReconcileTextBox();
-
     }
 
 
