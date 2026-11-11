@@ -363,6 +363,7 @@ public class SettingsData
     public List<SearchEngineEntry> CustomSearchEngines { get; set; } = new();
 
     public List<PinItem> PinnedUrls { get; set; } = new();
+    public List<string> PermanentPinnedTabUrls { get; set; } = new();
     public List<string> LastSessionUrls { get; set; } = new();
     public List<string> SavedHomepages { get; set; } = new();
     
@@ -432,12 +433,18 @@ public class SettingsData
     public List<string> PinnedUtilityIds { get; set; } = new();
     public List<string> HeaderContextUtilityIds { get; set; } = new();
     public List<string> HomepageWidgetUtilityIds { get; set; } = new();
+    public List<string> PinnedHeaderExtensionIds { get; set; } = new();
+    public List<string> PinnedHeaderStackExtensionIds { get; set; } = new();
+    public List<string> PinnedHomepageExtensionIds { get; set; } = new();
 
     public bool   HomeAdaptiveColorsEnabled { get; set; } = true;
     public double HomeTintStrength           { get; set; } = 30.0;
     public bool DisableBlurEffects           { get; set; } = false;
     public bool TabSwitcherGridMode          { get; set; } = false;
     public bool CompactTabsEnabled           { get; set; } = true;
+    public bool ShowFullscreenOverlay        { get; set; } = true;
+    public bool ShowSplitViewOverlay         { get; set; } = true;
+    public Dictionary<string, bool> ExtensionShortcutPermissions { get; set; } = new(StringComparer.OrdinalIgnoreCase);
     public int  SplitViewPickMode            { get; set; } = 1;
     public double SplitViewRatio             { get; set; } = 0.5;
     public Dictionary<string, string> SplitViewLayoutRatios { get; set; } = new();
@@ -656,4 +663,8 @@ public class SettingsData
 
     // ── Existing Installation Warnings ───────────────────────────────────────
     public List<string> DismissedInstallationPaths { get; set; } = new();
+
+    // ── Remote Debugging & AI Browser Agent Integration ──────────────────────
+    public bool EnableRemoteDebugging { get; set; } = true;
+    public int  RemoteDebuggingPort   { get; set; } = 9222;
 }

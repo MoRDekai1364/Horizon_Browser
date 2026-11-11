@@ -50,12 +50,15 @@ public static class ExtensionService
             ["save-it-later"]   = ("\U0001F4BE", "Save articles and bookmarks to read offline later."),
             ["crx-extractor-downloader-chrome-web-store"] = ("\U0001F4E6", "Download and unpack Chrome extensions as ZIP/CRX."),
             ["crx-extractor"]   = ("\U0001F4E6", "Download and unpack Chrome extensions as ZIP/CRX."),
+            ["dbepggeogbaibhgnhhndojpepiihcmeb"] = ("\u2328\uFE0F", "Navigate web pages and links with keyboard shortcuts."),
+            ["vimium"]          = ("\u2328\uFE0F", "Navigate web pages and links with keyboard shortcuts."),
         };
 
     private static (string Icon, string Description) GetBundledMeta(string id)
     {
         if (_bundledMeta.TryGetValue(id, out var meta)) return meta;
         string lower = id.ToLowerInvariant();
+        if (lower.Contains("vimium") || lower == "dbepggeogbaibhgnhhndojpepiihcmeb") return ("\u2328\uFE0F", "Navigate web pages and links with keyboard shortcuts.");
         if (lower.Contains("consent")) return ("\U0001F36A", "Automatically handles GDPR/cookie consent dialogs.");
         if (lower.Contains("adguard")) return ("\U0001F6E1", "Blocks ads, trackers, and malware on every site.");
         if (lower.Contains("sponsorblock")) return ("\u23ED", "Skip sponsorships, intro animations, and annoying segments on YouTube.");
@@ -106,6 +109,8 @@ public static class ExtensionService
             LoadCatalog();
             SyncBundledExtensions();
             RegisterBundledInCatalog();
+            ScanInstalledFolder();
+            ResolveAllIconPaths();
             EnsureFolders();
             SaveCatalog();
         }
@@ -121,6 +126,13 @@ public static class ExtensionService
     /// </summary>
     public static void Register(ExtensionRecord record)
     {
+        string folder = GetInstallFolder(record.FolderName);
+        if (Directory.Exists(folder))
+        {
+            string manifest = Path.Combine(folder, "manifest.json");
+            record.IconPath ??= ResolveIconPath(folder, manifest);
+        }
+
         _catalog.RemoveAll(e => e.Id.Equals(record.Id, StringComparison.OrdinalIgnoreCase));
         _catalog.Add(record);
         SaveCatalog();
@@ -167,6 +179,157 @@ public static class ExtensionService
                                      e.Name.Equals(id, StringComparison.OrdinalIgnoreCase));
 
     public static string GetInstallFolder(string id) => Path.Combine(InstallRoot, id);
+
+    public static bool? GetShortcutPermission(string id)
+    {
+        var ext = Find(id);
+        if (ext?.AllowsShortcutModification != null)
+            return ext.AllowsShortcutModification;
+
+        if (SettingsService.Current.ExtensionShortcutPermissions.TryGetValue(id, out bool perm))
+            return perm;
+
+        return null;
+    }
+
+    public static void SetShortcutPermission(string id, bool allowed)
+    {
+        var ext = Find(id);
+        if (ext != null)
+        {
+            ext.AllowsShortcutModification = allowed;
+            SaveCatalog();
+        }
+        SettingsService.Current.ExtensionShortcutPermissions[id] = allowed;
+        SettingsService.Save();
+        CatalogChanged?.Invoke();
+    }
+
+    public static bool PromptShortcutPermission(string id, string name, System.Windows.Window? owner = null)
+    {
+        var app = System.Windows.Application.Current;
+        if (app != null && !app.Dispatcher.CheckAccess())
+        {
+            return app.Dispatcher.Invoke(() => PromptShortcutPermission(id, name, owner));
+        }
+
+        string title = "Extension Keyboard Shortcuts";
+        string message =
+            $"The extension '{name}' modifies keyboard shortcuts and page navigation controls.\n\n" +
+            $"Do you want to allow '{name}' to manage and override keyboard shortcuts in Horizon Browser?\n\n" +
+            "\u2022 Yes: Allow extension to manage shortcuts and keep it enabled.\n" +
+            "\u2022 No: Block shortcut modification and keep the extension disabled.";
+
+        owner ??= app?.MainWindow;
+        System.Windows.MessageBoxResult res = owner != null && owner.IsLoaded && owner.IsVisible
+            ? System.Windows.MessageBox.Show(owner, message, title, System.Windows.MessageBoxButton.YesNo, System.Windows.MessageBoxImage.Question)
+            : System.Windows.MessageBox.Show(message, title, System.Windows.MessageBoxButton.YesNo, System.Windows.MessageBoxImage.Question);
+
+        bool allowed = res == System.Windows.MessageBoxResult.Yes;
+        SetShortcutPermission(id, allowed);
+        if (allowed)
+        {
+            SetEnabled(id, true);
+        }
+        else
+        {
+            SetEnabled(id, false);
+        }
+        return allowed;
+    }
+
+    public static bool ModifiesShortcuts(string manifestPathOrDir, string? id = null, string? name = null, string? desc = null)
+    {
+        try
+        {
+            if (!string.IsNullOrEmpty(id))
+            {
+                string lowerId = id.ToLowerInvariant();
+                if (lowerId.Contains("vimium") || lowerId == "dbepggeogbaibhgnhhndojpepiihcmeb")
+                    return true;
+            }
+
+            if (!string.IsNullOrEmpty(name))
+            {
+                string lowerName = name.ToLowerInvariant();
+                if (lowerName.Contains("vimium") || lowerName.Contains("surfingkeys"))
+                    return true;
+            }
+
+            if (!string.IsNullOrEmpty(desc))
+            {
+                string lowerDesc = desc.ToLowerInvariant();
+                if (lowerDesc.Contains("keyboard shortcut") || lowerDesc.Contains("spirit of vim") ||
+                    lowerDesc.Contains("shortcuts for navigation") || lowerDesc.Contains("shortcut navigation"))
+                    return true;
+            }
+
+            string manifestPath = manifestPathOrDir;
+            if (Directory.Exists(manifestPathOrDir))
+            {
+                manifestPath = Path.Combine(manifestPathOrDir, "manifest.json");
+            }
+
+            if (File.Exists(manifestPath))
+            {
+                using var doc = JsonDocument.Parse(File.ReadAllText(manifestPath));
+                var root = doc.RootElement;
+
+                // Check "commands" section in manifest
+                if (root.TryGetProperty("commands", out var cmdProp) && cmdProp.ValueKind == JsonValueKind.Object)
+                {
+                    int cmdCount = 0;
+                    foreach (var _ in cmdProp.EnumerateObject()) { cmdCount++; }
+                    if (cmdCount > 0) return true;
+                }
+
+                // Check name & description in manifest
+                if (root.TryGetProperty("name", out var nProp))
+                {
+                    string n = nProp.GetString() ?? "";
+                    if (n.Contains("vimium", StringComparison.OrdinalIgnoreCase) ||
+                        n.Contains("surfingkeys", StringComparison.OrdinalIgnoreCase))
+                        return true;
+                }
+                if (root.TryGetProperty("description", out var dProp))
+                {
+                    string d = dProp.GetString() ?? "";
+                    if (d.Contains("keyboard shortcut", StringComparison.OrdinalIgnoreCase) ||
+                        d.Contains("spirit of vim", StringComparison.OrdinalIgnoreCase) ||
+                        d.Contains("shortcuts for navigation", StringComparison.OrdinalIgnoreCase) ||
+                        d.Contains("shortcut navigation", StringComparison.OrdinalIgnoreCase))
+                        return true;
+                }
+
+                // Check content_scripts for keyboard interception scripts
+                if (root.TryGetProperty("content_scripts", out var csProp) && csProp.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var cs in csProp.EnumerateArray())
+                    {
+                        if (cs.TryGetProperty("js", out var jsProp) && jsProp.ValueKind == JsonValueKind.Array)
+                        {
+                            foreach (var js in jsProp.EnumerateArray())
+                            {
+                                string script = js.GetString() ?? "";
+                                if (script.Contains("keyboard", StringComparison.OrdinalIgnoreCase) ||
+                                    script.Contains("key_handler", StringComparison.OrdinalIgnoreCase) ||
+                                    script.Contains("vimium", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            LogService.Debug("EXT", () => $"ModifiesShortcuts check failed: {ex.Message}");
+        }
+
+        return false;
+    }
 
     // ── Internal ─────────────────────────────────────────────────────────────
 
@@ -220,11 +383,13 @@ public static class ExtensionService
             string version = ReadManifestVersion(manifest);
             string name = ReadManifestName(manifest, id);
             string desc = ReadManifestDescription(manifest, meta.Description);
+            string? iconPath = ResolveIconPath(dir, manifest);
 
             var existing = Find(id);
             if (existing != null)
             {
                 existing.Version = version;
+                if (!string.IsNullOrEmpty(iconPath)) existing.IconPath = iconPath;
                 if (string.IsNullOrEmpty(existing.Name) || existing.Name.StartsWith("__MSG_") || existing.Name.Equals(id, StringComparison.OrdinalIgnoreCase))
                     existing.Name = name;
                 if (string.IsNullOrEmpty(existing.Description))
@@ -239,11 +404,197 @@ public static class ExtensionService
                 Description = !string.IsNullOrEmpty(meta.Description) ? meta.Description : desc,
                 Version     = version,
                 Icon        = meta.Icon ?? "\U0001F9E9",
+                IconPath    = iconPath,
                 Source      = ExtensionSource.Bundled,
                 Enabled     = true,
                 InstalledAt = DateTime.Now,
             });
         }
+    }
+
+    private static void ScanInstalledFolder()
+    {
+        if (!Directory.Exists(InstallRoot)) return;
+        foreach (var dir in Directory.GetDirectories(InstallRoot))
+        {
+            string id = Path.GetFileName(dir);
+            string manifest = Path.Combine(dir, "manifest.json");
+            if (!File.Exists(manifest)) continue;
+
+            var existing = Find(id);
+            if (existing == null)
+            {
+                var meta = GetBundledMeta(id);
+                string version = ReadManifestVersion(manifest);
+                string name = ReadManifestName(manifest, id);
+                string desc = ReadManifestDescription(manifest, meta.Description);
+                string? iconPath = ResolveIconPath(dir, manifest);
+
+                ExtensionSource src = ExtensionSource.Manual;
+                if (id.Length == 32 && id.All(c => c >= 'a' && c <= 'p'))
+                    src = ExtensionSource.ChromeStore;
+
+                _catalog.Add(new ExtensionRecord
+                {
+                    Id          = id,
+                    Name        = name,
+                    Description = !string.IsNullOrEmpty(meta.Description) ? meta.Description : desc,
+                    Version     = version,
+                    Icon        = meta.Icon ?? "\U0001F9E9",
+                    IconPath    = iconPath,
+                    Source      = src,
+                    Enabled     = true,
+                    InstalledAt = DateTime.Now
+                });
+            }
+            else
+            {
+                if (string.IsNullOrEmpty(existing.IconPath) || !File.Exists(existing.IconPath))
+                {
+                    existing.IconPath = ResolveIconPath(dir, manifest);
+                }
+            }
+        }
+    }
+
+    public static void ResolveAllIconPaths()
+    {
+        foreach (var ext in _catalog)
+        {
+            string folder = GetInstallFolder(ext.FolderName);
+            if (!Directory.Exists(folder) && ext.Source == ExtensionSource.Bundled)
+            {
+                folder = Path.Combine(BundleCache, ext.FolderName);
+            }
+
+            if (Directory.Exists(folder))
+            {
+                string manifest = Path.Combine(folder, "manifest.json");
+                string? iconPath = ResolveIconPath(folder, manifest);
+                if (!string.IsNullOrEmpty(iconPath))
+                {
+                    ext.IconPath = iconPath;
+                }
+            }
+        }
+    }
+
+    public static string? ResolveIconPath(string folder, string manifestPath)
+    {
+        try
+        {
+            if (File.Exists(manifestPath))
+            {
+                using var doc = JsonDocument.Parse(File.ReadAllText(manifestPath));
+                var root = doc.RootElement;
+
+                // 1. Check "icons" property in manifest.json (prefer highest resolution)
+                if (root.TryGetProperty("icons", out var iconsObj) && iconsObj.ValueKind == JsonValueKind.Object)
+                {
+                    string[] preferredSizes = { "128", "256", "512", "64", "48", "32", "16" };
+                    foreach (var s in preferredSizes)
+                    {
+                        if (iconsObj.TryGetProperty(s, out var iconProp))
+                        {
+                            string rel = iconProp.GetString() ?? "";
+                            if (!string.IsNullOrWhiteSpace(rel))
+                            {
+                                string full = Path.Combine(folder, rel.Replace('/', Path.DirectorySeparatorChar));
+                                if (File.Exists(full)) return full;
+                            }
+                        }
+                    }
+
+                    // Any size in icons object
+                    foreach (var prop in iconsObj.EnumerateObject())
+                    {
+                        string rel = prop.Value.GetString() ?? "";
+                        if (!string.IsNullOrWhiteSpace(rel))
+                        {
+                            string full = Path.Combine(folder, rel.Replace('/', Path.DirectorySeparatorChar));
+                            if (File.Exists(full)) return full;
+                        }
+                    }
+                }
+
+                // 2. Check "action.default_icon" or "browser_action.default_icon"
+                foreach (var actionPropName in new[] { "action", "browser_action", "page_action" })
+                {
+                    if (root.TryGetProperty(actionPropName, out var actObj) && actObj.ValueKind == JsonValueKind.Object)
+                    {
+                        if (actObj.TryGetProperty("default_icon", out var dIcon))
+                        {
+                            if (dIcon.ValueKind == JsonValueKind.String)
+                            {
+                                string rel = dIcon.GetString() ?? "";
+                                if (!string.IsNullOrWhiteSpace(rel))
+                                {
+                                    string full = Path.Combine(folder, rel.Replace('/', Path.DirectorySeparatorChar));
+                                    if (File.Exists(full)) return full;
+                                }
+                            }
+                            else if (dIcon.ValueKind == JsonValueKind.Object)
+                            {
+                                string[] preferredSizes = { "128", "256", "64", "48", "32", "16" };
+                                foreach (var s in preferredSizes)
+                                {
+                                    if (dIcon.TryGetProperty(s, out var iProp))
+                                    {
+                                        string rel = iProp.GetString() ?? "";
+                                        if (!string.IsNullOrWhiteSpace(rel))
+                                        {
+                                            string full = Path.Combine(folder, rel.Replace('/', Path.DirectorySeparatorChar));
+                                            if (File.Exists(full)) return full;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 3. Fallback: Search directory on disk
+            if (Directory.Exists(folder))
+            {
+                string[] candidates =
+                {
+                    "icon128.png", "icon-128.png", "icon_128.png", "128.png", "icon.png",
+                    "icon48.png", "icon-48.png", "icon_48.png", "48.png",
+                    "icon32.png", "icon-32.png", "icon_32.png", "32.png",
+                    "icon16.png", "icon-16.png", "icon_16.png", "16.png",
+                    "logo.png", "icon.ico", "favicon.ico",
+                    Path.Combine("icons", "icon128.png"), Path.Combine("assets", "icon-128.png"),
+                    Path.Combine("assets", "icons", "icon128.png"), Path.Combine("assets", "icons", "on-128.png"),
+                    Path.Combine("static", "logo.png")
+                };
+
+                foreach (var c in candidates)
+                {
+                    string p = Path.Combine(folder, c);
+                    if (File.Exists(p)) return p;
+                }
+
+                // Recursive search for any icon png/ico
+                var files = Directory.GetFiles(folder, "*.png", SearchOption.AllDirectories);
+                var iconFile = files.FirstOrDefault(f => f.IndexOf("icon", StringComparison.OrdinalIgnoreCase) >= 0 &&
+                                                        f.IndexOf("128", StringComparison.OrdinalIgnoreCase) >= 0)
+                            ?? files.FirstOrDefault(f => f.IndexOf("icon", StringComparison.OrdinalIgnoreCase) >= 0)
+                            ?? files.FirstOrDefault(f => f.IndexOf("logo", StringComparison.OrdinalIgnoreCase) >= 0);
+
+                if (!string.IsNullOrEmpty(iconFile) && File.Exists(iconFile))
+                    return iconFile;
+
+                if (files.Length > 0)
+                    return files[0];
+            }
+        }
+        catch (Exception ex)
+        {
+            LogService.Debug("EXT", () => $"ResolveIconPath failed for '{folder}': {ex.Message}");
+        }
+
+        return null;
     }
 
     private static void EnsureFolders()

@@ -38,6 +38,7 @@ public sealed class MediaDownloadService : IDisposable
 
     private readonly StringBuilder _log = new();
     private string _tempLogPath = string.Empty;
+    private bool _silentSession;
     private bool _disposed;
     private readonly string _downloadId = Guid.NewGuid().ToString();
 
@@ -157,6 +158,7 @@ public sealed class MediaDownloadService : IDisposable
         CancellationToken ct = default)
     {
         InitLog();
+        _silentSession = true;
         Log($"[START]  Direct download ({mediaKind}) URL: {url}");
 
         try
@@ -230,7 +232,8 @@ public sealed class MediaDownloadService : IDisposable
 
         if (string.IsNullOrWhiteSpace(name))
         {
-            try { name = Path.GetFileName(new Uri(url).LocalPath); }
+            // Keep the file's original name exactly as the site names it (decoded, no query string).
+            try { name = Uri.UnescapeDataString(Path.GetFileName(new Uri(url).LocalPath)); }
             catch { name = ""; }
         }
 
@@ -243,13 +246,23 @@ public sealed class MediaDownloadService : IDisposable
         if (string.IsNullOrWhiteSpace(name) || !Path.HasExtension(name))
         {
             string ext = ExtensionFromContentType(resp.Content.Headers.ContentType?.MediaType, mediaKind);
-            string baseName = string.IsNullOrWhiteSpace(name)
-                ? $"horizon_{mediaKind}_{DateTime.Now:yyyyMMdd_HHmmss}"
-                : name;
+            string baseName = string.IsNullOrWhiteSpace(name) ? FallbackBaseName(url, mediaKind) : name;
             name = baseName + ext;
         }
 
         return name!;
+    }
+
+    // Only used when the server/URL gives no name at all: use the host, never an invented timestamp name.
+    private static string FallbackBaseName(string url, string mediaKind)
+    {
+        try
+        {
+            string host = new Uri(url).Host;
+            if (!string.IsNullOrWhiteSpace(host)) return host;
+        }
+        catch { }
+        return mediaKind;
     }
 
     private static string ExtensionFromContentType(string? contentType, string mediaKind) => contentType switch
@@ -475,7 +488,8 @@ public sealed class MediaDownloadService : IDisposable
             LogService.Write("MEDIA", $"Log copy to logs dir failed: {ex.Message}. Keeping temp path.");
         }
 
-        if (!File.Exists(finalLogPath)) return;
+        // Direct (image/audio/video file) downloads never prompt about the log.
+        if (_silentSession || !File.Exists(finalLogPath)) return;
 
         string pathCapture = finalLogPath;
         Application.Current?.Dispatcher.Invoke(() =>

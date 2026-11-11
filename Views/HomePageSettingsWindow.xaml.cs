@@ -109,7 +109,7 @@ public partial class HomePageSettingsWindow : Window
                 KernelType = KernelType.Gaussian,
                 RenderingBias = RenderingBias.Performance
             };
-            if (flat || overlap == null)
+            if (flat || overlap == null || !Services.CommandBarGlass.IsHomeActive())
             {
                 glassHost.Visibility = Visibility.Collapsed;
                 return;
@@ -138,11 +138,13 @@ public partial class HomePageSettingsWindow : Window
         }
 
         Apply();
+        var detachCmdGlass = Services.CommandBarGlass.Attach(this, GlassBackdropHost, _ => Apply());
         Action handler = () => Dispatcher.BeginInvoke(new Action(Apply));
         WeatherBridge.ThemeUpdated += handler;
         Controls.HomeGlassMotion.BlurSettingChanged += handler;
         _detachGlassBackdrop = () =>
         {
+            detachCmdGlass();
             WeatherBridge.ThemeUpdated -= handler;
             Controls.HomeGlassMotion.BlurSettingChanged -= handler;
             unbind();

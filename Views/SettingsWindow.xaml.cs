@@ -338,7 +338,7 @@ public partial class SettingsWindow : Window
                 KernelType = KernelType.Gaussian,
                 RenderingBias = RenderingBias.Performance
             };
-            if (flat || overlap == null)
+            if (flat || overlap == null || !Services.CommandBarGlass.IsHomeActive())
             {
                 glassHost.Visibility = Visibility.Collapsed;
                 return;
@@ -367,11 +367,13 @@ public partial class SettingsWindow : Window
         }
 
         Apply();
+        var detachCmdGlass = Services.CommandBarGlass.Attach(this, GlassBackdropHost, _ => Apply());
         Action handler = () => Dispatcher.BeginInvoke(new Action(Apply));
         WeatherBridge.ThemeUpdated += handler;
         Controls.HomeGlassMotion.BlurSettingChanged += handler;
         _detachGlassBackdrop = () =>
         {
+            detachCmdGlass();
             WeatherBridge.ThemeUpdated -= handler;
             Controls.HomeGlassMotion.BlurSettingChanged -= handler;
             unbind();
@@ -1061,6 +1063,8 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
         ChkDisableBlur.IsChecked = s.DisableBlurEffects;
         ChkTabSwitcherGrid.IsChecked = s.TabSwitcherGridMode;
         ChkCompactTabs.IsChecked = s.CompactTabsEnabled;
+        ChkFullscreenOverlay.IsChecked = s.ShowFullscreenOverlay;
+        ChkSplitViewOverlay.IsChecked = s.ShowSplitViewOverlay;
         CboSplitPickMode.SelectedIndex = s.SplitViewPickMode == 2 ? 1 : 0;
         SliderCompactHoverDelay.Value = Math.Clamp(s.CompactTabHoverDelayMs, 0, 500);
         TblCompactHoverDelayValue.Text = $"{(int)SliderCompactHoverDelay.Value} ms";
@@ -1357,6 +1361,8 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
         s.DisableBlurEffects   = ChkDisableBlur.IsChecked == true;
         s.TabSwitcherGridMode  = ChkTabSwitcherGrid.IsChecked == true;
         s.CompactTabsEnabled   = ChkCompactTabs.IsChecked == true;
+        s.ShowFullscreenOverlay = ChkFullscreenOverlay.IsChecked == true;
+        s.ShowSplitViewOverlay  = ChkSplitViewOverlay.IsChecked == true;
         s.SplitViewPickMode    = CboSplitPickMode.SelectedIndex == 1 ? 2 : 1;
         s.CompactTabHoverDelayMs = (int)SliderCompactHoverDelay.Value;
         Horizon.Stealth.Controls.HomeGlassMotion.RaiseBlurSettingChanged();
@@ -2152,6 +2158,15 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
             toggleBtn.Click += (_, _) =>
             {
                 bool ns = !captExt.Enabled;
+                if (ns && ExtensionService.ModifiesShortcuts(ExtensionService.GetInstallFolder(captExt.Id), captExt.Id, captExt.Name, captExt.Description))
+                {
+                    bool? perm = ExtensionService.GetShortcutPermission(captExt.Id);
+                    if (perm != true)
+                    {
+                        bool allowed = ExtensionService.PromptShortcutPermission(captExt.Id, captExt.Name, this);
+                        if (!allowed) return;
+                    }
+                }
                 ExtensionService.SetEnabled(captExt.Id, ns);
                 toggleBtn.Content       = ns ? "ON" : "OFF";
                 captCard.BorderBrush    = ExtBorderBrush(ns);

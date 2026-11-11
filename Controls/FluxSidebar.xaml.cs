@@ -1279,8 +1279,40 @@ public partial class FluxSidebar : UserControl
             row.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             row.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
-            var iconTb = new TextBlock { Text = ext.Icon, FontSize = 18, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 8, 0) };
-            Grid.SetColumn(iconTb, 0); Grid.SetRowSpan(iconTb, 2);
+            FrameworkElement iconElement;
+            if (!string.IsNullOrEmpty(ext.IconPath) && File.Exists(ext.IconPath))
+            {
+                try
+                {
+                    var bi = new BitmapImage();
+                    bi.BeginInit();
+                    bi.UriSource = new Uri(ext.IconPath, UriKind.Absolute);
+                    bi.DecodePixelWidth = 48;
+                    bi.CacheOption = BitmapCacheOption.OnLoad;
+                    bi.EndInit();
+                    bi.Freeze();
+
+                    var img = new Image
+                    {
+                        Source = bi,
+                        Width = 22,
+                        Height = 22,
+                        VerticalAlignment = VerticalAlignment.Center,
+                        Margin = new Thickness(0, 0, 8, 0)
+                    };
+                    RenderOptions.SetBitmapScalingMode(img, BitmapScalingMode.HighQuality);
+                    iconElement = img;
+                }
+                catch
+                {
+                    iconElement = new TextBlock { Text = !string.IsNullOrEmpty(ext.Icon) ? ext.Icon : "🧩", FontSize = 18, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 8, 0) };
+                }
+            }
+            else
+            {
+                iconElement = new TextBlock { Text = !string.IsNullOrEmpty(ext.Icon) ? ext.Icon : "🧩", FontSize = 18, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 8, 0) };
+            }
+            Grid.SetColumn(iconElement, 0); Grid.SetRowSpan(iconElement, 2);
 
             var nameTb = new TextBlock { Text = ext.Name, Foreground = new SolidColorBrush(Color.FromRgb(0xEE, 0xEE, 0xEE)), FontSize = 12, FontWeight = FontWeights.SemiBold, TextTrimming = TextTrimming.CharacterEllipsis };
             Grid.SetColumn(nameTb, 1); Grid.SetRow(nameTb, 0);
@@ -1294,19 +1326,51 @@ public partial class FluxSidebar : UserControl
                 _                            => "manual",
             };
             string badge = string.IsNullOrEmpty(ext.Version) ? srcLabel : $"v{ext.Version} · {srcLabel}";
-            var badgeTb = new TextBlock { Text = badge, Foreground = new SolidColorBrush(Color.FromRgb(0x33, 0x55, 0x33)), FontSize = 9, Margin = new Thickness(0, 2, 0, 0) };
+            var badgeTb = new TextBlock { Text = badge, Foreground = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x99)), FontSize = 9, Margin = new Thickness(0, 2, 0, 0) };
             Grid.SetColumn(badgeTb, 1); Grid.SetRow(badgeTb, 1);
 
             var btns = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(6, 0, 0, 0) };
             Grid.SetColumn(btns, 2); Grid.SetRowSpan(btns, 2);
 
+            var captExt = ext; var captCard = card;
+
+            var locBtn = new Button
+            {
+                Content = "\U0001F4C1", Width = 24, Height = 24, FontSize = 10,
+                Background      = new SolidColorBrush(Color.FromRgb(0x18, 0x1C, 0x24)),
+                Foreground      = new SolidColorBrush(Color.FromRgb(0x88, 0x99, 0xBB)),
+                BorderThickness = new Thickness(0), Cursor = Cursors.Hand,
+                ToolTip         = "Open Extension Location",
+                Margin          = new Thickness(0, 0, 4, 0),
+            };
+            locBtn.Template = RoundedTemplate(3);
+            locBtn.Click += (_, _) =>
+            {
+                try
+                {
+                    string folder = ExtensionService.GetInstallFolder(captExt.Id);
+                    if (Directory.Exists(folder)) Process.Start("explorer.exe", folder);
+                    else Process.Start("explorer.exe", ExtensionService.InstallRoot);
+                }
+                catch (Exception ex) { LogService.RecordCrash(ex, "OpenExtFolder"); }
+            };
+
             var toggle = new Button { Content = ext.Enabled ? "ON" : "OFF", Width = 38, Height = 24, FontSize = 8, FontWeight = FontWeights.Bold, BorderThickness = new Thickness(1), Cursor = Cursors.Hand, Margin = new Thickness(0, 0, 4, 0) };
             ApplyToggleStyle(toggle, ext.Enabled);
             toggle.Template = RoundedTemplate(3);
-            var captExt = ext; var captCard = card;
             toggle.Click += (_, _) =>
             {
                 bool ns = !captExt.Enabled;
+                if (ns && ExtensionService.ModifiesShortcuts(ExtensionService.GetInstallFolder(captExt.Id), captExt.Id, captExt.Name, captExt.Description))
+                {
+                    bool? perm = ExtensionService.GetShortcutPermission(captExt.Id);
+                    if (perm != true)
+                    {
+                        var win = Window.GetWindow(this);
+                        bool allowed = ExtensionService.PromptShortcutPermission(captExt.Id, captExt.Name, win);
+                        if (!allowed) return;
+                    }
+                }
                 ExtensionService.SetEnabled(captExt.Id, ns);
                 toggle.Content = ns ? "ON" : "OFF";
                 ApplyToggleStyle(toggle, ns);
@@ -1326,8 +1390,8 @@ public partial class FluxSidebar : UserControl
             trash.Template = RoundedTemplate(3);
             trash.Click += (_, _) => { ExtensionService.Uninstall(captExt.Id); ShowStatus("⚡ Restart Horizon to apply changes."); };
 
-            btns.Children.Add(toggle); btns.Children.Add(trash);
-            row.Children.Add(iconTb); row.Children.Add(nameTb); row.Children.Add(badgeTb); row.Children.Add(btns);
+            btns.Children.Add(locBtn); btns.Children.Add(toggle); btns.Children.Add(trash);
+            row.Children.Add(iconElement); row.Children.Add(nameTb); row.Children.Add(badgeTb); row.Children.Add(btns);
             card.Child = row;
             PanelExtensions.Children.Add(card);
         }
@@ -1431,8 +1495,50 @@ public partial class FluxSidebar : UserControl
 
     private void UpdateExtSortButtonStyles()
     {
-        SetSortBtnActive(BtnExtSortName,  _extSortField == ExtSortField.Name);
-        SetSortBtnActive(BtnExtSortState, _extSortField == ExtSortField.State);
+        SetExtSortBtnPill(BtnExtSortName, _extSortField == ExtSortField.Name,
+            activeFg: Color.FromRgb(0x00, 0xEE, 0x99),
+            activeBg: Color.FromArgb(0x40, 0x00, 0xCC, 0x88),
+            activeBorder: Color.FromRgb(0x1F, 0x7A, 0x50));
+
+        SetExtSortBtnPill(BtnExtSortState, _extSortField == ExtSortField.State,
+            activeFg: Color.FromRgb(0xFF, 0xC1, 0x07),
+            activeBg: Color.FromArgb(0x40, 0xFF, 0xB8, 0x00),
+            activeBorder: Color.FromRgb(0x7A, 0x5C, 0x1A));
+
+        if (BtnExtInstall != null)
+        {
+            BtnExtInstall.Background  = new SolidColorBrush(Color.FromArgb(0x35, 0x4F, 0x46, 0xE5));
+            BtnExtInstall.Foreground  = new SolidColorBrush(Color.FromRgb(0x93, 0xC5, 0xFD));
+            BtnExtInstall.BorderBrush = new SolidColorBrush(Color.FromArgb(0x60, 0x63, 0x66, 0xF1));
+            BtnExtInstall.BorderThickness = new Thickness(1);
+        }
+
+        if (BtnExtInstallUrl != null)
+        {
+            BtnExtInstallUrl.Background  = new SolidColorBrush(Color.FromArgb(0x35, 0x93, 0x33, 0xEA));
+            BtnExtInstallUrl.Foreground  = new SolidColorBrush(Color.FromRgb(0xD8, 0xB4, 0xFE));
+            BtnExtInstallUrl.BorderBrush = new SolidColorBrush(Color.FromArgb(0x60, 0xA8, 0x55, 0xF7));
+            BtnExtInstallUrl.BorderThickness = new Thickness(1);
+        }
+    }
+
+    private static void SetExtSortBtnPill(Button btn, bool active, Color activeFg, Color activeBg, Color activeBorder)
+    {
+        if (btn == null) return;
+        if (active)
+        {
+            btn.Background = new SolidColorBrush(activeBg);
+            btn.Foreground = new SolidColorBrush(activeFg);
+            btn.BorderBrush = new SolidColorBrush(activeBorder);
+            btn.BorderThickness = new Thickness(1);
+        }
+        else
+        {
+            btn.Background = new SolidColorBrush(Color.FromArgb(0x22, 0x22, 0x28, 0x38));
+            btn.Foreground = new SolidColorBrush(Color.FromRgb(0x99, 0xA5, 0xC0));
+            btn.BorderBrush = new SolidColorBrush(Color.FromArgb(0x35, 0x3B, 0x47, 0x60));
+            btn.BorderThickness = new Thickness(1);
+        }
     }
 
     // Extensions right-click
@@ -1444,6 +1550,21 @@ public partial class FluxSidebar : UserControl
         {
             _ctxExt = ext;
             TxtExtSearch.Text = string.Empty;
+            if (BtnCtxExtPinHeader != null)
+            {
+                bool isPinned = SettingsService.Current.PinnedHeaderExtensionIds?.Contains(ext.Id, StringComparer.OrdinalIgnoreCase) == true;
+                BtnCtxExtPinHeader.Content = isPinned ? "📌  Unpin from Header" : "📌  Pin to Header";
+            }
+            if (BtnCtxExtPinHeaderStack != null)
+            {
+                bool isPinnedStack = SettingsService.Current.WidgetModes?.Contains($"Ext:{ext.Id}", StringComparer.OrdinalIgnoreCase) == true;
+                BtnCtxExtPinHeaderStack.Content = isPinnedStack ? "📌  Unpin from Header Stack" : "📌  Pin to Header Stack";
+            }
+            if (BtnCtxExtPinHome != null)
+            {
+                bool isPinnedHome = SettingsService.Current.PinnedHomepageExtensionIds?.Contains(ext.Id, StringComparer.OrdinalIgnoreCase) == true;
+                BtnCtxExtPinHome.Content = isPinnedHome ? "📌  Unpin from Homepage Rail" : "📌  Pin to Homepage Rail";
+            }
             ExtContextPopup.IsOpen = true;
             e.Handled = true;
         }
@@ -1454,10 +1575,23 @@ public partial class FluxSidebar : UserControl
         ExtContextPopup.IsOpen = false;
         if (_ctxExt == null) return;
         bool ns = !_ctxExt.Enabled;
+        if (ns && ExtensionService.ModifiesShortcuts(ExtensionService.GetInstallFolder(_ctxExt.Id), _ctxExt.Id, _ctxExt.Name, _ctxExt.Description))
+        {
+            bool? perm = ExtensionService.GetShortcutPermission(_ctxExt.Id);
+            if (perm != true)
+            {
+                var win = Window.GetWindow(this);
+                bool allowed = ExtensionService.PromptShortcutPermission(_ctxExt.Id, _ctxExt.Name, win);
+                if (!allowed) return;
+            }
+        }
         ExtensionService.SetEnabled(_ctxExt.Id, ns);
-        ShowStatus("\u26A1 Restart Horizon to apply changes.");
+        ShowStatus("⚡ Restart Horizon to apply changes.");
         BuildExtensionCards();
     }
+
+    public static event Action? PinnedExtensionsChanged;
+    public static event Action<string?>? HeaderWidgetExtensionChanged;
 
     private void CtxExtOpen_Click(object sender, RoutedEventArgs e)
     {
@@ -1469,6 +1603,84 @@ public partial class FluxSidebar : UserControl
             ShowStatus("Enable this extension first, then restart Horizon.");
     }
 
+    private void CtxExtOpenLocation_Click(object sender, RoutedEventArgs e)
+    {
+        ExtContextPopup.IsOpen = false;
+        if (_ctxExt == null) return;
+        try
+        {
+            string folder = ExtensionService.GetInstallFolder(_ctxExt.Id);
+            if (Directory.Exists(folder)) Process.Start("explorer.exe", folder);
+            else Process.Start("explorer.exe", ExtensionService.InstallRoot);
+        }
+        catch (Exception ex) { LogService.RecordCrash(ex, "CtxExtOpenLocation"); }
+    }
+
+    private void CtxExtPinHeader_Click(object sender, RoutedEventArgs e)
+    {
+        ExtContextPopup.IsOpen = false;
+        if (_ctxExt == null) return;
+        var list = SettingsService.Current.PinnedHeaderExtensionIds ??= new List<string>();
+        if (!list.Contains(_ctxExt.Id, StringComparer.OrdinalIgnoreCase))
+        {
+            list.Add(_ctxExt.Id);
+            SettingsService.Save();
+            ShowStatus($"📌 Pinned '{_ctxExt.Name}' to Header.");
+            PinnedExtensionsChanged?.Invoke();
+        }
+        else
+        {
+            list.RemoveAll(x => string.Equals(x, _ctxExt.Id, StringComparison.OrdinalIgnoreCase));
+            SettingsService.Save();
+            ShowStatus($"Unpinned '{_ctxExt.Name}' from Header.");
+            PinnedExtensionsChanged?.Invoke();
+        }
+    }
+
+    private void CtxExtPinHeaderStack_Click(object sender, RoutedEventArgs e)
+    {
+        ExtContextPopup.IsOpen = false;
+        if (_ctxExt == null) return;
+        var modes = SettingsService.Current.WidgetModes ??= new List<string> { "Clock" };
+        string widgetKey = $"Ext:{_ctxExt.Id}";
+        if (!modes.Contains(widgetKey, StringComparer.OrdinalIgnoreCase))
+        {
+            modes.Add(widgetKey);
+            SettingsService.Save();
+            ShowStatus($"📌 Added '{_ctxExt.Name}' to Header Widget Stack.");
+            HeaderWidgetExtensionChanged?.Invoke(widgetKey);
+        }
+        else
+        {
+            modes.RemoveAll(x => string.Equals(x, widgetKey, StringComparison.OrdinalIgnoreCase));
+            if (modes.Count == 0) modes.Add("Clock");
+            SettingsService.Save();
+            ShowStatus($"Unpinned '{_ctxExt.Name}' from Header Widget Stack.");
+            HeaderWidgetExtensionChanged?.Invoke(null);
+        }
+    }
+
+    private void CtxExtPinHome_Click(object sender, RoutedEventArgs e)
+    {
+        ExtContextPopup.IsOpen = false;
+        if (_ctxExt == null) return;
+        var list = SettingsService.Current.PinnedHomepageExtensionIds ??= new List<string>();
+        if (!list.Contains(_ctxExt.Id, StringComparer.OrdinalIgnoreCase))
+        {
+            list.Add(_ctxExt.Id);
+            SettingsService.Save();
+            ShowStatus($"📌 Pinned '{_ctxExt.Name}' to Homepage Rail.");
+            PinnedExtensionsChanged?.Invoke();
+        }
+        else
+        {
+            list.RemoveAll(x => string.Equals(x, _ctxExt.Id, StringComparison.OrdinalIgnoreCase));
+            SettingsService.Save();
+            ShowStatus($"Unpinned '{_ctxExt.Name}' from Homepage Rail.");
+            PinnedExtensionsChanged?.Invoke();
+        }
+    }
+
     private void CtxExtSortName_Click(object sender, RoutedEventArgs e)   { ExtContextPopup.IsOpen = false; BtnExtSortName_Click(sender, e); }
     private void CtxExtSortState_Click(object sender, RoutedEventArgs e)  { ExtContextPopup.IsOpen = false; BtnExtSortState_Click(sender, e); }
     private void CtxExtSortSource_Click(object sender, RoutedEventArgs e) { ExtContextPopup.IsOpen = false; BtnExtSortSource_Click(sender, e); }
@@ -1477,8 +1689,14 @@ public partial class FluxSidebar : UserControl
     {
         ExtContextPopup.IsOpen = false;
         if (_ctxExt == null) return;
+        string widgetKey = $"Ext:{_ctxExt.Id}";
+        SettingsService.Current.WidgetModes?.RemoveAll(x => string.Equals(x, widgetKey, StringComparison.OrdinalIgnoreCase));
+        SettingsService.Current.PinnedHeaderExtensionIds?.RemoveAll(x => string.Equals(x, _ctxExt.Id, StringComparison.OrdinalIgnoreCase));
+        SettingsService.Save();
         ExtensionService.Uninstall(_ctxExt.Id);
-        ShowStatus("\u26A1 Restart Horizon to apply changes.");
+        ShowStatus("⚡ Restart Horizon to apply changes.");
+        PinnedExtensionsChanged?.Invoke();
+        HeaderWidgetExtensionChanged?.Invoke(null);
         BuildExtensionCards();
     }
 
@@ -1508,7 +1726,7 @@ public partial class FluxSidebar : UserControl
         ShowStatus("Catalog refreshed.");
     }
 
-    private void ShowStatus(string msg)
+    public void ShowStatus(string msg)
     {
         TxtStatus.Text = msg;
         BannerStatus.Visibility = Visibility.Visible;
@@ -1516,13 +1734,13 @@ public partial class FluxSidebar : UserControl
 
     private static void ApplyToggleStyle(Button b, bool on)
     {
-        b.Background  = new SolidColorBrush(on ? Color.FromRgb(0x00, 0x33, 0x00) : Color.FromRgb(0x22, 0x22, 0x22));
-        b.Foreground  = new SolidColorBrush(on ? Color.FromRgb(0x00, 0xFF, 0x00) : Color.FromRgb(0x55, 0x55, 0x55));
-        b.BorderBrush = new SolidColorBrush(on ? Color.FromRgb(0x00, 0x88, 0x00) : Color.FromRgb(0x33, 0x33, 0x33));
+        b.Background  = new SolidColorBrush(on ? Color.FromArgb(0x40, 0x3D, 0x68, 0xFF) : Color.FromRgb(0x22, 0x22, 0x22));
+        b.Foreground  = new SolidColorBrush(on ? Color.FromRgb(0x7A, 0x9E, 0xFF) : Color.FromRgb(0x77, 0x77, 0x77));
+        b.BorderBrush = new SolidColorBrush(on ? Color.FromRgb(0x3D, 0x68, 0xFF) : Color.FromRgb(0x33, 0x33, 0x33));
     }
 
     private static void SetCardBorder(Border card, bool on)
-        => card.BorderBrush = new SolidColorBrush(on ? Color.FromRgb(0x00, 0x55, 0x00) : Color.FromRgb(0x22, 0x22, 0x22));
+        => card.BorderBrush = new SolidColorBrush(on ? Color.FromArgb(0x44, 0x3D, 0x68, 0xFF) : Color.FromRgb(0x22, 0x22, 0x22));
 
     private static ControlTemplate RoundedTemplate(int r = 4)
     {

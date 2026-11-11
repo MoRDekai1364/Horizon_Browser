@@ -1,3 +1,20 @@
+version 2.8.0
++ integrated extension pinning to Header Stack as an interactive cyclable Widget Mode: right-clicking an extension in the sidebar and choosing "Pin to Header Stack" now adds it directly into the Header Widget modes (Ext:<id>) alongside Clock, Media, Weather, etc., displaying its authentic icon and name, opening its extension popup on left click, supporting drag/up/down reordering in the Widget Options popup, and auto-cycling without creating static external buttons
++ expanded native Keyboard Navigation Engine (Horizon HintNav) to include Header, Sidebar, and Tab elements alongside webpage DOM elements: full home-row non-colliding letter space (Header uses H/J prefixes, Sidebar uses W/E prefixes, in-page uses S/A/D/F/K/L/C/M/P/G), with real-time orange matching, live filtering, and backspace undo across both native WPF chrome and WebView2
++ fixed Permanent/Sticky Keyboard Navigation mode: now strictly permanent and persistent across multiple sequential clicks, SPA navigations (YouTube video transitions), full document reloads, and tab switching until explicitly toggled off with Tab+` or Escape
++ eliminated shortcut interference across ALL web video/audio players (YouTube, Vimeo, Netflix, Twitch, Spotify, SoundCloud, Bilibili, and all HTML5 video/audio): disabled third-party bundled extension conflict and ensured 0 key interception when hint badges are inactive
++ added Windows Restart Manager immunity: shielded the browser against external installer/uninstaller shutdown broadcasts (WM_QUERYENDSESSION / WM_ENDSESSION with ENDSESSION_CLOSEAPP), preventing the browser from terminating when uninstalling third-party applications via Windows Settings
++ fixed Share functionality across the URL bar island and main menu ("Share Page"): eliminated visual flicker and focus loops on click, added calm visual feedback (Share button changes to accent color with "Sharing..." status), and anchored the native Windows Share flyout directly adjacent to the clicked button using non-activating Win32 anchor bounds instead of detaching in the screen center
++ corrected IDataTransferManagerInterop COM vtable alignment, ensured safe web URI and title data provisioning, and added automatic clipboard + status notification fallback
++ re-architected Command Bar into modern Android SuperSearch: unified single-search indexing across Favorites, Bookmarks, Open Tabs, Browser Settings, Built-in Utilities, Commands, and Web Search with typo-tolerant fuzzy Levenshtein matching and punctuation normalization (e.g. "you tube", "youtube/", "yotube" matching "YouTube")
++ introduced native browser-wide Keyboard Navigation Engine (Horizon HintNav): pressing backtick (`) activates single-use mode (typing a badge clicks it and immediately exits), while pressing Tab+` toggles permanent/sticky mode (badges remain permanently visible and usable across repeated interactions until Tab+` is pressed again); visually preserves authentic golden-yellow gradient badges over all interactive elements; leaves YouTube fullscreen (f) and all player hotkeys (space, k, j, l, m, c, t, 0-9) 100% unintercepted and native
++ added Remote Debugging bridge (port 9222) so AI browser agents (chrome-devtools-mcp, /browser) can attach to Horizon Browser
++ fixed edge:// and chrome:// URLs in the address bar, homepage search and Command Bar (edge://menu, chrome://menu, chrome://flags, chrome://inspect, etc. now open the internal pages)
++ modernized image downloads: new "Open Image in New Tab" (only the image), "Download Image && Copy to Clipboard" and reworked "Copy Image"
++ "Copy Image" now invisibly loads the full-resolution image in the background before copying, and shows a "please wait" notice if it takes longer
++ downloaded images keep their original file names (no more automatic renaming)
++ removed the "Open log file?" prompt after media downloads
+
 version 2.7.9
 + integrated native Rust core engine (horizon_core.dll) for SIMD wallpaper luminance, text fitting, and sub-millisecond memory audits
 + added Aegis Resource Governor managing tab lifecycle (Active -> Warm -> Dormant -> Suspended -> Cryo) with emergency RAM shedding

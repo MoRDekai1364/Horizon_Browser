@@ -103,20 +103,7 @@ public partial class HomePageView : UserControl
     private void ExecuteThemeSearch(string? query)
     {
         if (string.IsNullOrWhiteSpace(query)) return;
-        query = query.Trim();
-        string url;
-        if (Uri.TryCreate(query, UriKind.Absolute, out var direct) && (direct.Scheme == "http" || direct.Scheme == "https"))
-        {
-            url = query;
-        }
-        else if (query.Contains('.') && !query.Contains(' ') && Uri.TryCreate("https://" + query, UriKind.Absolute, out var implied))
-        {
-            url = implied.ToString();
-        }
-        else
-        {
-            url = "https://www.google.com/search?q=" + Uri.EscapeDataString(query);
-        }
+        string url = Horizon.Stealth.Controls.Omnibox.BuildNavigationUrl(query);
         NavigateRequested?.Invoke(url);
     }
 

@@ -652,22 +652,16 @@
                     <controls:Omnibox x:Name="OmniboxControl" Grid.Column="1" Margin="5,12,44,12" ToolTip="Search or Enter URL"
                           UrlFocused="Omnibox_UrlFocused" UrlUnfocused="Omnibox_UrlUnfocused" UrlDismissed="Omnibox_UrlDismissed"/>
 
-                    <Button x:Name="BtnSplitView" Grid.Column="1"
-                            Click="BtnSplitView_Click"
+                    <Button x:Name="BtnTabSwitcher" Grid.Column="1"
+                            Click="BtnCompactTabsBadge_Click"
                             Style="{StaticResource Style_StealthButton}"
                             Width="36" Height="36"
                             HorizontalAlignment="Right"
                             VerticalAlignment="Center"
                             Margin="0,0,4,0"
-                            ToolTip="Split View">
-                        <Path Data="M0.5,0.5 H13.5 V11.5 H0.5 Z M7,0.5 V11.5"
-                              Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
-                              StrokeThickness="1.4" StrokeLineJoin="Round"
-                              Width="14" Height="12" Stretch="None"
-                              VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                            ToolTip="Tab Switcher (Ctrl + Tab)">
+                        <TextBlock Text="&#xE8A9;" FontFamily="Segoe MDL2 Assets" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                     </Button>
-
-
 
                     <Button x:Name="BtnCompactTabsBadge" Grid.Column="2"
 
@@ -687,26 +681,19 @@
 
                             ToolTip="All tabs &#x2014; click to switch (Tab Switcher)"/>
 
-
-
-                    <Button x:Name="BtnTabSwitcher" Grid.Column="2"
-
-                            Click="BtnCompactTabsBadge_Click"
-
+                    <Button x:Name="BtnSplitView" Grid.Column="2"
+                            Click="BtnSplitView_Click"
                             Style="{StaticResource Style_StealthButton}"
-
                             Width="36" Height="36"
-
                             HorizontalAlignment="Left"
-
                             VerticalAlignment="Center"
-
                             Margin="4,0,0,0"
-
-                            ToolTip="Tab Switcher (Ctrl + Tab)">
-
-                        <TextBlock Text="&#xE8A9;" FontFamily="Segoe MDL2 Assets" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-
+                            ToolTip="Split View (Ctrl + Shift + S)">
+                        <Path Data="M0.5,0.5 H13.5 V11.5 H0.5 Z M7,0.5 V11.5"
+                              Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                              StrokeThickness="1.4" StrokeLineJoin="Round"
+                              Width="14" Height="12" Stretch="None"
+                              VerticalAlignment="Center" HorizontalAlignment="Center"/>
                     </Button>
 
 
@@ -1562,7 +1549,7 @@
 
 
                                                         <Button x:Name="BtnClose"
-
+                                                                Visibility="{Binding CloseButtonVisibility}"
                                                                 HorizontalAlignment="Right" VerticalAlignment="Center"
 
                                                                 Margin="0,0,4,0"
@@ -2187,6 +2174,8 @@
 
                                     <StackPanel x:Name="WidgetTextHost" Orientation="Horizontal" HorizontalAlignment="Center">
 
+                                        <Image x:Name="WidgetExtIcon" Width="18" Height="18" Margin="0,0,6,0" VerticalAlignment="Center" Visibility="Collapsed"/>
+
                                         <TextBlock x:Name="TxtWidget"
 
                                                    Foreground="{DynamicResource Brush_Text}" FontSize="16" FontWeight="Bold"
@@ -2255,6 +2244,9 @@
 
                         </StackPanel>
 
+                        <!-- Pinned Extension Buttons in Header Toolbar -->
+                        <StackPanel x:Name="PnlPinnedHeaderExtensions" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,4,0"/>
+
                         <Button x:Name="BtnNewTab" Content="&#x2795;" Click="BtnNewTab_Click" PreviewMouseRightButtonUp="BtnNewTab_MouseRightButtonUp" Style="{StaticResource Style_StealthButton}" Width="42" Height="42" FontSize="18"
 
                                 ToolTip="New Tab (Ctrl + T) | Right-click for Account / Isolation options"/>
@@ -2269,15 +2261,15 @@
 
                         <Rectangle Width="1" Fill="#333" Margin="8,15" VerticalAlignment="Stretch"/>
 
-                        <Button Content="&#x2500;" Click="BtnMinimize_Click" Style="{StaticResource Style_HeaderCaptionButton}" FontSize="16"
+                        <Button x:Name="BtnMinimizeHeader" Content="&#x2500;" Click="BtnMinimize_Click" Style="{StaticResource Style_HeaderCaptionButton}" FontSize="16"
 
                                 ToolTip="Minimize"/>
 
-                        <Button Content="&#x25A1;" Click="BtnMaximize_Click" Style="{StaticResource Style_HeaderCaptionButton}" FontSize="16"
+                        <Button x:Name="BtnMaximizeHeader" Content="&#x25A1;" Click="BtnMaximize_Click" Style="{StaticResource Style_HeaderCaptionButton}" FontSize="16"
 
                                 ToolTip="Maximize / Restore"/>
 
-                        <Button Content="&#x2715;" Click="BtnClose_Click" Style="{StaticResource Style_HeaderCloseButton}" FontSize="14"
+                        <Button x:Name="BtnCloseHeader" Content="&#x2715;" Click="BtnClose_Click" Style="{StaticResource Style_HeaderCloseButton}" FontSize="14"
 
                                 ToolTip="Close Horizon"/>
 
@@ -2989,7 +2981,7 @@
 
                                                         Background="Transparent" Foreground="#888" BorderThickness="0"
 
-                                                        Visibility="Visible"
+                                                        Visibility="{Binding CloseButtonVisibility}"
 
                                                         ToolTip="Close Tab">
 
@@ -4251,6 +4243,10 @@
                 </Border>
             </Grid>
         </Popup>
+
+        <!-- Keyboard Navigation Native Hint Overlay (Header & Sidebar) -->
+        <Canvas x:Name="PnlNativeHintOverlay" Grid.Row="0" Grid.RowSpan="4" Grid.Column="0" Grid.ColumnSpan="2"
+                Panel.ZIndex="999999" IsHitTestVisible="False" Visibility="Collapsed"/>
 
         </Grid>
 

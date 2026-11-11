@@ -316,6 +316,8 @@ public partial class CommandBarWindow : Window
 
     private static bool LooksLikeUrl(string q)
     {
+        if (Horizon.Stealth.Controls.Omnibox.IsDirectNavigationScheme(q))
+            return true;
         return q.Contains('.') && !q.Contains(' ') && !q.StartsWith("?") ||
                q.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
                q.StartsWith("https://", StringComparison.OrdinalIgnoreCase) ||
@@ -324,9 +326,12 @@ public partial class CommandBarWindow : Window
 
     private static string NormalizeUrl(string q)
     {
-        return q.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
-               q.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
-               ? q : "https://" + q;
+        string normalized = Horizon.Stealth.Controls.Omnibox.NormalizeInternalBrowserUrl(q);
+        if (Horizon.Stealth.Controls.Omnibox.IsDirectNavigationScheme(normalized))
+            return normalized;
+        return normalized.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
+               normalized.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
+               ? normalized : "https://" + normalized;
     }
 
     private static string BuildSearchUrl(string q)
@@ -374,27 +379,176 @@ public partial class CommandBarWindow : Window
         return i == q.Length;
     }
 
-    private static int ScoreText(string query, string? text, bool isTitle)
+    private static string NormalizeFuzzy(string? text)
     {
-        if (string.IsNullOrEmpty(text)) return 0;
-        string q = query.Trim().ToLowerInvariant();
+        if (string.IsNullOrEmpty(text)) return "";
+        var sb = new StringBuilder(text.Length);
+        foreach (char c in text)
+        {
+            if (char.IsLetterOrDigit(c))
+            {
+                sb.Append(char.ToLowerInvariant(c));
+            }
+        }
+        return sb.ToString();
+    }
+
+    private static int LevenshteinDistance(string s, string t, int maxDistance = 2)
+    {
+        if (string.IsNullOrEmpty(s)) return string.IsNullOrEmpty(t) ? 0 : t.Length;
+        if (string.IsNullOrEmpty(t)) return s.Length;
+        if (Math.Abs(s.Length - t.Length) > maxDistance) return int.MaxValue;
+
+        int n = s.Length;
+        int m = t.Length;
+        int[] prev = new int[m + 1];
+        int[] curr = new int[m + 1];
+
+        for (int j = 0; j <= m; j++) prev[j] = j;
+
+        for (int i = 1; i <= n; i++)
+        {
+            curr[0] = i;
+            int minRow = curr[0];
+            char sChar = s[i - 1];
+
+            for (int j = 1; j <= m; j++)
+            {
+                int cost = (sChar == t[j - 1]) ? 0 : 1;
+                curr[j] = Math.Min(Math.Min(curr[j - 1] + 1, prev[j] + 1), prev[j - 1] + cost);
+                if (curr[j] < minRow) minRow = curr[j];
+            }
+
+            if (minRow > maxDistance) return int.MaxValue;
+
+            var tmp = prev; prev = curr; curr = tmp;
+        }
+
+        return prev[m];
+    }
+
+    private static string GetCleanDomain(string? url)
+    {
+        if (string.IsNullOrWhiteSpace(url)) return "";
+        try
+        {
+            if (Uri.TryCreate(url, UriKind.Absolute, out var uri))
+            {
+                string host = uri.Host;
+                if (host.StartsWith("www.", StringComparison.OrdinalIgnoreCase))
+                    host = host.Substring(4);
+                return host;
+            }
+        }
+        catch { }
+        return "";
+    }
+
+    private static int ScoreText(string query, string? text, bool isTitle, string? url = null)
+    {
+        if (string.IsNullOrEmpty(text) && string.IsNullOrEmpty(url)) return 0;
+        string q = (query ?? "").Trim().ToLowerInvariant();
         if (q.Length == 0) return 0;
-        string t = text.ToLowerInvariant();
 
+        string t = (text ?? "").ToLowerInvariant();
+        string normQ = NormalizeFuzzy(q);
+        string normT = NormalizeFuzzy(t);
+
+        // 1. Exact raw match
         if (t == q) return 1000;
-        if (t.StartsWith(q, StringComparison.Ordinal)) return 800;
 
+        // 2. Exact fuzzy normalized match (e.g. "you tube" vs "YouTube", "youtube/" vs "YouTube")
+        if (normQ.Length >= 2 && normT == normQ) return 960;
+
+        // 3. Raw prefix match
+        if (t.StartsWith(q, StringComparison.Ordinal)) return 850;
+
+        // 4. Normalized prefix match
+        if (normQ.Length >= 2 && normT.StartsWith(normQ, StringComparison.Ordinal)) return 820;
+
+        // 5. Word boundary match
         int idx = t.IndexOf(q, StringComparison.Ordinal);
-        if (idx > 0) return char.IsLetterOrDigit(t[idx - 1]) ? 400 : 600;
+        if (idx > 0)
+        {
+            return char.IsLetterOrDigit(t[idx - 1]) ? 400 : 700;
+        }
 
-        string[] tokens = q.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        if (tokens.Length > 1 && tokens.All(tk => t.Contains(tk, StringComparison.Ordinal))) return 300;
+        // 6. Normalized contains
+        if (normQ.Length >= 3 && normT.Contains(normQ, StringComparison.Ordinal))
+        {
+            return 650;
+        }
 
+        // 7. Multi-token match
+        string[] tokens = q.Split(new[] { ' ', '-', '_', '/', '.' }, StringSplitOptions.RemoveEmptyEntries);
+        if (tokens.Length > 1 && tokens.All(tk => t.Contains(tk, StringComparison.Ordinal) || normT.Contains(tk, StringComparison.Ordinal)))
+        {
+            return 620;
+        }
+
+        // 8. Domain match (if url provided)
+        if (!string.IsNullOrEmpty(url))
+        {
+            try
+            {
+                string domain = GetCleanDomain(url);
+                if (!string.IsNullOrEmpty(domain))
+                {
+                    string normDomain = NormalizeFuzzy(domain);
+                    if (normDomain == normQ) return 940;
+                    if (normDomain.StartsWith(normQ, StringComparison.Ordinal)) return 810;
+                    if (normQ.Length >= 3 && normDomain.Contains(normQ, StringComparison.Ordinal)) return 680;
+                }
+            }
+            catch { }
+        }
+
+        // 9. Acronym & Subsequence for titles
         if (isTitle)
         {
-            string compact = q.Replace(" ", "");
-            if (compact.Length >= 2 && Acronym(t).StartsWith(compact, StringComparison.Ordinal)) return 500;
-            if (compact.Length >= 3 && IsSubsequence(compact, t)) return 200;
+            if (normQ.Length >= 2 && Acronym(t).StartsWith(normQ, StringComparison.Ordinal)) return 500;
+            if (normQ.Length >= 3 && IsSubsequence(normQ, normT)) return 350;
+        }
+
+        // 10. Typo-tolerant Levenshtein fuzzy match (e.g. "yotube" -> "youtube", "yutube" -> "youtube")
+        if (normQ.Length >= 4)
+        {
+            int maxAllowedDist = normQ.Length <= 5 ? 1 : 2;
+            int dist = LevenshteinDistance(normQ, normT, maxAllowedDist);
+            if (dist <= 1) return 580;
+            if (dist <= 2) return 460;
+
+            string[] words = t.Split(new[] { ' ', '-', '_', '.', '/', '|', ':', '·' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (var w in words)
+            {
+                string nw = NormalizeFuzzy(w);
+                if (nw.Length >= 3)
+                {
+                    int wDist = LevenshteinDistance(normQ, nw, maxAllowedDist);
+                    if (wDist <= 1) return 560;
+                    if (wDist <= 2 && normQ.Length >= 6) return 440;
+                }
+            }
+
+            if (!string.IsNullOrEmpty(url))
+            {
+                try
+                {
+                    string domain = GetCleanDomain(url);
+                    string[] hostParts = domain.Split('.');
+                    foreach (var part in hostParts)
+                    {
+                        string nPart = NormalizeFuzzy(part);
+                        if (nPart.Length >= 3)
+                        {
+                            int pDist = LevenshteinDistance(normQ, nPart, maxAllowedDist);
+                            if (pDist <= 1) return 570;
+                            if (pDist <= 2 && normQ.Length >= 6) return 450;
+                        }
+                    }
+                }
+                catch { }
+            }
         }
 
         return 0;
@@ -402,7 +556,7 @@ public partial class CommandBarWindow : Window
 
     private static int ScoreShortcut(string q, CustomShortcut s)
     {
-        int best = ScoreText(q, s.Title, true);
+        int best = ScoreText(q, s.Title, true, s.Payload);
         best = Math.Max(best, ScoreText(q, s.Keywords, false) * 7 / 10);
         best = Math.Max(best, ScoreText(q, s.Description, false) / 2);
         best = Math.Max(best, ScoreText(q, s.Category, false) / 2);
@@ -413,12 +567,16 @@ public partial class CommandBarWindow : Window
     {
         return group switch
         {
-            "Web" => 0,
-            "Commands" => 1,
+            "Favorites" => 0,
+            "Bookmarks" => 1,
             "Tabs" => 2,
-            "Links" => 3,
-            "Scripts" => 4,
-            _ => 5
+            "Utilities" => 3,
+            "Settings" => 4,
+            "Commands" => 5,
+            "Links" => 6,
+            "Scripts" => 7,
+            "Web" => 8,
+            _ => 9
         };
     }
 
@@ -469,6 +627,89 @@ public partial class CommandBarWindow : Window
             });
         }
 
+        // 1. Favorites & Pins (SettingsService.Current.PinnedUrls)
+        try
+        {
+            var pins = SettingsService.Current.PinnedUrls;
+            if (pins != null)
+            {
+                foreach (var pin in pins)
+                {
+                    int score = 100;
+                    if (hasQuery)
+                    {
+                        score = ScoreText(q, pin.Name, true, pin.Url);
+                        score = Math.Max(score, ScoreText(q, pin.Category, false) * 6 / 10);
+                        if (score == 0) continue;
+                    }
+
+                    string domain = GetCleanDomain(pin.Url);
+                    string targetUrl = pin.Url;
+                    list.Add(new CommandBarItem
+                    {
+                        Title = pin.Name,
+                        Subtitle = string.IsNullOrEmpty(domain) ? "Favorite Pin" : $"Favorite \u00B7 {domain}",
+                        DisplayIcon = !string.IsNullOrEmpty(pin.IconEmoji) ? pin.IconEmoji : "\u2B50",
+                        ActionHint = "Open Favorite",
+                        Group = "Favorites",
+                        Score = score + 30,
+                        Action = () =>
+                        {
+                            _mainWindow.CreateNewTab(targetUrl, activate: true);
+                            Close();
+                            return Task.CompletedTask;
+                        }
+                    });
+                }
+            }
+        }
+        catch { }
+
+        // 2. Bookmarks (BookmarkService.Items)
+        try
+        {
+            var bookmarks = BookmarkService.Items;
+            if (bookmarks != null)
+            {
+                foreach (var b in bookmarks)
+                {
+                    int score = 100;
+                    if (hasQuery)
+                    {
+                        score = ScoreText(q, b.Name, true, b.Url);
+                        score = Math.Max(score, ScoreText(q, b.Category, false) * 6 / 10);
+                        if (score == 0) continue;
+                    }
+
+                    string domain = GetCleanDomain(b.Url);
+                    string targetUrl = b.Url;
+                    string sub = string.IsNullOrWhiteSpace(b.Category)
+                        ? (string.IsNullOrEmpty(domain) ? "Bookmark" : $"Bookmark \u00B7 {domain}")
+                        : $"Bookmark \u00B7 {b.Category} \u00B7 {domain}";
+                    var targetBookmark = b;
+
+                    list.Add(new CommandBarItem
+                    {
+                        Title = b.Name,
+                        Subtitle = sub,
+                        DisplayIcon = "\uD83D\uDD16",
+                        ActionHint = "Open Bookmark",
+                        Group = "Bookmarks",
+                        Score = score + 20,
+                        Action = () =>
+                        {
+                            BookmarkService.RecordOpen(targetBookmark);
+                            _mainWindow.CreateNewTab(targetUrl, activate: true);
+                            Close();
+                            return Task.CompletedTask;
+                        }
+                    });
+                }
+            }
+        }
+        catch { }
+
+        // 3. Open Tabs
         var openTabs = _mainWindow.Tabs;
         if (openTabs != null)
         {
@@ -478,9 +719,8 @@ public partial class CommandBarWindow : Window
                 int score = 100;
                 if (hasQuery)
                 {
-                    score = ScoreText(q, tab.Title, true);
+                    score = ScoreText(q, tab.Title, true, tab.Url);
                     score = Math.Max(score, ScoreText(q, tab.DomainTitle, false) * 7 / 10);
-                    score = Math.Max(score, ScoreText(q, tab.Url, false) / 2);
                     if (score == 0) continue;
                 }
 
@@ -494,7 +734,7 @@ public partial class CommandBarWindow : Window
                     DisplayIcon = "\uD83D\uDDD2",
                     ActionHint = "Switch to Tab",
                     Group = "Tabs",
-                    Score = score,
+                    Score = score + 15,
                     Action = () =>
                     {
                         _mainWindow.ListTabs.SelectedItem = targetTab;
@@ -504,14 +744,105 @@ public partial class CommandBarWindow : Window
                 });
             }
 
-            int tabLimit = hasQuery ? 30 : 20;
+            int tabLimit = hasQuery ? 30 : 15;
             list.AddRange(tabItems.OrderByDescending(i => i.Score).Take(tabLimit));
         }
 
+        // 4. Browser Settings & Internal Pages
+        var settingsIndex = new (string Title, string Desc, int TabIndex, string Icon, string? Url)[]
+        {
+            ("Settings: General & Startup", "Startup pages, default search engine, session restore, downloads", 0, "\u2699\uFE0F", null),
+            ("Settings: Visuals & Themes", "Themes, glass blur, acrylic, custom wallpapers, accents", 1, "\uD83C\uDFA8", null),
+            ("Settings: Homepage Customizer", "Widgets, card layout, weather, clock styles, background blur", 2, "\uD83C\uDFE0", null),
+            ("Settings: Input & Keyboard Shortcuts", "Keyboard navigation, backtick link hints, hotkeys, gestures", 3, "\u2328\uFE0F", null),
+            ("Settings: Content & Extensions", "Installed extensions, AdGuard, Vimium, translator, permissions", 4, "\uD83E\uDDE9", null),
+            ("Settings: Import & Sync", "Import bookmarks, history, settings backup and cloud sync", 5, "\uD83D\uDD04", null),
+            ("Settings: Performance & Memory", "Tab discarding, sleeping tabs, memory saver, GPU acceleration", 6, "\u26A1", null),
+            ("Settings: Developer & Debugging", "Remote debugging port 9222, DevTools, console logs", 7, "\uD83D\uDEE0\uFE0F", null),
+            ("Settings: Help & Shortcuts Guide", "Version 2.8.0, changelog, keyboard shortcuts reference", 8, "\u2753", null),
+            ("Edge Settings (edge://settings)", "Chromium internal settings and browser configuration", -1, "\uD83C\uDF10", "edge://settings"),
+            ("Chrome Flags (chrome://flags)", "Chromium experimental flags and performance features", -1, "\uD83D\uDEA9", "chrome://flags"),
+            ("Edge URLs (edge://edge-urls)", "Catalog of all Chromium internal diagnostic and status pages", -1, "\uD83D\uDD17", "edge://edge-urls"),
+        };
+
+        foreach (var sEntry in settingsIndex)
+        {
+            int score = 80;
+            if (hasQuery)
+            {
+                score = ScoreText(q, sEntry.Title, true, sEntry.Url);
+                score = Math.Max(score, ScoreText(q, sEntry.Desc, false) * 6 / 10);
+                if (score == 0) continue;
+            }
+
+            var entry = sEntry;
+            list.Add(new CommandBarItem
+            {
+                Title = entry.Title,
+                Subtitle = entry.Desc,
+                DisplayIcon = entry.Icon,
+                ActionHint = entry.TabIndex >= 0 ? "Open Settings" : "Open Page",
+                Group = "Settings",
+                Score = score + 10,
+                Action = () =>
+                {
+                    if (entry.TabIndex >= 0)
+                    {
+                        _mainWindow.OpenSettings(entry.TabIndex);
+                    }
+                    else if (!string.IsNullOrEmpty(entry.Url))
+                    {
+                        _mainWindow.CreateNewTab(entry.Url, activate: true);
+                    }
+                    Close();
+                    return Task.CompletedTask;
+                }
+            });
+        }
+
+        // 5. Utilities & Browser Tools (UtilitiesService.Instance.Items)
+        try
+        {
+            var utilities = UtilitiesService.Instance.Items;
+            if (utilities != null)
+            {
+                foreach (var u in utilities)
+                {
+                    int score = 80;
+                    if (hasQuery)
+                    {
+                        score = ScoreText(q, u.Title, true);
+                        score = Math.Max(score, ScoreText(q, u.Category, false) * 7 / 10);
+                        score = Math.Max(score, ScoreText(q, u.Description, false) / 2);
+                        if (score == 0) continue;
+                    }
+
+                    var targetUtil = u;
+                    list.Add(new CommandBarItem
+                    {
+                        Title = u.Title,
+                        Subtitle = $"Utility \u00B7 {u.Category} \u00B7 {u.Description}",
+                        DisplayIcon = string.IsNullOrWhiteSpace(u.Icon) ? "\u26A1" : u.Icon,
+                        ActionHint = "Launch Utility",
+                        Group = "Utilities",
+                        Score = score + 5,
+                        Action = () =>
+                        {
+                            UtilitiesService.Instance.ExecuteUtility(targetUtil, _mainWindow);
+                            Close();
+                            return Task.CompletedTask;
+                        }
+                    });
+                }
+            }
+        }
+        catch { }
+
+        // 6. Custom Shortcuts & Commands
         var shortcuts = CustomShortcutService.GetAllShortcuts().Where(s => s.IsEnabled).ToList();
         foreach (var s in shortcuts)
         {
-            int score = 100;
+            int score = 80;
             if (hasQuery)
             {
                 score = ScoreShortcut(q, s);
@@ -573,7 +904,8 @@ public partial class CommandBarWindow : Window
                 .SelectMany(g => g);
         }
 
-        foreach (var item in ordered)
+        int itemCap = hasQuery ? 40 : 25;
+        foreach (var item in ordered.Take(itemCap))
         {
             _items.Add(item);
         }

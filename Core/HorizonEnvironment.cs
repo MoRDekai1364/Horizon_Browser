@@ -232,12 +232,21 @@ public static class HorizonEnvironment
             var args = new StringBuilder();
             
             args.Append("--disable-blink-features=AutomationControlled ");
+            if (SettingsService.Current.EnableRemoteDebugging)
+            {
+                int debugPort = SettingsService.Current.RemoteDebuggingPort > 0
+                    ? SettingsService.Current.RemoteDebuggingPort
+                    : 9222;
+                args.Append($"--remote-debugging-port={debugPort} --remote-allow-origins=* ");
+            }
             if (SettingsService.Current.RelaxSameSiteCookies)
                 args.Append("--disable-features=SameSiteByDefaultCookies,CookiesWithoutSameSiteMustBeSecure ");
             args.Append("--disable-infobars ");
             if (!SettingsService.Current.EnableBackgroundTimerThrottling)
                 args.Append("--disable-background-timer-throttling ");
             args.Append("--autoplay-policy=no-user-gesture-required ");
+            // Auto-grant media streams and screen capture for extensions (audio/video recording, song identification)
+            args.Append("--use-fake-ui-for-media-stream --enable-usermedia-screen-capturing --allow-http-screen-capture ");
             // GPU compositor flags (VizDisplayCompositor, UseSkiaRenderer, enable-gpu-rasterization,
             // enable-zero-copy) all omitted — they cause BrowserProcessExited on certain GPU/driver configs.
             
@@ -303,6 +312,72 @@ public static class HorizonEnvironment
             lock (_initLock) { _initFailed = true; }
             LogService.RecordCrash(ex, "HorizonEnvironment.Initialize");
             MessageBox.Show("Fatal Engine Error: " + ex.Message);
+        }
+    }
+
+    public static async Task SyncDevToolsActivePortAsync()
+    {
+        if (!SettingsService.Current.EnableRemoteDebugging) return;
+        try
+        {
+            int port = SettingsService.Current.RemoteDebuggingPort > 0
+                ? SettingsService.Current.RemoteDebuggingPort
+                : 9222;
+
+            string horizonActivePortFile = Path.Combine(ConfigService.UserDataRoot, "DevToolsActivePort");
+            string? content = null;
+
+            for (int attempt = 0; attempt < 5; attempt++)
+            {
+                if (File.Exists(horizonActivePortFile))
+                {
+                    try
+                    {
+                        string existing = File.ReadAllText(horizonActivePortFile).Trim();
+                        if (!string.IsNullOrEmpty(existing))
+                        {
+                            content = existing + "\n";
+                            break;
+                        }
+                    }
+                    catch { }
+                }
+
+                try
+                {
+                    using var http = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(2) };
+                    string json = await http.GetStringAsync($"http://127.0.0.1:{port}/json/version");
+                    using var doc = System.Text.Json.JsonDocument.Parse(json);
+                    if (doc.RootElement.TryGetProperty("webSocketDebuggerUrl", out var wsProp))
+                    {
+                        string? wsUrl = wsProp.GetString();
+                        if (!string.IsNullOrWhiteSpace(wsUrl) && Uri.TryCreate(wsUrl, UriKind.Absolute, out var wsUri))
+                        {
+                            content = $"{port}\n{wsUri.PathAndQuery}\n";
+                            try { File.WriteAllText(horizonActivePortFile, content); } catch { }
+                            break;
+                        }
+                    }
+                }
+                catch { }
+
+                await Task.Delay(300);
+            }
+
+            if (!string.IsNullOrEmpty(content))
+            {
+                string chromeUserDataDir = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "Google", "Chrome", "User Data");
+                Directory.CreateDirectory(chromeUserDataDir);
+                string chromeActivePortFile = Path.Combine(chromeUserDataDir, "DevToolsActivePort");
+                File.WriteAllText(chromeActivePortFile, content);
+                LogService.Write("ENGINE", $"Synced DevToolsActivePort on port {port}.");
+            }
+        }
+        catch (Exception ex)
+        {
+            LogService.Write("ENGINE", $"SyncDevToolsActivePort warning: {ex.Message}");
         }
     }
 

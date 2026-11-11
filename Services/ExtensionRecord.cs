@@ -19,8 +19,10 @@ public class ExtensionRecord
     public string          Description { get; set; } = string.Empty;
     public string          Version     { get; set; } = string.Empty;
     public string          Icon        { get; set; } = "🧩";
+    public string?         IconPath    { get; set; } = null;
     public ExtensionSource Source      { get; set; } = ExtensionSource.Manual;
     public bool            Enabled     { get; set; } = true;
+    public bool?           AllowsShortcutModification { get; set; } = null;
     public DateTime        InstalledAt { get; set; } = DateTime.Now;
 
     // Folder name under %LocalAppData%\Horizon_Browser\Extensions\

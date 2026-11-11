@@ -216,6 +216,8 @@ public partial class HomePageView : UserControl
         Action blurSettingHandler = () => Dispatcher.BeginInvoke(new Action(ApplyNoBlurHomePage));
 
         Controls.HomeGlassMotion.BlurSettingChanged += blurSettingHandler;
+        Controls.FluxSidebar.PinnedExtensionsChanged += () => Dispatcher.Invoke(RefreshPinnedExtensions);
+        RefreshPinnedExtensions();
 
 
 
@@ -246,6 +248,7 @@ public partial class HomePageView : UserControl
         ScvBookmarks.SizeChanged += (_, __) => ApplyScrollerClip(ScvBookmarks);
 
         BuildHomeStack();
+        RefreshPinnedExtensions();
 
         SizeChanged += (_, __) =>
 
@@ -1887,9 +1890,9 @@ public partial class HomePageView : UserControl
 
         bool hasBkmItems = BookmarkService.Items != null && BookmarkService.Items.Count > 0;
 
-        bool favShow = _searchMode == "Favorites" || (_inFocusMode && _focusWidgetName == "Favorites") || (s.HomeShowFavoritesWidget && hasFavItems);
+        bool favShow = _searchMode == "Favorites" || (_inFocusMode && _focusWidgetName == "Favorites") || s.HomeShowFavoritesWidget;
 
-        bool bkmShow = _searchMode == "Bookmarks" || (_inFocusMode && _focusWidgetName == "Bookmarks") || (s.HomeShowBookmarksWidget && hasBkmItems);
+        bool bkmShow = _searchMode == "Bookmarks" || (_inFocusMode && _focusWidgetName == "Bookmarks") || s.HomeShowBookmarksWidget;
 
         PnlFavoritesContainer.Visibility = favShow ? Visibility.Visible : Visibility.Collapsed;
 
@@ -1905,8 +1908,83 @@ public partial class HomePageView : UserControl
 
         RefreshDownloads();
 
+        RefreshPinnedExtensions();
+
         UpdateSearchAreaLayout();
 
+    }
+
+    private void RefreshPinnedExtensions()
+    {
+        if (PnlHomePinnedExtensions == null) return;
+        PnlHomePinnedExtensions.Children.Clear();
+        var pinned = SettingsService.Current.PinnedHomepageExtensionIds ?? new List<string>();
+        foreach (var id in pinned)
+        {
+            var ext = ExtensionService.Find(id);
+            if (ext == null || !ext.Enabled) continue;
+            var border = new Border
+            {
+                Width = 44,
+                Height = 44,
+                CornerRadius = new CornerRadius(12),
+                Background = new SolidColorBrush(Color.FromArgb(0x60, 0x1A, 0x1D, 0x24)),
+                BorderBrush = new SolidColorBrush(Color.FromArgb(0x35, 0xFF, 0xFF, 0xFF)),
+                BorderThickness = new Thickness(1),
+                Margin = new Thickness(0, 0, 0, 8),
+                Cursor = Cursors.Hand,
+                ToolTip = $"{ext.Name} (Pinned Extension)"
+            };
+            FrameworkElement iconChild;
+            if (!string.IsNullOrEmpty(ext.IconPath) && System.IO.File.Exists(ext.IconPath))
+            {
+                try
+                {
+                    var bi = new System.Windows.Media.Imaging.BitmapImage();
+                    bi.BeginInit();
+                    bi.UriSource = new Uri(ext.IconPath, UriKind.Absolute);
+                    bi.DecodePixelWidth = 48;
+                    bi.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
+                    bi.EndInit();
+                    bi.Freeze();
+
+                    var img = new Image
+                    {
+                        Source = bi,
+                        Width = 24,
+                        Height = 24,
+                        HorizontalAlignment = HorizontalAlignment.Center,
+                        VerticalAlignment = VerticalAlignment.Center
+                    };
+                    RenderOptions.SetBitmapScalingMode(img, BitmapScalingMode.HighQuality);
+                    iconChild = img;
+                }
+                catch
+                {
+                    iconChild = new TextBlock
+                    {
+                        Text = !string.IsNullOrEmpty(ext.Icon) ? ext.Icon : "🧩",
+                        FontSize = 20,
+                        HorizontalAlignment = HorizontalAlignment.Center,
+                        VerticalAlignment = VerticalAlignment.Center
+                    };
+                }
+            }
+            else
+            {
+                iconChild = new TextBlock
+                {
+                    Text = !string.IsNullOrEmpty(ext.Icon) ? ext.Icon : "🧩",
+                    FontSize = 20,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Center
+                };
+            }
+            border.Child = iconChild;
+            var captExt = ext;
+            border.MouseLeftButtonUp += (_, _) => MainWindow.RequestExtensionPopupGlobal?.Invoke(captExt);
+            PnlHomePinnedExtensions.Children.Add(border);
+        }
     }
 
 
@@ -1972,13 +2050,9 @@ public partial class HomePageView : UserControl
         }
 
         else
-
         {
-
-            favVisible = false;
-
-            bkmVisible = false;
-
+            favVisible = s.HomeShowFavoritesWidget;
+            bkmVisible = s.HomeShowBookmarksWidget;
         }
 
 
@@ -4304,11 +4378,13 @@ public partial class HomePageView : UserControl
 
             UpdateBookmarksDrawer();
 
-            bool hasBkm = (_inFocusMode && _focusWidgetName == "Bookmarks") || _searchMode == "Bookmarks" || (SettingsService.Current.HomeShowBookmarksWidget && ordered.Count > 0);
+            bool hasBkm = (_inFocusMode && _focusWidgetName == "Bookmarks") || _searchMode == "Bookmarks" || SettingsService.Current.HomeShowBookmarksWidget;
 
             PnlBookmarksContainer.Visibility = hasBkm ? Visibility.Visible : Visibility.Collapsed;
 
-            if (TxtBookmarksEmpty != null) TxtBookmarksEmpty.Visibility = (_searchMode == "Bookmarks" && ordered.Count == 0) ? Visibility.Visible : Visibility.Collapsed;
+            bool isBkmEmpty = ordered.Count == 0;
+            if (TxtBookmarksEmpty != null) TxtBookmarksEmpty.Visibility = (hasBkm && isBkmEmpty) ? Visibility.Visible : Visibility.Collapsed;
+            if (ScvBookmarks != null) ScvBookmarks.Visibility = (hasBkm && !isBkmEmpty) ? Visibility.Visible : (hasBkm ? Visibility.Collapsed : Visibility.Visible);
 
             UpdateFavBookmarksIslandVisibility();
 
@@ -5761,11 +5837,13 @@ public partial class HomePageView : UserControl
 
             UpdateFavoritesDrawer();
 
-            bool hasFav = (_inFocusMode && _focusWidgetName == "Favorites") || _searchMode == "Favorites" || (SettingsService.Current.HomeShowFavoritesWidget && displayList.Count > 0);
+            bool hasFav = (_inFocusMode && _focusWidgetName == "Favorites") || _searchMode == "Favorites" || SettingsService.Current.HomeShowFavoritesWidget;
 
             PnlFavoritesContainer.Visibility = hasFav ? Visibility.Visible : Visibility.Collapsed;
 
-            if (TxtFavoritesEmpty != null) TxtFavoritesEmpty.Visibility = (_searchMode == "Favorites" && displayList.Count == 0) ? Visibility.Visible : Visibility.Collapsed;
+            bool isFavEmpty = displayList.Count == 0;
+            if (TxtFavoritesEmpty != null) TxtFavoritesEmpty.Visibility = (hasFav && isFavEmpty) ? Visibility.Visible : Visibility.Collapsed;
+            if (ScvFavorites != null) ScvFavorites.Visibility = (hasFav && !isFavEmpty) ? Visibility.Visible : (hasFav ? Visibility.Collapsed : Visibility.Visible);
 
             UpdateFavBookmarksIslandVisibility();
 
@@ -6453,29 +6531,7 @@ public partial class HomePageView : UserControl
 
 
 
-        string url;
-
-        if (Uri.TryCreate(query, UriKind.Absolute, out var direct) && (direct.Scheme == "http" || direct.Scheme == "https"))
-
-        {
-
-            url = query;
-
-        }
-
-        else
-
-        {
-
-            var template = SettingsService.Current.SearchEngineUrl;
-
-            if (string.IsNullOrWhiteSpace(template))
-
-                template = "https://alohafind.com/search/?q={query}";
-
-            url = template.Replace("{query}", Uri.EscapeDataString(query));
-
-        }
+        string url = Horizon.Stealth.Controls.Omnibox.BuildNavigationUrl(query);
 
 
 

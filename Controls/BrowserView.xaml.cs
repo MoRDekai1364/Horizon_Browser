@@ -37,6 +37,9 @@ public partial class BrowserView : UserControl
 
     public event EventHandler<DownloadInfo>? DownloadProgressChanged;
     public event Action<bool>? FullscreenChanged;
+    public event EventHandler<bool>? KeyboardNavToggleRequested;
+    public event EventHandler<string>? KeyboardNavKeyReceived;
+    public event EventHandler? KeyboardNavExited;
 
     private CoreWebView2DownloadOperation? _activeDownloadOp;
     private bool _dlPaused = false;
@@ -84,6 +87,26 @@ public partial class BrowserView : UserControl
     public static IReadOnlyDictionary<string, string> LoadedExtensionIds => _loadedExtensionIds;
     private static readonly Dictionary<string, string> _loadedExtensionIds =
         new(StringComparer.OrdinalIgnoreCase);
+
+    public static void RegisterLoadedExtension(string folderName, string extId, string? extName)
+    {
+        lock (_extensionLock)
+        {
+            if (!string.IsNullOrEmpty(folderName)) _loadedExtensionIds[folderName] = extId;
+            if (!string.IsNullOrEmpty(extId)) _loadedExtensionIds[extId] = extId;
+            if (!string.IsNullOrEmpty(extName))
+            {
+                _loadedExtensionIds[extName] = extId;
+                _loadedExtensionIds[extName.ToLowerInvariant()] = extId;
+            }
+
+            if (!string.IsNullOrEmpty(folderName) && !string.IsNullOrEmpty(extId))
+            {
+                Horizon.Stealth.Core.ExtensionNetworkProxyService.RegisterIdMapping(extId, folderName);
+                Horizon.Stealth.Core.ExtensionNetworkProxyService.RegisterIdMapping(folderName, folderName);
+            }
+        }
+    }
 
     private TabViewModel? _tabViewModel;
     public TabViewModel? ViewModel
@@ -620,6 +643,13 @@ public partial class BrowserView : UserControl
         {
             try
             {
+                // Auto-allow all permissions requested by browser extensions (e.g. tabCapture, audio, microphone, storage)
+                if (!string.IsNullOrEmpty(e.Uri) && e.Uri.StartsWith("chrome-extension://", StringComparison.OrdinalIgnoreCase))
+                {
+                    e.State = CoreWebView2PermissionState.Allow;
+                    return;
+                }
+
                 // Auto-decide, no blocking modal dialog — a modal MessageBox here
                 // can end up behind this app's custom-chrome window (no owner set),
                 // freezing the whole UI thread invisibly until dismissed, which
@@ -769,6 +799,7 @@ public partial class BrowserView : UserControl
                  }
  
                 MainWebView.CoreWebView2!.Settings.UserAgent = Core.HorizonEnvironment.GlobalUserAgent;
+                _ = Core.HorizonEnvironment.SyncDevToolsActivePortAsync();
 
                 MainWebView.PreviewTouchDown += (_, _) =>
                 {
@@ -1017,9 +1048,7 @@ public partial class BrowserView : UserControl
             return;
         }
 
-        string extensionsRoot = System.IO.Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "Horizon_Browser", "Extensions");
+        string extensionsRoot = ExtensionService.InstallRoot;
 
         if (!System.IO.Directory.Exists(extensionsRoot)) return;
 
@@ -1058,6 +1087,29 @@ public partial class BrowserView : UserControl
             catch { }
 
             var rec = ExtensionService.Find(folderName);
+            bool modifiesShortcuts = ExtensionService.ModifiesShortcuts(extDir, folderName, rec?.Name, rec?.Description);
+
+            if (modifiesShortcuts)
+            {
+                bool? perm = ExtensionService.GetShortcutPermission(folderName);
+                if (perm == null)
+                {
+                    string displayName = !string.IsNullOrWhiteSpace(rec?.Name) ? rec.Name : folderName;
+                    bool allowed = ExtensionService.PromptShortcutPermission(folderName, displayName);
+                    if (!allowed)
+                    {
+                        LogService.Write("EXT", $"Skipped (user declined shortcut modification): '{folderName}'");
+                        continue;
+                    }
+                    rec = ExtensionService.Find(folderName);
+                }
+                else if (perm == false)
+                {
+                    LogService.Write("EXT", $"Skipped (shortcut modification denied): '{folderName}'");
+                    continue;
+                }
+            }
+
             if (rec != null && !rec.Enabled)
             {
                 LogService.Write("EXT", $"Skipped (disabled in catalog): '{folderName}'");
@@ -1140,6 +1192,18 @@ public partial class BrowserView : UserControl
     {
         LogService.Write("NAVTRACE", $"NavDone success={e.IsSuccess} err={e.WebErrorStatus} src={MainWebView?.Source} homeActive={IsHomeActive} webViewVisible={MainWebView?.Visibility} viewVisible={Visibility} tabTitle={_tabViewModel?.Title}");
         if (!_extensionsLoaded) _ = LoadExtensionsAsync();
+        _ = MainWebView?.CoreWebView2?.ExecuteScriptAsync(KeyboardNavigationScript.GetScript());
+        if (MainWindow.IsStickyKeyboardNavActive)
+        {
+            _ = Dispatcher.InvokeAsync(async () =>
+            {
+                await Task.Delay(200);
+                if (MainWindow.IsStickyKeyboardNavActive)
+                {
+                    ToggleKeyboardNavigation(true);
+                }
+            });
+        }
 
         string navHost = MainWebView?.Source?.Host ?? string.Empty;
         if (!string.IsNullOrEmpty(navHost))
@@ -1169,7 +1233,29 @@ public partial class BrowserView : UserControl
                     CrashIsolationOverlay.Visibility = Visibility.Collapsed;
                     if (!IsHomeActive && MainWebView != null) MainWebView.Visibility = Visibility.Visible;
                 }
-                if (storeInfo.IsStorePage) ShowExtensionInstallBar(storeInfo); else HideExtensionInstallBar();
+
+                if (storeInfo.IsStorePage)
+                {
+                    if (storeInfo.Kind == StorePageInfo.StoreKind.Chrome)
+                    {
+                        HideExtensionInstallBar();
+                        _ = MainWebView?.CoreWebView2?.ExecuteScriptAsync(ChromeWebStoreBridge.GetScript());
+                    }
+                    else
+                    {
+                        ShowExtensionInstallBar(storeInfo);
+                    }
+                }
+                else
+                {
+                    HideExtensionInstallBar();
+                }
+
+                if (storeCheckUrl.Contains("chromewebstore.google.com", StringComparison.OrdinalIgnoreCase) ||
+                    storeCheckUrl.Contains("chrome.google.com/webstore", StringComparison.OrdinalIgnoreCase))
+                {
+                    _ = MainWebView?.CoreWebView2?.ExecuteScriptAsync(ChromeWebStoreBridge.GetScript());
+                }
             });
         }
 
@@ -1724,10 +1810,40 @@ public partial class BrowserView : UserControl
         Dispatcher.Invoke(() =>
         {
             if (storeInfo.IsStorePage && !_isInstalling)
-                ShowExtensionInstallBar(storeInfo);
+            {
+                if (storeInfo.Kind == StorePageInfo.StoreKind.Chrome)
+                {
+                    HideExtensionInstallBar();
+                    _ = MainWebView?.CoreWebView2?.ExecuteScriptAsync(ChromeWebStoreBridge.GetScript());
+                }
+                else
+                {
+                    ShowExtensionInstallBar(storeInfo);
+                }
+            }
             else if (!storeInfo.IsStorePage)
+            {
                 HideExtensionInstallBar();
+            }
+
+            if (url.Contains("chromewebstore.google.com", StringComparison.OrdinalIgnoreCase) ||
+                url.Contains("chrome.google.com/webstore", StringComparison.OrdinalIgnoreCase))
+            {
+                _ = MainWebView?.CoreWebView2?.ExecuteScriptAsync(ChromeWebStoreBridge.GetScript());
+            }
         });
+
+        if (MainWindow.IsStickyKeyboardNavActive)
+        {
+            _ = Dispatcher.InvokeAsync(async () =>
+            {
+                await Task.Delay(200);
+                if (MainWindow.IsStickyKeyboardNavActive)
+                {
+                    ToggleKeyboardNavigation(true);
+                }
+            });
+        }
     }
 
     private async void CoreWebView2_NavigationStarting(object? sender, CoreWebView2NavigationStartingEventArgs e)
@@ -1735,7 +1851,7 @@ public partial class BrowserView : UserControl
         LogService.Write("NAVTRACE", $"NavStart {e.Uri} homeActive={IsHomeActive} webViewVisible={MainWebView?.Visibility} userInitiated={e.IsUserInitiated} redirected={e.IsRedirected}");
         Dispatcher.Invoke(HideScriptWarning);
         Dispatcher.Invoke(HideExtensionInstallBar);
-        string newHost = new Uri(e.Uri ?? "about:blank").Host;
+        string newHost = Uri.TryCreate(e.Uri, UriKind.Absolute, out var navUri) ? navUri.Host : string.Empty;
         if (newHost == _lastNavHost) return; // same host — no need to refresh
         _lastNavHost = string.Empty;
         _recentNavTimes.Clear();
@@ -2085,6 +2201,66 @@ public partial class BrowserView : UserControl
                         SettingsService.Save();
                     }
                 }
+                else if (msgType == "hzHintToggle")
+                {
+                    bool sticky = obj.TryGetProperty("sticky", out var sv) && sv.GetBoolean();
+                    Dispatcher.Invoke(() => KeyboardNavToggleRequested?.Invoke(this, sticky));
+                }
+                else if (msgType == "hzHintKey")
+                {
+                    string? key = obj.TryGetProperty("key", out var kv) ? kv.GetString() : null;
+                    if (!string.IsNullOrEmpty(key))
+                    {
+                        Dispatcher.Invoke(() => KeyboardNavKeyReceived?.Invoke(this, key));
+                    }
+                }
+                else if (msgType == "hzHintExited")
+                {
+                    Dispatcher.Invoke(() => KeyboardNavExited?.Invoke(this, EventArgs.Empty));
+                }
+                else if (msgType == "CWS_NATIVE_INSTALL_CLICK")
+                {
+                    string extId = obj.TryGetProperty("extensionId", out var eid) ? eid.GetString() ?? "" : "";
+                    string extTitle = obj.TryGetProperty("title", out var et) ? et.GetString() ?? "" : "";
+                    string storeUrl = obj.TryGetProperty("url", out var eu) ? eu.GetString() ?? "" : "";
+                    if (string.IsNullOrEmpty(storeUrl)) storeUrl = MainWebView?.Source?.ToString() ?? "";
+                    var storeInfo = ExtensionInstaller.Detect(storeUrl);
+                    if (!string.IsNullOrEmpty(extId) && string.IsNullOrEmpty(storeInfo.ExtensionId))
+                    {
+                        storeInfo = new StorePageInfo
+                        {
+                            Kind = StorePageInfo.StoreKind.Chrome,
+                            ExtensionId = extId,
+                            Name = !string.IsNullOrWhiteSpace(extTitle) ? extTitle : extId
+                        };
+                    }
+                    else if (!string.IsNullOrWhiteSpace(extTitle) && storeInfo.IsStorePage && (storeInfo.Name == "Chrome Extension" || string.IsNullOrWhiteSpace(storeInfo.Name)))
+                    {
+                        storeInfo = new StorePageInfo
+                        {
+                            Kind = storeInfo.Kind,
+                            ExtensionId = storeInfo.ExtensionId,
+                            Name = extTitle
+                        };
+                    }
+
+                    if (storeInfo.IsStorePage)
+                    {
+                        await Dispatcher.InvokeAsync(() =>
+                        {
+                            var owner = Window.GetWindow(this);
+                            var dlg = new ExtensionInstallDialog(
+                                storeInfo,
+                                MainWebView?.CoreWebView2?.Profile,
+                                (installedRecord) =>
+                                {
+                                    LogService.Write("EXT", $"Installed extension via native overlay: {installedRecord.Name} ({installedRecord.Id})");
+                                },
+                                owner);
+                            dlg.ShowDialog();
+                        });
+                    }
+                }
             }
             catch { }
         };
@@ -2143,65 +2319,62 @@ public partial class BrowserView : UserControl
             _regAutomation,
             _regPrint,
             _regVault,
-            MainWebView.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(@"
-(function() {
-    'use strict';
+            MainWebView.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(
+                Horizon.Stealth.Core.ExtensionPolyfillService.GetUniversalPolyfillScript()),
+            MainWebView.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(KeyboardNavigationScript.GetScript()));
 
-    const _patchDownloads = () => {
-        if (typeof chrome === 'undefined' || !chrome) return false;
-
-        // Ensure chrome.downloads exists as a namespace
-        chrome.downloads = chrome.downloads || {};
-
-        const _orig = chrome.downloads.download;
-
-        chrome.downloads.download = function(options, callback) {
-            const url      = options?.url      || '';
-            const filename = options?.filename || '';
-
-            if (!url) {
-                if (typeof callback === 'function') callback(-1);
-                return;
-            }
-
-            // Use a temporary <a> element so WebView2 sees a real navigation-based
-            // download and fires CoreWebView2.DownloadStarting normally.
-            try {
-                const a = document.createElement('a');
-                a.href     = url;
-                a.download = filename || '';
-                a.style.display = 'none';
-                document.body.appendChild(a);
-                a.click();
-                setTimeout(() => document.body.removeChild(a), 500);
-                if (typeof callback === 'function') callback(Date.now());
-            } catch(e) {
-                // Fallback: open in same tab — at least won't be silently dropped
-                try { window.location.href = url; } catch(e2) {}
-                if (typeof callback === 'function') callback(-1);
-            }
-        };
-
-        // Also patch the search / query stubs so extensions don't crash when
-        // they call chrome.downloads.search() to check download state.
-        chrome.downloads.search = chrome.downloads.search || function(query, callback) {
-            if (typeof callback === 'function') callback([]);
-            return Promise.resolve([]);
-        };
-        chrome.downloads.onCreated  = chrome.downloads.onCreated  || { addListener: () => {}, removeListener: () => {} };
-        chrome.downloads.onChanged  = chrome.downloads.onChanged  || { addListener: () => {}, removeListener: () => {} };
-        chrome.downloads.onErased   = chrome.downloads.onErased   || { addListener: () => {}, removeListener: () => {} };
-        chrome.downloads.erase      = chrome.downloads.erase      || function(q, cb) { if (cb) cb([]); };
-        chrome.downloads.removeFile = chrome.downloads.removeFile || function(id, cb) { if (cb) cb(); };
-
-        return true;
-    };
-
-    if (!_patchDownloads()) {
-        const t = setInterval(() => { if (_patchDownloads()) clearInterval(t); }, 30);
+        Horizon.Stealth.Core.ExtensionNetworkProxyService.Attach(MainWebView.CoreWebView2);
     }
-})();
-"));
+
+    /// <summary>
+    /// Toggles the keyboard navigation hint overlay on the active webpage.
+    /// </summary>
+    public void ToggleKeyboardNavigation(bool sticky = false)
+    {
+        try
+        {
+            if (MainWebView?.CoreWebView2 != null)
+            {
+                MainWebView.Focus();
+                string code = $"window.__hzToggleHints?.({(sticky ? "true" : "false")});";
+                _ = MainWebView.CoreWebView2.ExecuteScriptAsync(code);
+            }
+        }
+        catch (Exception ex)
+        {
+            LogService.Debug("keyboard_nav", () => $"Toggle failed: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Forwards a typed character/key to the in-page hint processor.
+    /// </summary>
+    public void SendKeyboardNavKey(string key)
+    {
+        try
+        {
+            if (MainWebView?.CoreWebView2 != null)
+            {
+                string json = System.Text.Json.JsonSerializer.Serialize(key);
+                _ = MainWebView.CoreWebView2.ExecuteScriptAsync($"window.__hzHandleKey?.({json});");
+            }
+        }
+        catch { }
+    }
+
+    /// <summary>
+    /// Dismisses any active keyboard navigation hints in the page.
+    /// </summary>
+    public void DismissKeyboardNavigation()
+    {
+        try
+        {
+            if (MainWebView?.CoreWebView2 != null)
+            {
+                _ = MainWebView.CoreWebView2.ExecuteScriptAsync("window.__hzExitHints?.();");
+            }
+        }
+        catch { }
     }
 
     /// <summary>
@@ -2277,16 +2450,61 @@ public partial class BrowserView : UserControl
             }
         }
 
-        // ── Image context: Download Image ────────────────────────────────────
-        if (e.ContextMenuTarget.Kind == CoreWebView2ContextMenuTargetKind.Image)
+        // ── Image context: modern download / copy / open actions ─────────────
+        if (e.ContextMenuTarget.Kind == CoreWebView2ContextMenuTargetKind.Image &&
+            !string.IsNullOrWhiteSpace(e.ContextMenuTarget.SourceUri))
         {
+            string imgUri = e.ContextMenuTarget.SourceUri;
+            string imgPage = MainWebView.CoreWebView2.Source ?? "";
+            var core = MainWebView.CoreWebView2;
+
+            // Replace the stock "Copy image" / "Open image in new tab" with our own versions.
+            for (int i = e.MenuItems.Count - 1; i >= 0; i--)
+            {
+                var mi = e.MenuItems[i];
+                string label = mi.Label ?? "";
+                if (mi.Name == "copyImage" || mi.Name == "openImageInNewTab" ||
+                    label.StartsWith("Copy image", StringComparison.OrdinalIgnoreCase) &&
+                        !label.Contains("link", StringComparison.OrdinalIgnoreCase) &&
+                        !label.Contains("address", StringComparison.OrdinalIgnoreCase) ||
+                    label.StartsWith("Open image in", StringComparison.OrdinalIgnoreCase))
+                    e.MenuItems.RemoveAt(i);
+            }
+
+            var openImgItem = env.CreateContextMenuItem(
+                "Open Image in New Tab", null, CoreWebView2ContextMenuItemKind.Command);
+            openImgItem.CustomItemSelected += (s, args) =>
+                Dispatcher.Invoke(() => OnNewTabRequested(imgUri));
+
+            var copyImgItem = env.CreateContextMenuItem(
+                "Copy Image", null, CoreWebView2ContextMenuItemKind.Command);
+            copyImgItem.CustomItemSelected += (s, args) =>
+                _ = Dispatcher.InvokeAsync(() => ImageActionService.CopyFullResolutionAsync(core, imgUri, imgPage));
+
+            var downloadCopyItem = env.CreateContextMenuItem(
+                "Download Image && Copy to Clipboard", null, CoreWebView2ContextMenuItemKind.Command);
+            downloadCopyItem.CustomItemSelected += (s, args) =>
+                _ = Dispatcher.InvokeAsync(() => ImageActionService.RunWithWaitPopupAsync(
+                    "Downloading image\u2026",
+                    async () =>
+                    {
+                        string? saved = await DownloadContextMediaAsync(imgUri, "image");
+                        if (string.IsNullOrEmpty(saved) || !System.IO.File.Exists(saved))
+                            throw new InvalidOperationException("The download did not complete.");
+                        await ImageActionService.CopyFileToClipboardAsync(saved);
+                    },
+                    "Image downloaded and copied."));
+
             var downloadItem = env.CreateContextMenuItem(
                 "Download Image", null, CoreWebView2ContextMenuItemKind.Command);
-
             downloadItem.CustomItemSelected += (s, args) =>
-                _ = DownloadContextMediaAsync(e.ContextMenuTarget.SourceUri, "image");
+                _ = DownloadContextMediaAsync(imgUri, "image");
 
+            e.MenuItems.Insert(0, env.CreateContextMenuItem("", null, CoreWebView2ContextMenuItemKind.Separator));
+            e.MenuItems.Insert(0, downloadCopyItem);
             e.MenuItems.Insert(0, downloadItem);
+            e.MenuItems.Insert(0, copyImgItem);
+            e.MenuItems.Insert(0, openImgItem);
         }
 
         // ── Video/Audio context: Download Video / Download Audio ────────────
@@ -2372,7 +2590,7 @@ public partial class BrowserView : UserControl
     /// fetch, so it isn't subject to the browser's same-origin "download" attribute
     /// restriction the old JS anchor-click approach hit on cross-origin images.
     /// </summary>
-    private async Task DownloadContextMediaAsync(string uri, string mediaKind)
+    private async Task<string?> DownloadContextMediaAsync(string uri, string mediaKind)
     {
         if (string.IsNullOrWhiteSpace(uri) ||
             !(uri.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
@@ -2381,7 +2599,7 @@ public partial class BrowserView : UserControl
             Dispatcher.Invoke(() => MessageBox.Show(
                 "Could not detect a downloadable source for this item.",
                 "Horizon \u2014 Download", MessageBoxButton.OK, MessageBoxImage.Warning));
-            return;
+            return null;
         }
 
         using var service = new MediaDownloadService();
@@ -2414,6 +2632,7 @@ public partial class BrowserView : UserControl
             new DownloadInfo(ok ? 1.0 : 0.0, finalPath, true, 0, 0, uri)));
 
         LogService.Write("MEDIA", $"Context-menu {mediaKind} download {(ok ? "succeeded" : "failed")}: {uri}");
+        return ok ? finalPath : null;
     }
 
     /// <summary>
@@ -2663,6 +2882,7 @@ public partial class BrowserView : UserControl
 
     public void Navigate(string url)
     {
+        url = Omnibox.NormalizeInternalBrowserUrl(url);
         LogService.Write("NAVTRACE", $"Navigate({url}) homeActive={IsHomeActive} core={(MainWebView?.CoreWebView2 != null)} pending={_pendingUrl} tabUrl={_tabViewModel?.Url}");
         if (url == HomeSentinel)
             LogService.Write("NAVTRACE", "Navigate(HomeSentinel) stack:\n" + Environment.StackTrace);
@@ -2683,14 +2903,9 @@ public partial class BrowserView : UserControl
         MainWebView.Visibility = Visibility.Visible;
         HomeStateChanged?.Invoke();
 
-        if (!url.StartsWith("http",         StringComparison.OrdinalIgnoreCase) &&
-            !url.StartsWith("about:",       StringComparison.OrdinalIgnoreCase) &&
-            !url.StartsWith("view-source:", StringComparison.OrdinalIgnoreCase) &&
-            !url.StartsWith("edge://",      StringComparison.OrdinalIgnoreCase) &&
-            !url.StartsWith("chrome://",    StringComparison.OrdinalIgnoreCase) &&
-            !url.StartsWith("file:",        StringComparison.OrdinalIgnoreCase))
+        if (!Omnibox.IsDirectNavigationScheme(url))
         {
-            if (!url.Contains(" ") && url.Contains("."))
+            if (!url.Contains(" ") && (url.Contains(".") || url.StartsWith("localhost", StringComparison.OrdinalIgnoreCase)))
                 url = "https://" + url;
             else
                 url = $"https://www.google.com/search?q={Uri.EscapeDataString(url)}";

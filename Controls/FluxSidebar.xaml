@@ -917,18 +917,15 @@
                     <UniformGrid x:Name="RowExtSort" Grid.Row="0" Rows="1" Columns="4" Margin="0,0,0,8">
                         <Button x:Name="BtnExtSortName"   Content="&#x1F524; NAME"   Click="BtnExtSortName_Click"
                                 Style="{StaticResource Style.SortBtn}"
-                                Background="#1a2a1a" Foreground="#00CC00" BorderBrush="#2a4a2a"
                                 ToolTip="Sort by name" MouseRightButtonUp="SortBtn_RightClick"/>
                         <Button x:Name="BtnExtSortState"  Content="&#x26A1; STATE"  Click="BtnExtSortState_Click"
                                 Style="{StaticResource Style.SortBtn}"
                                 ToolTip="Sort by enabled/disabled" MouseRightButtonUp="SortBtn_RightClick"/>
                         <Button x:Name="BtnExtInstall" Content="&#x1F9E9; ADD" Click="BtnExtInstall_Click"
                                 Style="{StaticResource Style.SortBtn}"
-                                Background="#0d0d1a" Foreground="#aabbff" BorderBrush="#223366"
                                 ToolTip="Browse Chrome Web Store to find extensions"/>
                         <Button x:Name="BtnExtInstallUrl" Content="&#x2B07; INSTALL" Click="BtnExtInstallUrl_Click"
                                 Style="{StaticResource Style.SortBtn}"
-                                Background="#1a0d0d" Foreground="#ffaaaa" BorderBrush="#663322"
                                 ToolTip="Install extension directly from a store URL"/>
                     </UniformGrid>
 
@@ -938,11 +935,13 @@
 
                     <UniformGrid x:Name="RowExtActions" Grid.Row="2" Rows="1" Columns="2" Margin="0,10,0,5">
                         <Button Content="&#x1F4C2; Folder"  Click="BtnExtOpenFolder_Click"
-                                Background="{DynamicResource Brush_TabStripBg}" Foreground="{DynamicResource Brush_SoftText}" BorderThickness="0"
-                                Height="34" Margin="0,0,2,0" ToolTip="Open Extensions install folder"/>
+                                Style="{StaticResource Style.SortBtn}"
+                                Background="#1A202C" Foreground="#CCD5E8" BorderBrush="#2D3748" BorderThickness="1"
+                                Height="34" Margin="0,0,3,0" ToolTip="Open Extensions install folder"/>
                         <Button Content="&#x27F3; Refresh" Click="BtnExtRefresh_Click"
-                                Background="{DynamicResource Brush_TabStripBg}" Foreground="{DynamicResource Brush_SoftText}" BorderThickness="0"
-                                Height="34" Margin="2,0,0,0" ToolTip="Reload catalog from disk"/>
+                                Style="{StaticResource Style.SortBtn}"
+                                Background="#1A202C" Foreground="#CCD5E8" BorderBrush="#2D3748" BorderThickness="1"
+                                Height="34" Margin="3,0,0,0" ToolTip="Reload catalog from disk"/>
                     </UniformGrid>
 
                     <Border x:Name="BannerStatus" Grid.Row="3"
@@ -1372,15 +1371,21 @@
                         </Grid>
                     </Border>
                     <Separator Background="#333" Margin="4,2"/>
-                    <Button Content="&#x26A1;  Toggle On / Off" Click="CtxExtToggle_Click"            Style="{StaticResource Style.CtxBtn}"/>
-                    <Button Content="&#x1F9E9;  Open Extension"  Click="CtxExtOpen_Click"              Style="{StaticResource Style.CtxBtn}" Foreground="#AADDAA"/>
+                    <Button Content="&#x26A1;  Toggle On / Off" Click="CtxExtToggle_Click" Style="{StaticResource Style.CtxBtn}"/>
+                    <Button Content="&#x1F9E9;  Open Extension" Click="CtxExtOpen_Click" Style="{StaticResource Style.CtxBtn}" Foreground="{DynamicResource Brush_Accent}"/>
+                    <Button Content="&#x1F4C1;  Open Extension Location" Click="CtxExtOpenLocation_Click" Style="{StaticResource Style.CtxBtn}"/>
+                    <Separator Background="#333" Margin="4,2"/>
+                    <TextBlock Text="PIN EXTENSION" Foreground="#777" FontSize="10" FontWeight="Bold" Margin="8,4,0,2"/>
+                    <Button x:Name="BtnCtxExtPinHeader" Content="&#x1F4CC;  Pin to Header" Click="CtxExtPinHeader_Click" Style="{StaticResource Style.CtxBtn}"/>
+                    <Button x:Name="BtnCtxExtPinHeaderStack" Content="&#x1F4CC;  Pin to Header Stack" Click="CtxExtPinHeaderStack_Click" Style="{StaticResource Style.CtxBtn}"/>
+                    <Button x:Name="BtnCtxExtPinHome" Content="&#x1F4CC;  Pin to Homepage Rail" Click="CtxExtPinHome_Click" Style="{StaticResource Style.CtxBtn}"/>
                     <Separator Background="#333" Margin="4,2"/>
                     <TextBlock Text="SORT BY" Foreground="#444" FontSize="10" FontWeight="Bold" Margin="8,4,0,2"/>
-                    <Button Content="&#x1F524;  By Name"          Click="CtxExtSortName_Click"          Style="{StaticResource Style.CtxBtn}"/>
-                    <Button Content="&#x26A1;  By State"        Click="CtxExtSortState_Click"         Style="{StaticResource Style.CtxBtn}"/>
-                    <Button Content="&#x1F4E6;  By Source"        Click="CtxExtSortSource_Click"        Style="{StaticResource Style.CtxBtn}"/>
+                    <Button Content="&#x1F524;  By Name" Click="CtxExtSortName_Click" Style="{StaticResource Style.CtxBtn}"/>
+                    <Button Content="&#x26A1;  By State" Click="CtxExtSortState_Click" Style="{StaticResource Style.CtxBtn}"/>
+                    <Button Content="&#x1F4E6;  By Source" Click="CtxExtSortSource_Click" Style="{StaticResource Style.CtxBtn}"/>
                     <Separator Background="#333" Margin="4,2"/>
-                    <Button Content="&#x1F5D1;  Uninstall"       Click="CtxExtUninstall_Click"
+                    <Button Content="&#x1F5D1;  Uninstall" Click="CtxExtUninstall_Click"
                             Style="{StaticResource Style.CtxBtn}" Foreground="{DynamicResource Brush.Alert}"/>
                 </StackPanel>
                 </ScrollViewer>

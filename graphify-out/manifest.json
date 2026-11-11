@@ -1,14 +1,14 @@
 {
   "App.xaml": {
-    "mtime": 1793612447.1847875,
-    "seen": 1793613757.1890845,
-    "ast_hash": "95fd6f11b68ff605ae940064e679cb65",
+    "mtime": 1793966784.9120288,
+    "seen": 1794297725.6022017,
+    "ast_hash": "93ed2ee8a2788aadb2e0a816fa037e40",
     "semantic_hash": ""
   },
   "App.xaml.cs": {
-    "mtime": 1793623997.5380402,
-    "seen": 1793624535.7981644,
-    "ast_hash": "2fd0a963a1ca2497cc1c90c61ebc918e",
+    "mtime": 1794039922.2939575,
+    "seen": 1794297725.6022017,
+    "ast_hash": "60c3dd2f2994cf219c7a9df9925911d4",
     "semantic_hash": ""
   },
   "Controls/BookmarkIconConverter.cs": {
@@ -18,27 +18,27 @@
     "semantic_hash": "d058ee051d696253da2a7e3241f558dc"
   },
   "Controls/BrowserView.xaml": {
-    "mtime": 1793523471.2283063,
-    "seen": 1793532466.9096131,
-    "ast_hash": "7ea177a110350e21bef5700775d354d9",
-    "semantic_hash": "7ea177a110350e21bef5700775d354d9"
+    "mtime": 1794158202.9114459,
+    "seen": 1794297725.6022017,
+    "ast_hash": "1d61753fd33f33b3bb396f5d620f3b9e",
+    "semantic_hash": ""
   },
   "Controls/BrowserView.xaml.cs": {
-    "mtime": 1793626531.2292528,
-    "seen": 1793626879.4177833,
-    "ast_hash": "f3bdd7bd1ce0c0d0cc084f329ad7b3a1",
+    "mtime": 1794327553.618597,
+    "seen": 1794327793.4081156,
+    "ast_hash": "d5b7bb2f9e0731335ddb30576b312ada",
     "semantic_hash": ""
   },
   "Controls/FluxSidebar.xaml": {
-    "mtime": 1793639096.9975057,
-    "seen": 1793639422.4865375,
-    "ast_hash": "fa8ed9a1155390ca0952f7dd61a643f0",
+    "mtime": 1793965403.6206985,
+    "seen": 1794297725.6022017,
+    "ast_hash": "4b0f06bc3f01358e61f0655b0e6a0722",
     "semantic_hash": ""
   },
   "Controls/FluxSidebar.xaml.cs": {
-    "mtime": 1793641035.1742566,
-    "seen": 1793641332.8608012,
-    "ast_hash": "63248a20f38f7e9a73c9bb0a446382ff",
+    "mtime": 1793968465.3115692,
+    "seen": 1794297725.6022017,
+    "ast_hash": "8f2c6bfdc83f3cd1b3b3ebe308964f7b",
     "semantic_hash": ""
   },
   "Controls/FolderCardView.cs": {
@@ -66,15 +66,15 @@
     "semantic_hash": "a8fa5fba84e5bec5a664cd5cec92d4e4"
   },
   "Controls/Omnibox.xaml": {
-    "mtime": 1793606383.5176735,
-    "seen": 1793607109.3297021,
-    "ast_hash": "b3ebc967d67311465f1416c8c38a71d5",
+    "mtime": 1793968067.9124458,
+    "seen": 1794297725.6038277,
+    "ast_hash": "96eb2257b57404778a7c3550c36c1ada",
     "semantic_hash": ""
   },
   "Controls/Omnibox.xaml.cs": {
-    "mtime": 1793606410.7019894,
-    "seen": 1793607109.3297021,
-    "ast_hash": "c1acddb8d71734b513c118c5f039fd55",
+    "mtime": 1794291591.6211345,
+    "seen": 1794297725.6038277,
+    "ast_hash": "4afa26eda85d755c4bda8649c33985d6",
     "semantic_hash": ""
   },
   "Controls/PageDiag.cs": {
@@ -132,10 +132,10 @@
     "semantic_hash": "5d6361553aae00b5b2d6398ad3211902"
   },
   "Controls/VaultSidebar.xaml": {
-    "mtime": 1793523471.231805,
-    "seen": 1793532466.9106145,
-    "ast_hash": "532999c409034e5ec34613b59b3f39b5",
-    "semantic_hash": "532999c409034e5ec34613b59b3f39b5"
+    "mtime": 1793965403.6206985,
+    "seen": 1794297725.6038277,
+    "ast_hash": "d53eafb089db7693d26afd5095dbe724",
+    "semantic_hash": ""
   },
   "Controls/VaultSidebar.xaml.cs": {
     "mtime": 1792407693.967048,
@@ -156,9 +156,9 @@
     "semantic_hash": "e1ab1b5889fc8ad1d4de16b06e9120ce"
   },
   "Core/HorizonEnvironment.cs": {
-    "mtime": 1793576807.3788836,
-    "seen": 1793577712.171989,
-    "ast_hash": "ebbb781f2c432ed5b3a96ea5c5f67faf",
+    "mtime": 1794291197.9883978,
+    "seen": 1794297725.6038277,
+    "ast_hash": "81ae93bc3908166050a29614b5d01b34",
     "semantic_hash": ""
   },
   "Core/MusicSites.cs": {
@@ -2811,10 +2811,10 @@
     "semantic_hash": "480b69fa2b40438c80ae386a8bf506ba"
   },
   "Horizon.Browser.csproj": {
-    "mtime": 1793523331.4314332,
-    "seen": 1793532466.9262884,
-    "ast_hash": "9511a418c2f977167e4bb0af1793cbf8",
-    "semantic_hash": "9511a418c2f977167e4bb0af1793cbf8"
+    "mtime": 1794291646.010362,
+    "seen": 1794297725.6928864,
+    "ast_hash": "a8ef7db7859b58ea1db7f2326c3e8223",
+    "semantic_hash": ""
   },
   "Languages/bg.json": {
     "mtime": 1792695339.404137,
@@ -2878,21 +2878,21 @@
     "semantic_hash": ""
   },
   "MainWindow.Widgets.cs": {
-    "mtime": 1793609888.1929102,
-    "seen": 1793610588.7440476,
-    "ast_hash": "cc4b993836a2e4f54fcfbf2a96fd2308",
+    "mtime": 1793787166.5020013,
+    "seen": 1794297725.6928864,
+    "ast_hash": "cb0e54a0bb2bc9acfe497b08a71050c1",
     "semantic_hash": ""
   },
   "MainWindow.xaml": {
-    "mtime": 1793641443.9185255,
-    "seen": 1793641873.1588511,
-    "ast_hash": "6ef718ca53f45059705f24aeb6bbc6eb",
+    "mtime": 1794327018.5834832,
+    "seen": 1794327793.4411337,
+    "ast_hash": "7e7f4e38d93ea9f2b085d586f54e50f0",
     "semantic_hash": ""
   },
   "MainWindow.xaml.cs": {
-    "mtime": 1793644228.220208,
-    "seen": 1793644503.9535356,
-    "ast_hash": "2f5640744766ec03de9cf1d77a622b28",
+    "mtime": 1794327530.4803667,
+    "seen": 1794327793.4411337,
+    "ast_hash": "a5da90dc81c75df724c5298b01aa5f75",
     "semantic_hash": ""
   },
   "Native/horizon_core/Cargo.toml": {
@@ -2926,10 +2926,10 @@
     "semantic_hash": "5a5ddd77111ceb3e1a9556ece5e7737e"
   },
   "Services/BackupService.cs": {
-    "mtime": 1792407694.3735056,
-    "seen": 1793532466.9276686,
-    "ast_hash": "7cfbf2c7270b1d3472d406b67b2f480a",
-    "semantic_hash": "7cfbf2c7270b1d3472d406b67b2f480a"
+    "mtime": 1794178262.8856072,
+    "seen": 1794297725.6983838,
+    "ast_hash": "1c2741363d5d2ca98f7cb482b2cc5871",
+    "semantic_hash": ""
   },
   "Services/BatteryBridge.cs": {
     "mtime": 1792407694.3735056,
@@ -2980,10 +2980,10 @@
     "semantic_hash": "c5706a78bbafc7968ba71980f40c6d12"
   },
   "Services/ContrastGuard.cs": {
-    "mtime": 1792647927.291979,
-    "seen": 1793532466.9291718,
-    "ast_hash": "3835c97b0b367770b4eb951b9e92d130",
-    "semantic_hash": "3835c97b0b367770b4eb951b9e92d130"
+    "mtime": 1793962307.400491,
+    "seen": 1794297725.6983838,
+    "ast_hash": "6e6ce6ce9d47ebfc067e674a52057c3b",
+    "semantic_hash": ""
   },
   "Services/DefaultSettingsService.cs": {
     "mtime": 1790781163.8158715,
@@ -3004,10 +3004,10 @@
     "semantic_hash": "21c50feee2163070242119cf3dece6f3"
   },
   "Services/ExtensionService.cs": {
-    "mtime": 1793523450.3568246,
-    "seen": 1793532466.929673,
-    "ast_hash": "adacb82cf0ad9a8079cda41d80cb347a",
-    "semantic_hash": "adacb82cf0ad9a8079cda41d80cb347a"
+    "mtime": 1794292930.0738094,
+    "seen": 1794297725.6983838,
+    "ast_hash": "2d9fe0db083c0f4013ee3d2f67876bfb",
+    "semantic_hash": ""
   },
   "Services/FluxJanitorService.cs": {
     "mtime": 1792407694.3735056,
@@ -3028,10 +3028,10 @@
     "semantic_hash": "5073bb06ed1a2372ed93a155a7e79dad"
   },
   "Services/GithubUpdateService.cs": {
-    "mtime": 1792407694.3777347,
-    "seen": 1793532466.929673,
-    "ast_hash": "3e8114a0b1650f64a0b274d5636f3ecb",
-    "semantic_hash": "3e8114a0b1650f64a0b274d5636f3ecb"
+    "mtime": 1793702076.049379,
+    "seen": 1794297725.6983838,
+    "ast_hash": "ac9c3b66d22eaa607e041cd714220fef",
+    "semantic_hash": ""
   },
   "Services/HealthService.cs": {
     "mtime": 1792407694.3777347,
@@ -3058,10 +3058,10 @@
     "semantic_hash": "15cbb5060e8ec6b7cd75c0d159d21084"
   },
   "Services/InstallationDiscoveryService.cs": {
-    "mtime": 1792407694.3783653,
-    "seen": 1793532466.929673,
-    "ast_hash": "13b7481850c71da61edbdbe0d006df51",
-    "semantic_hash": "13b7481850c71da61edbdbe0d006df51"
+    "mtime": 1794178264.5314434,
+    "seen": 1794297725.6983838,
+    "ast_hash": "df010a07c04dbd5b92ecaa318646c1d4",
+    "semantic_hash": ""
   },
   "Services/LocalizationService.cs": {
     "mtime": 1792407694.3783653,
@@ -3082,10 +3082,10 @@
     "semantic_hash": "ba5ef8dcff16e98290fe122f9e3d88f5"
   },
   "Services/MediaDownloadService.cs": {
-    "mtime": 1792407694.3783653,
-    "seen": 1793532466.9306743,
-    "ast_hash": "359ee35289bf41b9ade4ae29ff97c12a",
-    "semantic_hash": "359ee35289bf41b9ade4ae29ff97c12a"
+    "mtime": 1794291569.5282216,
+    "seen": 1794297725.6983838,
+    "ast_hash": "dc804cc553119af80e8d3f1a85e04071",
+    "semantic_hash": ""
   },
   "Services/NotificationCenterService.cs": {
     "mtime": 1792407694.3783653,
@@ -3106,9 +3106,9 @@
     "semantic_hash": "232c280a0073f85cae235556d237fb3f"
   },
   "Services/SettingsService.cs": {
-    "mtime": 1793613075.8467162,
-    "seen": 1793613757.2179596,
-    "ast_hash": "be0558fe3fdef5c2d7e019517d10c4b2",
+    "mtime": 1794291193.122473,
+    "seen": 1794297725.6983838,
+    "ast_hash": "c8b99ffad0c70116779a7cee7f46801e",
     "semantic_hash": ""
   },
   "Services/SiteNotificationPermissionService.cs": {
@@ -3148,9 +3148,9 @@
     "semantic_hash": "130d0b1e0bc75adb91901b015d3b8829"
   },
   "Services/ThemeService.cs": {
-    "mtime": 1793612487.5516088,
-    "seen": 1793613757.2184613,
-    "ast_hash": "530b63a78e2336f6c2c1a6e03bb01a79",
+    "mtime": 1793968426.901184,
+    "seen": 1794297725.7031379,
+    "ast_hash": "564bcc25f5739f2b310d3f2bb89bec10",
     "semantic_hash": ""
   },
   "Services/TintService.cs": {
@@ -3208,34 +3208,34 @@
     "semantic_hash": "6e37b983d59013107286b76a183b0560"
   },
   "Services/WidgetSyncGuard.cs": {
-    "mtime": 1793573904.695915,
-    "seen": 1793574527.233214,
-    "ast_hash": "4691cc9ec13df03f9e8c664bc12327d8",
+    "mtime": 1794244837.2532024,
+    "seen": 1794297725.7042153,
+    "ast_hash": "c1743b9b54a606f3ffccddd713ed3f1f",
     "semantic_hash": ""
   },
   "Themes/Horizon.xaml": {
-    "mtime": 1793609348.1490998,
-    "seen": 1793609587.4515965,
-    "ast_hash": "331474d6c79de4a968cc484979f75a40",
+    "mtime": 1794155561.9828806,
+    "seen": 1794297725.7042153,
+    "ast_hash": "d66b79edb1d3916a7ba8174846a4942d",
     "semantic_hash": ""
   },
   "Themes/Light.xaml": {
-    "mtime": 1793612452.112321,
-    "seen": 1793613757.2189674,
-    "ast_hash": "9c40524107dec9cc2f4fa8ef9c053c56",
+    "mtime": 1793965403.6206985,
+    "seen": 1794297725.7042153,
+    "ast_hash": "599a7dfd24f340a9f78638060e9d8dd1",
     "semantic_hash": ""
   },
   "Themes/Redmond.xaml": {
-    "mtime": 1792407694.3803706,
-    "seen": 1793532466.9326787,
-    "ast_hash": "901b4b74f51e7afb801ac520ac474e13",
-    "semantic_hash": "901b4b74f51e7afb801ac520ac474e13"
+    "mtime": 1793963601.923794,
+    "seen": 1794297725.7042153,
+    "ast_hash": "af276a76fb1abcbefd5b35a8e075d04c",
+    "semantic_hash": ""
   },
   "Tools/Horizon.SessionImporter/Horizon.SessionImporter.csproj": {
-    "mtime": 1792407694.3803706,
-    "seen": 1793532466.93318,
-    "ast_hash": "0e8b8fa1e691b48e8f33291ac15bf776",
-    "semantic_hash": "0e8b8fa1e691b48e8f33291ac15bf776"
+    "mtime": 1794178232.149464,
+    "seen": 1794297725.7042153,
+    "ast_hash": "4b7c46b22ddbd1f9e7ff088b58a8e49f",
+    "semantic_hash": ""
   },
   "Tools/Horizon.SessionImporter/Program.cs": {
     "mtime": 1792407694.3803706,
@@ -3256,10 +3256,10 @@
     "semantic_hash": "be38a03edce92eb9ffbf25c4b842aed4"
   },
   "Tools/Horizon.Updater/Horizon.Updater.csproj": {
-    "mtime": 1792407694.3803706,
-    "seen": 1793532466.93318,
-    "ast_hash": "be60a83ec22f6aa06d87cc06c0f88787",
-    "semantic_hash": "be60a83ec22f6aa06d87cc06c0f88787"
+    "mtime": 1794178230.661332,
+    "seen": 1794297725.7042153,
+    "ast_hash": "26947097011150f0c8c2f82b2ca3a6f4",
+    "semantic_hash": ""
   },
   "Tools/Horizon.Updater/MainWindow.xaml": {
     "mtime": 1792407694.3803706,
@@ -3268,22 +3268,22 @@
     "semantic_hash": "48d115172a069b319ae628bf1faa9e13"
   },
   "Tools/Horizon.Updater/MainWindow.xaml.cs": {
-    "mtime": 1792407694.3803706,
-    "seen": 1793532466.933685,
-    "ast_hash": "7d44f0eae501124be0439eea99f05240",
-    "semantic_hash": "7d44f0eae501124be0439eea99f05240"
+    "mtime": 1794178266.2758267,
+    "seen": 1794297725.7042153,
+    "ast_hash": "880a39389e824a9f83b261fed0d4f422",
+    "semantic_hash": ""
   },
   "ViewModels/TabViewModel.cs": {
-    "mtime": 1793635665.121341,
-    "seen": 1793636067.2242122,
-    "ast_hash": "d9340c7e62fe314c6d772f8fb464ecfa",
+    "mtime": 1793962318.2442608,
+    "seen": 1794297725.7042153,
+    "ast_hash": "fd99b8c777baa36f1152506314d2e5e7",
     "semantic_hash": ""
   },
   "Views/AdvancedCalculatorWindow.cs": {
-    "mtime": 1792652085.5443008,
-    "seen": 1793532466.933685,
-    "ast_hash": "5e9fdae373edbab3ad7c5b8e3faf61cc",
-    "semantic_hash": "5e9fdae373edbab3ad7c5b8e3faf61cc"
+    "mtime": 1794291843.0757084,
+    "seen": 1794297725.7042153,
+    "ast_hash": "75c1c4bd12e815242ada2a8d805b579c",
+    "semantic_hash": ""
   },
   "Views/BackupRestoreDialog.xaml": {
     "mtime": 1792407694.3833897,
@@ -3310,46 +3310,46 @@
     "semantic_hash": "f055bf330712b7349759c4cbfcc834f8"
   },
   "Views/HomePageSettingsWindow.xaml": {
-    "mtime": 1793526488.6607752,
-    "seen": 1793532466.9346862,
-    "ast_hash": "bd80a357badcb04c9aef64eaae6daf87",
-    "semantic_hash": "bd80a357badcb04c9aef64eaae6daf87"
+    "mtime": 1794041063.1651556,
+    "seen": 1794297725.70883,
+    "ast_hash": "7ceedaba84dcc6bfbb7a11a5f9941758",
+    "semantic_hash": ""
   },
   "Views/HomePageSettingsWindow.xaml.cs": {
-    "mtime": 1793526488.6613002,
-    "seen": 1793532466.9346862,
-    "ast_hash": "f4c2f422259bf71e8096cddd638ae799",
-    "semantic_hash": "f4c2f422259bf71e8096cddd638ae799"
+    "mtime": 1794291842.953859,
+    "seen": 1794297725.70883,
+    "ast_hash": "6b40be7856918d6477ad4ac85cc482f1",
+    "semantic_hash": ""
   },
   "Views/HomePageView.Themes.cs": {
-    "mtime": 1793525479.0885022,
-    "seen": 1793532466.9346862,
-    "ast_hash": "33fab29b31586ddb2528dae82841cef2",
-    "semantic_hash": "33fab29b31586ddb2528dae82841cef2"
+    "mtime": 1794291236.1321988,
+    "seen": 1794297725.70883,
+    "ast_hash": "bb7692c0f94b8234f9d3bbbcdfcc6813",
+    "semantic_hash": ""
   },
   "Views/HomePageView.xaml": {
-    "mtime": 1793652783.66385,
-    "seen": 1793653669.4412277,
-    "ast_hash": "78c3eda6a6ab690378f351762078d488",
+    "mtime": 1793982025.5473588,
+    "seen": 1794297725.70883,
+    "ast_hash": "c0be1cdb0b9d073b54ebba29cf8028d9",
     "semantic_hash": ""
   },
   "Views/HomePageView.xaml.cs": {
-    "mtime": 1793654776.0501697,
-    "seen": 1793655026.234271,
-    "ast_hash": "b6a0688026e743284f5b07f7ce094b07",
+    "mtime": 1794291234.6524053,
+    "seen": 1794297725.70883,
+    "ast_hash": "2c2112fd22288a7d9acb97a07443273c",
     "semantic_hash": ""
   },
   "Views/LoginRecoveryDialog.xaml": {
-    "mtime": 1792407694.3860598,
-    "seen": 1793532466.9351883,
-    "ast_hash": "daf4bc79d1e10401b65247ea0b3ee1f8",
-    "semantic_hash": "daf4bc79d1e10401b65247ea0b3ee1f8"
+    "mtime": 1794158163.8745687,
+    "seen": 1794297725.70883,
+    "ast_hash": "fdb3361684e2b6054950379d84d8d33b",
+    "semantic_hash": ""
   },
   "Views/LoginRecoveryDialog.xaml.cs": {
-    "mtime": 1792407694.3860598,
-    "seen": 1793532466.9351883,
-    "ast_hash": "6d094ec5ea5428418c3da52932b25224",
-    "semantic_hash": "6d094ec5ea5428418c3da52932b25224"
+    "mtime": 1794158166.3344002,
+    "seen": 1794297725.70883,
+    "ast_hash": "99d82994086b6ea1e9ac746d3a3af1fe",
+    "semantic_hash": ""
   },
   "Views/MaintenanceWindow.xaml": {
     "mtime": 1792407694.3860598,
@@ -3376,15 +3376,15 @@
     "semantic_hash": "3f8a19bb8a48e539d2acf98675c067d2"
   },
   "Views/SettingsWindow.xaml": {
-    "mtime": 1793577291.583452,
-    "seen": 1793577712.2011497,
-    "ast_hash": "2c9e94150af5991c565ff9b99018644f",
+    "mtime": 1794053363.9764023,
+    "seen": 1794297725.70883,
+    "ast_hash": "264fa08fa82e4afcce8214fd706bb7f5",
     "semantic_hash": ""
   },
   "Views/SettingsWindow.xaml.cs": {
-    "mtime": 1793576841.938215,
-    "seen": 1793577712.2011497,
-    "ast_hash": "a43d8374c36fef5ce248a32e41cc46ed",
+    "mtime": 1794291842.8236687,
+    "seen": 1794297725.70883,
+    "ast_hash": "1e79b7c1bf47a4c92861e6c4f6a2e513",
     "semantic_hash": ""
   },
   "Views/StackElementWizardWindow.xaml": {
@@ -3406,22 +3406,22 @@
     "semantic_hash": "4892652ccc65eba0aafd3d61c4ff004b"
   },
   "Views/StartupVideoWindow.xaml.cs": {
-    "mtime": 1792407694.3860598,
-    "seen": 1793532466.9356952,
-    "ast_hash": "eeba36712c6474214206494e0af6d989",
-    "semantic_hash": "eeba36712c6474214206494e0af6d989"
+    "mtime": 1794039940.9212847,
+    "seen": 1794297725.70883,
+    "ast_hash": "233d0ec88e1e9aa9b63c690605a2d802",
+    "semantic_hash": ""
   },
   "Views/TabSwitcherWindow.xaml": {
-    "mtime": 1793523471.241777,
-    "seen": 1793532466.9356952,
-    "ast_hash": "8efcc3271bb06fce627bdfbb5dd36fc9",
-    "semantic_hash": "8efcc3271bb06fce627bdfbb5dd36fc9"
+    "mtime": 1794176943.0703392,
+    "seen": 1794297725.70883,
+    "ast_hash": "b6991d852ee7c06d8734db175b4456c8",
+    "semantic_hash": ""
   },
   "Views/TabSwitcherWindow.xaml.cs": {
-    "mtime": 1793523450.3369942,
-    "seen": 1793532466.9356952,
-    "ast_hash": "356748d95a7489839601740b708ff5b3",
-    "semantic_hash": "356748d95a7489839601740b708ff5b3"
+    "mtime": 1794178779.4603927,
+    "seen": 1794297725.70883,
+    "ast_hash": "416280ac5243fc5ac22652c849f6836f",
+    "semantic_hash": ""
   },
   "Views/VpnControlCenterWindow.xaml": {
     "mtime": 1790666078.6625044,
@@ -3436,10 +3436,10 @@
     "semantic_hash": "11700481003b40ee5c3d4b484f0831d0"
   },
   "Views/WebAppWindow.xaml": {
-    "mtime": 1792650595.492122,
-    "seen": 1793532466.9366968,
-    "ast_hash": "7e300f1c226954d1df5c3ef64129ae71",
-    "semantic_hash": "7e300f1c226954d1df5c3ef64129ae71"
+    "mtime": 1793964995.4825747,
+    "seen": 1794297725.70883,
+    "ast_hash": "71775c63fa9f5312212dae66509a6d7d",
+    "semantic_hash": ""
   },
   "Views/WebAppWindow.xaml.cs": {
     "mtime": 1790969230.81781,
@@ -3473,10 +3473,10 @@
     "ast_empty": true
   },
   "install_auto.ps1": {
-    "mtime": 1792407694.3906207,
-    "seen": 1793532466.9371982,
-    "ast_hash": "6bf0e6a587727a7f33daeb1edf981724",
-    "semantic_hash": "6bf0e6a587727a7f33daeb1edf981724"
+    "mtime": 1793661089.4071877,
+    "seen": 1794297725.70883,
+    "ast_hash": "880c5503cc6a58e3ab9a96d3b4e70ea8",
+    "semantic_hash": ""
   },
   "project_mapper.py": {
     "mtime": 1792407694.3937464,
@@ -3671,15 +3671,15 @@
     "semantic_hash": "b9a9341c0d22c21aa7bfbb6d89231b1b"
   },
   "Views/HomePageView.WidgetBoard.cs": {
-    "mtime": 1793610369.8401918,
-    "seen": 1793610588.7471282,
-    "ast_hash": "37cdaaf801607559661c2bd41176c4cb",
+    "mtime": 1793722847.0616589,
+    "seen": 1794297725.70883,
+    "ast_hash": "04bdbabe4b68c3e58f9ed5500eb6b1f1",
     "semantic_hash": ""
   },
   "AGENTS.md": {
-    "mtime": 1793654811.078147,
-    "seen": 1793655026.2362807,
-    "ast_hash": "e01ccaad7bac344adfd40eb43bd2002d",
+    "mtime": 1794315515.3153892,
+    "seen": 1794315943.489937,
+    "ast_hash": "b9eae857897d6791d44836084f54bdfb",
     "semantic_hash": ""
   },
   "Extensions/CRX-Extractor-Downloader-Chrome-Web-Store/README.md": {
@@ -4313,9 +4313,9 @@
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1793610939.3160374,
-    "seen": 1793611267.2581387,
-    "ast_hash": "16038e12eda5ac121f5b3fd7de8b8871",
+    "mtime": 1793830801.109246,
+    "seen": 1794297725.7501094,
+    "ast_hash": "087c8803b8dd3e13ef00afd8d27ea518",
     "semantic_hash": ""
   },
   "TERMS_OF SERVICE.txt": {
@@ -4331,9 +4331,9 @@
     "semantic_hash": ""
   },
   "changelog.txt": {
-    "mtime": 1792407694.3880618,
-    "seen": 1793535338.1496086,
-    "ast_hash": "421423a9fe5e1a60f8afab5f51b36162",
+    "mtime": 1794315496.406632,
+    "seen": 1794315943.518629,
+    "ast_hash": "39f38c85aef8cb73badb1d3d315cd0fa",
     "semantic_hash": ""
   },
   "default_settings.txt": {
@@ -4409,9 +4409,9 @@
     "semantic_hash": ""
   },
   "docs/README.md": {
-    "mtime": 1792407694.3886156,
-    "seen": 1793535338.1496086,
-    "ast_hash": "fa3f156b38155d8556df5df9c4dbbf4a",
+    "mtime": 1793788856.7183945,
+    "seen": 1794297725.7572885,
+    "ast_hash": "f3660ced1f0cec49914d248550dae715",
     "semantic_hash": ""
   },
   "docs/TERMS_OF SERVICE.txt": {
@@ -4457,9 +4457,9 @@
     "semantic_hash": ""
   },
   "extra_files.txt": {
-    "mtime": 1792407694.3906207,
-    "seen": 1793535338.1496086,
-    "ast_hash": "035c1da8cda7c425505e6dc1a726191f",
+    "mtime": 1794178550.3561568,
+    "seen": 1794297725.7602873,
+    "ast_hash": "d7b2302dd4566c8264099318b7da6eac",
     "semantic_hash": ""
   },
   "extra_folders.txt": {
@@ -4472,18 +4472,6 @@
     "mtime": 1792320468.2134488,
     "seen": 1793535338.1496086,
     "ast_hash": "6852450f409c9bc10f2ca799a126b234",
-    "semantic_hash": ""
-  },
-  "project_map_1791704954.txt": {
-    "mtime": 1792407694.3906207,
-    "seen": 1793535338.1496086,
-    "ast_hash": "9bba829b1b4a9305698d2889488278fd",
-    "semantic_hash": ""
-  },
-  "project_map_1792320469.txt": {
-    "mtime": 1792320469.4354403,
-    "seen": 1793535338.1496086,
-    "ast_hash": "2c4233bc98d969d2b0c06d05b3e838df",
     "semantic_hash": ""
   },
   "start_videos/README.txt": {
@@ -4523,9 +4511,9 @@
     "semantic_hash": ""
   },
   "version.txt": {
-    "mtime": 1792407694.3937464,
-    "seen": 1793535338.1496086,
-    "ast_hash": "cd54aff92d9705bb50b3621af7982351",
+    "mtime": 1794291646.061095,
+    "seen": 1794297725.762288,
+    "ast_hash": "167135e165a07bf757896aacedd8b5db",
     "semantic_hash": ""
   },
   "Extensions/CRX-Extractor-Downloader-Chrome-Web-Store/128.png": {
@@ -5608,12 +5596,6 @@
     "ast_hash": "cad8984586e46c05181038325f7330ad",
     "semantic_hash": ""
   },
-  "wallpapers/103739-3840x2160-desktop-4k-spider-man-into-the-spider-verse-background-photo.jpg": {
-    "mtime": 1751482306.048432,
-    "seen": 1793535338.1496086,
-    "ast_hash": "0a0d766d083bc28f9640e04a058cd02b",
-    "semantic_hash": ""
-  },
   "wallpapers/1125856.jpg": {
     "mtime": 1790662896.4736724,
     "seen": 1793535338.1496086,
@@ -5630,12 +5612,6 @@
     "mtime": 1751482899.150806,
     "seen": 1793535338.1496086,
     "ast_hash": "c3e8c9f47077b10d447e9817dee2acb2",
-    "semantic_hash": ""
-  },
-  "wallpapers/127583-3840x2160-desktop-4k-the-elder-scrolls-wallpaper.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "c3744a2f5f971848fd3127691ff2ccc0",
     "semantic_hash": ""
   },
   "wallpapers/132014.jpg": {
@@ -5752,12 +5728,6 @@
     "ast_hash": "63cc80904214dca82067ce1d758060cc",
     "semantic_hash": ""
   },
-  "wallpapers/1374256.png": {
-    "mtime": 1790663115.9862878,
-    "seen": 1793535338.1496086,
-    "ast_hash": "99f5bb4b2f34a041e7f114a9cbf71649",
-    "semantic_hash": ""
-  },
   "wallpapers/1380532.png": {
     "mtime": 1790662731.5221138,
     "seen": 1793535338.1496086,
@@ -5776,28 +5746,10 @@
     "ast_hash": "5e4fcf2f7316061a0058e763e82d47ed",
     "semantic_hash": ""
   },
-  "wallpapers/1547194-3840x2160-desktop-4k-ubisoft-background-photo.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "822d579d36639209d1fe701dfd70f2a7",
-    "semantic_hash": ""
-  },
-  "wallpapers/187459-2560x1600-desktop-hd-ferrari-background-image.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "227517dffa47db0caa6ec936c63686ad",
-    "semantic_hash": ""
-  },
   "wallpapers/2112444-3840x2160-desktop-4k-night-sky-background-image.jpg": {
     "mtime": 1751482355.80745,
     "seen": 1793535338.1496086,
     "ast_hash": "c6fd889d3c4cd2c4854dbc724da9424e",
-    "semantic_hash": ""
-  },
-  "wallpapers/2217488-2048x1099-desktop-hd-dassault-aviation-background-image.jpg": {
-    "mtime": 1751482626.9003594,
-    "seen": 1793535338.1496086,
-    "ast_hash": "a32bbbdd3a2b10cb925f553ad1a70929",
     "semantic_hash": ""
   },
   "wallpapers/24529-3840x2160-desktop-4k-comet-wallpaper-image.jpg": {
@@ -5806,40 +5758,10 @@
     "ast_hash": "218edd32dbd11174bdf819872de8ac31",
     "semantic_hash": ""
   },
-  "wallpapers/247988.jpg": {
-    "mtime": 1790663305.1281693,
-    "seen": 1793535338.1496086,
-    "ast_hash": "d316eda36a6df2c4281ff6e9b4cb949a",
-    "semantic_hash": ""
-  },
-  "wallpapers/256100.jpg": {
-    "mtime": 1790662975.7641442,
-    "seen": 1793535338.1496086,
-    "ast_hash": "daedcbb1ce7d3344426f0cf39a4367dc",
-    "semantic_hash": ""
-  },
-  "wallpapers/265170-1920x1276-desktop-hd-florence-background.jpg": {
-    "mtime": 1751482530.2672658,
-    "seen": 1793535338.1496086,
-    "ast_hash": "6f6fa4e923b6ca270f398c4b8efd2cdc",
-    "semantic_hash": ""
-  },
-  "wallpapers/265225-2560x1440-desktop-hd-florence-wallpaper-photo.jpg": {
-    "mtime": 1751482971.4514184,
-    "seen": 1793535338.1496086,
-    "ast_hash": "b3d54c9e30b611cfd6ff35a805f24e7d",
-    "semantic_hash": ""
-  },
   "wallpapers/295208-2048x1365-desktop-hd-sydney-background-photo.jpg": {
     "mtime": 1751483016.2570748,
     "seen": 1793535338.1496086,
     "ast_hash": "b797f6f3225ae5fe8dec48967d53defb",
-    "semantic_hash": ""
-  },
-  "wallpapers/320248-1920x1080-desktop-1080p-iron-man-background.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "f5ff8132fb805c4f16543055634bf8ef",
     "semantic_hash": ""
   },
   "wallpapers/322616.jpg": {
@@ -5852,18 +5774,6 @@
     "mtime": 1790093935.0,
     "seen": 1793535338.1496086,
     "ast_hash": "cc80921e8f21e660a853cab6bcd17352",
-    "semantic_hash": ""
-  },
-  "wallpapers/338596.jpg": {
-    "mtime": 1790663193.144263,
-    "seen": 1793535338.1496086,
-    "ast_hash": "ebde3fc33267c0efe807cd9631ca0c82",
-    "semantic_hash": ""
-  },
-  "wallpapers/3448162-1920x1080-desktop-hd-sith-empire-background-image.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "6570496cbf96b7786f6f25667f0552c3",
     "semantic_hash": ""
   },
   "wallpapers/413925.jpg": {
@@ -5882,12 +5792,6 @@
     "mtime": 1790663229.0695696,
     "seen": 1793535338.1496086,
     "ast_hash": "82b346c02e09fdd4bd172095293f2820",
-    "semantic_hash": ""
-  },
-  "wallpapers/48333-1920x1115-desktop-hd-the-lion-king-wallpaper.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "80960c57ff8ea12eca352fa6da004b0c",
     "semantic_hash": ""
   },
   "wallpapers/526622.jpg": {
@@ -5938,22 +5842,10 @@
     "ast_hash": "b80e0e54ca417be0f1d865a3599fecaf",
     "semantic_hash": ""
   },
-  "wallpapers/5825644.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "b536793f0cbc13892151f9d9daaa1011",
-    "semantic_hash": ""
-  },
   "wallpapers/5825663.jpg": {
     "mtime": 1751482153.677373,
     "seen": 1793535338.1496086,
     "ast_hash": "cdd25cba7cd44099b975bbb2f682c95f",
-    "semantic_hash": ""
-  },
-  "wallpapers/5825701.jpg": {
-    "mtime": 1751481643.3456097,
-    "seen": 1793535338.1496086,
-    "ast_hash": "1a17326362401bf72c977dac5ddf00af",
     "semantic_hash": ""
   },
   "wallpapers/5825704.jpg": {
@@ -5986,12 +5878,6 @@
     "ast_hash": "b8de82c2932284c51f455c966a47bd3f",
     "semantic_hash": ""
   },
-  "wallpapers/77766-3840x2160-desktop-4k-halo-wallpaper-photo.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "14ae8c75e27e5d93b161f40d461e0ac0",
-    "semantic_hash": ""
-  },
   "wallpapers/788878.jpg": {
     "mtime": 1790663513.9090514,
     "seen": 1793535338.1496086,
@@ -6002,30 +5888,6 @@
     "mtime": 1790370046.0682755,
     "seen": 1793535338.1496086,
     "ast_hash": "2afc3cc2bfe6d0464bf8798d8980e13d",
-    "semantic_hash": ""
-  },
-  "wallpapers/833-1920x1410-desktop-hd-halo-background-photo.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "f10e0fcb9a07053197d8021620b71d98",
-    "semantic_hash": ""
-  },
-  "wallpapers/850-3840x2160-desktop-4k-halo-background.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "56876d947e85a29d69fe7f0d52ce64d9",
-    "semantic_hash": ""
-  },
-  "wallpapers/854-3840x2160-desktop-4k-halo-background.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "017945f5b98257bb711b2defa18d6e6d",
-    "semantic_hash": ""
-  },
-  "wallpapers/861-2560x1440-desktop-hd-halo-wallpaper-photo.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "1637c1b4a119be3b57f55727b9be727b",
     "semantic_hash": ""
   },
   "wallpapers/906873.jpg": {
@@ -6076,12 +5938,6 @@
     "ast_hash": "acee7e50be0b8a8602e9cf0ca80498d5",
     "semantic_hash": ""
   },
-  "wallpapers/Wallpaper5.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "adc61ff46abe9413e5e103fb4f9a13f3",
-    "semantic_hash": ""
-  },
   "wallpapers/Wallpaper6.jpg": {
     "mtime": 1790093935.0,
     "seen": 1793535338.1496086,
@@ -6098,798 +5954,6 @@
     "mtime": 1790093935.0,
     "seen": 1793535338.1496086,
     "ast_hash": "1a1eacaae2304e991021edd0215458b8",
-    "semantic_hash": ""
-  },
-  "wallpapers/alone-forest-mountain-top-scenery-4k-wallpaper-uhdpaper.com-487@5@e.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "42fbf9237d4bedca086019531465ffa7",
-    "semantic_hash": ""
-  },
-  "wallpapers/alone-guy-car-night-moon-sky-stars-scenery-digital-art-4k-wallpaper-uhdpaper.com-212@5@k.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "64d7710ee6ffd629b2cea30839fa21f1",
-    "semantic_hash": ""
-  },
-  "wallpapers/alone-night-city-sunrise-digital-art-4k-wallpaper-uhdpaper.com-199@5@k.jpg": {
-    "mtime": 1790276436.7554395,
-    "seen": 1793535338.1496086,
-    "ast_hash": "4d3162cfd6acd43ddd79fa97fdb04059",
-    "semantic_hash": ""
-  },
-  "wallpapers/alone-night-space-planet-digital-art-4k-wallpaper-uhdpaper.com-132@5@r.jpg": {
-    "mtime": 1790276456.3215816,
-    "seen": 1793535338.1496086,
-    "ast_hash": "cf3a956341bc3237480cf852a9350248",
-    "semantic_hash": ""
-  },
-  "wallpapers/alone-standing-purple-wave-digital-art-8k-wallpaper-uhdpaper.com-70@1@o.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "5c082d19c09752675b63e8959ed54021",
-    "semantic_hash": ""
-  },
-  "wallpapers/anime-yokai-mask-katana-4k-wallpaper-uhdpaper.com-136@5@q.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "ca7275aa4e71d09095c6d21e112648e8",
-    "semantic_hash": ""
-  },
-  "wallpapers/astronaut-hanging-in-the-moon-4k-wallpaper-uhdpaper.com-812@5@l.jpg": {
-    "mtime": 1790276389.0162952,
-    "seen": 1793535338.1496086,
-    "ast_hash": "21a17101b6076a76bed3b8ba3b1c2410",
-    "semantic_hash": ""
-  },
-  "wallpapers/astronaut-spaceship-digital-art-00-4k-wallpaper-uhdpaper.com-248@5@i.jpg": {
-    "mtime": 1790277159.2135653,
-    "seen": 1793535338.1496086,
-    "ast_hash": "7be1336013f6771a43576042d726eada",
-    "semantic_hash": ""
-  },
-  "wallpapers/autumn-leaves-nature-scenery-8k-wallpaper-uhdpaper.com-542@2@a.jpg": {
-    "mtime": 1790276736.7630453,
-    "seen": 1793535338.1496086,
-    "ast_hash": "ebf7df2634b5d7ce432b4dba39cf8ea8",
-    "semantic_hash": ""
-  },
-  "wallpapers/beautiful-mountain-nature-colorful-scenery-minimalist-uhdpaper.com-4K-4.3057.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "380c704616956ad3e6b73ba717c12c52",
-    "semantic_hash": ""
-  },
-  "wallpapers/bird-branch-animal-4k-wallpaper-uhdpaper.com-745@3@a.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "d1daac7b40d1a5ac802a8648877a6d5e",
-    "semantic_hash": ""
-  },
-  "wallpapers/black-cat-animal-digital-art-4k-wallpaper-uhdpaper.com-80@5@h.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "452571e5e0b46edaf4d49102558b48bd",
-    "semantic_hash": ""
-  },
-  "wallpapers/black-cat-digital-art-4k-wallpaper-uhdpaper.com-940@5@m.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "0853205e4f8d9d9d591bbed073e83a93",
-    "semantic_hash": ""
-  },
-  "wallpapers/black-cat-minimalist-digital-art-4k-wallpaper-uhdpaper.com-101@5@h.jpg": {
-    "mtime": 1790277050.1783352,
-    "seen": 1793535338.1496086,
-    "ast_hash": "dc357cf64a72c65cbb6070b0af0364b8",
-    "semantic_hash": ""
-  },
-  "wallpapers/blue-birds-animals-4k-wallpaper-uhdpaper.com-724@2@b.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "83511b38c690cf7d41ca9cd8076c5839",
-    "semantic_hash": ""
-  },
-  "wallpapers/car-night-street-digital-art-4k-wallpaper-uhdpaper.com-16@0@j.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "7821f0aa27d76bd84ca77f980787d2bd",
-    "semantic_hash": ""
-  },
-  "wallpapers/cave-icicle-sunrise-scenery-4k-wallpaper-uhdpaper.com-187@5@s.jpg": {
-    "mtime": 1790277237.4543912,
-    "seen": 1793535338.1496086,
-    "ast_hash": "ea62ae13771ca3a05ce523df252a5c8e",
-    "semantic_hash": ""
-  },
-  "wallpapers/city-skyline-buildings-scenery-4k-wallpaper-uhdpaper.com-874@5@m.jpg": {
-    "mtime": 1790276887.3392918,
-    "seen": 1793535338.1496086,
-    "ast_hash": "8d0236d34a34d37dac373e1de4429e7a",
-    "semantic_hash": ""
-  },
-  "wallpapers/coffee-love-design-digital-art-4k-wallpaper-uhdpaper.com-139@5@g.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "bf01925437b10f3957aafbedb738d8fd",
-    "semantic_hash": ""
-  },
-  "wallpapers/comet-watching-couple-night-scenery-digital-art-4k-wallpaper-uhdpaper.com-295@5@j.jpg": {
-    "mtime": 1790276956.5246582,
-    "seen": 1793535338.1496086,
-    "ast_hash": "efb1bb4f94630389fa728896231ceccb",
-    "semantic_hash": ""
-  },
-  "wallpapers/cyberpunk-2077-car-4k-wallpaper-uhdpaper.com-800@5@l.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "fcc2ad90cef3b715a46d9df1dbda2b84",
-    "semantic_hash": ""
-  },
-  "wallpapers/cyberpunk-girl-playing-guitar-with-cat-4k-wallpaper-uhdpaper.com-81@0@h.jpg": {
-    "mtime": 1790276343.2128665,
-    "seen": 1793535338.1496086,
-    "ast_hash": "6b7dd4b3352f8cdb38c396a104fdc3ba",
-    "semantic_hash": ""
-  },
-  "wallpapers/deer-silhouette-mountain-forest-nature-minimalist-digital-art-4k-wallpaper-uhdpaper.com-701@1@k.jpg": {
-    "mtime": 1790276763.4965286,
-    "seen": 1793535338.1496086,
-    "ast_hash": "02a0fc87a5a0eb6cb441b400dc0779b2",
-    "semantic_hash": ""
-  },
-  "wallpapers/denji-chainsaw-man-minimalist-4k-wallpaper-uhdpaper.com-82@5@i.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "347031725444099dc144ab957c1a9c13",
-    "semantic_hash": ""
-  },
-  "wallpapers/desert-alone-scenery-4k-wallpaper-uhdpaper.com-875@5@m.jpg": {
-    "mtime": 1790276706.115239,
-    "seen": 1793535338.1496086,
-    "ast_hash": "92b5194fa19d3ca9c3c728bb3b77b920",
-    "semantic_hash": ""
-  },
-  "wallpapers/desert-mountain-scenery-4k-wallpaper-uhdpaper.com-876@5@m.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "c7ba578712c9d5c2d5c53d173e4ec95d",
-    "semantic_hash": ""
-  },
-  "wallpapers/desert-night-moon-scenery-digital-art-4k-wallpaper-uhdpaper.com-445@5@c.jpg": {
-    "mtime": 1750746032.0054004,
-    "seen": 1793535338.1496086,
-    "ast_hash": "adc61ff46abe9413e5e103fb4f9a13f3",
-    "semantic_hash": ""
-  },
-  "wallpapers/diablo-4-hell-4k-wallpaper-uhdpaper.com-87@1@k.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "d56218412737cc4c91adb0c924c19b2f",
-    "semantic_hash": ""
-  },
-  "wallpapers/eagle-flying-forest-fog-4k-wallpaper-uhdpaper.com-162@2@a.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "00e2482a6b9efef06a3791eea34cf5f3",
-    "semantic_hash": ""
-  },
-  "wallpapers/ethereum-background-4k-wallpaper-uhdpaper.com-918@0@f.jpg": {
-    "mtime": 1751382921.8164124,
-    "seen": 1793535338.1496086,
-    "ast_hash": "9148e1972ff1f5445d672121988c7620",
-    "semantic_hash": ""
-  },
-  "wallpapers/f1-24-racing-game-4k-wallpaper-uhdpaper.com-758@0@j.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "a09c40a83ad3893ae3d8bf48f67ec77d",
-    "semantic_hash": ""
-  },
-  "wallpapers/f1-24-racing-video-game-4k-wallpaper-uhdpaper.com-754@0@j.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "b100d821950367a71ff9d0473f3a82a2",
-    "semantic_hash": ""
-  },
-  "wallpapers/f1-movie-4k-wallpaper-uhdpaper.com-588@5@g.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "daa4534479607ea95e66c3201dae59ed",
-    "semantic_hash": ""
-  },
-  "wallpapers/f1-sports-car-racing-4k-wallpaper-uhdpaper.com-93@5@h.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "38c35054b4b8b0590de75b1e012840f5",
-    "semantic_hash": ""
-  },
-  "wallpapers/fighter-aircraft-flying-sky-clouds-digital-art-4k-wallpaper-uhdpaper.com-247@0@k.jpg": {
-    "mtime": 1790277685.3467095,
-    "seen": 1793535338.1496086,
-    "ast_hash": "e9c2529d84dcdb58bd42c4a11503e2e0",
-    "semantic_hash": ""
-  },
-  "wallpapers/fighter-jet-flying-clouds-sky-digital-art-4k-wallpaper-uhdpaper.com-259@0@k.jpg": {
-    "mtime": 1790277703.5165422,
-    "seen": 1793535338.1496086,
-    "ast_hash": "9bb5c9246358d1332d1c4d04b5a8b3b2",
-    "semantic_hash": ""
-  },
-  "wallpapers/flower-field-tulips-sunrise-windmill-nature-scenery-4k-wallpaper-uhdpaper.com-285@5@i.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "f0e4cdbb81765a6bdae783ea7aff2046",
-    "semantic_hash": ""
-  },
-  "wallpapers/flower-sunset-scenery-4k-wallpaper-uhdpaper.com-943@5@m.jpg": {
-    "mtime": 1790277268.4693987,
-    "seen": 1793535338.1496086,
-    "ast_hash": "1f51b8171085340c29e2e826de1bb107",
-    "semantic_hash": ""
-  },
-  "wallpapers/forest-aerial-view-nature-scenery-4k-wallpaper-uhdpaper.com-816@0@g.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "9de611423308bedba8c30669708eb74b",
-    "semantic_hash": ""
-  },
-  "wallpapers/forest-lake-nature-cloudy-sky-scenery-4k-wallpaper-uhdpaper.com-185@5@s.jpg": {
-    "mtime": 1790276716.7904177,
-    "seen": 1793535338.1496086,
-    "ast_hash": "510572b7fc517b03a4dbd378daab3d3a",
-    "semantic_hash": ""
-  },
-  "wallpapers/forza-horizon-6-car-race-4k-wallpaper-uhdpaper.com-177@5@p.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "0ccb1df581e165361c784c4866ad446a",
-    "semantic_hash": ""
-  },
-  "wallpapers/forza-horizon-6-game-cars-4k-wallpaper-uhdpaper.com-175@5@p.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "13561bc294d45adcd4845373c4c7a57d",
-    "semantic_hash": ""
-  },
-  "wallpapers/forza-horizon-6-japan-road-4k-wallpaper-uhdpaper.com-169@5@p.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "262dada5c686203f45647458aed0cd00",
-    "semantic_hash": ""
-  },
-  "wallpapers/forza-horizon-6-japan-scenery-4k-wallpaper-uhdpaper.com-174@5@p.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "e3d843977634092d2d0d731fbfe67fae",
-    "semantic_hash": ""
-  },
-  "wallpapers/forza-horizon-6-nissan-sports-car-4k-wallpaper-uhdpaper.com-187@5@p.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "20eac7c02d73a539d9860e99912abd95",
-    "semantic_hash": ""
-  },
-  "wallpapers/forza-horizon-6-porsche-cherry-blossom-4k-wallpaper-uhdpaper.com-185@5@p.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "a5af4def5319ebcd39cc1bf0633ec10a",
-    "semantic_hash": ""
-  },
-  "wallpapers/forza-horizon-6-sports-car-4k-wallpaper-uhdpaper.com-184@5@p.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "91ff6a607db99b215c50a41fb785afdb",
-    "semantic_hash": ""
-  },
-  "wallpapers/frieren-anime-sunrise-scenery-4k-wallpaper-uhdpaper.com-759@5@r.jpg": {
-    "mtime": 1790276924.1386292,
-    "seen": 1793535338.1496086,
-    "ast_hash": "27cdf4058a3bfd990a9259ea97ec7d38",
-    "semantic_hash": ""
-  },
-  "wallpapers/geralt-the-witcher-minimalist-moon-night-uhdpaper.com-4K-8.300.jpg": {
-    "mtime": 1790277553.3372855,
-    "seen": 1793535338.1496086,
-    "ast_hash": "b823bd0fdb2369cdf85921d41c6bc0aa",
-    "semantic_hash": ""
-  },
-  "wallpapers/geralt-the-witcher-minimalist-uhdpaper.com-4K-6.2513.jpg": {
-    "mtime": 1790277583.8466146,
-    "seen": 1793535338.1496086,
-    "ast_hash": "c26075836aa60f33953445a694de9aea",
-    "semantic_hash": ""
-  },
-  "wallpapers/ghost-of-yotei-game-flower-scenery-4k-wallpaper-uhdpaper.com-560@5@i.jpg": {
-    "mtime": 1790276826.0493608,
-    "seen": 1793535338.1496086,
-    "ast_hash": "087c7c17c5b7c7cde75d1a3f531813d4",
-    "semantic_hash": ""
-  },
-  "wallpapers/ghost-of-yotei-mountain-scenery-4k-wallpaper-uhdpaper.com-556@5@i.jpg": {
-    "mtime": 1790276814.7803452,
-    "seen": 1793535338.1496086,
-    "ast_hash": "c60265ff87af351d039d1e4222edabf5",
-    "semantic_hash": ""
-  },
-  "wallpapers/glacier-mountain-scenery-4k-wallpaper-uhdpaper.com-233@5@b.jpg": {
-    "mtime": 1751383642.7174985,
-    "seen": 1793535338.1496086,
-    "ast_hash": "cf8943066f360532248692131d7ce9ed",
-    "semantic_hash": ""
-  },
-  "wallpapers/golden-gate-bridge-san-francisco-scenery-4k-wallpaper-uhdpaper.com-517@5@k.jpg": {
-    "mtime": 1790276608.7246125,
-    "seen": 1793535338.1496086,
-    "ast_hash": "c353da66fa760e77759247a08b1e96dc",
-    "semantic_hash": ""
-  },
-  "wallpapers/horse-sunset-flowers-animal-4k-wallpaper-uhdpaper.com-241@3@a.jpg": {
-    "mtime": 1790277302.4090059,
-    "seen": 1793535338.1496086,
-    "ast_hash": "ffb8e2aeccde460ad68137b3c1439242",
-    "semantic_hash": ""
-  },
-  "wallpapers/island-night-moon-scenery-digital-art-8k-wallpaper-uhdpaper.com-289@0@j.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "087bbf2b47c9827686fadf944b65afda",
-    "semantic_hash": ""
-  },
-  "wallpapers/japan-bridge-city-sunset-akashi-kaikyo-scenery-4k-wallpaper-uhdpaper.com-180@5@s.jpg": {
-    "mtime": 1790277215.8951502,
-    "seen": 1793535338.1496086,
-    "ast_hash": "bc7d4778e28af314141b91db7af35990",
-    "semantic_hash": ""
-  },
-  "wallpapers/jellyfish-digital-art-4k-wallpaper-uhdpaper.com-95@5@h.jpg": {
-    "mtime": 1790276445.7803965,
-    "seen": 1793535338.1496086,
-    "ast_hash": "238fde3ef16769e3fa9e9ae2110b3647",
-    "semantic_hash": ""
-  },
-  "wallpapers/jet-fighter-ace-combat-7-4k-wallpaper-uhdpaper.com-748@5@r.jpg": {
-    "mtime": 1790276362.0047224,
-    "seen": 1793535338.1496086,
-    "ast_hash": "46b09f49dfee5acce8ffe275d16c5584",
-    "semantic_hash": ""
-  },
-  "wallpapers/lake-fog-nature-scenery-4k-wallpaper-uhdpaper.com-878@5@m.jpg": {
-    "mtime": 1790276579.3159323,
-    "seen": 1793535338.1496086,
-    "ast_hash": "55d087d567bb09450fd9cc23c5888822",
-    "semantic_hash": ""
-  },
-  "wallpapers/lake-reflection-forest-nature-mountain-scenery-4k-wallpaper-uhdpaper.com-104@5@a.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "7d3f3b8ffac58c91c11bf3d21d7b1d99",
-    "semantic_hash": ""
-  },
-  "wallpapers/landscape-minimalist-nature-mountain-art-uhdpaper.com-4K-8.1381.jpg": {
-    "mtime": 1790276727.790868,
-    "seen": 1793535338.1496086,
-    "ast_hash": "6cb9c403de85213d4c0b93bfb7eecee0",
-    "semantic_hash": ""
-  },
-  "wallpapers/lion-minimalist-animal-4k-wallpaper-uhdpaper.com-599@5@f.jpg": {
-    "mtime": 1790277314.1663895,
-    "seen": 1793535338.1496086,
-    "ast_hash": "8dc00c38968e3f820cc11b6e6c706f72",
-    "semantic_hash": ""
-  },
-  "wallpapers/lofi-girl-cat-night-fireworks-4k-wallpaper-uhdpaper.com-504@5@f.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "79873df1ad01924df37f5a0c471ed57d",
-    "semantic_hash": ""
-  },
-  "wallpapers/london-bridge-clock-tower-scenery-4k-wallpaper-uhdpaper.com-182@5@s.jpg": {
-    "mtime": 1790276988.2170062,
-    "seen": 1793535338.1496086,
-    "ast_hash": "dad7c8c4e9886902519e189f094af60d",
-    "semantic_hash": ""
-  },
-  "wallpapers/men-mountain-backpack-silhouette-moon-minimalist-uhdpaper.com-4K-8.292.jpg": {
-    "mtime": 1790277570.0724192,
-    "seen": 1793535338.1496086,
-    "ast_hash": "0e9955ec91da2a8a27334cc1391bec94",
-    "semantic_hash": ""
-  },
-  "wallpapers/minimalist-background-morning-breeze-digital-art-4k-wallpaper-uhdpaper.com-192@0@e.jpg": {
-    "mtime": 1790277497.6605074,
-    "seen": 1793535338.1496086,
-    "ast_hash": "f6327fbaa03c474c3a1569c5a59b31cd",
-    "semantic_hash": ""
-  },
-  "wallpapers/minimalist-background-scenery-digital-art-4k-wallpaper-uhdpaper.com-196@0@e.jpg": {
-    "mtime": 1790277450.9473267,
-    "seen": 1793535338.1496086,
-    "ast_hash": "f4da9bdae415354b296949d75b01483d",
-    "semantic_hash": ""
-  },
-  "wallpapers/minimalist-background-twilight-breeze-digital-art-4k-wallpaper-uhdpaper.com-193@0@e.jpg": {
-    "mtime": 1790277474.2034857,
-    "seen": 1793535338.1496086,
-    "ast_hash": "4f4c6e149f39c9dda3c0b3bd2d62a87f",
-    "semantic_hash": ""
-  },
-  "wallpapers/minimalist-moon-night-river-landscape-scenery-uhdpaper.com-4K-8.270.jpg": {
-    "mtime": 1790277536.3601782,
-    "seen": 1793535338.1496086,
-    "ast_hash": "744ac24eb9db3e2bd85a17b002f4368c",
-    "semantic_hash": ""
-  },
-  "wallpapers/moon-ocean-girl-violin-boat-night-scenery-digital-art-4k-wallpaper-uhdpaper.com-196@5@k.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "7ae5044bc28823a0ab7feca2642bf3dd",
-    "semantic_hash": ""
-  },
-  "wallpapers/morning-scenery-minimalist-digital-art-4k-wallpaper-3840x2160-uhdpaper.com-614.0_b.jpg": {
-    "mtime": 1790277438.4832058,
-    "seen": 1793535338.1496086,
-    "ast_hash": "be67f1df292ddb7ca268c93aa5e99d34",
-    "semantic_hash": ""
-  },
-  "wallpapers/mount-fuji-hot-air-balloon-scenery-4k-wallpaper-uhdpaper.com-880@5@m.jpg": {
-    "mtime": 1790276618.258755,
-    "seen": 1793535338.1496086,
-    "ast_hash": "8755840656bd3687ed437b10547efd26",
-    "semantic_hash": ""
-  },
-  "wallpapers/mountain-clouds-scenery-nature-forest-4k-wallpaper-3840x2160-uhdpaper.com-433.0_b.jpg": {
-    "mtime": 1790276600.0443485,
-    "seen": 1793535338.1496086,
-    "ast_hash": "8319ea8c65a15a57c420e13cb58a9332",
-    "semantic_hash": ""
-  },
-  "wallpapers/mountain-forest-fog-hammock-scenery-4k-wallpaper-uhdpaper.com-122@5@q.jpg": {
-    "mtime": 1790276418.2664855,
-    "seen": 1793535338.1496086,
-    "ast_hash": "68f476a009b045d460e864ef23736370",
-    "semantic_hash": ""
-  },
-  "wallpapers/mountain-forest-scenery-digital-art-4k-wallpaper-uhdpaper.com-947@5@m.jpg": {
-    "mtime": 1790276638.1850665,
-    "seen": 1793535338.1496086,
-    "ast_hash": "e15b75d394be1525e7689c4333cc1d5f",
-    "semantic_hash": ""
-  },
-  "wallpapers/mountain-lake-reflection-nature-scenery-4k-wallpaper-uhdpaper.com-385@0@h.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "eabb487246e9b21b592af8e026383365",
-    "semantic_hash": ""
-  },
-  "wallpapers/mountain-lake-scenery-minimalist-digital-art-4k-wallpaper-uhdpaper.com-244@0@f.jpg": {
-    "mtime": 1790277421.4997482,
-    "seen": 1793535338.1496086,
-    "ast_hash": "783418ce1af552a06ff7c565b1904901",
-    "semantic_hash": ""
-  },
-  "wallpapers/mountain-landscape-minimalist-scenery-digital-art-4k-wallpaper-3840x2160-uhdpaper.com-633.0_b.jpg": {
-    "mtime": 1790277519.0911162,
-    "seen": 1793535338.1496086,
-    "ast_hash": "5d8b6efb5a0ac79d96f0d9121da2bcde",
-    "semantic_hash": ""
-  },
-  "wallpapers/mountain-landscape-scenery-digital-art-4k-wallpaper-uhdpaper.com-208@5@q.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "8fccf848af89eaa5d6d853d1a6f352a6",
-    "semantic_hash": ""
-  },
-  "wallpapers/mountain-night-aurora-borealis-digital-scenery-art-4k-wallpaper-uhdpaper.com-649@2@b.jpg": {
-    "mtime": 1750746183.4499092,
-    "seen": 1793535338.1496086,
-    "ast_hash": "0ab2e13c4198a46e783c243e89ddd5d4",
-    "semantic_hash": ""
-  },
-  "wallpapers/mountain-rock-forest-nature-scenery-4k-wallpaper-uhdpaper.com-134@0@i.jpg": {
-    "mtime": 1751383883.4850132,
-    "seen": 1793535338.1496086,
-    "ast_hash": "c1cf2bcabfc93dc0c618d5b18c70045a",
-    "semantic_hash": ""
-  },
-  "wallpapers/mountains-clouds-scenery-4k-wallpaper-uhdpaper.com-155@5@g.jpg": {
-    "mtime": 1750746021.6372094,
-    "seen": 1793535338.1496086,
-    "ast_hash": "996325b8509e2cdc9921cd888847dc03",
-    "semantic_hash": ""
-  },
-  "wallpapers/nature-minimalist-scenery-silhouette-uhdpaper.com-4K-8.307.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "35fe85967518abad668cc8e43dbc3bf8",
-    "semantic_hash": ""
-  },
-  "wallpapers/nature-rice-terraces-mountain-landscape-digital-art-uhdpaper.com-4K-6.1247.jpg": {
-    "mtime": 1750745911.3135662,
-    "seen": 1793535338.1496086,
-    "ast_hash": "c2645e11f6103ca589c686f4c26c3cc5",
-    "semantic_hash": ""
-  },
-  "wallpapers/night-city-moon-digital-art-minimalist-uhdpaper.com-4K-6.2506.jpg": {
-    "mtime": 1790277595.9660542,
-    "seen": 1793535338.1496086,
-    "ast_hash": "7e76883bbf774f4bbe2b9a5100bde3f1",
-    "semantic_hash": ""
-  },
-  "wallpapers/night-firewatch-scenery-forest-nature-4k-wallpaper-uhdpaper.com-418@5@d.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "a382d1ffdfc91f392c922eeec31e9755",
-    "semantic_hash": ""
-  },
-  "wallpapers/night-fireworks-coupe-digital-art-4k-wallpaper-uhdpaper.com-950@5@m.jpg": {
-    "mtime": 1790276668.780901,
-    "seen": 1793535338.1496086,
-    "ast_hash": "fbf1770899cb3ff645d703fa84c32f6a",
-    "semantic_hash": ""
-  },
-  "wallpapers/night-forest-mountain-digital-art-scenery-4k-wallpaper-uhdpaper.com-951@5@m.jpg": {
-    "mtime": 1790276662.4807415,
-    "seen": 1793535338.1496086,
-    "ast_hash": "d5adc34400a2851acccfecd3f1899206",
-    "semantic_hash": ""
-  },
-  "wallpapers/night-moon-castle-digital-art-4k-wallpaper-uhdpaper.com-952@5@m.jpg": {
-    "mtime": 1790277104.041241,
-    "seen": 1793535338.1496086,
-    "ast_hash": "c1a479f734a15d9004a88f669219c32c",
-    "semantic_hash": ""
-  },
-  "wallpapers/night-moon-reflection-scenery-digital-art-4k-wallpaper-uhdpaper.com-869@5@m.jpg": {
-    "mtime": 1790276408.6564941,
-    "seen": 1793535338.1496086,
-    "ast_hash": "d26fb20f2e8ff4db9d43edd12e54b966",
-    "semantic_hash": ""
-  },
-  "wallpapers/night-mountain-scenery-4k-wallpaper-uhdpaper.com-128@5@q.jpg": {
-    "mtime": 1790276803.8910944,
-    "seen": 1793535338.1496086,
-    "ast_hash": "684e4d00fd30fbd8148d5e0929728a95",
-    "semantic_hash": ""
-  },
-  "wallpapers/night-sky-stars-mountain-scenery-4k-wallpaper-uhdpaper.com-189@5@s.jpg": {
-    "mtime": 1790276401.0995612,
-    "seen": 1793535338.1496086,
-    "ast_hash": "28ddd0d1dc3b3e735d462516274a1ed6",
-    "semantic_hash": ""
-  },
-  "wallpapers/night-stars-mountain-scenery-4k-wallpaper-uhdpaper.com-277@5@d.jpg": {
-    "mtime": 1750746047.7531292,
-    "seen": 1793535338.1496086,
-    "ast_hash": "71fc066d775673d428c6a17936088614",
-    "semantic_hash": ""
-  },
-  "wallpapers/north-star-winter-mountain-scenery-4k-wallpaper-uhdpaper.com-107@5@k.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "de9074384a6995ec30fee81e6c70a4e0",
-    "semantic_hash": ""
-  },
-  "wallpapers/ocean-car-floating-full-moon-scenery-digital-art-4k-wallpaper-uhdpaper.com-664@0@j.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "49fcea32fea4f1a1b6c29926871d9e5f",
-    "semantic_hash": ""
-  },
-  "wallpapers/ocean-waves-beach-moon-night-scenery-digital-art-4k-wallpaper-uhdpaper.com-546@2@a.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "351416aad8f0f85ea1d3e4d7752a2ff8",
-    "semantic_hash": ""
-  },
-  "wallpapers/old-ship-sunset-ocean-digital-art-4k-wallpaper-uhdpaper.com-106@5@h.jpg": {
-    "mtime": 1790276544.2427213,
-    "seen": 1793535338.1496086,
-    "ast_hash": "5b7dd6368f1df5bf8f83a82f455b0c8a",
-    "semantic_hash": ""
-  },
-  "wallpapers/paris-sunset-scenery-4k-wallpaper-uhdpaper.com-178@5@s.jpg": {
-    "mtime": 1790277003.6245027,
-    "seen": 1793535338.1496086,
-    "ast_hash": "a4e7bbbb11fc7ceee31ffef4a08be2ef",
-    "semantic_hash": ""
-  },
-  "wallpapers/parrot-bird-flying-animal-4k-wallpaper-uhdpaper.com-159@5@g.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "228fb78dc300d7be9da0d0d8dd63928f",
-    "semantic_hash": ""
-  },
-  "wallpapers/pochita-chainsaw-man-4k-wallpaper-uhdpaper.com-364@5@q.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "9941a8e173970a8d10e7d4703997cb87",
-    "semantic_hash": ""
-  },
-  "wallpapers/rick-and-morty-minimalist-synthwave-8k-wallpaper-7680x4320-uhdpaper.com-454.0_b.jpg": {
-    "mtime": 1790277508.7125866,
-    "seen": 1793535338.1496086,
-    "ast_hash": "04c53efe8165143561b367e38d2fba0e",
-    "semantic_hash": ""
-  },
-  "wallpapers/rio-de-janeiro-city-jesus-christ-statue-scenery-4k-wallpaper-uhdpaper.com-192@5@s.jpg": {
-    "mtime": 1790276974.460912,
-    "seen": 1793535338.1496086,
-    "ast_hash": "0cac59ca5ef95635e6b5d7819b3b11a7",
-    "semantic_hash": ""
-  },
-  "wallpapers/rose-flower-close-up-nature-digital-art-4k-wallpaper-uhdpaper.com-417@5@d.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "dccc975e37a66509c52b3b312ccfb0df",
-    "semantic_hash": ""
-  },
-  "wallpapers/scary-house-halloween-night-moon-scenery-digital-art-4k-wallpaper-uhdpaper.com-849@1@m.jpg": {
-    "mtime": 1790277397.5826912,
-    "seen": 1793535338.1496086,
-    "ast_hash": "cc3c38ff57a862db2f00f78b8a3261a4",
-    "semantic_hash": ""
-  },
-  "wallpapers/sci-fi-star-citizen-aircraft-uhdpaper.com-4K-4.16.jpg": {
-    "mtime": 1750746080.8906403,
-    "seen": 1793535338.1496086,
-    "ast_hash": "6f43019af8502265252122a3927c1c08",
-    "semantic_hash": ""
-  },
-  "wallpapers/sea-nature-trees-sunset-scenery-uhdpaper.com-4K-6.956.jpg": {
-    "mtime": 1751383895.2406096,
-    "seen": 1793535338.1496086,
-    "ast_hash": "2e84c1eea738d00818c91fab89058042",
-    "semantic_hash": ""
-  },
-  "wallpapers/sea-of-clouds-nature-scenery-4k-wallpaper-uhdpaper.com-886@5@m.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "2289a467bf35cbed9a67398f39bf87e3",
-    "semantic_hash": ""
-  },
-  "wallpapers/sekiro-game-castle-scenery-4k-wallpaper-uhdpaper.com-621@5@n.jpg": {
-    "mtime": 1790276940.209508,
-    "seen": 1793535338.1496086,
-    "ast_hash": "5f6733725349c558273f8a9ced02705f",
-    "semantic_hash": ""
-  },
-  "wallpapers/skull-digital-art-4k-wallpaper-uhdpaper.com-271@5@i.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "66c92af63c3a4fd92b8ec93727df058e",
-    "semantic_hash": ""
-  },
-  "wallpapers/snowman-christmas-holiday-4k-wallpaper-uhdpaper.com-100@5@k.jpg": {
-    "mtime": 1790277387.6431406,
-    "seen": 1793535338.1496086,
-    "ast_hash": "8d361cd100a4b300ba28c960b948deed",
-    "semantic_hash": ""
-  },
-  "wallpapers/snowy-mountain-night-scenery-4k-wallpaper-uhdpaper.com-313@5@o.jpg": {
-    "mtime": 1790276691.469222,
-    "seen": 1793535338.1496086,
-    "ast_hash": "a535075742b2976f48b241c9c6b4e094",
-    "semantic_hash": ""
-  },
-  "wallpapers/soldiers-night-ops-digital-art-4k-wallpaper-uhdpaper.com-90@5@l.jpg": {
-    "mtime": 1790277488.0254562,
-    "seen": 1793535338.1496086,
-    "ast_hash": "2763a7b3361040e37dda5cd0c254d2a8",
-    "semantic_hash": ""
-  },
-  "wallpapers/spiderman-minimalist-4k-wallpaper-uhdpaper.com-109@5@h.jpg": {
-    "mtime": 1790277332.5203424,
-    "seen": 1793535338.1496086,
-    "ast_hash": "ff7d1f49a465104d0f1eb652fb6bb1e2",
-    "semantic_hash": ""
-  },
-  "wallpapers/starfield-shattered-space-8k-wallpaper-uhdpaper.com-171@2@b.jpg": {
-    "mtime": 1790276475.4534402,
-    "seen": 1793535338.1496086,
-    "ast_hash": "d460454f0643d8789bab2f56701fb12b",
-    "semantic_hash": ""
-  },
-  "wallpapers/starfield-spaceship-game-4k-wallpaper-uhdpaper.com-786@1@l.jpg": {
-    "mtime": 1790276486.2205913,
-    "seen": 1793535338.1496086,
-    "ast_hash": "b904f7eb7d03910e071f6eb366d8a554",
-    "semantic_hash": ""
-  },
-  "wallpapers/starry-sky-night-lake-nature-scenery-4k-wallpaper-uhdpaper.com-576@5@h.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "1166d9f0d58d9651e911e31706dc4790",
-    "semantic_hash": ""
-  },
-  "wallpapers/sunrise-grass-field-tree-scenery-4k-wallpaper-uhdpaper.com-284@5@d.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "98fea73077904fadbde82e58347f1a21",
-    "semantic_hash": ""
-  },
-  "wallpapers/sunrise-mountain-forest-scenery-4k-wallpaper-uhdpaper.com-312@5@o.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "e5eef893c4005316e4193295ec39474b",
-    "semantic_hash": ""
-  },
-  "wallpapers/sunrise-mountain-scenery-4k-wallpaper-uhdpaper.com-444@5@c.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "8a42357fb1c430cd83ebcd945e8eb5f2",
-    "semantic_hash": ""
-  },
-  "wallpapers/sunset-lake-boat-night-sky-scenery-digital-art-4k-wallpaper-uhdpaper.com-395@3@b.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "906eb9cde5ed702b7ca67a32cf3ecfc5",
-    "semantic_hash": ""
-  },
-  "wallpapers/sunset-night-scenery-digital-art-4k-wallpaper-uhdpaper.com-442@5@r.jpg": {
-    "mtime": 1790276682.5322516,
-    "seen": 1793535338.1496086,
-    "ast_hash": "11d9676e97873c4dc374545005f64671",
-    "semantic_hash": ""
-  },
-  "wallpapers/sunset-river-scenery-digital-art-4k-wallpaper-uhdpaper.com-960@5@m.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "978998bc77d13e85dc0c18a98467be75",
-    "semantic_hash": ""
-  },
-  "wallpapers/sunset-scenery-digital-art-4k-wallpaper-uhdpaper.com-888@5@l.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "839bcf73d26c80089f55c8e338bce155",
-    "semantic_hash": ""
-  },
-  "wallpapers/sunset-sports-car-road-palm-trees-digital-art-4k-wallpaper-uhdpaper.com-226@0@k.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "7627532b738cb5a99ac50b93613ebf67",
-    "semantic_hash": ""
-  },
-  "wallpapers/sunset-tree-mountain-peak-scenery-4k-wallpaper-uhdpaper.com-106@5@a.jpg": {
-    "mtime": 1750746195.456864,
-    "seen": 1793535338.1496086,
-    "ast_hash": "d2d0022382de99637adabe78191872b2",
-    "semantic_hash": ""
-  },
-  "wallpapers/t-rex-jurrasic-park-4k-wallpaper-uhdpaper.com-28@5@l.jpg": {
-    "mtime": 1790277114.795026,
-    "seen": 1793535338.1496086,
-    "ast_hash": "4e3541ef6978f140006de3f534d29111",
-    "semantic_hash": ""
-  },
-  "wallpapers/the-mandalorian-minimalist-uhdpaper.com-4K-7.2788.jpg": {
-    "mtime": 1790277609.8010492,
-    "seen": 1793535338.1496086,
-    "ast_hash": "aca93e5110806170fe7c022bc1430fac",
-    "semantic_hash": ""
-  },
-  "wallpapers/tree-landscape-scenery-digital-art-8k-wallpaper-uhdpaper.com-252@5@i.jpg": {
-    "mtime": 1790276568.0963056,
-    "seen": 1793535338.1496086,
-    "ast_hash": "69f5b57f8093a5ab93327c1393ca7327",
-    "semantic_hash": ""
-  },
-  "wallpapers/tree-mountain-sunset-nature-scenery-4k-wallpaper-uhdpaper.com-645@2@b.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "6b305678440f2270309030b8de0c53f6",
-    "semantic_hash": ""
-  },
-  "wallpapers/trees-grassfield-landscape-scenery-4k-wallpaper-uhdpaper.com-188@5@l.jpg": {
-    "mtime": 1790276872.673414,
-    "seen": 1793535338.1496086,
-    "ast_hash": "2843859c31c7bae0fb933ba80c7ab450",
-    "semantic_hash": ""
-  },
-  "wallpapers/volcanic-cloud-sunrise-scenery-digital-art-4k-wallpaper-uhdpaper.com-213@5@k.jpg": {
-    "mtime": 1790276966.6056566,
-    "seen": 1793535338.1496086,
-    "ast_hash": "f699cfc0ff057c5ca1ca9c0be4a2a2bb",
     "semantic_hash": ""
   },
   "wallpapers/wallhaven-5g3239.png": {
@@ -6934,12 +5998,6 @@
     "ast_hash": "ef1a89c46c8bd95045e4d4a11ac452ed",
     "semantic_hash": ""
   },
-  "wallpapers/wallhaven-k921md.jpg": {
-    "mtime": 1790372853.0174482,
-    "seen": 1793535338.1496086,
-    "ast_hash": "b6f3ab399d92a8b7a20ba1a1ef3357f8",
-    "semantic_hash": ""
-  },
   "wallpapers/wallhaven-m3kw28.jpg": {
     "mtime": 1790371651.449235,
     "seen": 1793535338.1496086,
@@ -6968,24 +6026,6 @@
     "mtime": 1790370292.3254106,
     "seen": 1793535338.1496086,
     "ast_hash": "8a51114ec59327846db4924c84463742",
-    "semantic_hash": ""
-  },
-  "wallpapers/windows-clear-blue-sky-landscape-grassfield-digital-art-8k-wallpaper-uhdpaper.com-111@5@l.jpg": {
-    "mtime": 1790276534.0021107,
-    "seen": 1793535338.1496086,
-    "ast_hash": "96c400a2dbc3a39c64d847c187cca8f1",
-    "semantic_hash": ""
-  },
-  "wallpapers/winter-night-digital-art-scenery-4k-wallpaper-uhdpaper.com-108@5@k.jpg": {
-    "mtime": 1790093935.0,
-    "seen": 1793535338.1496086,
-    "ast_hash": "c69ed085d603c8d66d5e00d2d44d9168",
-    "semantic_hash": ""
-  },
-  "wallpapers/winter-night-north-star-digital-art-scenery-4k-wallpaper-uhdpaper.com-111@5@k.jpg": {
-    "mtime": 1790276426.3252122,
-    "seen": 1793535338.1496086,
-    "ast_hash": "39e48549507aca672bea33324d5b8325",
     "semantic_hash": ""
   },
   "Services/UtilitiesService.cs": {
@@ -7060,12 +6100,6 @@
     "ast_hash": "e52a5a681c2dc14368f8a8bd25d8d6db",
     "semantic_hash": ""
   },
-  "MainWindow.Commands.cs": {
-    "mtime": 1793640922.2853427,
-    "seen": 1793641332.8896172,
-    "ast_hash": "03a9ecf2dfecd64ba619c73d52539d81",
-    "semantic_hash": ""
-  },
   "Services/CustomShortcut.cs": {
     "mtime": 1793640727.4791987,
     "seen": 1793641332.8916175,
@@ -7073,21 +6107,1491 @@
     "semantic_hash": ""
   },
   "Services/CustomShortcutService.cs": {
-    "mtime": 1793640759.1836896,
-    "seen": 1793641332.8916175,
-    "ast_hash": "c514b6fb7a02014212c9eeb305f69d06",
+    "mtime": 1794054743.005215,
+    "seen": 1794297725.6983838,
+    "ast_hash": "17b833be0b190d29c600ceb656493425",
     "semantic_hash": ""
   },
-  "Views/ArcCommandBarWindow.xaml": {
-    "mtime": 1793640968.5949268,
-    "seen": 1793641332.8951275,
-    "ast_hash": "b58163650e04bd4db5cc5e48f97a5919",
+  "Core/FingerprintExemptions.cs": {
+    "mtime": 1793827676.101923,
+    "seen": 1794297725.6038277,
+    "ast_hash": "a43d42fea7f8bfd4e437501a17dc65f2",
     "semantic_hash": ""
   },
-  "Views/ArcCommandBarWindow.xaml.cs": {
-    "mtime": 1793641047.0354836,
-    "seen": 1793641332.8951275,
-    "ast_hash": "daab9cb19a38c4148c509bb37a91576c",
+  "Core/FingerprintProfile.cs": {
+    "mtime": 1794162628.9168317,
+    "seen": 1794297725.6038277,
+    "ast_hash": "5ccb1a6e6c2ab81729f885816086d165",
+    "semantic_hash": ""
+  },
+  "Extensions/YouTube-Subtitle-Pro-Chrome-Web-Store/_locales/ar/messages.json": {
+    "mtime": 1794052080.3423338,
+    "seen": 1794297725.6672006,
+    "ast_hash": "4eb5ccf3816135fda27b8e532b938cc4",
+    "semantic_hash": ""
+  },
+  "Extensions/YouTube-Subtitle-Pro-Chrome-Web-Store/_locales/en/messages.json": {
+    "mtime": 1794052080.3483338,
+    "seen": 1794297725.6672006,
+    "ast_hash": "05003d7845302177958b3f2e80a16dae",
+    "semantic_hash": ""
+  },
+  "Extensions/YouTube-Subtitle-Pro-Chrome-Web-Store/_metadata/verified_contents.json": {
+    "mtime": 1794052080.415433,
+    "seen": 1794297725.6672006,
+    "ast_hash": "7bba19ff59c8ef519f3df31047f91836",
+    "semantic_hash": ""
+  },
+  "Extensions/YouTube-Subtitle-Pro-Chrome-Web-Store/background.js": {
+    "mtime": 1794052080.350838,
+    "seen": 1794297725.6672006,
+    "ast_hash": "a70fc4f846f2b83737b67c79bf3396e4",
+    "semantic_hash": ""
+  },
+  "Extensions/YouTube-Subtitle-Pro-Chrome-Web-Store/content.js": {
+    "mtime": 1794052080.3548417,
+    "seen": 1794297725.6672006,
+    "ast_hash": "fcfedd903bcf4ef72b193c8a2c31dd5f",
+    "semantic_hash": ""
+  },
+  "Extensions/YouTube-Subtitle-Pro-Chrome-Web-Store/i18n.js": {
+    "mtime": 1794052080.3755157,
+    "seen": 1794297725.6672006,
+    "ast_hash": "a43d95a87af517cb5205d042e8c7be43",
+    "semantic_hash": ""
+  },
+  "Extensions/YouTube-Subtitle-Pro-Chrome-Web-Store/manifest.json": {
+    "mtime": 1794052080.4000194,
+    "seen": 1794297725.6672006,
+    "ast_hash": "4be7b082524f60f996b62bdfb2fc1cb8",
+    "semantic_hash": ""
+  },
+  "Extensions/YouTube-Subtitle-Pro-Chrome-Web-Store/popup.js": {
+    "mtime": 1794052080.4054327,
+    "seen": 1794297725.6672006,
+    "ast_hash": "bafd35d0ccc7f3488f9ad4062cbe15c9",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/background_scripts/all_commands.js": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.6928864,
+    "ast_hash": "3bf13a498313f75b5ce2062e260f90ec",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/background_scripts/bg_utils.js": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.6928864,
+    "ast_hash": "c6d0385d7f7b7535559500a840fab52c",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/background_scripts/commands.js": {
+    "mtime": 1794292894.84487,
+    "seen": 1794297725.6928864,
+    "ast_hash": "96d0dae39d991d61a513ba70ae5387a7",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/background_scripts/completion/completers.js": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.6928864,
+    "ast_hash": "889e39f690eb3a4121cadffc8450c8bf",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/background_scripts/completion/ranking.js": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.6928864,
+    "ast_hash": "3301e71ddfb79add7e686a0e0bb5835a",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/background_scripts/completion/search_engines.js": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.6928864,
+    "ast_hash": "a389bc1cf4e01807b7df26bd25ebe343",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/background_scripts/completion/search_wrapper.js": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.6928864,
+    "ast_hash": "59e78a921a2ddd1bee445e45fa3b52a2",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/background_scripts/exclusions.js": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.6928864,
+    "ast_hash": "9bf92c0642ab4013bddd3fb509ca7d47",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/background_scripts/main.js": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.6928864,
+    "ast_hash": "007d047e7c94bcc8d3bc145ce4444fbd",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/background_scripts/marks.js": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.6928864,
+    "ast_hash": "b7bd69bc1465bac522967feba17a340c",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/background_scripts/tab_operations.js": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.6928864,
+    "ast_hash": "d2d8f7721668a5d2661be2336605af52",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/background_scripts/tab_recency.js": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.6928864,
+    "ast_hash": "5eacbb5d4f6fee11be80f81db3a3cacd",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/background_scripts/user_search_engines.js": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.6928864,
+    "ast_hash": "6580a8d5162892b969a83499a0a18bab",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/content_scripts/hud.js": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.6928864,
+    "ast_hash": "57702078ec0dcd6df6e2a2c8d828024b",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/content_scripts/link_hints.js": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.6928864,
+    "ast_hash": "c08a440f0f0a44255033501ec1366cdf",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/content_scripts/marks.js": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.6928864,
+    "ast_hash": "f793df8e482d4e97215fb1e716091816",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/content_scripts/mode.js": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.6928864,
+    "ast_hash": "7fc3d618f409592daeee23847efccb91",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/content_scripts/mode_find.js": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.6928864,
+    "ast_hash": "2a894ea7c11134b841e976e4d4242341",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/content_scripts/mode_insert.js": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.6928864,
+    "ast_hash": "979026383a6a0c46937c3ea8b755f5a3",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/content_scripts/mode_key_handler.js": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.6928864,
+    "ast_hash": "af27971d853f979dd07d297c1bc564a5",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/content_scripts/mode_normal.js": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.6928864,
+    "ast_hash": "ec035e461087c0c4bc3ae2e1c7e630d6",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/content_scripts/mode_visual.js": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.6928864,
+    "ast_hash": "084c828ddbb78d18ea0db8058043c7ce",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/content_scripts/scroller.js": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.6928864,
+    "ast_hash": "e0100dea8aa7c918500a1c4c6b25239f",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/content_scripts/ui_component.js": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.6928864,
+    "ast_hash": "61b21584112a56545990adf8ce1e6099",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/content_scripts/vimium_frontend.js": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.6928864,
+    "ast_hash": "37f97132ab348065266ca9801519c574",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/content_scripts/vomnibar.js": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.6928864,
+    "ast_hash": "44f7fdaa042138287c7c50c67e945bc6",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/lib/chrome_api_stubs.js": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.6928864,
+    "ast_hash": "ba558db05ccb042e0dd6e788131ec1b9",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/lib/dom_utils.js": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.6928864,
+    "ast_hash": "c3917f0d046f001c9dbfe22798f973e7",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/lib/find_mode_history.js": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.6928864,
+    "ast_hash": "b0d6cfe09ca208a53ad982859981acdc",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/lib/handler_stack.js": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.6928864,
+    "ast_hash": "4ca1abf76c2e2d30f52da018bb44ebff",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/lib/keyboard_utils.js": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.6928864,
+    "ast_hash": "49057a64e4b9d5af86c9e5ce5d159e76",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/lib/rect.js": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.6928864,
+    "ast_hash": "c2d48918e05de9d1bd629dfcf00fe759",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/lib/settings.js": {
+    "mtime": 1794292906.3215811,
+    "seen": 1794297725.6928864,
+    "ast_hash": "7a9f1fad55944708d00e3e909bac9a34",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/lib/types.js": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.6928864,
+    "ast_hash": "04e8c0a08e5611a77d68a494108b4268",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/lib/url_utils.js": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.6928864,
+    "ast_hash": "5dc1209dc44f5f1fd2eb82b244c6a092",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/lib/utils.js": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.6928864,
+    "ast_hash": "777175390c1de35b8f1d83aa00c54e9a",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/manifest.json": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.6928864,
+    "ast_hash": "f9e13e8fc81ee67e8de9e8217dada5dc",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/pages/action.js": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.6928864,
+    "ast_hash": "5fdba9c2e1c891d85777d6b0f7620966",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/pages/all_content_scripts.js": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.6928864,
+    "ast_hash": "4b3404be546cf3fe801bb9ad30d9179b",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/pages/command_listing.js": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.6928864,
+    "ast_hash": "1c09b70b854a88397d8e76ba1e8b0607",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/pages/doc_search_completion.js": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.6928864,
+    "ast_hash": "eb041e1c57129a6d9cc6baf4ed2c22c5",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/pages/exclusion_rules_editor.js": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.6928864,
+    "ast_hash": "64cb81d2e3fae5586e126f1f3c609eb2",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/pages/help_dialog_page.js": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.6928864,
+    "ast_hash": "49cf218b027827b2c21c0fdfb4884505",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/pages/hud_page.js": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.6928864,
+    "ast_hash": "c79a50df863614a88e961964289aa714",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/pages/options.js": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.6928864,
+    "ast_hash": "cb229ab20515a5d08ec1b8f4b32a0e42",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/pages/ui_component_messenger.js": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.6928864,
+    "ast_hash": "ff6fcbdaec43781d58c356a7748429ad",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/pages/vomnibar_page.js": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.6928864,
+    "ast_hash": "106d9817ef74c4dc80dbd15dabda1fa8",
+    "semantic_hash": ""
+  },
+  "MainWindow.Glass.cs": {
+    "mtime": 1794177389.18352,
+    "seen": 1794297725.6928864,
+    "ast_hash": "fc673a2756ef60104dcd4acb58d670d3",
+    "semantic_hash": ""
+  },
+  "MainWindow.SplitView.cs": {
+    "mtime": 1794158507.8759367,
+    "seen": 1794297725.6928864,
+    "ast_hash": "61dbc4b1bff9f4d454b55b5183150936",
+    "semantic_hash": ""
+  },
+  "MainWindow.UrlOverlay.cs": {
+    "mtime": 1794314588.4468963,
+    "seen": 1794315115.8220913,
+    "ast_hash": "4093ba999bc0cc7c33937d8534632fc0",
+    "semantic_hash": ""
+  },
+  "Services/CommandBarGlass.cs": {
+    "mtime": 1794291817.3674543,
+    "seen": 1794297725.6983838,
+    "ast_hash": "9a17e0879050e55eded2ab16f86c36c3",
+    "semantic_hash": ""
+  },
+  "Services/ImageActionService.cs": {
+    "mtime": 1794313115.2756977,
+    "seen": 1794313771.8651402,
+    "ast_hash": "37cf0b8122014f6f9938d224b685c2c2",
+    "semantic_hash": ""
+  },
+  "Services/MainWindow.Commands.cs": {
+    "mtime": 1794053692.4230528,
+    "seen": 1794297725.6983838,
+    "ast_hash": "5478fc8783cb9f662489720819808608",
+    "semantic_hash": ""
+  },
+  "Services/MediaLibrary.cs": {
+    "mtime": 1793985206.8280733,
+    "seen": 1794297725.6983838,
+    "ast_hash": "765b6c45519b955686ef5a7272755210",
+    "semantic_hash": ""
+  },
+  "Services/MediaSelectionSync.cs": {
+    "mtime": 1794001636.0497048,
+    "seen": 1794297725.6983838,
+    "ast_hash": "0f63a65934df5bb45db32f3a69ab2c4a",
+    "semantic_hash": ""
+  },
+  "Services/NativeGlassFallbackService.cs": {
+    "mtime": 1794177585.260704,
+    "seen": 1794297725.6983838,
+    "ast_hash": "3873a113082f73102be36d8f35b9bd53",
+    "semantic_hash": ""
+  },
+  "Services/SplitLayoutCatalog.cs": {
+    "mtime": 1794124098.478585,
+    "seen": 1794297725.7031379,
+    "ast_hash": "e3418ddc665bc546c91689f1fa41ac1b",
+    "semantic_hash": ""
+  },
+  "Services/StartupVideoLibraryService.cs": {
+    "mtime": 1793985201.9686844,
+    "seen": 1794297725.7031379,
+    "ast_hash": "05248fc8c61b2f866616774ed55a74c0",
+    "semantic_hash": ""
+  },
+  "Services/StartupVideoResolver.cs": {
+    "mtime": 1794039848.3012874,
+    "seen": 1794297725.7031379,
+    "ast_hash": "7ad5475d11ba9a47f98ab200fe6da92e",
+    "semantic_hash": ""
+  },
+  "Services/WallpaperLibraryService.cs": {
+    "mtime": 1793985206.8356748,
+    "seen": 1794297725.7042153,
+    "ast_hash": "1f49c1ec0944cdde4f441c82724e075e",
+    "semantic_hash": ""
+  },
+  "Services/WallpaperResolver.cs": {
+    "mtime": 1794003497.0983677,
+    "seen": 1794297725.7042153,
+    "ast_hash": "385e44ce73b16894c9625c8813056e51",
+    "semantic_hash": ""
+  },
+  "Views/CommandBarWindow.Blur.cs": {
+    "mtime": 1794177390.5095596,
+    "seen": 1794297725.7084734,
+    "ast_hash": "db6ad7889bfcad45aa2bd07a8c30b730",
+    "semantic_hash": ""
+  },
+  "Views/CommandBarWindow.xaml": {
+    "mtime": 1794154107.4668067,
+    "seen": 1794297725.7084734,
+    "ast_hash": "b27e48a5924e9d58fdaca8a565f2deac",
+    "semantic_hash": ""
+  },
+  "Views/CommandBarWindow.xaml.cs": {
+    "mtime": 1794293194.0629623,
+    "seen": 1794297725.7084734,
+    "ast_hash": "a291e1c18ce400f71ab2c9ce074ce2f7",
+    "semantic_hash": ""
+  },
+  "Views/FeedbackWindow.Context.cs": {
+    "mtime": 1793790377.627118,
+    "seen": 1794297725.70883,
+    "ast_hash": "6159f2ecb4b07a82ae13ac17542ba878",
+    "semantic_hash": ""
+  },
+  "Views/FeedbackWindow.cs": {
+    "mtime": 1793790301.1689923,
+    "seen": 1794297725.70883,
+    "ast_hash": "0921365cdc72f57fcd44cfbd8fe8d58a",
+    "semantic_hash": ""
+  },
+  "Views/MediaManagerWindow.DragDrop.cs": {
+    "mtime": 1794041241.280299,
+    "seen": 1794297725.70883,
+    "ast_hash": "6331e56925dbd5ec82c7c5b47777bacc",
+    "semantic_hash": ""
+  },
+  "Views/MediaManagerWindow.xaml": {
+    "mtime": 1794039881.1348495,
+    "seen": 1794297725.70883,
+    "ast_hash": "49d5fdeda7efd01a6e7cbcaa5390eb55",
+    "semantic_hash": ""
+  },
+  "Views/MediaManagerWindow.xaml.cs": {
+    "mtime": 1794039891.5866954,
+    "seen": 1794297725.70883,
+    "ast_hash": "7f5d4bd67bd992037b62e69ed21a1364",
+    "semantic_hash": ""
+  },
+  "Views/TabSwitcherWindow.Grid.cs": {
+    "mtime": 1794177392.2085311,
+    "seen": 1794297725.70883,
+    "ast_hash": "ae6b2860530e19aeec6d3a08bce13401",
+    "semantic_hash": ""
+  },
+  "Views/UpdatePromptDialog.xaml": {
+    "mtime": 1793697701.3729644,
+    "seen": 1794297725.70883,
+    "ast_hash": "77401eb29530e305d18cae23e3cc38d0",
+    "semantic_hash": ""
+  },
+  "Views/UpdatePromptDialog.xaml.cs": {
+    "mtime": 1793697715.6264539,
+    "seen": 1794297725.70883,
+    "ast_hash": "b515c746ad45fc4954e7c0b410f9bd73",
+    "semantic_hash": ""
+  },
+  "test_fixtures/sample_memory.ps1": {
+    "mtime": 1793908616.566944,
+    "seen": 1794297725.70883,
+    "ast_hash": "ad2aa4608f86696153d286f8d93ed88a",
+    "semantic_hash": ""
+  },
+  ".agents/gotchas.md": {
+    "mtime": 1794176663.8995054,
+    "seen": 1794297725.70883,
+    "ast_hash": "df68a5472f22285511e85954dd3236cd",
+    "semantic_hash": ""
+  },
+  "Extensions/YouTube-Subtitle-Pro-Chrome-Web-Store/fonts/ibm-plex-sans-arabic/license.txt": {
+    "mtime": 1794052080.3735158,
+    "seen": 1794297725.728443,
+    "ast_hash": "b5ee9b6babb1b6fa3ee8ed1c9f120990",
+    "semantic_hash": ""
+  },
+  "Extensions/YouTube-Subtitle-Pro-Chrome-Web-Store/popup.html": {
+    "mtime": 1794052080.4034326,
+    "seen": 1794297725.728443,
+    "ast_hash": "fde9185f4c32f58c9db048f2e3fc1517",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/pages/action.html": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.7501094,
+    "ast_hash": "95c1e3fa5b8c407271cbaadf137a4688",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/pages/command_listing.html": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.7501094,
+    "ast_hash": "5b2bb53a9cb09cd68759422b2623a3e7",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/pages/doc_search_completion.html": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.7501094,
+    "ast_hash": "9a9e78d569de947491addf111484125b",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/pages/help_dialog_page.html": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.7501094,
+    "ast_hash": "184a9dc606651da754809e1bc797c0cc",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/pages/hud_page.html": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.7501094,
+    "ast_hash": "536b9df1121f82fce4ec060c539a310a",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/pages/options.html": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.7501094,
+    "ast_hash": "5c64f72e1c6e576126a1d2b8fce9d66b",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/pages/vomnibar_page.html": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.7501094,
+    "ast_hash": "30d94f715d6d9dbae9f1decc8c68af97",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/resources/tlds.txt": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.7501094,
+    "ast_hash": "9905442d8d941131689f9b20079ca47b",
+    "semantic_hash": ""
+  },
+  "docs/CommandBar_Plan.md": {
+    "mtime": 1794154162.7377636,
+    "seen": 1794297725.7526941,
+    "ast_hash": "e6326507465e87af5199425270d8bb07",
+    "semantic_hash": ""
+  },
+  "docs/HORIZON_SPLITVIEW_HANDOFF.md": {
+    "mtime": 1794057725.511596,
+    "seen": 1794297725.7562878,
+    "ast_hash": "564cdd1e497c423df943e48990e432db",
+    "semantic_hash": ""
+  },
+  "Extensions/YouTube-Subtitle-Pro-Chrome-Web-Store/icons/extractly-mark.png": {
+    "mtime": 1794052080.380516,
+    "seen": 1794297725.8010828,
+    "ast_hash": "03e749a9e6bf3b77a2ab0c569c17e4a4",
+    "semantic_hash": ""
+  },
+  "Extensions/YouTube-Subtitle-Pro-Chrome-Web-Store/icons/icon.svg": {
+    "mtime": 1794052080.3840177,
+    "seen": 1794297725.8010828,
+    "ast_hash": "4994afc61dc1c46affbc7041f5274043",
+    "semantic_hash": ""
+  },
+  "Extensions/YouTube-Subtitle-Pro-Chrome-Web-Store/icons/icon128.png": {
+    "mtime": 1794052080.388019,
+    "seen": 1794297725.8010828,
+    "ast_hash": "d1a0e106a26947d9c2d098998b952680",
+    "semantic_hash": ""
+  },
+  "Extensions/YouTube-Subtitle-Pro-Chrome-Web-Store/icons/icon16.png": {
+    "mtime": 1794052080.3910193,
+    "seen": 1794297725.8010828,
+    "ast_hash": "a40f964debdeba12e532a67caca901ee",
+    "semantic_hash": ""
+  },
+  "Extensions/YouTube-Subtitle-Pro-Chrome-Web-Store/icons/icon48.png": {
+    "mtime": 1794052080.3930192,
+    "seen": 1794297725.8010828,
+    "ast_hash": "c9176242d59277dce6dada3c4f3e517e",
+    "semantic_hash": ""
+  },
+  "Extensions/YouTube-Subtitle-Pro-Chrome-Web-Store/icons/icon512.png": {
+    "mtime": 1794052080.3960192,
+    "seen": 1794297725.8010828,
+    "ast_hash": "1f16a5afbafb63f4109a01259e326c7f",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/icons/action_disabled.svg": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.8136842,
+    "ast_hash": "ed572753d6ce86518d67f8f40b31caad",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/icons/action_disabled_16.png": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.8136842,
+    "ast_hash": "d08f8ce674685d7e6181459e98ffb809",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/icons/action_disabled_32.png": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.8136842,
+    "ast_hash": "2f6aa943f6c36836e781b18551a1d107",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/icons/action_enabled.svg": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.8136842,
+    "ast_hash": "0e36325fb4389e2a24c37912236a2696",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/icons/action_enabled_16.png": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.8136842,
+    "ast_hash": "666c47f55f59432b5a4072da04a0b88e",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/icons/action_enabled_32.png": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.8136842,
+    "ast_hash": "20e1c18d4b00a2afd36054433ceaa978",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/icons/action_partial.svg": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.8136842,
+    "ast_hash": "048beb8f5a767f6063128b391c4c02f0",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/icons/action_partial_16.png": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.8136842,
+    "ast_hash": "34428b203147f89941531f28f7174ceb",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/icons/action_partial_32.png": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.8136842,
+    "ast_hash": "dd1f70251f2f6fefe0a250f353a58c45",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/icons/icon.svg": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.8136842,
+    "ast_hash": "696e23da38d02bcc5559ef8ee2aa96f2",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/icons/icon128.png": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.8136842,
+    "ast_hash": "d93e05c74d906d359176d7c40422cd51",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/icons/icon16.png": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.8136842,
+    "ast_hash": "e6aca481bd2408c086a5db353d4c36d2",
+    "semantic_hash": ""
+  },
+  "Extensions/dbepggeogbaibhgnhhndojpepiihcmeb/icons/icon48.png": {
+    "mtime": 1772875360.0,
+    "seen": 1794297725.8136842,
+    "ast_hash": "dfad6d910491a0a5f17255315c6dcb8d",
+    "semantic_hash": ""
+  },
+  "docs/screenshots/01-homepage-hero.png": {
+    "mtime": 1793788756.8980217,
+    "seen": 1794297725.8136842,
+    "ast_hash": "d780296fefb3002ebde38e20bab270a6",
+    "semantic_hash": ""
+  },
+  "docs/screenshots/02-widget-board.png": {
+    "mtime": 1793788758.118456,
+    "seen": 1794297725.8136842,
+    "ast_hash": "7d63cee905196421ebfa68b7751b681e",
+    "semantic_hash": ""
+  },
+  "docs/screenshots/03-favorites-bookmarks.png": {
+    "mtime": 1793788758.9081664,
+    "seen": 1794297725.8136842,
+    "ast_hash": "6a03ceaed0975acde15469150e321c85",
+    "semantic_hash": ""
+  },
+  "docs/screenshots/04-aegis-security-containers.png": {
+    "mtime": 1793788760.105105,
+    "seen": 1794297725.8136842,
+    "ast_hash": "42c94586c0505c44196cb2af3d8dcf76",
+    "semantic_hash": ""
+  },
+  "docs/screenshots/05-flux-sidebar.png": {
+    "mtime": 1793788761.5096297,
+    "seen": 1794297725.8136842,
+    "ast_hash": "9a8a318eb2af01077c0098bfc425d5aa",
+    "semantic_hash": ""
+  },
+  "docs/screenshots/06-active-browsing-dynamic-island.png": {
+    "mtime": 1793788761.874063,
+    "seen": 1794297725.8136842,
+    "ast_hash": "90e1d6512f027b8454546707f38f5fc8",
+    "semantic_hash": ""
+  },
+  "docs/screenshots/07-calendar-productivity.png": {
+    "mtime": 1793788763.3008053,
+    "seen": 1794297725.8136842,
+    "ast_hash": "c126c51817bdcccc3da8a06dde472633",
+    "semantic_hash": ""
+  },
+  "docs/screenshots/08-homepage-customizer.png": {
+    "mtime": 1793788764.628014,
+    "seen": 1794297725.8136842,
+    "ast_hash": "e86366652ec9409112f28114e66c79c8",
+    "semantic_hash": ""
+  },
+  "docs/screenshots/widget-converter.png": {
+    "mtime": 1793788769.3527596,
+    "seen": 1794297725.8136842,
+    "ast_hash": "aa42a94919cc19a359917314e652a738",
+    "semantic_hash": ""
+  },
+  "docs/screenshots/widget-notes.png": {
+    "mtime": 1793788769.3608778,
+    "seen": 1794297725.8136842,
+    "ast_hash": "9d244a4731faea601452f4949ff07934",
+    "semantic_hash": ""
+  },
+  "wallpapers/abstract-background-digital-art-4k-wallpaper.jpg": {
+    "mtime": 1793649908.7863388,
+    "seen": 1794297725.8327515,
+    "ast_hash": "1721314d0e5c1de5d4219421908cd228",
+    "semantic_hash": ""
+  },
+  "wallpapers/abstract-colorful-os-background-4k-wallpaper.jpg": {
+    "mtime": 1793649948.0927663,
+    "seen": 1794297725.8327515,
+    "ast_hash": "37a74fb7fa8ef08a992c0d62e72b717a",
+    "semantic_hash": ""
+  },
+  "wallpapers/alone-forest-mountain-top-scenery-4k-wallpaper.jpg": {
+    "mtime": 1790093935.0,
+    "seen": 1794297725.8327515,
+    "ast_hash": "42fbf9237d4bedca086019531465ffa7",
+    "semantic_hash": ""
+  },
+  "wallpapers/alone-guy-car-night-moon-sky-stars-scenery-digital-art-4k-wallpaper.jpg": {
+    "mtime": 1790093935.0,
+    "seen": 1794297725.8327515,
+    "ast_hash": "64d7710ee6ffd629b2cea30839fa21f1",
+    "semantic_hash": ""
+  },
+  "wallpapers/alone-night-city-sunrise-digital-art-4k-wallpaper.jpg": {
+    "mtime": 1790276436.7554395,
+    "seen": 1794297725.8327515,
+    "ast_hash": "4d3162cfd6acd43ddd79fa97fdb04059",
+    "semantic_hash": ""
+  },
+  "wallpapers/alone-night-space-planet-digital-art-4k-wallpaper.jpg": {
+    "mtime": 1790276456.3215816,
+    "seen": 1794297725.8327515,
+    "ast_hash": "cf3a956341bc3237480cf852a9350248",
+    "semantic_hash": ""
+  },
+  "wallpapers/alone-standing-purple-wave-digital-art-8k-wallpaper.jpg": {
+    "mtime": 1790093935.0,
+    "seen": 1794297725.8327515,
+    "ast_hash": "5c082d19c09752675b63e8959ed54021",
+    "semantic_hash": ""
+  },
+  "wallpapers/anime-girl-alone-night-silhoutte-4k-wallpaper.jpg": {
+    "mtime": 1793650566.4705493,
+    "seen": 1794297725.8327515,
+    "ast_hash": "09e16f69df33cadfc693e2825be4ac36",
+    "semantic_hash": ""
+  },
+  "wallpapers/anime-yokai-mask-katana-4k-wallpaper.jpg": {
+    "mtime": 1790093935.0,
+    "seen": 1794297725.8327515,
+    "ast_hash": "ca7275aa4e71d09095c6d21e112648e8",
+    "semantic_hash": ""
+  },
+  "wallpapers/astronaut-hanging-in-the-moon-4k-wallpaper.jpg": {
+    "mtime": 1790276389.0162952,
+    "seen": 1794297725.8327515,
+    "ast_hash": "21a17101b6076a76bed3b8ba3b1c2410",
+    "semantic_hash": ""
+  },
+  "wallpapers/astronaut-spaceship-digital-art-00-4k-wallpaper.jpg": {
+    "mtime": 1790277159.2135653,
+    "seen": 1794297725.8327515,
+    "ast_hash": "7be1336013f6771a43576042d726eada",
+    "semantic_hash": ""
+  },
+  "wallpapers/autumn-leaves-nature-scenery-8k-wallpaper.jpg": {
+    "mtime": 1790276736.7630453,
+    "seen": 1794297725.8327515,
+    "ast_hash": "ebf7df2634b5d7ce432b4dba39cf8ea8",
+    "semantic_hash": ""
+  },
+  "wallpapers/beautiful-mountain-nature-colorful-scenery-minimalist.jpg": {
+    "mtime": 1790093935.0,
+    "seen": 1794297725.8327515,
+    "ast_hash": "380c704616956ad3e6b73ba717c12c52",
+    "semantic_hash": ""
+  },
+  "wallpapers/bird-branch-animal-4k-wallpaper.jpg": {
+    "mtime": 1790093935.0,
+    "seen": 1794297725.8327515,
+    "ast_hash": "d1daac7b40d1a5ac802a8648877a6d5e",
+    "semantic_hash": ""
+  },
+  "wallpapers/black-cat-animal-digital-art-4k-wallpaper.jpg": {
+    "mtime": 1790093935.0,
+    "seen": 1794297725.8327515,
+    "ast_hash": "452571e5e0b46edaf4d49102558b48bd",
+    "semantic_hash": ""
+  },
+  "wallpapers/black-cat-cute-digital-art-4k-wallpaper.jpg": {
+    "mtime": 1793649704.6874883,
+    "seen": 1794297725.8327515,
+    "ast_hash": "ce4105bf7cf48838597379fdcd21e385",
+    "semantic_hash": ""
+  },
+  "wallpapers/black-cat-digital-art-4k-wallpaper.jpg": {
+    "mtime": 1790093935.0,
+    "seen": 1794297725.8327515,
+    "ast_hash": "0853205e4f8d9d9d591bbed073e83a93",
+    "semantic_hash": ""
+  },
+  "wallpapers/black-cat-minimalist-digital-art-4k-wallpaper.jpg": {
+    "mtime": 1790277050.1783352,
+    "seen": 1794297725.8327515,
+    "ast_hash": "dc357cf64a72c65cbb6070b0af0364b8",
+    "semantic_hash": ""
+  },
+  "wallpapers/blue-abstract-background-digital-art-4k-wallpaper.jpg": {
+    "mtime": 1793649997.121864,
+    "seen": 1794297725.8327515,
+    "ast_hash": "06ccd55f2ccd4f279cfe212bc9fe255a",
+    "semantic_hash": ""
+  },
+  "wallpapers/blue-birds-animals-4k-wallpaper.jpg": {
+    "mtime": 1790093935.0,
+    "seen": 1794297725.8327515,
+    "ast_hash": "83511b38c690cf7d41ca9cd8076c5839",
+    "semantic_hash": ""
+  },
+  "wallpapers/car-night-street-digital-art-4k-wallpaper.jpg": {
+    "mtime": 1790093935.0,
+    "seen": 1794297725.8327515,
+    "ast_hash": "7821f0aa27d76bd84ca77f980787d2bd",
+    "semantic_hash": ""
+  },
+  "wallpapers/cave-icicle-sunrise-scenery-4k-wallpaper.jpg": {
+    "mtime": 1790277237.4543912,
+    "seen": 1794297725.8327515,
+    "ast_hash": "ea62ae13771ca3a05ce523df252a5c8e",
+    "semantic_hash": ""
+  },
+  "wallpapers/christmas-snow-kitten-4k-wallpaper.jpg": {
+    "mtime": 1793649144.1402447,
+    "seen": 1794297725.8327515,
+    "ast_hash": "b82f18f7b82b85269abe421fbd24ec4c",
+    "semantic_hash": ""
+  },
+  "wallpapers/christmas-tree-dog-4k-wallpaper.jpg": {
+    "mtime": 1793649155.857756,
+    "seen": 1794297725.8327515,
+    "ast_hash": "ea85025d22804e5364dfeb6826df020f",
+    "semantic_hash": ""
+  },
+  "wallpapers/city-skyline-buildings-scenery-4k-wallpaper.jpg": {
+    "mtime": 1790276887.3392918,
+    "seen": 1794297725.8327515,
+    "ast_hash": "8d0236d34a34d37dac373e1de4429e7a",
+    "semantic_hash": ""
+  },
+  "wallpapers/coffee-love-design-digital-art-4k-wallpaper.jpg": {
+    "mtime": 1790093935.0,
+    "seen": 1794297725.8327515,
+    "ast_hash": "bf01925437b10f3957aafbedb738d8fd",
+    "semantic_hash": ""
+  },
+  "wallpapers/comet-watching-couple-night-scenery-digital-art-4k-wallpaper.jpg": {
+    "mtime": 1790276956.5246582,
+    "seen": 1794297725.8327515,
+    "ast_hash": "efb1bb4f94630389fa728896231ceccb",
+    "semantic_hash": ""
+  },
+  "wallpapers/cyberpunk-girl-playing-guitar-with-cat-4k-wallpaper.jpg": {
+    "mtime": 1790276343.2128665,
+    "seen": 1794297725.8327515,
+    "ast_hash": "6b7dd4b3352f8cdb38c396a104fdc3ba",
+    "semantic_hash": ""
+  },
+  "wallpapers/deer-silhouette-mountain-forest-nature-minimalist-digital-art-4k-wallpaper.jpg": {
+    "mtime": 1790276763.4965286,
+    "seen": 1794297725.8327515,
+    "ast_hash": "02a0fc87a5a0eb6cb441b400dc0779b2",
+    "semantic_hash": ""
+  },
+  "wallpapers/deer-sunlight-forest-animal-4k-wallpaper.jpg": {
+    "mtime": 1793649723.190112,
+    "seen": 1794297725.8327515,
+    "ast_hash": "e428bdf8a4a36100113456c445d0e8b2",
+    "semantic_hash": ""
+  },
+  "wallpapers/desert-alone-scenery-4k-wallpaper.jpg": {
+    "mtime": 1790276706.115239,
+    "seen": 1794297725.8327515,
+    "ast_hash": "92b5194fa19d3ca9c3c728bb3b77b920",
+    "semantic_hash": ""
+  },
+  "wallpapers/desert-mountain-scenery-4k-wallpaper.jpg": {
+    "mtime": 1790093935.0,
+    "seen": 1794297725.8327515,
+    "ast_hash": "c7ba578712c9d5c2d5c53d173e4ec95d",
+    "semantic_hash": ""
+  },
+  "wallpapers/desert-night-moon-scenery-digital-art-4k-wallpaper.jpg": {
+    "mtime": 1750746032.0054004,
+    "seen": 1794297725.8327515,
+    "ast_hash": "adc61ff46abe9413e5e103fb4f9a13f3",
+    "semantic_hash": ""
+  },
+  "wallpapers/eagle-flying-forest-fog-4k-wallpaper.jpg": {
+    "mtime": 1790093935.0,
+    "seen": 1794297725.8327515,
+    "ast_hash": "00e2482a6b9efef06a3791eea34cf5f3",
+    "semantic_hash": ""
+  },
+  "wallpapers/fantasy-girl-playing-violin-digital-art--4k-wallpaper.jpg": {
+    "mtime": 1793649244.8265698,
+    "seen": 1794297725.8327515,
+    "ast_hash": "d361c7f9de7e998eccd52d711293c2a9",
+    "semantic_hash": ""
+  },
+  "wallpapers/fighter-aircraft-flying-sky-clouds-digital-art-4k-wallpaper.jpg": {
+    "mtime": 1790277685.3467095,
+    "seen": 1794297725.8327515,
+    "ast_hash": "e9c2529d84dcdb58bd42c4a11503e2e0",
+    "semantic_hash": ""
+  },
+  "wallpapers/fighter-jet-flying-clouds-sky-digital-art-4k-wallpaper.jpg": {
+    "mtime": 1790277703.5165422,
+    "seen": 1794297725.8327515,
+    "ast_hash": "9bb5c9246358d1332d1c4d04b5a8b3b2",
+    "semantic_hash": ""
+  },
+  "wallpapers/flower-field-tulips-sunrise-windmill-nature-scenery-4k-wallpaper.jpg": {
+    "mtime": 1790093935.0,
+    "seen": 1794297725.8327515,
+    "ast_hash": "f0e4cdbb81765a6bdae783ea7aff2046",
+    "semantic_hash": ""
+  },
+  "wallpapers/flower-sunset-scenery-4k-wallpaper.jpg": {
+    "mtime": 1790277268.4693987,
+    "seen": 1794297725.8327515,
+    "ast_hash": "1f51b8171085340c29e2e826de1bb107",
+    "semantic_hash": ""
+  },
+  "wallpapers/forest-aerial-view-nature-scenery-4k-wallpaper.jpg": {
+    "mtime": 1790093935.0,
+    "seen": 1794297725.8327515,
+    "ast_hash": "9de611423308bedba8c30669708eb74b",
+    "semantic_hash": ""
+  },
+  "wallpapers/forest-lake-nature-cloudy-sky-scenery-4k-wallpaper.jpg": {
+    "mtime": 1790276716.7904177,
+    "seen": 1794297725.8327515,
+    "ast_hash": "510572b7fc517b03a4dbd378daab3d3a",
+    "semantic_hash": ""
+  },
+  "wallpapers/glacier-mountain-scenery-4k-wallpaper.jpg": {
+    "mtime": 1751383642.7174985,
+    "seen": 1794297725.8327515,
+    "ast_hash": "cf8943066f360532248692131d7ce9ed",
+    "semantic_hash": ""
+  },
+  "wallpapers/golden-gate-bridge-san-francisco-scenery-4k-wallpaper.jpg": {
+    "mtime": 1790276608.7246125,
+    "seen": 1794297725.8327515,
+    "ast_hash": "c353da66fa760e77759247a08b1e96dc",
+    "semantic_hash": ""
+  },
+  "wallpapers/halloween-pumpkin-ghost-forest-graveyard-4k-wallpaper.jpg": {
+    "mtime": 1793649132.3398275,
+    "seen": 1794297725.8327515,
+    "ast_hash": "817e453bde0f76e9f8c6a4621c743adb",
+    "semantic_hash": ""
+  },
+  "wallpapers/horse-sunset-flowers-animal-4k-wallpaper.jpg": {
+    "mtime": 1790277302.4090059,
+    "seen": 1794297725.8327515,
+    "ast_hash": "ffb8e2aeccde460ad68137b3c1439242",
+    "semantic_hash": ""
+  },
+  "wallpapers/hummingbird-bird-animal-4k-wallpaper.jpg": {
+    "mtime": 1793649754.7314389,
+    "seen": 1794297725.8327515,
+    "ast_hash": "705fed3c49dce9b6384dd0e69a2a0b0d",
+    "semantic_hash": ""
+  },
+  "wallpapers/island-night-moon-scenery-digital-art-8k-wallpaper.jpg": {
+    "mtime": 1790093935.0,
+    "seen": 1794297725.8327515,
+    "ast_hash": "087bbf2b47c9827686fadf944b65afda",
+    "semantic_hash": ""
+  },
+  "wallpapers/japan-bridge-city-sunset-akashi-kaikyo-scenery-4k-wallpaper.jpg": {
+    "mtime": 1790277215.8951502,
+    "seen": 1794297725.8327515,
+    "ast_hash": "bc7d4778e28af314141b91db7af35990",
+    "semantic_hash": ""
+  },
+  "wallpapers/jellyfish-animal-4k-wallpaper.jpg": {
+    "mtime": 1793649743.397109,
+    "seen": 1794297725.8327515,
+    "ast_hash": "4bf7ae0b8095c86dfe5f0363243782f9",
+    "semantic_hash": ""
+  },
+  "wallpapers/jellyfish-digital-art-4k-wallpaper.jpg": {
+    "mtime": 1790276445.7803965,
+    "seen": 1794297725.8327515,
+    "ast_hash": "238fde3ef16769e3fa9e9ae2110b3647",
+    "semantic_hash": ""
+  },
+  "wallpapers/lake-fog-nature-scenery-4k-wallpaper.jpg": {
+    "mtime": 1790276579.3159323,
+    "seen": 1794297725.8327515,
+    "ast_hash": "55d087d567bb09450fd9cc23c5888822",
+    "semantic_hash": ""
+  },
+  "wallpapers/lake-reflection-forest-nature-mountain-scenery-4k-wallpaper.jpg": {
+    "mtime": 1790093935.0,
+    "seen": 1794297725.8327515,
+    "ast_hash": "7d3f3b8ffac58c91c11bf3d21d7b1d99",
+    "semantic_hash": ""
+  },
+  "wallpapers/landscape-minimalist-nature-mountain-art.jpg": {
+    "mtime": 1790276727.790868,
+    "seen": 1794297725.8327515,
+    "ast_hash": "6cb9c403de85213d4c0b93bfb7eecee0",
+    "semantic_hash": ""
+  },
+  "wallpapers/lion-minimalist-animal-4k-wallpaper.jpg": {
+    "mtime": 1790277314.1663895,
+    "seen": 1794297725.8327515,
+    "ast_hash": "8dc00c38968e3f820cc11b6e6c706f72",
+    "semantic_hash": ""
+  },
+  "wallpapers/london-bridge-clock-tower-scenery-4k-wallpaper.jpg": {
+    "mtime": 1790276988.2170062,
+    "seen": 1794297725.8327515,
+    "ast_hash": "dad7c8c4e9886902519e189f094af60d",
+    "semantic_hash": ""
+  },
+  "wallpapers/men-mountain-backpack-silhouette-moon-minimalist.jpg": {
+    "mtime": 1790277570.0724192,
+    "seen": 1794297725.8327515,
+    "ast_hash": "0e9955ec91da2a8a27334cc1391bec94",
+    "semantic_hash": ""
+  },
+  "wallpapers/minimalist-background-morning-breeze-digital-art-4k-wallpaper.jpg": {
+    "mtime": 1790277497.6605074,
+    "seen": 1794297725.8327515,
+    "ast_hash": "f6327fbaa03c474c3a1569c5a59b31cd",
+    "semantic_hash": ""
+  },
+  "wallpapers/minimalist-background-scenery-digital-art-4k-wallpaper.jpg": {
+    "mtime": 1790277450.9473267,
+    "seen": 1794297725.8327515,
+    "ast_hash": "f4da9bdae415354b296949d75b01483d",
+    "semantic_hash": ""
+  },
+  "wallpapers/minimalist-background-twilight-breeze-digital-art-4k-wallpaper.jpg": {
+    "mtime": 1790277474.2034857,
+    "seen": 1794297725.8337514,
+    "ast_hash": "4f4c6e149f39c9dda3c0b3bd2d62a87f",
+    "semantic_hash": ""
+  },
+  "wallpapers/minimalist-moon-night-river-landscape-scenery.jpg": {
+    "mtime": 1790277536.3601782,
+    "seen": 1794297725.8337514,
+    "ast_hash": "744ac24eb9db3e2bd85a17b002f4368c",
+    "semantic_hash": ""
+  },
+  "wallpapers/moon-ocean-girl-violin-boat-night-scenery-digital-art-4k-wallpaper.jpg": {
+    "mtime": 1790093935.0,
+    "seen": 1794297725.8337514,
+    "ast_hash": "7ae5044bc28823a0ab7feca2642bf3dd",
+    "semantic_hash": ""
+  },
+  "wallpapers/morning-scenery-minimalist-digital-art-4k-wallpaper-3840x2160.jpg": {
+    "mtime": 1790277438.4832058,
+    "seen": 1794297725.8337514,
+    "ast_hash": "be67f1df292ddb7ca268c93aa5e99d34",
+    "semantic_hash": ""
+  },
+  "wallpapers/mount-fuji-hot-air-balloon-scenery-4k-wallpaper.jpg": {
+    "mtime": 1790276618.258755,
+    "seen": 1794297725.8337514,
+    "ast_hash": "8755840656bd3687ed437b10547efd26",
+    "semantic_hash": ""
+  },
+  "wallpapers/mountain-clouds-scenery-nature-forest-4k-wallpaper-3840x2160.jpg": {
+    "mtime": 1790276600.0443485,
+    "seen": 1794297725.8337514,
+    "ast_hash": "8319ea8c65a15a57c420e13cb58a9332",
+    "semantic_hash": ""
+  },
+  "wallpapers/mountain-forest-fog-hammock-scenery-4k-wallpaper.jpg": {
+    "mtime": 1790276418.2664855,
+    "seen": 1794297725.8337514,
+    "ast_hash": "68f476a009b045d460e864ef23736370",
+    "semantic_hash": ""
+  },
+  "wallpapers/mountain-forest-scenery-digital-art-4k-wallpaper.jpg": {
+    "mtime": 1790276638.1850665,
+    "seen": 1794297725.8337514,
+    "ast_hash": "e15b75d394be1525e7689c4333cc1d5f",
+    "semantic_hash": ""
+  },
+  "wallpapers/mountain-lake-reflection-nature-scenery-4k-wallpaper.jpg": {
+    "mtime": 1790093935.0,
+    "seen": 1794297725.8337514,
+    "ast_hash": "eabb487246e9b21b592af8e026383365",
+    "semantic_hash": ""
+  },
+  "wallpapers/mountain-lake-scenery-minimalist-digital-art-4k-wallpaper.jpg": {
+    "mtime": 1790277421.4997482,
+    "seen": 1794297725.8337514,
+    "ast_hash": "783418ce1af552a06ff7c565b1904901",
+    "semantic_hash": ""
+  },
+  "wallpapers/mountain-landscape-minimalist-scenery-digital-art-4k-wallpaper-3840x2160.jpg": {
+    "mtime": 1790277519.0911162,
+    "seen": 1794297725.8337514,
+    "ast_hash": "5d8b6efb5a0ac79d96f0d9121da2bcde",
+    "semantic_hash": ""
+  },
+  "wallpapers/mountain-landscape-scenery-digital-art-4k-wallpaper.jpg": {
+    "mtime": 1790093935.0,
+    "seen": 1794297725.8337514,
+    "ast_hash": "8fccf848af89eaa5d6d853d1a6f352a6",
+    "semantic_hash": ""
+  },
+  "wallpapers/mountain-night-aurora-borealis-digital-scenery-art-4k-wallpaper.jpg": {
+    "mtime": 1750746183.4499092,
+    "seen": 1794297725.8337514,
+    "ast_hash": "0ab2e13c4198a46e783c243e89ddd5d4",
+    "semantic_hash": ""
+  },
+  "wallpapers/mountain-rock-forest-nature-scenery-4k-wallpaper.jpg": {
+    "mtime": 1751383883.4850132,
+    "seen": 1794297725.8337514,
+    "ast_hash": "c1cf2bcabfc93dc0c618d5b18c70045a",
+    "semantic_hash": ""
+  },
+  "wallpapers/mountains-clouds-scenery-4k-wallpaper.jpg": {
+    "mtime": 1750746021.6372094,
+    "seen": 1794297725.8337514,
+    "ast_hash": "996325b8509e2cdc9921cd888847dc03",
+    "semantic_hash": ""
+  },
+  "wallpapers/nature-minimalist-scenery-silhouette.jpg": {
+    "mtime": 1790093935.0,
+    "seen": 1794297725.8337514,
+    "ast_hash": "35fe85967518abad668cc8e43dbc3bf8",
+    "semantic_hash": ""
+  },
+  "wallpapers/nature-rice-terraces-mountain-landscape-digital-art.jpg": {
+    "mtime": 1750745911.3135662,
+    "seen": 1794297725.8337514,
+    "ast_hash": "c2645e11f6103ca589c686f4c26c3cc5",
+    "semantic_hash": ""
+  },
+  "wallpapers/night-city-moon-digital-art-minimalist.jpg": {
+    "mtime": 1790277595.9660542,
+    "seen": 1794297725.8337514,
+    "ast_hash": "7e76883bbf774f4bbe2b9a5100bde3f1",
+    "semantic_hash": ""
+  },
+  "wallpapers/night-firewatch-scenery-forest-nature-4k-wallpaper.jpg": {
+    "mtime": 1790093935.0,
+    "seen": 1794297725.8337514,
+    "ast_hash": "a382d1ffdfc91f392c922eeec31e9755",
+    "semantic_hash": ""
+  },
+  "wallpapers/night-fireworks-coupe-digital-art-4k-wallpaper.jpg": {
+    "mtime": 1790276668.780901,
+    "seen": 1794297725.8337514,
+    "ast_hash": "fbf1770899cb3ff645d703fa84c32f6a",
+    "semantic_hash": ""
+  },
+  "wallpapers/night-forest-mountain-digital-art-scenery-4k-wallpaper.jpg": {
+    "mtime": 1790276662.4807415,
+    "seen": 1794297725.8337514,
+    "ast_hash": "d5adc34400a2851acccfecd3f1899206",
+    "semantic_hash": ""
+  },
+  "wallpapers/night-full-moon-forest-scenery-digital-art-4k-wallpaper.jpg": {
+    "mtime": 1793649229.6810174,
+    "seen": 1794297725.8337514,
+    "ast_hash": "d078bd90d8b1b78c0fb13437b7b71bdd",
+    "semantic_hash": ""
+  },
+  "wallpapers/night-moon-castle-digital-art-4k-wallpaper.jpg": {
+    "mtime": 1790277104.041241,
+    "seen": 1794297725.8337514,
+    "ast_hash": "c1a479f734a15d9004a88f669219c32c",
+    "semantic_hash": ""
+  },
+  "wallpapers/night-moon-reflection-scenery-digital-art-4k-wallpaper.jpg": {
+    "mtime": 1790276408.6564941,
+    "seen": 1794297725.8337514,
+    "ast_hash": "d26fb20f2e8ff4db9d43edd12e54b966",
+    "semantic_hash": ""
+  },
+  "wallpapers/night-mountain-scenery-4k-wallpaper.jpg": {
+    "mtime": 1790276803.8910944,
+    "seen": 1794297725.8337514,
+    "ast_hash": "684e4d00fd30fbd8148d5e0929728a95",
+    "semantic_hash": ""
+  },
+  "wallpapers/night-sky-lantern-digital-art-4k-wallpaper.jpg": {
+    "mtime": 1793649687.6835644,
+    "seen": 1794297725.8337514,
+    "ast_hash": "7f7688c0c37e826784bd2643b3b14050",
+    "semantic_hash": ""
+  },
+  "wallpapers/night-sky-stars-mountain-scenery-4k-wallpaper.jpg": {
+    "mtime": 1790276401.0995612,
+    "seen": 1794297725.8337514,
+    "ast_hash": "28ddd0d1dc3b3e735d462516274a1ed6",
+    "semantic_hash": ""
+  },
+  "wallpapers/night-stars-mountain-scenery-4k-wallpaper.jpg": {
+    "mtime": 1750746047.7531292,
+    "seen": 1794297725.8337514,
+    "ast_hash": "71fc066d775673d428c6a17936088614",
+    "semantic_hash": ""
+  },
+  "wallpapers/north-star-winter-mountain-scenery-4k-wallpaper.jpg": {
+    "mtime": 1790093935.0,
+    "seen": 1794297725.8337514,
+    "ast_hash": "de9074384a6995ec30fee81e6c70a4e0",
+    "semantic_hash": ""
+  },
+  "wallpapers/ocean-car-floating-full-moon-scenery-digital-art-4k-wallpaper.jpg": {
+    "mtime": 1790093935.0,
+    "seen": 1794297725.8337514,
+    "ast_hash": "49fcea32fea4f1a1b6c29926871d9e5f",
+    "semantic_hash": ""
+  },
+  "wallpapers/ocean-waves-beach-moon-night-scenery-digital-art-4k-wallpaper.jpg": {
+    "mtime": 1790093935.0,
+    "seen": 1794297725.8337514,
+    "ast_hash": "351416aad8f0f85ea1d3e4d7752a2ff8",
+    "semantic_hash": ""
+  },
+  "wallpapers/old-ship-sunset-ocean-digital-art-4k-wallpaper.jpg": {
+    "mtime": 1790276544.2427213,
+    "seen": 1794297725.8337514,
+    "ast_hash": "5b7dd6368f1df5bf8f83a82f455b0c8a",
+    "semantic_hash": ""
+  },
+  "wallpapers/panda-4k-wallpaper.jpg": {
+    "mtime": 1793649731.776461,
+    "seen": 1794297725.8337514,
+    "ast_hash": "c0df0c741aa65ce79e0477347f624849",
+    "semantic_hash": ""
+  },
+  "wallpapers/paris-sunset-scenery-4k-wallpaper.jpg": {
+    "mtime": 1790277003.6245027,
+    "seen": 1794297725.8337514,
+    "ast_hash": "a4e7bbbb11fc7ceee31ffef4a08be2ef",
+    "semantic_hash": ""
+  },
+  "wallpapers/parrot-bird-flying-animal-4k-wallpaper.jpg": {
+    "mtime": 1790093935.0,
+    "seen": 1794297725.8337514,
+    "ast_hash": "228fb78dc300d7be9da0d0d8dd63928f",
+    "semantic_hash": ""
+  },
+  "wallpapers/rio-de-janeiro-city-jesus-christ-statue-scenery-4k-wallpaper.jpg": {
+    "mtime": 1790276974.460912,
+    "seen": 1794297725.8337514,
+    "ast_hash": "0cac59ca5ef95635e6b5d7819b3b11a7",
+    "semantic_hash": ""
+  },
+  "wallpapers/rose-flower-close-up-nature-digital-art-4k-wallpaper.jpg": {
+    "mtime": 1790093935.0,
+    "seen": 1794297725.8337514,
+    "ast_hash": "dccc975e37a66509c52b3b312ccfb0df",
+    "semantic_hash": ""
+  },
+  "wallpapers/scary-house-halloween-night-moon-scenery-digital-art-4k-wallpaper.jpg": {
+    "mtime": 1790277397.5826912,
+    "seen": 1794297725.8337514,
+    "ast_hash": "cc3c38ff57a862db2f00f78b8a3261a4",
+    "semantic_hash": ""
+  },
+  "wallpapers/sea-nature-trees-sunset-scenery.jpg": {
+    "mtime": 1751383895.2406096,
+    "seen": 1794297725.8337514,
+    "ast_hash": "2e84c1eea738d00818c91fab89058042",
+    "semantic_hash": ""
+  },
+  "wallpapers/sea-of-clouds-nature-scenery-4k-wallpaper.jpg": {
+    "mtime": 1790093935.0,
+    "seen": 1794297725.8337514,
+    "ast_hash": "2289a467bf35cbed9a67398f39bf87e3",
+    "semantic_hash": ""
+  },
+  "wallpapers/skull-digital-art-4k-wallpaper.jpg": {
+    "mtime": 1790093935.0,
+    "seen": 1794297725.8337514,
+    "ast_hash": "66c92af63c3a4fd92b8ec93727df058e",
+    "semantic_hash": ""
+  },
+  "wallpapers/snake-albino-reptile-4k-wallpaper.jpg": {
+    "mtime": 1793649714.2494364,
+    "seen": 1794297725.8337514,
+    "ast_hash": "4567438a1ced2c103e1b6b152c17f075",
+    "semantic_hash": ""
+  },
+  "wallpapers/snowman-christmas-holiday-4k-wallpaper.jpg": {
+    "mtime": 1790277387.6431406,
+    "seen": 1794297725.8337514,
+    "ast_hash": "8d361cd100a4b300ba28c960b948deed",
+    "semantic_hash": ""
+  },
+  "wallpapers/snowy-mountain-night-scenery-4k-wallpaper.jpg": {
+    "mtime": 1790276691.469222,
+    "seen": 1794297725.8337514,
+    "ast_hash": "a535075742b2976f48b241c9c6b4e094",
+    "semantic_hash": ""
+  },
+  "wallpapers/soldiers-night-ops-digital-art-4k-wallpaper.jpg": {
+    "mtime": 1790277488.0254562,
+    "seen": 1794297725.8337514,
+    "ast_hash": "2763a7b3361040e37dda5cd0c254d2a8",
+    "semantic_hash": ""
+  },
+  "wallpapers/starry-sky-night-lake-nature-scenery-4k-wallpaper.jpg": {
+    "mtime": 1790093935.0,
+    "seen": 1794297725.8337514,
+    "ast_hash": "1166d9f0d58d9651e911e31706dc4790",
+    "semantic_hash": ""
+  },
+  "wallpapers/sunrise-grass-field-tree-scenery-4k-wallpaper.jpg": {
+    "mtime": 1790093935.0,
+    "seen": 1794297725.8337514,
+    "ast_hash": "98fea73077904fadbde82e58347f1a21",
+    "semantic_hash": ""
+  },
+  "wallpapers/sunrise-mountain-forest-scenery-4k-wallpaper.jpg": {
+    "mtime": 1790093935.0,
+    "seen": 1794297725.8337514,
+    "ast_hash": "e5eef893c4005316e4193295ec39474b",
+    "semantic_hash": ""
+  },
+  "wallpapers/sunrise-mountain-scenery-4k-wallpaper.jpg": {
+    "mtime": 1790093935.0,
+    "seen": 1794297725.8337514,
+    "ast_hash": "8a42357fb1c430cd83ebcd945e8eb5f2",
+    "semantic_hash": ""
+  },
+  "wallpapers/sunset-lake-boat-night-sky-scenery-digital-art-4k-wallpaper.jpg": {
+    "mtime": 1790093935.0,
+    "seen": 1794297725.8337514,
+    "ast_hash": "906eb9cde5ed702b7ca67a32cf3ecfc5",
+    "semantic_hash": ""
+  },
+  "wallpapers/sunset-night-scenery-digital-art-4k-wallpaper.jpg": {
+    "mtime": 1790276682.5322516,
+    "seen": 1794297725.8337514,
+    "ast_hash": "11d9676e97873c4dc374545005f64671",
+    "semantic_hash": ""
+  },
+  "wallpapers/sunset-river-scenery-digital-art-4k-wallpaper.jpg": {
+    "mtime": 1790093935.0,
+    "seen": 1794297725.8337514,
+    "ast_hash": "978998bc77d13e85dc0c18a98467be75",
+    "semantic_hash": ""
+  },
+  "wallpapers/sunset-scenery-digital-art-4k-wallpaper.jpg": {
+    "mtime": 1790093935.0,
+    "seen": 1794297725.8337514,
+    "ast_hash": "839bcf73d26c80089f55c8e338bce155",
+    "semantic_hash": ""
+  },
+  "wallpapers/sunset-sports-car-road-palm-trees-digital-art-4k-wallpaper.jpg": {
+    "mtime": 1790093935.0,
+    "seen": 1794297725.8337514,
+    "ast_hash": "7627532b738cb5a99ac50b93613ebf67",
+    "semantic_hash": ""
+  },
+  "wallpapers/sunset-tree-mountain-peak-scenery-4k-wallpaper.jpg": {
+    "mtime": 1750746195.456864,
+    "seen": 1794297725.8337514,
+    "ast_hash": "d2d0022382de99637adabe78191872b2",
+    "semantic_hash": ""
+  },
+  "wallpapers/tree-landscape-scenery-digital-art-8k-wallpaper.jpg": {
+    "mtime": 1790276568.0963056,
+    "seen": 1794297725.8337514,
+    "ast_hash": "69f5b57f8093a5ab93327c1393ca7327",
+    "semantic_hash": ""
+  },
+  "wallpapers/tree-mountain-sunset-nature-scenery-4k-wallpaper.jpg": {
+    "mtime": 1790093935.0,
+    "seen": 1794297725.8337514,
+    "ast_hash": "6b305678440f2270309030b8de0c53f6",
+    "semantic_hash": ""
+  },
+  "wallpapers/trees-grassfield-landscape-scenery-4k-wallpaper.jpg": {
+    "mtime": 1790276872.673414,
+    "seen": 1794297725.8337514,
+    "ast_hash": "2843859c31c7bae0fb933ba80c7ab450",
+    "semantic_hash": ""
+  },
+  "wallpapers/volcanic-cloud-sunrise-scenery-digital-art-4k-wallpaper.jpg": {
+    "mtime": 1790276966.6056566,
+    "seen": 1794297725.8337514,
+    "ast_hash": "f699cfc0ff057c5ca1ca9c0be4a2a2bb",
+    "semantic_hash": ""
+  },
+  "wallpapers/winter-night-digital-art-scenery-4k-wallpaper.jpg": {
+    "mtime": 1790093935.0,
+    "seen": 1794297725.8357515,
+    "ast_hash": "c69ed085d603c8d66d5e00d2d44d9168",
+    "semantic_hash": ""
+  },
+  "wallpapers/winter-night-north-star-digital-art-scenery-4k-wallpaper.jpg": {
+    "mtime": 1790276426.3252122,
+    "seen": 1794297725.8357515,
+    "ast_hash": "39e48549507aca672bea33324d5b8325",
+    "semantic_hash": ""
+  },
+  "docs/ideas/gemini_generated_video_85d251d7.mp4": {
+    "mtime": 1793787120.1235301,
+    "seen": 1794297725.8372548,
+    "ast_hash": "c6b68394a1214b9cf797ec00dc2b4bad",
+    "semantic_hash": ""
+  },
+  "Services/KeyboardNavigationScript.cs": {
+    "mtime": 1794327422.3280673,
+    "seen": 1794327793.4432366,
+    "ast_hash": "c81bab5addbd11af1f2bb3c8b46de47b",
+    "semantic_hash": ""
+  },
+  "MainWindow.KeyboardNav.cs": {
+    "mtime": 1794327457.6292193,
+    "seen": 1794327793.4411337,
+    "ast_hash": "b9941dc4394a8514f074e9589305cdd0",
     "semantic_hash": ""
   }
 }

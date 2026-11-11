@@ -6,6 +6,9 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using System.Runtime.InteropServices;
+using System.Windows.Interop;
+using System.Windows.Media.Imaging;
 using Horizon.Stealth.Services;
 using Horizon.Stealth.ViewModels;
 
@@ -326,6 +329,7 @@ public partial class MainWindow : Window
     private void SplitMorphBegin()
     {
         SplitMorphAbort();
+        if (!SettingsService.Current.ShowSplitViewOverlay) return;
         var cr = SplitElementDeviceRect(ViewContainer);
         if (cr.IsEmpty) return;
         var snap = _splitAreaSnap != null && (DateTime.UtcNow - _splitAreaSnapAt).TotalSeconds < 20 ? _splitAreaSnap : SplitCaptureArea();
@@ -408,12 +412,12 @@ public partial class MainWindow : Window
             return;
         }
 
-        var dur = TimeSpan.FromMilliseconds(130);
+        var dur = TimeSpan.FromMilliseconds(45);
         var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
         if (_splitMorphTitle != null) _splitMorphTitle.Text = _splitLayout.Name ?? "";
         _splitMorphBlur?.BeginAnimation(System.Windows.Media.Effects.BlurEffect.RadiusProperty, new DoubleAnimation(0, 26, dur) { EasingFunction = ease });
         _splitMorphTint?.BeginAnimation(UIElement.OpacityProperty, new DoubleAnimation(0, 0.22, dur) { EasingFunction = ease });
-        _splitMorphTitle?.BeginAnimation(UIElement.OpacityProperty, new DoubleAnimation(0, 1, dur) { BeginTime = TimeSpan.FromMilliseconds(30), EasingFunction = ease });
+        _splitMorphTitle?.BeginAnimation(UIElement.OpacityProperty, new DoubleAnimation(0, 1, dur) { BeginTime = TimeSpan.FromMilliseconds(10), EasingFunction = ease });
 
         SplitMorphFinishWhenSettled(win);
     }
@@ -456,13 +460,13 @@ public partial class MainWindow : Window
         try
         {
             var total = System.Diagnostics.Stopwatch.StartNew();
-            await System.Threading.Tasks.Task.Delay(40);
+            await System.Threading.Tasks.Task.Delay(10);
 
             string sig = SplitPaneSignature();
             var stableSince = System.Diagnostics.Stopwatch.StartNew();
-            while (ReferenceEquals(_splitMorphWin, win) && total.ElapsedMilliseconds < 350)
+            while (ReferenceEquals(_splitMorphWin, win) && total.ElapsedMilliseconds < 50)
             {
-                await System.Threading.Tasks.Task.Delay(25);
+                await System.Threading.Tasks.Task.Delay(10);
                 var now = SplitPaneSignature();
                 if (!string.Equals(now, sig, StringComparison.Ordinal))
                 {
@@ -470,7 +474,7 @@ public partial class MainWindow : Window
                     stableSince.Restart();
                     continue;
                 }
-                if (stableSince.ElapsedMilliseconds >= 50) break;
+                if (stableSince.ElapsedMilliseconds >= 15) break;
             }
 
             if (!ReferenceEquals(_splitMorphWin, win)) return;
@@ -491,9 +495,9 @@ public partial class MainWindow : Window
             {
                 await System.Threading.Tasks.Task.WhenAny(
                     System.Threading.Tasks.Task.WhenAll(waits),
-                    System.Threading.Tasks.Task.Delay(180));
+                    System.Threading.Tasks.Task.Delay(35));
             }
-            await System.Threading.Tasks.Task.Delay(16);
+            await System.Threading.Tasks.Task.Delay(5);
         }
         catch (Exception ex)
         {
@@ -501,7 +505,7 @@ public partial class MainWindow : Window
         }
 
         if (!ReferenceEquals(_splitMorphWin, win)) return;
-        var fade = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(120));
+        var fade = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(35));
         fade.Completed += (_, _) =>
         {
             if (ReferenceEquals(_splitMorphWin, win))
@@ -1190,7 +1194,7 @@ public partial class MainWindow : Window
             }
         };
         flash.Show();
-        var fade = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(260)) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } };
+        var fade = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(70)) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } };
         fade.Completed += (_, _) =>
         {
             try
@@ -1224,7 +1228,54 @@ public partial class MainWindow : Window
         return new Rect(cur.X - w / 2, cur.Y - h / 2, w, h);
     }
 
-    private void SplitFlyCard(Rect fromDevice, Rect toDevice, string title)
+    [DllImport("user32.dll", EntryPoint = "GetDC")] private static extern IntPtr SplitGetDC(IntPtr hwnd);
+    [DllImport("user32.dll", EntryPoint = "ReleaseDC")] private static extern int SplitReleaseDC(IntPtr hwnd, IntPtr dc);
+    [DllImport("gdi32.dll", EntryPoint = "CreateCompatibleDC")] private static extern IntPtr SplitCreateCompatibleDC(IntPtr dc);
+    [DllImport("gdi32.dll", EntryPoint = "CreateCompatibleBitmap")] private static extern IntPtr SplitCreateCompatibleBitmap(IntPtr dc, int w, int h);
+    [DllImport("gdi32.dll", EntryPoint = "SelectObject")] private static extern IntPtr SplitSelectObject(IntPtr dc, IntPtr obj);
+    [DllImport("gdi32.dll", EntryPoint = "BitBlt")] private static extern bool SplitBitBlt(IntPtr dest, int x, int y, int w, int h, IntPtr src, int sx, int sy, uint rop);
+    [DllImport("gdi32.dll", EntryPoint = "DeleteObject")] private static extern bool SplitDeleteObject(IntPtr obj);
+    [DllImport("gdi32.dll", EntryPoint = "DeleteDC")] private static extern bool SplitDeleteDC(IntPtr dc);
+    private const uint SPLIT_SRCCOPY = 0x00CC0020;
+    private const uint SPLIT_CAPTUREBLT = 0x40000000;
+
+    private static BitmapSource? SplitCaptureScreen(int x, int y, int w, int h)
+    {
+        if (w <= 0 || h <= 0) return null;
+        IntPtr screen = IntPtr.Zero;
+        IntPtr mem = IntPtr.Zero;
+        IntPtr bmp = IntPtr.Zero;
+        IntPtr old = IntPtr.Zero;
+        try
+        {
+            screen = SplitGetDC(IntPtr.Zero);
+            if (screen == IntPtr.Zero) return null;
+            mem = SplitCreateCompatibleDC(screen);
+            if (mem == IntPtr.Zero) return null;
+            bmp = SplitCreateCompatibleBitmap(screen, w, h);
+            if (bmp == IntPtr.Zero) return null;
+            old = SplitSelectObject(mem, bmp);
+            if (!SplitBitBlt(mem, 0, 0, w, h, screen, x, y, SPLIT_SRCCOPY | SPLIT_CAPTUREBLT)) return null;
+            SplitSelectObject(mem, old);
+            old = IntPtr.Zero;
+            var source = System.Windows.Interop.Imaging.CreateBitmapSourceFromHBitmap(bmp, IntPtr.Zero, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
+            source.Freeze();
+            return source;
+        }
+        catch
+        {
+            return null;
+        }
+        finally
+        {
+            if (old != IntPtr.Zero && mem != IntPtr.Zero) SplitSelectObject(mem, old);
+            if (bmp != IntPtr.Zero) SplitDeleteObject(bmp);
+            if (mem != IntPtr.Zero) SplitDeleteDC(mem);
+            if (screen != IntPtr.Zero) SplitReleaseDC(IntPtr.Zero, screen);
+        }
+    }
+
+    private void SplitFlyCard(Rect fromDevice, Rect toDevice, string title, ImageSource? snapshot = null)
     {
         if (fromDevice.IsEmpty || toDevice.IsEmpty) return;
         var dpi = VisualTreeHelper.GetDpi(this);
@@ -1232,19 +1283,51 @@ public partial class MainWindow : Window
         var t = new Rect(toDevice.X / dpi.DpiScaleX, toDevice.Y / dpi.DpiScaleY, toDevice.Width / dpi.DpiScaleX, toDevice.Height / dpi.DpiScaleY);
 
         var accent = SplitBrush("Brush_Accent", Brushes.DodgerBlue);
-        var fill = accent.CloneCurrentValue();
-        fill.Opacity = 0.38;
-        var label = new TextBlock
+        UIElement contentChild;
+
+        if (snapshot != null)
         {
-            Text = title,
-            FontSize = 14,
-            FontWeight = FontWeights.SemiBold,
-            Foreground = SplitBrush("Brush_Text", Brushes.White),
-            TextTrimming = TextTrimming.CharacterEllipsis,
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center,
-            Margin = new Thickness(10, 0, 10, 0)
-        };
+            var grid = new Grid();
+            grid.Children.Add(new System.Windows.Controls.Image
+            {
+                Source = snapshot,
+                Stretch = Stretch.Fill
+            });
+            grid.Children.Add(new Border
+            {
+                Background = new SolidColorBrush(Color.FromArgb(0x18, 0, 0, 0)),
+                BorderBrush = accent,
+                BorderThickness = new Thickness(2),
+                CornerRadius = new CornerRadius(8)
+            });
+            contentChild = grid;
+        }
+        else
+        {
+            var fill = accent.CloneCurrentValue();
+            fill.Opacity = 0.38;
+            var label = new TextBlock
+            {
+                Text = title,
+                FontSize = 14,
+                FontWeight = FontWeights.SemiBold,
+                Foreground = SplitBrush("Brush_Text", Brushes.White),
+                TextTrimming = TextTrimming.CharacterEllipsis,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(10, 0, 10, 0)
+            };
+            contentChild = new Border
+            {
+                Background = fill,
+                BorderBrush = accent,
+                BorderThickness = new Thickness(3),
+                CornerRadius = new CornerRadius(10),
+                IsHitTestVisible = false,
+                Child = label
+            };
+        }
+
         var card = new Window
         {
             Style = null,
@@ -1264,23 +1347,21 @@ public partial class MainWindow : Window
             Height = f.Height,
             Content = new Border
             {
-                Background = fill,
-                BorderBrush = accent,
-                BorderThickness = new Thickness(3),
-                CornerRadius = new CornerRadius(10),
-                IsHitTestVisible = false,
-                Child = label
+                CornerRadius = new CornerRadius(8),
+                ClipToBounds = true,
+                Child = contentChild
             }
         };
         card.Show();
 
-        var dur = TimeSpan.FromMilliseconds(210);
+        var dur = TimeSpan.FromMilliseconds(85);
         var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
         card.BeginAnimation(Window.LeftProperty, new DoubleAnimation(f.X, t.X, dur) { EasingFunction = ease });
         card.BeginAnimation(Window.TopProperty, new DoubleAnimation(f.Y, t.Y, dur) { EasingFunction = ease });
         card.BeginAnimation(FrameworkElement.WidthProperty, new DoubleAnimation(f.Width, t.Width, dur) { EasingFunction = ease });
         card.BeginAnimation(FrameworkElement.HeightProperty, new DoubleAnimation(f.Height, t.Height, dur) { EasingFunction = ease });
-        var fade = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(140)) { BeginTime = TimeSpan.FromMilliseconds(150) };
+        // Snap the card out immediately upon reaching destination without artificial lag
+        var fade = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(35)) { BeginTime = TimeSpan.FromMilliseconds(85) };
         fade.Completed += (_, _) =>
         {
             try
@@ -1423,6 +1504,14 @@ public partial class MainWindow : Window
 
         var occupant = _splitSlots[slot];
         string occTitle = occupant?.Title ?? "";
+
+        BitmapSource? shotFrom = null;
+        BitmapSource? shotTo = null;
+        if (!rFrom.IsEmpty && rFrom.Width > 10 && rFrom.Height > 10)
+            shotFrom = SplitCaptureScreen((int)rFrom.X, (int)rFrom.Y, (int)rFrom.Width, (int)rFrom.Height);
+        if (!rTo.IsEmpty && rTo.Width > 10 && rTo.Height > 10)
+            shotTo = SplitCaptureScreen((int)rTo.X, (int)rTo.Y, (int)rTo.Width, (int)rTo.Height);
+
         if (from >= 0)
         {
             _splitSlots[slot] = tab;
@@ -1436,10 +1525,10 @@ public partial class MainWindow : Window
         }
         SplitRefreshSlots();
         SplitScheduleIndicator();
-        SplitFlyCard(rFrom, rTo, title);
+        SplitFlyCard(rFrom, rTo, title, shotFrom);
         if (from >= 0)
         {
-            if (occupant != null) SplitFlyCard(rTo, rFrom, occTitle);
+            if (occupant != null) SplitFlyCard(rTo, rFrom, occTitle, shotTo);
             SplitScheduleFlash(slot, from);
         }
         else

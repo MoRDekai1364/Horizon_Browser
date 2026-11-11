@@ -3,7 +3,7 @@
 ; Non-commercial use only
 
 #define MyAppName "Horizon_Browser"
-#define MyAppVersion "2.7.9"
+#define MyAppVersion "2.8.0"
 #define MyAppPublisher "Swordmaster_Studios Inc."
 #define MyAppURL "https://github.com/MoRDekai1364/Horizon_Browser"
 #define MyAppExeName "Horizon.Browser.exe"
@@ -22,7 +22,7 @@ AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
-VersionInfoVersion=2.7.9.0
+VersionInfoVersion=2.8.0.0
 VersionInfoCompany={#MyAppPublisher}
 VersionInfoProductName={#MyAppName}
 VersionInfoProductVersion={#MyAppVersion}

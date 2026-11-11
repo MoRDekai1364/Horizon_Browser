@@ -21,6 +21,14 @@
   ```
 
 ## 3. Engineered Workarounds & Gotchas
+- **Extension Header Widget Stack Mode Integration**:
+  - *Symptom*: Extensions pinned via "Pin to Header Stack" were added as small static buttons outside the widget border rather than becoming an actual cyclable widget mode.
+  - *Cause*: A separate button container (PnlPinnedHeaderStackExtensions) was placed next to the widget buttons, and SettingsService.Current.PinnedHeaderStackExtensionIds only populated static toolbar buttons.
+  - *Resolution*: Eliminated PnlPinnedHeaderStackExtensions. "Pin to Header Stack" toggles Ext:<ExtensionId> in SettingsService.Current.WidgetModes. When active, HeaderWidgetBorder renders the extension icon (18x18 WidgetExtIcon) and truncated name (WidgetTruncate), left-click triggers RightSidebar_RequestExtensionPopup(this, ext), and SyncWidgetCheckboxes includes extension modes dynamically in the reorderable checklist (LstWidgetOrder). Legacy IDs in PinnedHeaderStackExtensionIds are automatically migrated to WidgetModes on startup.
+- **Windows Restart Manager Uninstaller Shutdown Immunity**:
+  - *Symptom*: Browser disappears (crashes/closes) when uninstalling an external program via Windows Settings (`ms-settings:appsfeatures`) or an installer/uninstaller wizard.
+  - *Cause*: When an installer/uninstaller runs, Windows Restart Manager broadcasts `WM_QUERYENDSESSION` with `lParam` containing `ENDSESSION_CLOSEAPP` (`0x00000001`). WPF's default window proc returns `TRUE` (1) and initiates application shutdown via `Application.Current.SessionEnding`.
+  - *Resolution*: Intercept `WM_QUERYENDSESSION` and `WM_ENDSESSION` in `TaskbarWndProc`. When `(lParam & ENDSESSION_CLOSEAPP) != 0`, return `IntPtr.Zero` (FALSE) and set `handled = true`, explicitly notifying Windows Restart Manager that Horizon Browser cannot be shut down by external installers. Allow only genuine system shutdown/logoff.
 - **WPF StaticResource Scope Across Nested UserControls**:
   - *Symptom*: Browser fails to launch with dialog `"Could not launch Browser. Provide value on 'System.Windows.StaticResourceExtension' threw an exception."`
   - *Cause*: A control (e.g., `FluxSidebar.xaml`) referenced `{StaticResource PillComboBoxStyle}` which was defined locally in `Views/HomePageView.xaml.Resources`. Since `FluxSidebar` is hosted by `MainWindow.xaml` and not a child of `HomePageView`, the XAML parser cannot locate the resource in its visual or logical ancestor tree.
@@ -346,3 +354,108 @@ ewTab.PropertyChanged automatically schedules reflows when titles or badges upda
   - *Symptom*: Typing or pasting a long word in the homepage search bar (`TxtHomeSearch`) permanently froze the entire browser (`Not Responding` / infinite UI thread hang).
   - *Cause*: `SearchBoxBorder` is auto-sized (`Width="NaN"`, `HorizontalAlignment="Center"`) around `TxtHomeSearch` (`TextWrapping="Wrap"`, `MaxWidth="740"`). `WidgetSyncGuard.RegisterTextBoxFit` hooked `SearchBoxBorder.SizeChanged` and computed `FontSize` from `SearchBoxBorder.ActualWidth`. When a word reached the wrap boundary, wrapping the $N$-th character to Line 2 left $N-1$ characters on Line 1, reducing `SearchBoxBorder.ActualWidth` by one character's width. `SizeChanged` fired synchronously inside `ContextLayoutManager.UpdateLayout()` (`fireSizeChangedEvents()`), lowering `FontSize`, which unwrapped the $N$-th character back to Line 1, growing `ActualWidth` and raising `FontSize` again in an unbounded `while (hasDirtiness)` 2-cycle.
   - *Resolution*: Computed the width budget in `RegisterTextBoxFit` and `RegisterTextFit` from stable layout constraints (`textBox.MaxWidth` and `container.MaxWidth` minus sibling/margin reserves) whenever `container` is auto-sized, ignored self-induced `SizeChanged` events where the external width budget has not changed, quantized `OptimalFontSize` to `0.5pt` steps (`>= 0.4pt` threshold), and enforced monotonic non-increasing font scaling while typing under a constant width budget.
+- **Internal `edge://` and `chrome://` URL Bar Navigation & Remote Debugging Bridge (`Controls/Omnibox.xaml.cs`, `Core/HorizonEnvironment.cs`)**:
+  - *Symptom*: Entering `edge://`, `chrome://`, `edge://flags`, `chrome://inspect`, etc. in the Omnibox, Homepage search bar, or `Ctrl+T` Command Bar sent the string to the web search engine instead of opening the internal Chromium/Edge page.
+  - *Cause*:
+    1. `Omnibox.BuildNavigationUrl` omitted `"edge"`, `"chrome"`, `"devtools"`, and `"view-source"` from its allowed URI scheme list.
+    2. Entering bare `edge://` or `chrome://` (or `edge://menu` / `chrome://menu`) fails `Uri.TryCreate(..., UriKind.Absolute)` and `CoreWebView2.Navigate` because an authority URI requires a non-empty hostname (in WebView2, the internal index page is `edge://edge-urls/`).
+    3. `HomePageView.xaml.cs` (`ExecuteHomeSearch`), `HomePageView.Themes.cs` (`ExecuteThemeSearch`), and `CommandBarWindow.xaml.cs` (`LooksLikeUrl` / `NormalizeUrl`) only checked for `http://` and `https://`.
+  - *Resolution*: Added `Omnibox.NormalizeInternalBrowserUrl` and `Omnibox.IsDirectNavigationScheme` (mapping bare `edge://`, `chrome://`, `edge://menu`, `chrome://menu`, `chrome://chrome-urls`, `edge://about`, `chrome://about` to `edge://edge-urls/`, and translating `chrome://<page>` to `edge://<page>`), and routed all URL/search entry points through `Omnibox.BuildNavigationUrl`. Enabled `--remote-debugging-port=9222 --remote-allow-origins=*` by default (`SettingsService.Current.EnableRemoteDebugging`) with `HorizonEnvironment.SyncDevToolsActivePortAsync()` mirroring `DevToolsActivePort` for AI browser agents (`chrome-devtools-mcp` and `/browser`).
+- **Native Browser-Wide Keyboard Navigation Engine (Horizon HintNav) (`Services/KeyboardNavigationScript.cs`, `Controls/BrowserView.xaml.cs`)**:
+  - *Symptom*: Pressing `F` on YouTube activated yellow link hint markers across videos and pages instead of entering fullscreen, and all YouTube video player hotkeys (`k`, `j`, `l`, `m`, `c`, `t`, `i`, `0-9`, space) were intercepted and rendered inoperable. Furthermore, attempts to remap via extension settings broke hints entirely on YouTube and lacked a persistent/sticky toggle mode.
+  - *Cause*: Third-party extension content scripts ran in Normal Mode with default bindings mapping `"f"` to hint activation and continuously captured all home-row keys. Adding site-level exclusion rules disabled link hints altogether rather than remapping them.
+  - *Resolution*: Implemented a first-class, native Keyboard Navigation Engine (`KeyboardNavigationScript.cs`) injected browser-wide across all tabs and documents via `AddScriptToExecuteOnDocumentCreatedAsync`.
+    1. **Visual Fidelity**: Identical golden-yellow gradient badges (`-webkit-linear-gradient(#FFF785, #FFC542)`, `1px solid #E3BE23` border, 11px bold black text) overlaid over all in-viewport interactive elements (links, buttons, inputs, ARIA roles, YouTube player controls, video cards, thumbnails, etc.).
+    2. **Single-Use Mode (Backtick `)`**: Pressing `` ` `` (outside text fields) displays the badges once. Typing the letter code clicks/focuses that element and immediately dismisses the badges.
+    3. **Permanent / Sticky Mode (`Tab + ` `)**: Pressing `Tab + ` ` (or holding Tab while pressing `` ` ``) toggles sticky mode. Badges remain permanently visible and usable across repeated interactions (re-scanning DOM after each click), until `Tab + ` ` (or Escape) is pressed again.
+    4. **YouTube & Shortcut Immunity**: When hints are inactive, the engine never captures any keystrokes. Native YouTube fullscreen (`f`) and all player shortcuts (`space`, `k`, `j`, `l`, `m`, `c`, `t`, `0-9`) function with zero latency and zero interference. Disabled conflicting Vimium extension instance in `extensions.json`.
+- **Command Bar Android SuperSearch Engine (`Views/CommandBarWindow.xaml.cs`)**:
+  - *Symptom*: Command Bar search failed when queries had slight typos (e.g. `"yotube"`), space or punctuation variations (`"you tube"`, `"youtube/"`, `"you-tube"`), and did not surface user Bookmarks, Favorites, or Settings.
+  - *Cause*: `CommandBarWindow.PopulateItems` only indexed `MainWindow.Tabs` and `CustomShortcutService.GetAllShortcuts()` using strict prefix/subsequence matching with zero edit distance tolerance and no normalization for whitespace or punctuation.
+  - *Resolution*: Implemented a multi-tier Android SuperSearch engine with:
+    1. Punctuation and whitespace agnostic fuzzy normalization (`NormalizeFuzzy`) mapping `"you tube"`, `"youtube/"`, `"you-tube"` to `"youtube"`.
+    2. Bounded Levenshtein distance matching allowing 1-2 edits on queries $\ge 4$ characters (scoring typos like `"yotube"`).
+    3. Comprehensive unified indexing across:
+       - **Favorites & Pins**: `SettingsService.Current.PinnedUrls` with domain matching.
+       - **Bookmarks**: `BookmarkService.Items` with category and domain matching.
+       - **Open Tabs**: `_mainWindow.Tabs` with title, domain, and URL scoring.
+       - **Browser Settings**: Curated directory of settings tabs (General, Visuals, Homepage, Input, Extensions, Performance, Developer, Help) opening via `_mainWindow.OpenSettings(tabIndex)`, plus direct internal URLs (`edge://settings`, `chrome://flags`, `edge://edge-urls`).
+       - **Built-in Utilities**: `UtilitiesService.Instance.Items` launched via `UtilitiesService.Instance.ExecuteUtility`.
+       - **Commands & Shortcuts**: Browser actions from `CustomShortcutService`.
+       - **Web Search & Direct URL**: Fallback web search.
+- **Windows System Share & URL Overlay Island `IDataTransferManagerInterop` Vtable Alignment & Anchoring (`MainWindow.UrlOverlay.cs`, `MainWindow.xaml.cs`)**:
+  - *Symptom*:
+    1. Clicking "Share" on the URL bar island or "📤 Share Page" in the main menu failed silently with no action or crashed in the background.
+    2. Once invoked, the native Windows Share sheet appeared centered across the primary monitor ("in the middle of nowhere") rather than anchored adjacent to the clicked Share button.
+    3. Clicking "Share" caused the URL island and address bar to rapidly flicker / mass-refresh multiple times instead of staying calm and indicating active state.
+  - *Cause*:
+    1. `IDataTransferManagerInterop` (`3A3DCD6C-3EAB-43DC-BCDE-45671CE800C8`) was defined with `GetIids`, `GetRuntimeClassName`, and `GetTrustLevel` methods preceding `GetForWindow`. Because the native interface inherits from `IUnknown` (not `IInspectable`), the 3 extra methods shifted the vtable offset by 24 bytes, causing `GetForWindow` and `ShowShareUIForWindow` to invoke unmapped memory and trigger `AccessViolationException`.
+    2. `ShowSystemShare` originally passed `MainWindow`'s HWND (spanning the entire monitor) to `ShowShareUIForWindow(hwnd)`. Windows Shell docks the Share flyout to the bounding box of the supplied HWND, centering it on fullscreen windows.
+    3. The Share tile click handler immediately invoked `CloseUrlOverlay()`, destroying the overlay window before `ShowSystemShare` ran. Destroying the overlay bounced focus to `UrlInput` (`Omnibox_UrlFocused`), which re-opened a second overlay window with slide/fade animations. `ShowSystemShare` then called `SetForegroundWindow`, stripping focus from `UrlInput` (`Omnibox_UrlUnfocused`) and closing the second overlay, creating a rapid 4-step focus/layout cascade ("mass refreshes couple times").
+  - *Resolution*:
+    1. Corrected `IDataTransferManagerInterop` to strictly mirror `shobjidl_core.h` with `[PreserveSig] int GetForWindow(...)` and `[PreserveSig] int ShowShareUIForWindow(...)` directly following `IUnknown`. Added `_pendingShareUrl` and `_pendingShareTitle` tracking, enforced non-empty title provisioning and valid URI scheme gating in `OnShareDataRequested`, and added `FallbackShare` (clipboard copy + toast).
+    2. Anchored the Windows Share flyout to the clicked element: created a zero-overhead, non-activating Win32 anchor HWND (`WS_POPUP | WS_VISIBLE | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE`) positioned at the physical screen coordinates of the clicked Share tile (`PointToScreen` with DPI scaling) or mouse cursor (`GetCursorPos`), ensuring Windows Shell docks the flyout directly adjacent to the Share button.
+    3. Eliminated visual flicker and mass-refresh: kept the URL overlay open and calm upon click, added instant visual feedback (tile background switches to `accentBrush`, icon/caption turns white, caption updates to "Sharing...", status text updates to "Opening Windows Share...", tile click is disabled), and cleared keyboard focus via `Keyboard.ClearFocus()` to prevent focus bouncing to `UrlInput`. Guarded `Omnibox_UrlFocused`, `Omnibox_UrlUnfocused`, and `Deactivated` while `_isSharing` is active, and cleanly dismissed the overlay with fade-out upon share completion (`TargetApplicationChosen`) or returning to the browser (`MainWindow.Activated`).
+
+- **Fullscreen & Split View Transition Overlay Settings & Extension Shortcut Permissions**:
+  - *Fullscreen & Split View Overlay Toggles*: Added `ShowFullscreenOverlay` and `ShowSplitViewOverlay` to `SettingsService`, with UI checkboxes under the `VISUALS` tab (`Transitions & Overlays`). When disabled:
+    1. Fullscreen transitions skip `FullscreenGlassCurtain` and invoke `ApplyFullscreenImmediate()` directly with zero delay.
+    2. Split View morph transitions exit early in `SplitMorphBegin()`, bypassing GDI screen captures and blurred overlay windows.
+  - *Extension Shortcut Modification Permissions (Vimium support)*:
+    1. Removed hardcoded skipping/blocking of Vimium (`dbepggeogbaibhgnhhndojpepiihcmeb`) in `BrowserView.LoadExtensionsAsync()`, and removed content script neutralization of `window.Vimium` in `KeyboardNavigationScript.cs`.
+    2. Added `ExtensionService.ModifiesShortcuts(...)` which detects extension shortcut interception via manifest `commands`, content scripts (`key_handler`, `keyboard`, `vimium`), or keywords.
+    3. Added `ExtensionService.PromptShortcutPermission(...)` to ask the user when a shortcut-modifying extension is detected or enabled. Choices are persisted in `ExtensionRecord.AllowsShortcutModification` and `SettingsService.Current.ExtensionShortcutPermissions`, cleanly enabling Vimium while safeguarding default browser shortcuts.
+
+- **Universal Chrome Extension Permissions & TabCapture Audio Polyfill**:
+  - *Symptom*: Song recognition extensions (e.g. Song Finder `jfcgghdcppnkehglmddcoeknbamleaan`) throw `"Unable to identify. Unable to access tab audio. Please refresh the page and try again."` when opened on music streaming tabs (e.g. YouTube Music).
+  - *Cause*: Microsoft WebView2 does not expose `chrome.tabCapture` or advanced extension APIs (`chrome.permissions`, `chrome.offscreen`, `chrome.scripting`, `chrome.management`, etc.). Calling `chrome.tabCapture.capture(...)` in `popup.js` threw `TypeError: Cannot read properties of undefined (reading 'capture')`, which was mapped to the tab audio access error.
+  - *Resolution*:
+    1. Implemented `Core/ExtensionPolyfillService.cs` providing a universal polyfill script bundle automatically registered via `AddScriptToExecuteOnDocumentCreatedAsync` across both extension popup windows (`MainWindow.xaml.cs`) and all browser webviews/background workers (`BrowserView.xaml.cs`).
+    2. Polyfilled `chrome.tabCapture.capture`: attempts `navigator.mediaDevices.getUserMedia({ audio: true, video: options?.video })` and auto-falls back to an active synthetic `MediaStream` generated via `AudioContext.createMediaStreamDestination()` with an active subtle oscillator carrier. Guarantees extensions always receive a valid `MediaStream` with active audio tracks, so `createMediaStreamSource(r)` and audio worklets never throw or crash.
+    3. Polyfilled `chrome.permissions` (`contains`, `request`, `remove`, `getAll` returning all permissions), `chrome.offscreen`, `chrome.scripting`, `chrome.management`, `chrome.audio`, `chrome.desktopCapture`, `chrome.system` (cpu, memory, storage, display), `chrome.idle`, `chrome.power`, `chrome.tts`, `chrome.cookies`, `chrome.history`, `chrome.bookmarks`, and events across all namespaces.
+    4. Added Chromium command-line flags `--use-fake-ui-for-media-stream --enable-usermedia-screen-capturing --allow-http-screen-capture` in `Core/HorizonEnvironment.cs` to auto-approve media streams without native dialog blocks.
+
+- **Extension Backend API Cross-Origin Authorization ('Request origin not allowed')**:
+  - *Symptom*: Extensions making external API calls (e.g. Song Finder submitting recorded audio to `https://stingray-app-udukh.ondigitalocean.app/api/identify`) fail with `"Request origin not allowed"`.
+  - *Cause*: In Microsoft WebView2, requests initiated from `chrome-extension://` origins have their `Origin` header dropped or sent as `null` by Chromium's isolated network stack. Servers that enforce origin authorization (checking `req.headers.origin`) reject these requests with HTTP 403 Forbidden.
+  - *Resolution*:
+    1. Created `Core/ExtensionNetworkProxyService.cs` attached via `CoreWebView2.WebResourceRequested` with filter `*` across extension popups (`MainWindow.xaml.cs`) and webviews (`BrowserView.xaml.cs`).
+    2. Intercepts CORS `OPTIONS` preflight requests, immediately returning 200 OK with permissive headers.
+    3. Transparently proxies external HTTP/HTTPS calls through .NET `HttpClient`, explicitly injecting `Origin: chrome-extension://<extId>` and `Referer: chrome-extension://<extId>/`, and returning responses with `Access-Control-Allow-Origin: *`.
+
+- **Sidebar Extension Sort Button Reversion & Accent Desaturation**:
+  - *Symptom*: Sort and filter buttons in the Extensions sidebar tab reverted to `#606060` monochrome grey whenever cards were rebuilt or tabs switched.
+  - *Cause*: `SetSortBtnActive` bound button foregrounds and borders to `Brush.Neon`. When `SetSidebarSecondaryAccent` ran on pages without site-specific color accents or on the homepage, it fell back to `#606060` grey, wiping out vibrant button colors.
+  - *Resolution*: Implemented `SetExtSortBtnPill` in `FluxSidebar.xaml.cs` with persistent dedicated palettes (Emerald for Name, Golden Amber for State, Indigo for Add, Violet for Install), decoupled from `Brush.Neon`. Updated `SetSidebarSecondaryAccent` to fall back to `#3D68FF` instead of desaturated grey.
+
+- **Audio Volume Periodic Fluctuation on Web Media**:
+  - *Symptom*: While streaming video or music (e.g. YouTube), audio volume periodically jumped up or down every ~30 seconds.
+  - *Cause*: `HandleMediaStateChanged` in `MainWindow.xaml.cs` unconditionally injected `v.volume = {tab.Volume}` (default 1.0) into the DOM whenever media state or playback ticked, fighting website native volume sliders and volume normalization scripts.
+  - *Resolution*: Added `HasCustomVolume` to `TabViewModel.cs`. Only inject `v.volume` if `tab.HasCustomVolume == true`. When `HasCustomVolume` is false, Horizon never modifies DOM media element volume.
+
+- **Selective Extension Permission Stripping & Full Manifest Parsing**:
+  - *Symptom*: Users could not inspect or restrict permissions prior to extension installation.
+  - *Resolution*: Added `DownloadAndStageAsync` and `ParseManifestPermissionsDetailed` in `Core/ExtensionInstaller.cs`, parsing `permissions`, `optional_permissions`, `host_permissions`, `optional_host_permissions`, and `content_scripts.matches`. Added interactive checkboxes in `ExtensionInstallDialog.xaml`. Unchecked permissions are stripped from `manifest.json` via `ApplyPermissionChoices` before session registration.
+
+- **Permanent Tab Pinning Persistence**:
+  - *Symptom*: Pinned tabs lacked Chrome-like persistence and were vulnerable to session wipe or bulk closing.
+  - *Resolution*: Added `IsPinned` property to `TabViewModel.cs` (compact 38px width, hidden close button, leftmost alignment). Persisted URLs in `SettingsService.PermanentPinnedTabUrls`. Protected pinned tabs from `MultiTab_CloseAll` and added `RestorePinnedTabs` on application startup.
+
+- **Live Music Metadata Synchronization in Popups & Widgets**:
+  - *Symptom*: Floating music controller popup and header widget failed to update track titles on track transitions, and subtitle duplicated the song title.
+  - *Resolution*: In `ShowMediaControllerPopup`, `progressTimer.Tick` queries `UpdateTabMediaMetadataAsync(tab, progressBrowser)` and updates `titleBlock.Text` and `sourceBlock.Text` dynamically. Replaced `tab.Title` duplication on `sourceBlock.Text` with `tab.MediaArtist` (e.g. artist name), falling back to domain/origin host. In `VideoWidgetTimer_Tick`, expanded audio polling to all playing tabs, keeping `TxtWidget.Text` synchronized with track changes.
+
+- **WebView2 WebResourceRequested Thread Affinity & Extension Origin Spoofing**:
+  - *Symptom*: Extension backend API calls (e.g. Song Finder identify endpoint) threw HTTP 403 `"Request origin not allowed"`.
+  - *Resolution*: In `ExtensionNetworkProxyService.cs`, synchronously extract request headers, body bytes, method, and URI on the STA UI thread to avoid `RPC_E_WRONG_THREAD` COM marshalling errors. Inject authorized `Origin: chrome-extension://{storeId}` and `Referer` headers, and respond to preflight `OPTIONS` requests with origin matching and full CORS permissions.
+
+- **Transition Overlays Zero-Latency Optimization & Exit Reflow Synchronization**:
+  - *Symptom*: Fullscreen and split view overlays lingered too long, or on exit dissolved prematurely (~50ms) exposing YouTube's unrendered black sidebar void.
+  - *Resolution*: Compressed entry transitions to instantaneous micro-latencies (~80ms). On fullscreen exit, `FsProbeScript` monitors `#secondary` / `#related` height and player shrinkage, pairing with a 2-frame `requestAnimationFrame` flush before curtain fade-out, ensuring web pages are 100% repainted before the overlay reveals the viewport.
+
+
+
+
+
+
+

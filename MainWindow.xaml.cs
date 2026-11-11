@@ -443,59 +443,25 @@ public partial class MainWindow : Window
 
 
     [ComImport]
-
-
-
     [Guid("3A3DCD6C-3EAB-43DC-BCDE-45671CE800C8")]
-
-
-
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-
-
-
-    interface IDataTransferManagerInterop
-
-
-
+    public interface IDataTransferManagerInterop
     {
+        [PreserveSig]
+        int GetForWindow(IntPtr appWindow, [In] ref Guid riid, out IntPtr dataTransferManager);
 
-
-
-        void GetIids(out int iidCount, out IntPtr iids);
-        void GetRuntimeClassName(out IntPtr className);
-        void GetTrustLevel(out int trustLevel);
-        IntPtr GetForWindow([In] IntPtr appWindow, [In] ref Guid riid);
-
-
-
-        void ShowShareUIForWindow([In] IntPtr appWindow);
-
-
-
+        [PreserveSig]
+        int ShowShareUIForWindow(IntPtr appWindow);
     }
 
+    [DllImport("combase.dll", CharSet = CharSet.Unicode, ExactSpelling = true, PreserveSig = true)]
+    private static extern int WindowsCreateString(string sourceString, int length, out IntPtr hstring);
 
+    [DllImport("combase.dll", ExactSpelling = true, PreserveSig = true)]
+    private static extern int WindowsDeleteString(IntPtr hstring);
 
-    [DllImport("api-ms-win-core-winrt-l1-1-0.dll")]
-
-
-
-    private static extern int RoGetActivationFactory(
-
-
-
-        [MarshalAs(UnmanagedType.HString)] string activatableClassId,
-
-
-
-        [In] ref Guid iid,
-
-
-
-        out IntPtr factory);
-
-
+    [DllImport("combase.dll", ExactSpelling = true, PreserveSig = true)]
+    private static extern int RoGetActivationFactory(IntPtr activatableClassId, [In] ref Guid iid, out IntPtr factory);
 
     private static Guid _dtmIid = new Guid("a5caee9b-8708-49d1-8d36-67d25a8da00c");
 
@@ -1051,6 +1017,7 @@ public partial class MainWindow : Window
 
 
     private DateTime         _ramCacheTime     = DateTime.MinValue;
+    private DateTime         _lastTabPressTime = DateTime.MinValue;
 
 
 
@@ -2307,29 +2274,43 @@ public partial class MainWindow : Window
 
 
     private IntPtr TaskbarWndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
-
-
-
     {
+        const int WM_QUERYENDSESSION = 0x0011;
+        const int WM_ENDSESSION      = 0x0016;
+        const long ENDSESSION_CLOSEAPP = 0x00000001L;
 
+        if (msg == WM_QUERYENDSESSION)
+        {
+            long lp = lParam.ToInt64();
+            // Shield against external installer / uninstaller / Restart Manager shutdown requests
+            if ((lp & ENDSESSION_CLOSEAPP) != 0)
+            {
+                LogService.Write("SYSTEM", "Shielded Horizon Browser: Rejected WM_QUERYENDSESSION (ENDSESSION_CLOSEAPP) from external installer/uninstaller.");
+                handled = true;
+                return IntPtr.Zero; // 0 = Refuse shutdown from installer/uninstaller
+            }
 
+            LogService.Write("SYSTEM", "Accepted genuine WM_QUERYENDSESSION for system shutdown/logoff.");
+            SaveCurrentSession();
+            handled = false;
+            return new IntPtr(1);
+        }
+
+        if (msg == WM_ENDSESSION)
+        {
+            long lp = lParam.ToInt64();
+            if ((lp & ENDSESSION_CLOSEAPP) != 0)
+            {
+                LogService.Write("SYSTEM", "Shielded Horizon Browser: Blocked WM_ENDSESSION (ENDSESSION_CLOSEAPP) from external installer/uninstaller.");
+                handled = true;
+                return IntPtr.Zero;
+            }
+        }
 
         if      (msg == WM_GETMINMAXINFO)     HandleMaximizeConstraints(hwnd, lParam, ref handled);
-
-
-
         else if (msg == WM_WINDOWPOSCHANGING) HandleWindowPositionChanging(hwnd, lParam);
 
-
-
-        
-
-
-
         return IntPtr.Zero;
-
-
-
     }
 
 
@@ -4622,7 +4603,11 @@ public partial class MainWindow : Window
 
 
 
-        Application.Current.SessionEnding += (s, e) => SaveCurrentSession();
+        Application.Current.SessionEnding += (s, e) =>
+        {
+            LogService.Write("SYSTEM", $"SessionEnding fired: Reason={e.ReasonSessionEnding}");
+            SaveCurrentSession();
+        };
 
 
 
@@ -4763,6 +4748,11 @@ public partial class MainWindow : Window
 
 
         RightSidebar.RequestExtensionPopup += RightSidebar_RequestExtensionPopup;
+        RequestExtensionPopupGlobal = (ext) => RightSidebar_RequestExtensionPopup(this, ext);
+        Controls.FluxSidebar.PinnedExtensionsChanged += () => Dispatcher.Invoke(RefreshPinnedHeaderExtensions);
+        Controls.FluxSidebar.HeaderWidgetExtensionChanged += (addedKey) => Dispatcher.Invoke(() => OnHeaderWidgetExtensionChanged(addedKey));
+        MigrateLegacyPinnedHeaderStackExtensions();
+        RefreshPinnedHeaderExtensions();
 
 
 
@@ -4909,6 +4899,7 @@ public partial class MainWindow : Window
 
 
         this.Loaded += (s, e) => CheckSessionRestore();
+        this.Loaded += (s, e) => RestorePinnedTabs();
 
 
 
@@ -7306,6 +7297,7 @@ public partial class MainWindow : Window
     };
 
     var newBrowser = new Controls.BrowserView { ContainerId = containerId };
+    WireKeyboardNavForBrowser(newBrowser);
 
 
 
@@ -7905,7 +7897,7 @@ public partial class MainWindow : Window
 
 
 
-        if (!newBrowser.IsProcessCrashed && newTab.Volume < 1.0 && newBrowser.MainWebView.CoreWebView2 != null)
+        if (!newBrowser.IsProcessCrashed && newTab.HasCustomVolume && newTab.Volume < 1.0 && newBrowser.MainWebView.CoreWebView2 != null)
 
 
 
@@ -8852,6 +8844,26 @@ return colors.length > 0 ? colors : null;
 
             _activeTabView = activeView;
 
+            if (_isNativeHintsActive)
+            {
+                if (!_isNativeStickyMode)
+                {
+                    HideNativeHints();
+                }
+                else
+                {
+                    _ = Dispatcher.InvokeAsync(async () =>
+                    {
+                        await Task.Delay(100);
+                        if (_isNativeHintsActive && _isNativeStickyMode)
+                        {
+                            RenderNativeHints();
+                            CurrentBrowser?.ToggleKeyboardNavigation(true);
+                        }
+                    });
+                }
+            }
+
 
 
             // Wake sleeping tab + reset its activity clock
@@ -9128,12 +9140,12 @@ return colors.length > 0 ? colors : null;
 
 
     private void DoCloseTab(TabViewModel tabToClose)
-
-
-
     {
-
-
+        if (tabToClose.IsPinned && !string.IsNullOrEmpty(tabToClose.Url))
+        {
+            SettingsService.Current.PermanentPinnedTabUrls.Remove(tabToClose.Url);
+            SettingsService.Save();
+        }
 
         // Track for Reopen Last Closed Tab (Ctrl+Shift+T / header context menu)
 
@@ -10725,249 +10737,94 @@ return colors.length > 0 ? colors : null;
 
     private void BtnShare_Click(object sender, RoutedEventArgs e)
     {
-        ShowSystemShare();
-    }
-
-    private void BtnShare_ClickLegacy(object sender, RoutedEventArgs e)
-
-
-
-    {
-
-
-
-        try
-
-
-
+        Rect? anchorRect = null;
+        if (sender is FrameworkElement fe && fe.IsLoaded)
         {
-
-
-
-            var hwnd = new WindowInteropHelper(this).Handle;
-
-
-
-            SetForegroundWindow(hwnd);   // share sheet requires the window to be foreground
-
-
-
-            string typeName = "Windows.ApplicationModel.DataTransfer.DataTransferManager";
-
-
-
-            Guid iid = new Guid("3A3DCD6C-3EAB-43DC-BCDE-45671CE800C8");
-
-
-
-            IntPtr factoryPtr;
-
-
-
-            int hr = RoGetActivationFactory(typeName, ref iid, out factoryPtr);
-
-
-
-            if (hr < 0 || factoryPtr == IntPtr.Zero) return;
-
-
-
-            var interop = Marshal.GetObjectForIUnknown(factoryPtr) as IDataTransferManagerInterop;
-
-
-
-            Marshal.Release(factoryPtr);
-
-
-
-            if (interop != null)
-
-
-
+            try
             {
-
-
-
-                IntPtr dtmPtr = interop.GetForWindow(hwnd, ref _dtmIid);
-
-
-
-                var dataTransferManager = global::WinRT.MarshalInspectable<DataTransferManager>.FromAbi(dtmPtr);
-
-
-
-                if (dataTransferManager != null)
-
-
-
+                Point p = fe.PointToScreen(new Point(0, 0));
+                double scaleX = 1.0, scaleY = 1.0;
+                var src = PresentationSource.FromVisual(fe);
+                if (src?.CompositionTarget != null)
                 {
-
-
-
-                    dataTransferManager.DataRequested -= OnShareDataRequested;
-
-
-
-                    dataTransferManager.DataRequested += OnShareDataRequested;
-
-
-
-                    interop.ShowShareUIForWindow(hwnd);
-
-
-
+                    scaleX = src.CompositionTarget.TransformToDevice.M11;
+                    scaleY = src.CompositionTarget.TransformToDevice.M22;
                 }
-
-
-
+                anchorRect = new Rect(p.X, p.Y, fe.ActualWidth * scaleX, fe.ActualHeight * scaleY);
             }
-
-
-
+            catch { }
         }
-
-
-
-        catch (Exception ex) { LogService.RecordCrash(ex, "Share Interface"); }
-
-
-
+        ShowSystemShare(anchorScreenRect: anchorRect);
     }
-
-
 
     private void OnShareDataRequested(DataTransferManager sender, DataRequestedEventArgs args)
-
-
-
     {
-
-
-
-        if (CurrentBrowser?.MainWebView == null) return;
-
-
-
-        var request = args.Request;
-
-
-
-        var webView = CurrentBrowser.MainWebView;
-
-
-
-        request.Data.Properties.Title = webView.CoreWebView2?.DocumentTitle ?? "Horizon Browser";
-
-
-
-        request.Data.Properties.Description = "Shared via Horizon Stealth";
-
-
-
-        string url = webView.Source?.ToString() ?? "";
-
-
-
-        if (!string.IsNullOrEmpty(url))
-
-
-
+        try
         {
+            var request = args.Request;
+            string? title = _pendingShareTitle;
+            if (string.IsNullOrWhiteSpace(title))
+            {
+                title = CurrentBrowser?.MainWebView?.CoreWebView2?.DocumentTitle;
+                if (string.IsNullOrWhiteSpace(title)) title = CurrentTab?.Title;
+                if (string.IsNullOrWhiteSpace(title)) title = "Horizon Browser";
+            }
 
+            string? url = _pendingShareUrl;
+            if (string.IsNullOrWhiteSpace(url))
+            {
+                url = CurrentBrowser?.MainWebView?.Source?.ToString();
+            }
 
+            request.Data.Properties.Title = title ?? "Horizon Browser";
+            request.Data.Properties.Description = "Shared via Horizon";
 
-            request.Data.SetWebLink(new Uri(url));
+            if (!string.IsNullOrWhiteSpace(url) &&
+                Uri.TryCreate(url, UriKind.Absolute, out var uri) &&
+                (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
+            {
+                request.Data.SetWebLink(uri);
+            }
 
-
-
-            request.Data.SetText($"Check this out: {url}");
-
-
-
+            string text = !string.IsNullOrWhiteSpace(url) ? url : (title ?? "Horizon Browser");
+            request.Data.SetText(text);
         }
-
-
-
+        catch (Exception ex)
+        {
+            LogService.RecordCrash(ex, "OnShareDataRequested");
+        }
     }
 
 
 
     private Views.SettingsWindow? _openSettingsWindow;
 
-
-
-    private void BtnSettings_Click(object sender, RoutedEventArgs e)
-
-
-
+    public void OpenSettings(int tabIndex = 0)
     {
-
-
-
         if (_openSettingsWindow != null)
-
-
-
         {
-
-
-
             if (_openSettingsWindow.WindowState == WindowState.Minimized)
-
-
-
                 _openSettingsWindow.WindowState = WindowState.Normal;
-
-
-
+            try { _openSettingsWindow.TabsMain.SelectedIndex = tabIndex; } catch { }
             _openSettingsWindow.Activate();
-
-
-
             return;
-
-
-
         }
 
-
-
         var settingsWin = new Views.SettingsWindow();
-
-
-
         settingsWin.SettingsApplied += () =>
-
-
-
         {
-
-
-
             ApplyLayoutState();
-
-
-
             ThemeService.ApplyTheme(SettingsService.Current.Theme);
-
-
-
         };
-
-
-
         settingsWin.Closed += (_, _) => _openSettingsWindow = null;
-
-
-
         _openSettingsWindow = settingsWin;
-
-
-
+        try { settingsWin.TabsMain.SelectedIndex = tabIndex; } catch { }
         settingsWin.Show();
+    }
 
-
-
+    private void BtnSettings_Click(object sender, RoutedEventArgs e)
+    {
+        OpenSettings(0);
     }
 
 
@@ -11063,6 +10920,52 @@ return colors.length > 0 ? colors : null;
         if (HomePageView.OwnsDumpHotkey(e))
         {
             return;
+        }
+
+        if (e.Key == Key.Tab)
+        {
+            _lastTabPressTime = DateTime.UtcNow;
+        }
+
+        if (e.Key == Key.OemTilde || e.Key == Key.Oem3)
+        {
+            if (!OmniboxControl.IsKeyboardFocusWithin)
+            {
+                bool hasTab = Keyboard.IsKeyDown(Key.Tab) || 
+                              (Keyboard.Modifiers & ModifierKeys.Shift) == ModifierKeys.Shift ||
+                              (DateTime.UtcNow - _lastTabPressTime).TotalMilliseconds < 1500;
+                ToggleAllKeyboardNavigation(hasTab);
+                e.Handled = true;
+                return;
+            }
+        }
+
+        if (_isNativeHintsActive)
+        {
+            if (e.Key == Key.Escape)
+            {
+                HideNativeHints();
+                CurrentBrowser?.DismissKeyboardNavigation();
+                e.Handled = true;
+                return;
+            }
+
+            if (e.Key == Key.Back)
+            {
+                ProcessKeyboardNavKey("BACKSPACE");
+                CurrentBrowser?.SendKeyboardNavKey("BACKSPACE");
+                e.Handled = true;
+                return;
+            }
+
+            string keyStr = e.Key.ToString().ToUpperInvariant();
+            if (keyStr.Length == 1 && "SADFJKLEWCMPGH".Contains(keyStr))
+            {
+                ProcessKeyboardNavKey(keyStr);
+                CurrentBrowser?.SendKeyboardNavKey(keyStr);
+                e.Handled = true;
+                return;
+            }
         }
 
         if (CustomShortcutService.TryExecuteHotkey(e, this))
@@ -13656,21 +13559,10 @@ return colors.length > 0 ? colors : null;
 
 
     private static void SetSidebarSecondaryAccent(Color? siteColor)
-
-
-
     {
-
-
-
-        Color accent = siteColor ?? ((Application.Current.Resources["Brush_Accent"] as SolidColorBrush)?.Color
-
-
-
-            ?? Color.FromRgb(0x60, 0x60, 0x60));
-
-
-
+        Color defaultAccent = Color.FromRgb(0x3D, 0x68, 0xFF);
+        Color? resCol = (Application.Current.Resources["Brush_Accent"] as SolidColorBrush)?.Color;
+        Color accent = siteColor ?? ((resCol.HasValue && resCol.Value != Color.FromRgb(0x60, 0x60, 0x60)) ? resCol.Value : defaultAccent);
         Color dim = Color.FromRgb((byte)(accent.R * 0.35), (byte)(accent.G * 0.35), (byte)(accent.B * 0.35));
 
 
@@ -15863,11 +15755,16 @@ return colors.length > 0 ? colors : null;
 
 
 
-                    await browser.MainWebView.CoreWebView2.ExecuteScriptAsync(
-
-
-
-                        $"(() => {{ const v = document.querySelector('video, audio'); if(v) {{ v.muted = {(tab.IsMuted ? "true" : "false")}; v.volume = {tab.Volume.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)}; }} }})()");
+                    if (tab.HasCustomVolume)
+                    {
+                        await browser.MainWebView.CoreWebView2.ExecuteScriptAsync(
+                            $"(() => {{ const v = document.querySelector('video, audio'); if(v) {{ v.muted = {(tab.IsMuted ? "true" : "false")}; v.volume = {tab.Volume.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)}; }} }})()");
+                    }
+                    else if (tab.IsMuted)
+                    {
+                        await browser.MainWebView.CoreWebView2.ExecuteScriptAsync(
+                            $"(() => {{ const v = document.querySelector('video, audio'); if(v) {{ v.muted = true; }} }})()");
+                    }
 
 
 
@@ -18100,6 +17997,105 @@ return colors.length > 0 ? colors : null;
 
 
     // ── Extension popup (clicking card in sidebar = open popup like Chrome/Edge toolbar click) ──
+    public static Action<ExtensionRecord>? RequestExtensionPopupGlobal;
+
+    private void OnHeaderWidgetExtensionChanged(string? addedKey = null)
+    {
+        RefreshPinnedHeaderExtensions();
+        var m = SettingsService.Current.WidgetModes;
+        if (!string.IsNullOrEmpty(addedKey) && m.Contains(addedKey))
+        {
+            _widgetModeIndex = m.IndexOf(addedKey);
+        }
+        else if (_widgetModeIndex >= m.Count)
+        {
+            _widgetModeIndex = Math.Max(0, m.Count - 1);
+        }
+        RestartWidgetCycleTimer();
+        RefreshWidgetDisplay();
+        SyncWidgetCheckboxes();
+    }
+
+    private void MigrateLegacyPinnedHeaderStackExtensions()
+    {
+        var legacy = SettingsService.Current.PinnedHeaderStackExtensionIds;
+        if (legacy != null && legacy.Count > 0)
+        {
+            var modes = SettingsService.Current.WidgetModes ??= new List<string> { "Clock" };
+            foreach (var id in legacy)
+            {
+                string key = $"Ext:{id}";
+                if (!modes.Contains(key, StringComparer.OrdinalIgnoreCase))
+                    modes.Add(key);
+            }
+            legacy.Clear();
+            SettingsService.Save();
+        }
+    }
+
+    private void RefreshPinnedHeaderExtensions()
+    {
+        if (PnlPinnedHeaderExtensions == null) return;
+        PnlPinnedHeaderExtensions.Children.Clear();
+
+        var pinnedToolbar = SettingsService.Current.PinnedHeaderExtensionIds ?? new List<string>();
+        foreach (var id in pinnedToolbar)
+        {
+            var ext = ExtensionService.Find(id);
+            if (ext == null || !ext.Enabled) continue;
+            var btn = new Button
+            {
+                Content = CreateExtensionIconContent(ext, 20, 15),
+                Width = 36,
+                Height = 36,
+                FontSize = 15,
+                Margin = new Thickness(2, 0, 2, 0),
+                Style = (Style)FindResource("Style_StealthButton"),
+                ToolTip = $"{ext.Name} (Extension)",
+                Cursor = Cursors.Hand
+            };
+            var captureExt = ext;
+            btn.Click += (_, _) => RightSidebar_RequestExtensionPopup(this, captureExt);
+            PnlPinnedHeaderExtensions.Children.Add(btn);
+        }
+    }
+
+    private static object CreateExtensionIconContent(ExtensionRecord ext, double size, double fontSize)
+    {
+        if (!string.IsNullOrEmpty(ext.IconPath) && System.IO.File.Exists(ext.IconPath))
+        {
+            try
+            {
+                var bi = new System.Windows.Media.Imaging.BitmapImage();
+                bi.BeginInit();
+                bi.UriSource = new Uri(ext.IconPath, UriKind.Absolute);
+                bi.DecodePixelWidth = (int)(size * 2);
+                bi.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
+                bi.EndInit();
+                bi.Freeze();
+
+                var img = new Image
+                {
+                    Source = bi,
+                    Width = size,
+                    Height = size,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Center
+                };
+                RenderOptions.SetBitmapScalingMode(img, BitmapScalingMode.HighQuality);
+                return img;
+            }
+            catch { }
+        }
+
+        return new TextBlock
+        {
+            Text = !string.IsNullOrEmpty(ext.Icon) ? ext.Icon : "🧩",
+            FontSize = fontSize,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+    }
 
 
 
@@ -18176,141 +18172,68 @@ return colors.length > 0 ? colors : null;
 
 
             if (string.IsNullOrEmpty(extId))
-
-
-
             {
-
-
-
                 var wv2Extensions = await browser.MainWebView.CoreWebView2.Profile.GetBrowserExtensionsAsync();
-
-
-
                 var match = wv2Extensions.FirstOrDefault(e =>
-
-
-
                     e.Id.Equals(ext.Id, StringComparison.OrdinalIgnoreCase) ||
-
-
-
                     e.Name.Equals(ext.Name, StringComparison.OrdinalIgnoreCase) ||
-
-
-
                     e.Name.IndexOf(ext.Name, StringComparison.OrdinalIgnoreCase) >= 0 ||
-
-
-
                     ext.Name.IndexOf(e.Name, StringComparison.OrdinalIgnoreCase) >= 0);
-
-
-
                 extId = match?.Id;
-
-
-
             }
-
-
 
             if (string.IsNullOrEmpty(extId))
-
-
-
             {
-
-
-
-                MessageBox.Show(
-
-
-
-                    $"'{ext.Name}' is not active in this session.\n\nMake sure it's enabled and restart Horizon.",
-
-
-
-                    "Extension Not Loaded", MessageBoxButton.OK, MessageBoxImage.Information);
-
-
-
-                return;
-
-
-
+                // Try dynamic on-demand loading so users never need to restart to open newly installed extensions
+                string folder = ExtensionService.GetInstallFolder(ext.FolderName);
+                if (System.IO.Directory.Exists(folder) && System.IO.File.Exists(System.IO.Path.Combine(folder, "manifest.json")))
+                {
+                    try
+                    {
+                        var loaded = await browser.MainWebView.CoreWebView2.Profile.AddBrowserExtensionAsync(folder);
+                        if (loaded != null)
+                        {
+                            extId = loaded.Id;
+                            Controls.BrowserView.RegisterLoadedExtension(ext.FolderName, loaded.Id, loaded.Name);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        LogService.Write("EXT", $"On-demand AddBrowserExtensionAsync failed for '{ext.FolderName}': {ex.Message}");
+                    }
+                }
             }
 
-
+            if (string.IsNullOrEmpty(extId))
+            {
+                RightSidebar.ShowStatus($"⚡ Restart Horizon to activate '{ext.Name}'.");
+                LogService.Write("EXT", $"Extension '{ext.Name}' ({ext.FolderName}) not loaded in this session.");
+                return;
+            }
 
             string manifestPath = System.IO.Path.Combine(ExtensionService.InstallRoot, ext.FolderName, "manifest.json");
-
-
-
             string popupRelPath = ReadExtensionPopupPath(manifestPath);
 
-
-
             if (string.IsNullOrEmpty(popupRelPath))
-
-
-
             {
-
-
-
-                MessageBox.Show(
-
-
-
-                    $"'{ext.Name}' has no popup defined in its manifest.\n\nSome extensions only inject scripts and have no clickable popup.",
-
-
-
-                    "No Popup", MessageBoxButton.OK, MessageBoxImage.Information);
-
-
-
+                RightSidebar.ShowStatus($"'{ext.Name}' is active and running in the background.");
+                LogService.Write("EXT", $"'{ext.Name}' has no popup defined; runs as background service.");
                 return;
-
-
-
             }
 
-
+            // Pre-register WebView2 internal extension ID to official Chrome Web Store ID mapping
+            Horizon.Stealth.Core.ExtensionNetworkProxyService.RegisterIdMapping(extId, ext.FolderName);
+            Horizon.Stealth.Core.ExtensionNetworkProxyService.RegisterIdMapping(ext.FolderName, ext.FolderName);
+            Horizon.Stealth.Core.ExtensionNetworkProxyService.RegisterIdMapping(ext.Id, ext.FolderName);
 
             string popupUrl = $"chrome-extension://{extId}/{popupRelPath.TrimStart('/')}";
-
-
-
-            LogService.Write("EXT", $"Opening popup: {popupUrl}");
-
-
-
-            await OpenExtensionPopupWindowAsync(popupUrl, ext.Name);
-
-
-
+            LogService.Write("EXT", $"Opening popup: {popupUrl} (Store ID: {ext.FolderName})");
+            await OpenExtensionPopupWindowAsync(popupUrl, ext.Name, extId, ext.FolderName);
         }
-
-
-
         catch (Exception ex)
-
-
-
         {
-
-
-
             LogService.RecordCrash(ex, "ExtensionPopup");
-
-
-
-            MessageBox.Show($"Could not open extension popup:\n{ex.Message}", "Error");
-
-
-
+            RightSidebar.ShowStatus($"Unable to open '{ext.Name}'. Check logs.");
         }
 
 
@@ -18332,202 +18255,98 @@ return colors.length > 0 ? colors : null;
 
 
     private static string ReadExtensionPopupPath(string manifestPath)
-
-
-
     {
-
-
-
-        if (!System.IO.File.Exists(manifestPath)) return string.Empty;
-
-
-
-        try
-
-
-
+        string dir = System.IO.Path.GetDirectoryName(manifestPath) ?? "";
+        if (System.IO.File.Exists(manifestPath))
         {
-
-
-
-            using var doc = System.Text.Json.JsonDocument.Parse(System.IO.File.ReadAllText(manifestPath));
-
-
-
-            var root = doc.RootElement;
-
-
-
-            // Manifest V3 action
-
-
-
-            if (root.TryGetProperty("action", out var action) &&
-
-
-
-                action.TryGetProperty("default_popup", out var p3))
-
-
-
+            try
             {
+                using var doc = System.Text.Json.JsonDocument.Parse(System.IO.File.ReadAllText(manifestPath));
+                var root = doc.RootElement;
 
+                // 1. Manifest V3 action default_popup
+                if (root.TryGetProperty("action", out var action) &&
+                    action.TryGetProperty("default_popup", out var p3))
+                {
+                    string? s = p3.GetString();
+                    if (!string.IsNullOrWhiteSpace(s)) return s;
+                }
 
+                // 2. Manifest V2 browser_action default_popup
+                if (root.TryGetProperty("browser_action", out var ba) &&
+                    ba.TryGetProperty("default_popup", out var p2))
+                {
+                    string? s = p2.GetString();
+                    if (!string.IsNullOrWhiteSpace(s)) return s;
+                }
 
-                string? s = p3.GetString();
+                // 3. side_panel default_path (e.g. AI Usage Tracker)
+                if (root.TryGetProperty("side_panel", out var sp) &&
+                    sp.TryGetProperty("default_path", out var spPath))
+                {
+                    string? s = spPath.GetString();
+                    if (!string.IsNullOrWhiteSpace(s)) return s;
+                }
 
+                // 4. page_action default_popup
+                if (root.TryGetProperty("page_action", out var pa) &&
+                    pa.TryGetProperty("default_popup", out var pp))
+                {
+                    string? s = pp.GetString();
+                    if (!string.IsNullOrWhiteSpace(s)) return s;
+                }
 
+                // 5. Options page fallback (options_ui.page)
+                if (root.TryGetProperty("options_ui", out var optUi) &&
+                    optUi.TryGetProperty("page", out var optPage))
+                {
+                    string? s = optPage.GetString();
+                    if (!string.IsNullOrWhiteSpace(s)) return s;
+                }
 
-                if (!string.IsNullOrWhiteSpace(s)) return s;
-
-
-
+                // 6. Options page fallback (options_page)
+                if (root.TryGetProperty("options_page", out var op))
+                {
+                    string? s = op.GetString();
+                    if (!string.IsNullOrWhiteSpace(s)) return s;
+                }
             }
-
-
-
-            // Manifest V2 browser_action
-
-
-
-            if (root.TryGetProperty("browser_action", out var ba) &&
-
-
-
-                ba.TryGetProperty("default_popup", out var p2))
-
-
-
-            {
-
-
-
-                string? s = p2.GetString();
-
-
-
-                if (!string.IsNullOrWhiteSpace(s)) return s;
-
-
-
-            }
-
-
-
-            // Some extensions use page_action
-
-
-
-            if (root.TryGetProperty("page_action", out var pa) &&
-
-
-
-                pa.TryGetProperty("default_popup", out var pp))
-
-
-
-            {
-
-
-
-                string? s = pp.GetString();
-
-
-
-                if (!string.IsNullOrWhiteSpace(s)) return s;
-
-
-
-            }
-
-
-
-            // Options page fallback (options_ui.page)
-
-
-
-            if (root.TryGetProperty("options_ui", out var optUi) &&
-
-
-
-                optUi.TryGetProperty("page", out var optPage))
-
-
-
-            {
-
-
-
-                string? s = optPage.GetString();
-
-
-
-                if (!string.IsNullOrWhiteSpace(s)) return s;
-
-
-
-            }
-
-
-
-            // Options page fallback (options_page)
-
-
-
-            if (root.TryGetProperty("options_page", out var op))
-
-
-
-            {
-
-
-
-                string? s = op.GetString();
-
-
-
-                if (!string.IsNullOrWhiteSpace(s)) return s;
-
-
-
-            }
-
-
-
+            catch { }
         }
 
+        // 7. Directory file scan fallback (e.g. Remove Paywalls, index.html, popup.html)
+        if (System.IO.Directory.Exists(dir))
+        {
+            string[] commonCandidates =
+            {
+                "popup.html", "index.html", "options.html", "settings.html", "sidebar.html",
+                System.IO.Path.Combine("pages", "popup.html"),
+                System.IO.Path.Combine("pages", "popup", "popup.html"),
+                System.IO.Path.Combine("src", "popup.html"),
+                System.IO.Path.Combine("dist", "popup.html")
+            };
 
+            foreach (var c in commonCandidates)
+            {
+                if (System.IO.File.Exists(System.IO.Path.Combine(dir, c)))
+                    return c.Replace('\\', '/');
+            }
 
-        catch { }
-
-
+            var htmlFiles = System.IO.Directory.GetFiles(dir, "*.html");
+            if (htmlFiles.Length > 0)
+            {
+                return System.IO.Path.GetFileName(htmlFiles[0]);
+            }
+        }
 
         return string.Empty;
-
-
-
     }
 
-
-
     /// <summary>
-
-
-
     /// Opens a small floating window containing a WebView2 that navigates to the extension's popup URL.
-
-
-
     /// Shares the same CoreWebView2Environment as the main browser so extensions are available.
-
-
-
     /// </summary>
-
-
-
-    private async Task OpenExtensionPopupWindowAsync(string popupUrl, string extName)
+    private async Task OpenExtensionPopupWindowAsync(string popupUrl, string extName, string extId = "", string storeId = "")
 
 
 
@@ -18641,9 +18460,34 @@ return colors.length > 0 ? colors : null;
 
         wv.CoreWebView2.Settings.IsWebMessageEnabled = true;
 
-
-
         wv.CoreWebView2.Settings.AreHostObjectsAllowed = true;
+
+        // Auto-allow permissions for extension popups (song recognition audio, microphone, storage, clipboard, notifications)
+        wv.CoreWebView2.PermissionRequested += (s, e) =>
+        {
+            e.State = Microsoft.Web.WebView2.Core.CoreWebView2PermissionState.Allow;
+        };
+
+        string resolvedExtId = !string.IsNullOrWhiteSpace(storeId) ? storeId : extId;
+        if (string.IsNullOrWhiteSpace(resolvedExtId))
+        {
+            try
+            {
+                var pUri = new Uri(popupUrl);
+                if (pUri.Scheme.Equals("chrome-extension", StringComparison.OrdinalIgnoreCase))
+                    resolvedExtId = pUri.Host;
+            }
+            catch { }
+        }
+
+        if (!string.IsNullOrEmpty(extId) && !string.IsNullOrEmpty(storeId))
+        {
+            Horizon.Stealth.Core.ExtensionNetworkProxyService.RegisterIdMapping(extId, storeId);
+        }
+
+        // Attach transparent extension network proxy so all outgoing fetch/XHR API requests
+        // (e.g. Song Finder, translation, cloud sync) carry the authorized extension Origin header
+        Horizon.Stealth.Core.ExtensionNetworkProxyService.Attach(wv.CoreWebView2, resolvedExtId);
 
 
 
@@ -18867,715 +18711,10 @@ return colors.length > 0 ? colors : null;
 
 
 
-        await wv.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(@"
-
-
-
-(function() {
-
-
-
-    const patch = () => {
-
-
-
-        if (typeof chrome === 'undefined' || !chrome) return false;
-
-
-
-        // ── chrome.downloads ────────────────────────────────────────────────
-
-
-
-        chrome.downloads = chrome.downloads || {};
-
-
-
-        chrome.downloads.download = function(options, callback) {
-
-
-
-            const url = options?.url || '';
-
-
-
-            if (!url) { if (typeof callback === 'function') callback(-1); return; }
-
-
-
-            try {
-
-
-
-                const a = document.createElement('a');
-
-
-
-                a.href = url; a.download = options?.filename || '';
-
-
-
-                a.style.display = 'none';
-
-
-
-                document.body.appendChild(a);
-
-
-
-                a.click();
-
-
-
-                setTimeout(() => { try { document.body.removeChild(a); } catch(e){} }, 500);
-
-
-
-                if (typeof callback === 'function') callback(Date.now());
-
-
-
-            } catch(e) {
-
-
-
-                try { window.open(url, '_blank'); } catch(e2) {}
-
-
-
-                if (typeof callback === 'function') callback(-1);
-
-
-
-            }
-
-
-
-        };
-
-
-
-        chrome.downloads.search      = chrome.downloads.search      || function(q,cb){ if(cb) cb([]); return Promise.resolve([]); };
-
-
-
-        chrome.downloads.onCreated   = chrome.downloads.onCreated   || { addListener:()=>{}, removeListener:()=>{} };
-
-
-
-        chrome.downloads.onChanged   = chrome.downloads.onChanged   || { addListener:()=>{}, removeListener:()=>{} };
-
-
-
-        chrome.downloads.onErased    = chrome.downloads.onErased    || { addListener:()=>{}, removeListener:()=>{} };
-
-
-
-        chrome.downloads.erase       = chrome.downloads.erase       || function(q,cb){ if(cb) cb([]); };
-
-
-
-        chrome.downloads.removeFile  = chrome.downloads.removeFile  || function(id,cb){ if(cb) cb(); };
-
-
-
-        // ── chrome.storage ──────────────────────────────────────────────────
-
-
-
-        if (!chrome.storage) {
-
-
-
-            const _store = {};
-
-
-
-            const _makeArea = (prefix) => ({
-
-
-
-                get: (keys, cb) => {
-
-
-
-                    const result = {};
-
-
-
-                    const ks = typeof keys === 'string' ? [keys] : (Array.isArray(keys) ? keys : Object.keys(keys));
-
-
-
-                    ks.forEach(k => { try { const v = localStorage.getItem(prefix+k); if(v!==null) result[k] = JSON.parse(v); else if(typeof keys==='object'&&!Array.isArray(keys)) result[k]=keys[k]; } catch(e){} });
-
-
-
-                    if (typeof cb === 'function') cb(result);
-
-
-
-                    return Promise.resolve(result);
-
-
-
-                },
-
-
-
-                set: (items, cb) => {
-
-
-
-                    Object.entries(items).forEach(([k,v]) => { try { localStorage.setItem(prefix+k, JSON.stringify(v)); } catch(e){} });
-
-
-
-                    if (typeof cb === 'function') cb();
-
-
-
-                    return Promise.resolve();
-
-
-
-                },
-
-
-
-                remove: (keys, cb) => {
-
-
-
-                    const ks = typeof keys === 'string' ? [keys] : keys;
-
-
-
-                    ks.forEach(k => localStorage.removeItem(prefix+k));
-
-
-
-                    if (typeof cb === 'function') cb();
-
-
-
-                    return Promise.resolve();
-
-
-
-                },
-
-
-
-                clear: (cb) => {
-
-
-
-                    Object.keys(localStorage).filter(k=>k.startsWith(prefix)).forEach(k=>localStorage.removeItem(k));
-
-
-
-                    if (typeof cb === 'function') cb();
-
-
-
-                    return Promise.resolve();
-
-
-
-                },
-
-
-
-                onChanged: { addListener:()=>{}, removeListener:()=>{} }
-
-
-
-            });
-
-
-
-            chrome.storage = {
-
-
-
-                local:   _makeArea('__ext_local_'),
-
-
-
-                sync:    _makeArea('__ext_sync_'),
-
-
-
-                session: _makeArea('__ext_session_'),
-
-
-
-                onChanged: { addListener:()=>{}, removeListener:()=>{} },
-
-
-
-                _horizonPatched: true
-
-
-
-            };
-
-
-
-        }
-
-
-
-        // ── chrome.runtime extras ───────────────────────────────────────────
-
-
-
-        chrome.runtime = chrome.runtime || {};
-
-
-
-        chrome.runtime.sendMessage = chrome.runtime.sendMessage || function(a,b,c){ const cb=typeof b==='function'?b:c; if(typeof cb==='function') cb({}); return Promise.resolve({}); };
-
-
-
-        chrome.runtime.onMessage   = chrome.runtime.onMessage   || { addListener:()=>{}, removeListener:()=>{}, hasListeners:()=>false };
-
-
-
-        chrome.runtime.onInstalled = chrome.runtime.onInstalled || { addListener:()=>{}, removeListener:()=>{} };
-
-
-
-        chrome.runtime.onStartup   = chrome.runtime.onStartup   || { addListener:()=>{}, removeListener:()=>{} };
-
-
-
-        chrome.runtime.openOptionsPage = chrome.runtime.openOptionsPage || function(cb){ if(typeof cb==='function') cb(); };
-
-
-
-        chrome.runtime.getManifest = chrome.runtime.getManifest || function(){ return {}; };
-
-
-
-        chrome.runtime.getURL      = chrome.runtime.getURL      || function(path){ return 'chrome-extension://unknown/'+path; };
-
-
-
-        // ── chrome.identity (OAuth — powers Google login in extensions) ─────
-
-
-
-        chrome.identity = chrome.identity || {};
-
-
-
-        chrome.identity.getAuthToken = chrome.identity.getAuthToken || function(details, cb) {
-
-
-
-            // Not supported natively — notify the extension so it can fall back
-
-
-
-            if (typeof cb === 'function') cb(undefined);
-
-
-
-            return Promise.reject(new Error('getAuthToken not supported outside Chrome'));
-
-
-
-        };
-
-
-
-        chrome.identity.launchWebAuthFlow = chrome.identity.launchWebAuthFlow || function(details, cb) {
-
-
-
-            // Ask the host WPF layer to open an auth window via window.open,
-
-
-
-            // then relay the redirect URL back via window._horizonOAuthRedirect.
-
-
-
-            window._horizonOAuthCallback = cb;
-
-
-
-            window._horizonOAuthRedirect = function(redirectUrl) {
-
-
-
-                window._horizonOAuthCallback && window._horizonOAuthCallback(redirectUrl);
-
-
-
-            };
-
-
-
-            try { window.open(details.url, '_blank', 'width=500,height=700'); }
-
-
-
-            catch(e) { if(typeof cb==='function') cb(undefined, String(e)); }
-
-
-
-        };
-
-
-
-        chrome.identity.getRedirectURL = chrome.identity.getRedirectURL || function(path) {
-
-
-
-            return 'https://' + (chrome.runtime.id || 'unknown') + '.chromiumapp.org/' + (path||'');
-
-
-
-        };
-
-
-
-        chrome.identity.onSignInChanged = chrome.identity.onSignInChanged || { addListener:()=>{}, removeListener:()=>{} };
-
-
-
-        // ── chrome.notifications ────────────────────────────────────────────
-
-
-
-        chrome.notifications = chrome.notifications || {
-
-
-
-            create:       function(id,opts,cb){ if(typeof cb==='function') cb(id||'n1'); },
-
-
-
-            clear:        function(id,cb){ if(typeof cb==='function') cb(true); },
-
-
-
-            getAll:       function(cb){ if(typeof cb==='function') cb({}); },
-
-
-
-            onClicked:    { addListener:()=>{}, removeListener:()=>{} },
-
-
-
-            onClosed:     { addListener:()=>{}, removeListener:()=>{} },
-
-
-
-            onButtonClicked: { addListener:()=>{}, removeListener:()=>{} }
-
-
-
-        };
-
-
-
-        // ── chrome.alarms ───────────────────────────────────────────────────
-
-
-
-        chrome.alarms = chrome.alarms || {
-
-
-
-            create:    function(){},
-
-
-
-            clear:     function(n,cb){ if(typeof cb==='function') cb(true); },
-
-
-
-            clearAll:  function(cb){ if(typeof cb==='function') cb(true); },
-
-
-
-            get:       function(n,cb){ if(typeof cb==='function') cb(undefined); },
-
-
-
-            getAll:    function(cb){ if(typeof cb==='function') cb([]); },
-
-
-
-            onAlarm:   { addListener:()=>{}, removeListener:()=>{} }
-
-
-
-        };
-
-
-
-        // ── chrome.contextMenus ─────────────────────────────────────────────
-
-
-
-        chrome.contextMenus = chrome.contextMenus || {
-
-
-
-            create:     function(){ return 'menu_'+Date.now(); },
-
-
-
-            update:     function(id,props,cb){ if(typeof cb==='function') cb(); },
-
-
-
-            remove:     function(id,cb){ if(typeof cb==='function') cb(); },
-
-
-
-            removeAll:  function(cb){ if(typeof cb==='function') cb(); },
-
-
-
-            onClicked:  { addListener:()=>{}, removeListener:()=>{} }
-
-
-
-        };
-
-
-
-        return true;
-
-
-
-    };
-
-
-
-    if (!patch()) { const t = setInterval(() => { if (patch()) clearInterval(t); }, 20); }
-
-
-
-})();
-
-
-
-");
-
-
-
-        
-
-
-
         string tabUrl   = CurrentBrowser?.MainWebView?.Source?.ToString() ?? "";
-
-
-
         string tabTitle = CurrentBrowser?.MainWebView?.CoreWebView2?.DocumentTitle ?? "";
-
-
-
-        // Escape for embedding in a JS string literal
-
-
-
-        string safeUrl   = System.Text.Json.JsonSerializer.Serialize(tabUrl);
-
-
-
-        string safeTitle = System.Text.Json.JsonSerializer.Serialize(tabTitle);
-
-
-
-        await wv.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync($@"
-
-
-
-(function() {{
-
-
-
-    'use strict';
-
-
-
-    const _horizonTab = {{
-
-
-
-        id: 1, index: 0, windowId: 1,
-
-
-
-        active: true, highlighted: true, selected: true,
-
-
-
-        pinned: false, incognito: false,
-
-
-
-        status: 'complete',
-
-
-
-        url:   {safeUrl},
-
-
-
-        title: {safeTitle},
-
-
-
-        favIconUrl: ''
-
-
-
-    }};
-
-
-
-    // Patch as soon as chrome.tabs is available (may be set up after this script runs)
-
-
-
-    const patchTabs = () => {{
-
-
-
-        if (typeof chrome === 'undefined' || !chrome || !chrome.tabs) return false;
-
-
-
-        const _origQuery  = chrome.tabs.query?.bind(chrome.tabs);
-
-
-
-        const _origGet    = chrome.tabs.get?.bind(chrome.tabs);
-
-
-
-        const _origGetCur = chrome.tabs.getCurrent?.bind(chrome.tabs);
-
-
-
-        chrome.tabs.query = function(queryInfo, callback) {{
-
-
-
-            // Return our fake tab for any ""what is the active tab?"" query
-
-
-
-            if (!queryInfo || queryInfo.active !== false) {{
-
-
-
-                if (typeof callback === 'function') {{ callback([_horizonTab]); return; }}
-
-
-
-                return Promise.resolve([_horizonTab]);
-
-
-
-            }}
-
-
-
-            if (_origQuery) return _origQuery(queryInfo, callback);
-
-
-
-            if (typeof callback === 'function') {{ callback([]); return; }}
-
-
-
-            return Promise.resolve([]);
-
-
-
-        }};
-
-
-
-        chrome.tabs.get = function(tabId, callback) {{
-
-
-
-            if (typeof callback === 'function') {{ callback(_horizonTab); return; }}
-
-
-
-            return Promise.resolve(_horizonTab);
-
-
-
-        }};
-
-
-
-        chrome.tabs.getCurrent = function(callback) {{
-
-
-
-            if (typeof callback === 'function') {{ callback(_horizonTab); return; }}
-
-
-
-            return Promise.resolve(_horizonTab);
-
-
-
-        }};
-
-
-
-        // Expose directly for extensions that read window._tab or similar globals
-
-
-
-        window._horizonCurrentTab = _horizonTab;
-
-
-
-        return true;
-
-
-
-    }};
-
-
-
-    if (!patchTabs()) {{
-
-
-
-        // chrome.tabs not ready yet — retry after a short yield
-
-
-
-        const t = setInterval(() => {{ if (patchTabs()) clearInterval(t); }}, 20);
-
-
-
-    }}
-
-
-
-}})();
-
-
-
-");
+        await wv.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(
+            Horizon.Stealth.Core.ExtensionPolyfillService.GetUniversalPolyfillScript(tabUrl, tabTitle, resolvedExtId));
 
 
 
@@ -19904,6 +19043,7 @@ return colors.length > 0 ? colors : null;
 
 
             tab.Volume = slider.Value / 100.0;
+            tab.HasCustomVolume = true;
 
 
 
@@ -20676,23 +19816,11 @@ return colors.length > 0 ? colors : null;
 
 
 
-    private const int FsCoverInMs = 95;
-
-
-
-    private const int FsCoverOutMs = 163;
-
-
-
-    private const int FsSettleMinMs = 475;
-
-
-
-    private const int FsSettleQuietMs = 135;
-
-
-
-    private const int FsSettleMaxMs = 2024;
+    private const int FsCoverInMs = 15;
+    private const int FsCoverOutMs = 35;
+    private const int FsSettleMinMs = 20;
+    private const int FsSettleQuietMs = 15;
+    private const int FsSettleMaxMs = 70;
 
 
 
@@ -21016,90 +20144,55 @@ return colors.length > 0 ? colors : null;
 
 
 
-    private const int FsProbeIntervalMs = 50;
-
-
+    private const int FsProbeIntervalMs = 20;
 
     private const int FsProbeStableMs = 269;
 
-
-
-    private const string FsProbeScript = "(function(){var d=document,f=d.fullscreenElement,p=f||d.getElementById('movie_player'),v=d.querySelector('video');function g(e){if(!e)return[0,0,0,0];var r=e.getBoundingClientRect();return[Math.round(r.left),Math.round(r.top),Math.round(r.width),Math.round(r.height)];}return [innerWidth,innerHeight].concat(g(p),g(v),[f?1:0]).join(',');})()";
-
-
+    private const string FsProbeScript = "(function(){var d=document,f=d.fullscreenElement,p=f||d.getElementById('movie_player'),v=d.querySelector('video'),sec=d.querySelector('#secondary,#related,ytd-watch-flexy #secondary');function g(e){if(!e)return[0,0,0,0];var r=e.getBoundingClientRect();return[Math.round(r.left),Math.round(r.top),Math.round(r.width),Math.round(r.height)];}var sIn=sec?1:0,sH=sec?Math.round(sec.getBoundingClientRect().height):0;return [innerWidth,innerHeight].concat(g(p),g(v),[f?1:0,sIn,sH]).join(',');})()";
 
     private static bool FsProbeFilled(string raw, bool on)
-
-
-
     {
-
-
-
-        if (!on) return true;
-
-
-
         try
-
-
-
         {
-
-
-
             var parts = raw.Trim('"').Split(',');
-
-
-
             if (parts.Length < 11) return true;
 
-
-
             double iw = double.Parse(parts[0], CultureInfo.InvariantCulture);
-
-
-
             double ih = double.Parse(parts[1], CultureInfo.InvariantCulture);
+            double pw = double.Parse(parts[4], CultureInfo.InvariantCulture);
+            double ph = double.Parse(parts[5], CultureInfo.InvariantCulture);
+            bool isFs = parts[10] == "1";
 
+            if (on)
+            {
+                // Entering fullscreen: element must be fullscreen and fill screen
+                if (!isFs) return false;
+                return pw >= iw - 2 && ph >= ih - 2;
+            }
+            else
+            {
+                // Exiting fullscreen: document must not be fullscreen
+                if (isFs) return false;
 
+                // If player exists, it must have shrunk away from full screen width
+                if (pw > 0 && pw >= iw - 2) return false;
 
-            double ew = double.Parse(parts[4], CultureInfo.InvariantCulture);
+                // On YouTube watch page, if #secondary is present in DOM, wait until it has reflowed and height > 50
+                // (before reflow finishes, #secondary height is 0, showing an ugly black void)
+                if (parts.Length >= 13)
+                {
+                    int secInDom = int.Parse(parts[11], CultureInfo.InvariantCulture);
+                    double secH = double.Parse(parts[12], CultureInfo.InvariantCulture);
+                    if (secInDom == 1 && secH < 50) return false;
+                }
 
-
-
-            double eh = double.Parse(parts[5], CultureInfo.InvariantCulture);
-
-
-
-            if (parts[10] != "1") return false;
-
-
-
-            return ew >= iw - 2 && eh >= ih - 2;
-
-
-
+                return true;
+            }
         }
-
-
-
         catch
-
-
-
         {
-
-
-
             return true;
-
-
-
         }
-
-
-
     }
 
 
@@ -21604,22 +20697,10 @@ return colors.length > 0 ? colors : null;
 
 
 
-        if (!FsHoldAllowed())
-
-
-
+        if (!FsHoldAllowed() || !SettingsService.Current.ShowFullscreenOverlay)
         {
-
-
-
             ApplyFullscreenStateRaw(on);
-
-
-
             return;
-
-
-
         }
 
 
@@ -23338,6 +22419,78 @@ return colors.length > 0 ? colors : null;
 
 
 
+    public void TogglePinTab(TabViewModel tab)
+    {
+        if (tab == null) return;
+        tab.IsPinned = !tab.IsPinned;
+        if (tab.IsPinned)
+        {
+            tab.IsCompact = true;
+            int insertIdx = _allTabs.TakeWhile(t => t.IsPinned && !ReferenceEquals(t, tab)).Count();
+            int curIdx = _allTabs.IndexOf(tab);
+            if (curIdx >= 0 && curIdx != insertIdx)
+            {
+                _allTabs.RemoveAt(curIdx);
+                _allTabs.Insert(Math.Min(insertIdx, _allTabs.Count), tab);
+            }
+            if (!string.IsNullOrEmpty(tab.Url) && !tab.Url.StartsWith("about:") && !SettingsService.Current.PermanentPinnedTabUrls.Contains(tab.Url))
+            {
+                SettingsService.Current.PermanentPinnedTabUrls.Add(tab.Url);
+                SettingsService.Save();
+            }
+        }
+        else
+        {
+            tab.IsCompact = false;
+            if (!string.IsNullOrEmpty(tab.Url))
+            {
+                SettingsService.Current.PermanentPinnedTabUrls.Remove(tab.Url);
+                SettingsService.Save();
+            }
+        }
+        ScheduleReflow();
+    }
+
+    private void RestorePinnedTabs()
+    {
+        var pinnedUrls = SettingsService.Current.PermanentPinnedTabUrls?.ToList();
+        if (pinnedUrls == null || pinnedUrls.Count == 0) return;
+
+        foreach (var url in pinnedUrls)
+        {
+            if (string.IsNullOrWhiteSpace(url)) continue;
+            var existing = _allTabs.FirstOrDefault(t => t.Url == url);
+            if (existing != null)
+            {
+                existing.IsPinned = true;
+                existing.IsCompact = true;
+            }
+            else
+            {
+                CreateNewTab(url, activate: false);
+                var created = _allTabs.LastOrDefault();
+                if (created != null)
+                {
+                    created.IsPinned = true;
+                    created.IsCompact = true;
+                }
+            }
+        }
+
+        var pinnedList = _allTabs.Where(t => t.IsPinned).ToList();
+        for (int i = 0; i < pinnedList.Count; i++)
+        {
+            int curIdx = _allTabs.IndexOf(pinnedList[i]);
+            if (curIdx >= 0 && curIdx != i)
+            {
+                var pTab = pinnedList[i];
+                _allTabs.RemoveAt(curIdx);
+                _allTabs.Insert(Math.Min(i, _allTabs.Count), pTab);
+            }
+        }
+        ScheduleReflow();
+    }
+
     public void TabMenu_Duplicate(object sender, RoutedEventArgs e)
 
 
@@ -24126,9 +23279,7 @@ return colors.length > 0 ? colors : null;
 
 
 
-        var targets = GetMultiTargets().ToList();
-
-
+        var targets = GetMultiTargets().Where(t => !t.IsPinned).ToList();
 
         foreach (var tab in targets) CloseTab(tab);
 
@@ -24708,6 +23859,7 @@ return colors.length > 0 ? colors : null;
             if (oldBrowser.MainWebView?.CoreWebView2 != null)
             {
                 var newBrowser = new Controls.BrowserView { ContainerId = containerId };
+    WireKeyboardNavForBrowser(newBrowser);
 
                 newBrowser.NewTabRequested += (s, url) => CreateNewTab(url);
                 newBrowser.HomeStateChanged += () =>
@@ -24870,12 +24022,21 @@ return colors.length > 0 ? colors : null;
 
 
             return;
-
-
-
         }
 
-
+        var tabTarget = (cm.PlacementTarget as FrameworkElement)?.DataContext as TabViewModel;
+        var oldPin = cm.Items.OfType<FrameworkElement>().FirstOrDefault(x => x.Tag?.ToString() == "__pinopt__");
+        if (oldPin != null) cm.Items.Remove(oldPin);
+        if (tabTarget != null)
+        {
+            var miPin = new MenuItem
+            {
+                Header = tabTarget.IsPinned ? "\U0001F4CC  Unpin Tab" : "\U0001F4CC  Pin Tab",
+                Tag = "__pinopt__"
+            };
+            miPin.Click += (_, _) => TogglePinTab(tabTarget);
+            cm.Items.Insert(0, miPin);
+        }
 
         foreach (var itemObj in cm.Items)
 
@@ -27857,81 +27018,39 @@ return colors.length > 0 ? colors : null;
 
 
             string currentTitle = vidTab.CleanMediaTitle ?? vidTab.Title;
-
-
-
             WidgetVideoImage.Visibility = Visibility.Collapsed;
-
-
-
             TxtWidget.Visibility        = Visibility.Visible;
-
-
-
             TxtWidget.ToolTip           = currentTitle;
-
-
-
+            if (!_widgetFading && !string.IsNullOrEmpty(currentTitle))
+            {
+                TxtWidget.Text = "🎬 " + currentTitle;
+            }
             return;
-
-
-
         }
 
-
-
-        // Refresh MediaTitle for audio-only tabs — title changes on services like Spotify
-
-
-
+        // Refresh MediaTitle for audio tabs — title changes on services like Spotify/YouTube Music
         // don't reliably fire DocumentTitleChanged, so we poll here every 4 s.
-
-
-
-        var _aoTab = _allTabs.FirstOrDefault(t => t.IsPlayingAudio && t.IsAudioOnlyMode);
-
-
-
-        if (_aoTab != null && _tabViews.TryGetValue(_aoTab, out var _aoBv) && _aoBv.MainWebView?.CoreWebView2 != null)
-
-
-
+        var audTab = _allTabs.FirstOrDefault(t => t.IsPlayingAudio);
+        if (audTab != null && _tabViews.TryGetValue(audTab, out var _aoBv) && _aoBv.MainWebView?.CoreWebView2 != null)
         {
-
-
-
-            _ = UpdateTabMediaMetadataAsync(_aoTab, _aoBv);
-
-
-
+            _ = UpdateTabMediaMetadataAsync(audTab, _aoBv);
         }
-
-
 
         WidgetVideoImage.Visibility = Visibility.Collapsed;
-
-
-
         TxtWidget.Visibility        = Visibility.Visible;
-
-
-
-        var audTab = _allTabs.FirstOrDefault(t => t.IsPlayingAudio);
-
-
-
-        TxtWidget.ToolTip = audTab != null
-
-
-
-            ? (!string.IsNullOrEmpty(audTab.CleanMediaTitle) ? audTab.CleanMediaTitle : audTab.Title)
-
-
-
-            : null;
-
-
-
+        if (audTab != null)
+        {
+            string clean = !string.IsNullOrEmpty(audTab.CleanMediaTitle) ? audTab.CleanMediaTitle : (audTab.Title ?? "");
+            TxtWidget.ToolTip = clean;
+            if (!_widgetFading && !string.IsNullOrEmpty(clean))
+            {
+                TxtWidget.Text = "🎵 " + clean;
+            }
+        }
+        else
+        {
+            TxtWidget.ToolTip = null;
+        }
     }
 
 
@@ -27941,77 +27060,39 @@ return colors.length > 0 ? colors : null;
 
 
     private void SyncWidgetCheckboxes()
-
-
-
     {
-
-
-
         var m = SettingsService.Current.WidgetModes;
 
+        // Dynamic extension widgets present in saved modes
+        var extDefs = new List<(string Key, string Label)>();
+        foreach (var k in m.Where(k => k.StartsWith("Ext:", StringComparison.OrdinalIgnoreCase)))
+        {
+            string extId = k.Substring(4);
+            var ext = ExtensionService.Find(extId);
+            string name = ext?.Name ?? "Extension";
+            extDefs.Add((k, $"🧩  {name}"));
+        }
 
+        var allDefs = _allWidgetDefs.Concat(extDefs).ToList();
 
         // Enabled widgets appear first in their saved cycle order; disabled ones follow in canonical order
-
-
-
-        var enabled  = m.Where(k => _allWidgetDefs.Any(d => d.Key == k)).ToList();
-
-
-
-        var disabled = _allWidgetDefs.Where(d => !enabled.Contains(d.Key)).Select(d => d.Key);
-
-
+        var enabled  = m.Where(k => allDefs.Any(d => string.Equals(d.Key, k, StringComparison.OrdinalIgnoreCase))).ToList();
+        var disabled = _allWidgetDefs.Where(d => !enabled.Any(k => string.Equals(k, d.Key, StringComparison.OrdinalIgnoreCase))).Select(d => d.Key);
 
         LstWidgetOrder.Items.Clear();
 
-
-
         foreach (var key in enabled.Concat(disabled))
-
-
-
         {
-
-
-
-            var entry    = _allWidgetDefs.FirstOrDefault(d => d.Key == key);
-
-
-
+            var entry    = allDefs.FirstOrDefault(d => string.Equals(d.Key, key, StringComparison.OrdinalIgnoreCase));
             string label = entry.Label ?? key;
-
-
-
-            bool isOn    = m.Contains(key) || (key == "Media" && (m.Contains("Music") || m.Contains("Video")));
-
-
-
+            bool isOn    = m.Any(x => string.Equals(x, key, StringComparison.OrdinalIgnoreCase)) || (key == "Media" && (m.Contains("Music") || m.Contains("Video")));
             LstWidgetOrder.Items.Add(BuildWidgetListItem(key, label, isOn));
-
-
-
         }
 
-
-
         PnlWeatherCity.Visibility = m.Contains("Weather") ? Visibility.Visible : Visibility.Collapsed;
-
-
-
         ChkWidgetDisableCycle.IsChecked = SettingsService.Current.WidgetDisableCycle;
-
-
-
         PnlWidgetCycle.Visibility = (m.Count > 1 && !SettingsService.Current.WidgetDisableCycle)
-
-
-
                                     ? Visibility.Visible : Visibility.Collapsed;
-
-
-
     }
 
 
@@ -28509,118 +27590,48 @@ return colors.length > 0 ? colors : null;
 
 
     private void CycleWidgetMode(int direction)
-
-
-
     {
-
-
-
         var modes = SettingsService.Current.WidgetModes;
-
-
-
         if (modes.Count == 0) return;
-
-
-
         _widgetModeIndex = (_widgetModeIndex + direction + modes.Count) % modes.Count;
-
-
-
         FadeWidgetContent(GetWidgetText());
-
-
-
+        RefreshWidgetDisplay();
     }
-
-
 
     private string CurrentWidgetMode()
-
-
-
     {
-
-
-
         var m = SettingsService.Current.WidgetModes;
-
-
-
         if (m.Count == 0) return "Clock";
-
-
-
         return m[Math.Clamp(_widgetModeIndex, 0, m.Count - 1)];
-
-
-
     }
 
-
-
-    private string GetWidgetText() => CurrentWidgetMode() switch
-
-
-
+    private string GetWidgetText()
     {
+        string mode = CurrentWidgetMode();
+        if (mode.StartsWith("Ext:", StringComparison.OrdinalIgnoreCase))
+        {
+            string extId = mode.Substring(4);
+            var ext = ExtensionService.Find(extId);
+            return ext != null ? WidgetTruncate(ext.Name, "Extension") : "Extension";
+        }
 
-
-
-        "Clock"      => GetClockText(),
-
-
-
-        "CPU"        => $"CPU  {GetCpuPercent():F1}%",
-
-
-
-        "RAM"        => $"RAM  {GetCachedRamMb()} MB",
-
-
-
-        "Media"      => GetWidgetMediaText(),
-
-
-
-        "Music"      => GetWidgetMediaText(),   // legacy alias
-
-
-
-        "Weather"    => _weatherCache,
-
-
-
-        "Notes"      => WidgetTruncate(SettingsService.Current.WidgetNotes, "📝 (empty)"),
-
-
-
-        "Calculator" => "🧮  Calculator",
-
-
-
-        "Converter"  => "⇄   Converter",
-
-
-
-        "Calendar"   => DateTime.Now.ToString("dd MMM"),
-
-
-
-        "Notifications" => GetNotificationsWidgetText(),
-
-
-
-        "Battery"    => GetBatteryWidgetText(),
-
-
-
-        _            => "--"
-
-
-
-    };
+        return mode switch
+        {
+            "Clock"         => GetClockText(),
+            "CPU"           => $"CPU  {GetCpuPercent():F1}%",
+            "RAM"           => $"RAM  {GetCachedRamMb()} MB",
+            "Media"         => GetWidgetMediaText(),
+            "Music"         => GetWidgetMediaText(),   // legacy alias
+            "Weather"       => _weatherCache,
+            "Notes"         => WidgetTruncate(SettingsService.Current.WidgetNotes, "📝 (empty)"),
+            "Calculator"    => "🧮  Calculator",
+            "Converter"     => "⇄   Converter",
+            "Calendar"      => DateTime.Now.ToString("dd MMM"),
+            "Notifications" => GetNotificationsWidgetText(),
+            "Battery"       => GetBatteryWidgetText(),
+            _               => "--"
+        };
+    }
 
 
 
@@ -30720,6 +29731,63 @@ return colors.length > 0 ? colors : null;
             HeaderWidgetBorder.ToolTip = "Click or swipe \u2191: open controls \u00B7 Swipe \u2190/\u2192: cycle modes \u00B7 Scroll: cycle modes \u00B7 Right-click or swipe \u2193: options";
         }
 
+        if (mode.StartsWith("Ext:", StringComparison.OrdinalIgnoreCase))
+        {
+            string extId = mode.Substring(4);
+            var ext = ExtensionService.Find(extId);
+            if (ext != null)
+            {
+                HeaderWidgetBorder.ToolTip = $"{ext.Name} (Extension Widget)\nClick to open popup \u00B7 Scroll or swipe to cycle \u00B7 Right-click: options";
+                if (WidgetExtIcon != null)
+                {
+                    if (!string.IsNullOrEmpty(ext.IconPath) && System.IO.File.Exists(ext.IconPath))
+                    {
+                        try
+                        {
+                            var bi = new System.Windows.Media.Imaging.BitmapImage();
+                            bi.BeginInit();
+                            bi.UriSource = new Uri(ext.IconPath, UriKind.Absolute);
+                            bi.DecodePixelWidth = 36;
+                            bi.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
+                            bi.EndInit();
+                            bi.Freeze();
+                            WidgetExtIcon.Source = bi;
+                            WidgetExtIcon.Visibility = Visibility.Visible;
+                        }
+                        catch
+                        {
+                            WidgetExtIcon.Visibility = Visibility.Collapsed;
+                            WidgetExtIcon.Source = null;
+                        }
+                    }
+                    else
+                    {
+                        WidgetExtIcon.Visibility = Visibility.Collapsed;
+                        WidgetExtIcon.Source = null;
+                    }
+                }
+            }
+            else
+            {
+                if (WidgetExtIcon != null)
+                {
+                    WidgetExtIcon.Visibility = Visibility.Collapsed;
+                    WidgetExtIcon.Source = null;
+                }
+                HeaderWidgetBorder.ToolTip = "Extension Widget\nClick to open \u00B7 Scroll or swipe to cycle \u00B7 Right-click: options";
+            }
+            if (TxtWidget != null) TxtWidget.FontSize = 13;
+        }
+        else
+        {
+            if (WidgetExtIcon != null)
+            {
+                WidgetExtIcon.Visibility = Visibility.Collapsed;
+                WidgetExtIcon.Source = null;
+            }
+            if (TxtWidget != null) TxtWidget.FontSize = 16;
+        }
+
 
 
         if (mode == "Weather")
@@ -32311,84 +31379,36 @@ private sealed class WeatherRetryHandler : DelegatingHandler
 
 
     public void HeaderWidget_LeftClick(object sender, MouseButtonEventArgs e)
-
-
-
     {
-
-
-
-        switch (CurrentWidgetMode())
-
-
-
+        string mode = CurrentWidgetMode();
+        if (mode.StartsWith("Ext:", StringComparison.OrdinalIgnoreCase))
         {
-
-
-
-            case "Clock":      OpenClockModeMenu();        break;
-
-
-
-            case "Notes":      OpenNotesWindow();          break;
-
-
-
-            case "Calculator": OpenCalculatorWindow();     break;
-
-
-
-            case "Converter":  OpenConverterWindow();      break;
-
-
-
-            case "Calendar":   OpenCalendarWindow();       break;
-
-
-
-            case "Weather":    OpenWeatherDetailPopup();   break;
-
-
-
-            case "Media":
-
-
-
-            case "Music":
-
-
-
-            case "Video":      OpenMusicControlsPopup();   break;
-
-
-
-            case "CPU":
-
-
-
-            case "RAM":        OpenSystemDetailPopup();    break;
-
-
-
-            case "Notifications": OpenNotificationsListPopup(); break;
-
-
-
-            case "Battery":       OpenBatteryMenu();             break;
-
-
-
-            
-
-
-
+            string extId = mode.Substring(4);
+            var ext = ExtensionService.Find(extId);
+            if (ext != null)
+            {
+                RightSidebar_RequestExtensionPopup(this, ext);
+            }
+            return;
         }
 
-
-
+        switch (mode)
+        {
+            case "Clock":         OpenClockModeMenu();          break;
+            case "Notes":         OpenNotesWindow();            break;
+            case "Calculator":    OpenCalculatorWindow();       break;
+            case "Converter":     OpenConverterWindow();        break;
+            case "Calendar":      OpenCalendarWindow();         break;
+            case "Weather":       OpenWeatherDetailPopup();     break;
+            case "Media":
+            case "Music":
+            case "Video":         OpenMusicControlsPopup();     break;
+            case "CPU":
+            case "RAM":           OpenSystemDetailPopup();      break;
+            case "Notifications": OpenNotificationsListPopup();  break;
+            case "Battery":       OpenBatteryMenu();            break;
+        }
     }
-
-
 
     private Window? _systemInfoWindow = null;
 
@@ -33958,42 +32978,23 @@ private sealed class WeatherRetryHandler : DelegatingHandler
 
 
 
-        // Tab name (artist/source)
-
-
+        // Tab name (artist/source - avoid title duplication)
+        string initialArtist = !string.IsNullOrWhiteSpace(tab?.MediaArtist)
+            ? tab.MediaArtist
+            : (!string.IsNullOrWhiteSpace(tab?.MediaOriginHost)
+                ? tab.MediaOriginHost
+                : (!string.IsNullOrWhiteSpace(tab?.DomainTitle)
+                    ? tab.DomainTitle
+                    : (tab != null && !string.IsNullOrEmpty(tab.Title) && tab.Title != titleBlock.Text ? tab.Title : "")));
 
         var sourceBlock = new TextBlock
-
-
-
         {
-
-
-
-            Text       = tab != null ? tab.Title : "",
-
-
-
-            Foreground = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88)),
-
-
-
-            FontSize   = 11,
-
-
-
-            Margin     = new Thickness(0, 0, 0, 10),
-
-
-
+            Text         = initialArtist,
+            Foreground   = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88)),
+            FontSize     = 11,
+            Margin       = new Thickness(0, 0, 0, 10),
             TextTrimming = TextTrimming.CharacterEllipsis,
-
-
-
         };
-
-
-
         root.Children.Add(sourceBlock);
 
 
@@ -34647,17 +33648,31 @@ private sealed class WeatherRetryHandler : DelegatingHandler
 
 
                     if (!userSeeking && d > 0)
-
-
-
                         progressSlider.Value = Math.Min(1000, (t / d) * 1000.0);
 
+                    if (tab != null)
+                    {
+                        _ = UpdateTabMediaMetadataAsync(tab, progressBrowser);
+                        string curTitle = !string.IsNullOrEmpty(tab.CleanMediaTitle) ? tab.CleanMediaTitle : (tab.Title ?? "");
+                        string curArtist = !string.IsNullOrWhiteSpace(tab.MediaArtist)
+                            ? tab.MediaArtist
+                            : (!string.IsNullOrWhiteSpace(tab.MediaOriginHost)
+                                ? tab.MediaOriginHost
+                                : (!string.IsNullOrWhiteSpace(tab.DomainTitle)
+                                    ? tab.DomainTitle
+                                    : (tab.Title != curTitle ? (tab.Title ?? "") : "")));
 
-
+                        if (!string.IsNullOrEmpty(curTitle) && titleBlock.Text != curTitle)
+                        {
+                            titleBlock.Text = curTitle;
+                            RefreshWidgetDisplay();
+                        }
+                        if (!string.IsNullOrEmpty(curArtist) && sourceBlock.Text != curArtist)
+                        {
+                            sourceBlock.Text = curArtist;
+                        }
+                    }
                 }
-
-
-
                 catch { }
 
 
@@ -34907,6 +33922,7 @@ private sealed class WeatherRetryHandler : DelegatingHandler
 
 
                 tab.Volume = volSlider.Value / 100.0;
+                tab.HasCustomVolume = true;
 
 
 
@@ -36974,7 +35990,7 @@ private sealed class WeatherRetryHandler : DelegatingHandler
 
 
 
-            glassHost.Visibility = overlap == null ? Visibility.Collapsed : Visibility.Visible;
+            glassHost.Visibility = (overlap == null || !CommandBarGlass.IsHomeActive()) ? Visibility.Collapsed : Visibility.Visible;
 
 
 
@@ -36990,7 +36006,7 @@ private sealed class WeatherRetryHandler : DelegatingHandler
 
 
 
-            baseLayer.Background = new SolidColorBrush(WxPanel);
+            baseLayer.Background = CommandBarGlass.ShouldUse() ? Brushes.Transparent : new SolidColorBrush(WxPanel);
 
 
 
@@ -37042,7 +36058,7 @@ private sealed class WeatherRetryHandler : DelegatingHandler
 
 
 
-        return (root, () => { WeatherBridge.ThemeUpdated -= handler; unbind(); });
+        var detachCmdGlass = CommandBarGlass.Attach(owner, root, _ => { glassHost.Visibility = Visibility.Collapsed; Apply(); }); return (root, () => { WeatherBridge.ThemeUpdated -= handler; unbind(); detachCmdGlass(); });
 
 
 

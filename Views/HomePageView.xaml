@@ -1572,6 +1572,11 @@
 
                                 Margin="0,50,40,0" Visibility="Collapsed"/>
 
+            <!-- Pinned Extensions Rail (Right Column) -->
+            <StackPanel x:Name="PnlHomePinnedExtensions" Grid.Row="0" Grid.RowSpan="2" Grid.Column="2"
+                        HorizontalAlignment="Right" VerticalAlignment="Top"
+                        Margin="0,50,40,0" Orientation="Vertical"/>
+
 
 
             <!-- Centered search + pins, confined to the middle column so it can never
@@ -1817,41 +1822,12 @@
 
 
                 <Border x:Name="FavoritesIslandBorder" Grid.Row="0"
-
-
-
-
-
                         HorizontalAlignment="Center" VerticalAlignment="Top"
-
-
-
-
-
                         Margin="0,12,0,16" Padding="28,18,28,24"
-
-
-
-
-
+                        MinWidth="420"
                         CornerRadius="28"
-
-
-
-
-
                         Background="{Binding Background, ElementName=SearchBoxBorder}"
-
-
-
-
-
                         BorderBrush="{Binding BorderBrush, ElementName=SearchBoxBorder}"
-
-
-
-
-
                         BorderThickness="{Binding BorderThickness, ElementName=SearchBoxBorder}">
 
 
@@ -1990,7 +1966,7 @@
 
                     </ScrollViewer>
 
-                    <TextBlock x:Name="TxtFavoritesEmpty" Text="No favorites yet. Add favorite websites to display them here." Foreground="{DynamicResource HomeTextBrush}" Opacity="0.6" FontSize="14" HorizontalAlignment="Center" Margin="24,20" Visibility="Collapsed"/>
+                    <TextBlock x:Name="TxtFavoritesEmpty" Text="No favorites yet. Add favorite websites to display them here." Foreground="{DynamicResource HomeTextBrush}" Opacity="0.85" FontSize="14" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="440" Margin="24,24" Visibility="Collapsed"/>
 
                     <Button x:Name="BtnToggleFavorites" Style="{StaticResource PillButtonStyle}" HorizontalAlignment="Right" Margin="0,12,24,0" Click="BtnToggleFavorites_Click" Visibility="Collapsed">
 
@@ -2011,41 +1987,12 @@
 
 
                 <Border x:Name="BookmarksIslandBorder" Grid.Row="1"
-
-
-
-
-
                         HorizontalAlignment="Center" VerticalAlignment="Top"
-
-
-
-
-
                         Margin="0,12,0,16" Padding="28,18,28,24"
-
-
-
-
-
+                        MinWidth="420"
                         CornerRadius="28"
-
-
-
-
-
                         Background="{Binding Background, ElementName=SearchBoxBorder}"
-
-
-
-
-
                         BorderBrush="{Binding BorderBrush, ElementName=SearchBoxBorder}"
-
-
-
-
-
                         BorderThickness="{Binding BorderThickness, ElementName=SearchBoxBorder}">
 
 
@@ -2102,7 +2049,7 @@
 
                     </ScrollViewer>
 
-                    <TextBlock x:Name="TxtBookmarksEmpty" Text="No bookmarks yet. Press Ctrl+D on any page to bookmark it." Foreground="{DynamicResource HomeTextBrush}" Opacity="0.6" FontSize="14" HorizontalAlignment="Center" Margin="24,20" Visibility="Collapsed"/>
+                    <TextBlock x:Name="TxtBookmarksEmpty" Text="No bookmarks yet. Press Ctrl+D on any page to bookmark it." Foreground="{DynamicResource HomeTextBrush}" Opacity="0.85" FontSize="14" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="440" Margin="24,24" Visibility="Collapsed"/>
 
                     <Button x:Name="BtnToggleBookmarks" Style="{StaticResource PillButtonStyle}" HorizontalAlignment="Right" Margin="0,12,24,0" Click="BtnToggleBookmarks_Click" Visibility="Collapsed">
 

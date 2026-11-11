@@ -41,16 +41,89 @@ public partial class Omnibox : UserControl
         UrlInput.Text = text;
     }
 
+    public static string NormalizeInternalBrowserUrl(string raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw)) return string.Empty;
+        string trimmed = raw.Trim();
+
+        // Bare scheme or menu aliases (edge://, chrome://, edge://menu, chrome://menu, chrome://chrome-urls, etc.)
+        if (trimmed.Equals("edge://", StringComparison.OrdinalIgnoreCase) ||
+            trimmed.Equals("chrome://", StringComparison.OrdinalIgnoreCase) ||
+            trimmed.Equals("edge:", StringComparison.OrdinalIgnoreCase) ||
+            trimmed.Equals("chrome:", StringComparison.OrdinalIgnoreCase) ||
+            trimmed.Equals("edge://menu", StringComparison.OrdinalIgnoreCase) ||
+            trimmed.Equals("edge://menu/", StringComparison.OrdinalIgnoreCase) ||
+            trimmed.Equals("chrome://menu", StringComparison.OrdinalIgnoreCase) ||
+            trimmed.Equals("chrome://menu/", StringComparison.OrdinalIgnoreCase) ||
+            trimmed.Equals("edge://urls", StringComparison.OrdinalIgnoreCase) ||
+            trimmed.Equals("edge://urls/", StringComparison.OrdinalIgnoreCase) ||
+            trimmed.Equals("chrome://urls", StringComparison.OrdinalIgnoreCase) ||
+            trimmed.Equals("chrome://urls/", StringComparison.OrdinalIgnoreCase) ||
+            trimmed.Equals("chrome://chrome-urls", StringComparison.OrdinalIgnoreCase) ||
+            trimmed.Equals("chrome://chrome-urls/", StringComparison.OrdinalIgnoreCase) ||
+            trimmed.Equals("edge://about", StringComparison.OrdinalIgnoreCase) ||
+            trimmed.Equals("edge://about/", StringComparison.OrdinalIgnoreCase) ||
+            trimmed.Equals("chrome://about", StringComparison.OrdinalIgnoreCase) ||
+            trimmed.Equals("chrome://about/", StringComparison.OrdinalIgnoreCase))
+        {
+            return "edge://edge-urls/";
+        }
+
+        // Translate chrome://<page> to edge://<page> so all Chromium internal URLs resolve natively in WebView2
+        if (trimmed.StartsWith("chrome://", StringComparison.OrdinalIgnoreCase))
+        {
+            string rest = trimmed.Substring("chrome://".Length).TrimStart('/');
+            if (string.IsNullOrEmpty(rest))
+                return "edge://edge-urls/";
+            return "edge://" + rest;
+        }
+
+        if (trimmed.StartsWith("edge://", StringComparison.OrdinalIgnoreCase))
+        {
+            string rest = trimmed.Substring("edge://".Length).TrimStart('/');
+            if (string.IsNullOrEmpty(rest))
+                return "edge://edge-urls/";
+            return "edge://" + rest;
+        }
+
+        return trimmed;
+    }
+
+    public static bool IsDirectNavigationScheme(string raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw)) return false;
+        string t = raw.Trim();
+        return t.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
+               t.StartsWith("https://", StringComparison.OrdinalIgnoreCase) ||
+               t.StartsWith("edge://", StringComparison.OrdinalIgnoreCase) ||
+               t.StartsWith("chrome://", StringComparison.OrdinalIgnoreCase) ||
+               t.StartsWith("about:", StringComparison.OrdinalIgnoreCase) ||
+               t.StartsWith("data:", StringComparison.OrdinalIgnoreCase) ||
+               t.StartsWith("blob:", StringComparison.OrdinalIgnoreCase) ||
+               t.StartsWith("horizon://", StringComparison.OrdinalIgnoreCase) ||
+               t.StartsWith("chrome-extension://", StringComparison.OrdinalIgnoreCase) ||
+               t.StartsWith("devtools://", StringComparison.OrdinalIgnoreCase) ||
+               t.StartsWith("view-source:", StringComparison.OrdinalIgnoreCase) ||
+               t.StartsWith("file:", StringComparison.OrdinalIgnoreCase) ||
+               t.Equals("edge:", StringComparison.OrdinalIgnoreCase) ||
+               t.Equals("chrome:", StringComparison.OrdinalIgnoreCase);
+    }
+
     public static string BuildNavigationUrl(string raw)
     {
         raw = raw.Trim();
         if (string.IsNullOrEmpty(raw)) return SettingsService.Current.HomePage;
 
-        if (Uri.TryCreate(raw, UriKind.Absolute, out var uri) &&
+        string normalized = NormalizeInternalBrowserUrl(raw);
+        if (IsDirectNavigationScheme(normalized))
+            return normalized;
+
+        if (Uri.TryCreate(normalized, UriKind.Absolute, out var uri) &&
             (uri.Scheme == "http" || uri.Scheme == "https" ||
+             uri.Scheme == "edge" || uri.Scheme == "chrome" ||
              uri.Scheme == "about" || uri.Scheme == "data" || uri.Scheme == "horizon" ||
-             uri.Scheme == "chrome-extension" || uri.Scheme == "file"))
-            return raw;
+             uri.Scheme == "chrome-extension" || uri.Scheme == "devtools" || uri.Scheme == "file"))
+            return normalized;
 
         if (!raw.Contains(' ') && (raw.Contains('.') || raw.StartsWith("localhost", StringComparison.OrdinalIgnoreCase)))
             return "https://" + raw;

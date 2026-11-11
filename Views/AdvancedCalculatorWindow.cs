@@ -714,8 +714,9 @@ public class AdvancedCalculatorWindow : Window
                 RenderingBias = System.Windows.Media.Effects.RenderingBias.Performance
             };
             glassHost.Clip = null;
-            glassHost.Visibility = (flat || overlap == null) ? Visibility.Collapsed : Visibility.Visible;
-            baseLayer.Background = new SolidColorBrush(Color.FromArgb(0xEE, 0x1A, 0x1A, 0x1A));
+            bool cmdGlass = CommandBarGlass.ShouldUse();
+            glassHost.Visibility = (flat || overlap == null || !CommandBarGlass.IsHomeActive()) ? Visibility.Collapsed : Visibility.Visible;
+            baseLayer.Background = cmdGlass ? Brushes.Transparent : new SolidColorBrush(Color.FromArgb(0xEE, 0x1A, 0x1A, 0x1A));
             wallLayer.Opacity = (!flat && WeatherBridge.ThemeWallpaper != null)
                 ? Math.Clamp(0.55 * SettingsService.Current.BackgroundOpacity, 0.0, 1.0)
                 : 0.0;
@@ -731,11 +732,14 @@ public class AdvancedCalculatorWindow : Window
             UpdateBackdrop(overlap);
         });
 
+        var detachCmdGlass = CommandBarGlass.Attach(owner, root, _ => UpdateBackdrop(lastOverlap));
+
         Action handler = () => owner.Dispatcher.BeginInvoke(new Action(() => UpdateBackdrop(lastOverlap)));
         WeatherBridge.ThemeUpdated += handler;
         Controls.HomeGlassMotion.BlurSettingChanged += handler;
         return (root, () =>
         {
+            detachCmdGlass();
             WeatherBridge.ThemeUpdated -= handler;
             Controls.HomeGlassMotion.BlurSettingChanged -= handler;
             unbind();

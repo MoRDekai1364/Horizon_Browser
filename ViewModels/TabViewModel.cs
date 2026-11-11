@@ -132,7 +132,7 @@ public class TabViewModel : INotifyPropertyChanged, IDisposable
         set
         {
             _hasEverPlayedAudio = value;
-            if (value) IsCompact = false;
+            if (value && !_isPinned) IsCompact = false;
             OnPropertyChanged();
         }
     }
@@ -247,23 +247,45 @@ public class TabViewModel : INotifyPropertyChanged, IDisposable
         set { _volume = value; OnPropertyChanged(); }
     }
 
+    public bool HasCustomVolume { get; set; } = false;
+
+    private bool _isPinned;
+    public bool IsPinned
+    {
+        get => _isPinned;
+        set
+        {
+            if (_isPinned == value) return;
+            _isPinned = value;
+            if (value) _isCompact = true;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(CompactIconVisibility));
+            OnPropertyChanged(nameof(TabTextMaxWidth));
+            OnPropertyChanged(nameof(CloseButtonVisibility));
+            OnPropertyChanged(nameof(TabWidth));
+        }
+    }
+
+    public Visibility CloseButtonVisibility => _isPinned ? Visibility.Collapsed : Visibility.Visible;
+
     
 
     // Dynamic tab width - set by ReflowTabs() so tabs shrink before overflowing
     private double _tabWidth = 145.0;
     public double TabWidth
     {
-        get => _tabWidth;
+        get => _isPinned ? 38.0 : _tabWidth;
         set { _tabWidth = value; OnPropertyChanged(); OnPropertyChanged(nameof(TabTextMaxWidth)); }
     }
 
     private bool _isCompact;
     public bool IsCompact
     {
-        get => _isCompact;
+        get => _isPinned || _isCompact;
         set
         {
-            if (value && (HasEverPlayedAudio || HasEverDownloaded)) value = false;
+            if (_isPinned) value = true;
+            else if (value && (HasEverPlayedAudio || HasEverDownloaded)) value = false;
             if (_isCompact == value) return;
             _isCompact = value;
             OnPropertyChanged();
