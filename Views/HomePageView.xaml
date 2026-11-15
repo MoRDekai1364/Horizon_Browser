@@ -1966,7 +1966,7 @@
 
                     </ScrollViewer>
 
-                    <TextBlock x:Name="TxtFavoritesEmpty" Text="No favorites yet. Add favorite websites to display them here." Foreground="{DynamicResource HomeTextBrush}" Opacity="0.85" FontSize="14" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="440" Margin="24,24" Visibility="Collapsed"/>
+                    <TextBlock x:Name="TxtFavoritesEmpty" Text="No favorites yet. Press Ctrl+D on any page to add one." Foreground="{DynamicResource HomeTextBrush}" Opacity="0.75" FontSize="12" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="300" Margin="12,8" Visibility="Collapsed"/>
 
                     <Button x:Name="BtnToggleFavorites" Style="{StaticResource PillButtonStyle}" HorizontalAlignment="Right" Margin="0,12,24,0" Click="BtnToggleFavorites_Click" Visibility="Collapsed">
 
@@ -2049,7 +2049,7 @@
 
                     </ScrollViewer>
 
-                    <TextBlock x:Name="TxtBookmarksEmpty" Text="No bookmarks yet. Press Ctrl+D on any page to bookmark it." Foreground="{DynamicResource HomeTextBrush}" Opacity="0.85" FontSize="14" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="440" Margin="24,24" Visibility="Collapsed"/>
+                    <TextBlock x:Name="TxtBookmarksEmpty" Text="No bookmarks yet. Press Ctrl+D on any page to add one." Foreground="{DynamicResource HomeTextBrush}" Opacity="0.75" FontSize="12" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="300" Margin="12,8" Visibility="Collapsed"/>
 
                     <Button x:Name="BtnToggleBookmarks" Style="{StaticResource PillButtonStyle}" HorizontalAlignment="Right" Margin="0,12,24,0" Click="BtnToggleBookmarks_Click" Visibility="Collapsed">
 

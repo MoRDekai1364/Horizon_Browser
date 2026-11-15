@@ -8719,29 +8719,14 @@ return colors.length > 0 ? colors : null;
 
 
     Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded, () =>
-
-
-
     {
-
-
-
         ReflowTabs();
-
-
-
-        if (Tabs.Contains(newTab)) ListTabs.SelectedItem = newTab;
-
-
-
-        else if (OverflowTabs.Contains(newTab)) ListOverflowTabs.SelectedItem = newTab;
-
-
-
+        if (activate)
+        {
+            if (Tabs.Contains(newTab)) ListTabs.SelectedItem = newTab;
+            else if (OverflowTabs.Contains(newTab)) ListOverflowTabs.SelectedItem = newTab;
+        }
         AnimateTabIn(newTab);
-
-
-
     });
 
 

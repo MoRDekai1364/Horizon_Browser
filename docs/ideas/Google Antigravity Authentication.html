@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<!-- saved from url=(0041)https://antigravity.google/oauth-callback -->
+<html lang="en-US" data-connection="fast"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta name="referrer" content="strict-origin"><!-- Anti-FOUC masking style: hides text elements while non-default language strings hydrate --><style>
+  /* Native cross-document View Transitions declaration enabled at byte 0 */
+  @view-transition {
+    navigation: auto;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    @view-transition {
+      navigation: none;
+    }
+  }
+
+  html[data-i18n-pending="true"] main,
+  html[data-i18n-pending="true"] footer,
+  html[data-i18n-pending="true"] nav.sidebar,
+  html[data-i18n-pending="true"] .right-sidebar,
+  html[data-i18n-pending="true"] [data-header] nav,
+  html[data-i18n-pending="true"] [data-header] .download-button,
+  html[data-i18n-pending="true"] [data-header] .cta-button,
+  html[data-i18n-pending="true"] .docs-nav-links,
+  html[data-i18n-pending="true"] .header-download-btn,
+  html[data-i18n-pending="true"] .header-cta-btn,
+  html[data-i18n-pending="true"] .rc-pill,
+  html[data-i18n-pending="true"] .subnav-bar,
+  html[data-i18n-pending="true"] site-search button > span {
+    opacity: 0 !important;
+  }
+</style><!-- Synchronous early bootstrap: canonical redirect, slow-connection detection, locale sync, and speculationrules --><script async="" src="./Google Antigravity Authentication_files/gtm.js.download"></script><script>
+  // 0. Suppress benign Chromium View Transition abort / skip rejections during rapid clicks
+  window.addEventListener('unhandledrejection', function (event) {
+    if (
+      event &&
+      event.reason &&
+      typeof event.reason.message === 'string' &&
+      (event.reason.message.indexOf('Transition was aborted') !== -1 ||
+        event.reason.message.indexOf('Transition was skipped') !== -1)
+    ) {
+      event.preventDefault();
+    }
+  });
+
+  // 1. Canonical hostname redirect (www.antigravity.google -> antigravity.google)
+  try {
+    var host = (window.location && window.location.hostname) || '';
+    if (host === 'www.antigravity.google') {
+      var pathname = window.location.pathname || '/';
+      var search = window.location.search || '';
+      var hash = window.location.hash || '';
+      window.location.replace(
+        'https://antigravity.google' + pathname + search + hash
+      );
+    }
+  } catch (_) {}
+
+  // 2. Early slow-connection & Save-Data detection
+  try {
+    var __agyConn =
+      navigator.connection ||
+      navigator.mozConnection ||
+      navigator.webkitConnection;
+    var __agySaveData = Boolean(__agyConn && __agyConn.saveData);
+    var __agyHasRtt =
+      !__agyConn || typeof __agyConn.rtt !== 'number' || __agyConn.rtt > 0;
+    var __agyEffType = __agyConn && __agyConn.effectiveType;
+    var __agyIsSlowEff =
+      __agyHasRtt &&
+      (__agyEffType === 'slow-2g' ||
+        __agyEffType === '2g' ||
+        __agyEffType === '3g');
+    var __agyIsLowDownlink = Boolean(
+      __agyHasRtt &&
+        __agyConn &&
+        !__agyEffType &&
+        typeof __agyConn.downlink === 'number' &&
+        __agyConn.downlink > 0 &&
+        __agyConn.downlink < 1.5
+    );
+    var __agyIsSlow = __agySaveData || __agyIsSlowEff || __agyIsLowDownlink;
+    var __agyTier = __agySaveData
+      ? 'save-data'
+      : __agyIsSlow
+        ? 'slow'
+        : 'fast';
+
+    document.documentElement.setAttribute('data-connection', __agyTier);
+    if (document.documentElement.dataset) {
+      document.documentElement.dataset.connection = __agyTier;
+    }
+
+    window.__agyIsSlowConnection = function () {
+      try {
+        var c =
+          navigator.connection ||
+          navigator.mozConnection ||
+          navigator.webkitConnection;
+        if (c) {
+          if (c.saveData) {
+            document.documentElement.setAttribute(
+              'data-connection',
+              'save-data'
+            );
+            return true;
+          }
+          var hasRtt = typeof c.rtt !== 'number' || c.rtt > 0;
+          if (
+            hasRtt &&
+            (c.effectiveType === 'slow-2g' ||
+              c.effectiveType === '2g' ||
+              c.effectiveType === '3g' ||
+              (!c.effectiveType &&
+                typeof c.downlink === 'number' &&
+                c.downlink > 0 &&
+                c.downlink < 1.5))
+          ) {
+            document.documentElement.setAttribute('data-connection', 'slow');
+            return true;
+          }
+          document.documentElement.setAttribute('data-connection', 'fast');
+          return false;
+        }
+      } catch (_) {}
+      var attr = document.documentElement.getAttribute('data-connection');
+      return attr === 'slow' || attr === 'save-data';
+    };
+  } catch (e) {
+    window.__agyIsSlowConnection = function () {
+      return false;
+    };
+  }
+
+  // 3. Sync ?hl= / ?lang= URL parameters to localStorage and set anti-FOUC masking
+  try {
+    var __agyNonDefault = [
+      'en-GB',
+      'en-CA',
+      'hi',
+      'ja',
+      'ko',
+      'zh-CN',
+      'zh-TW',
+      'id',
+      'th',
+      'de',
+      'fr-FR',
+      'it',
+      'pl',
+      'pt-BR',
+      'es-ES',
+      'es-MX'
+    ];
+    var __agyParams = new URLSearchParams(window.location.search);
+    var __agyHl = __agyParams.get('hl') || __agyParams.get('lang');
+    if (
+      __agyHl &&
+      (__agyHl === 'en-US' || __agyNonDefault.indexOf(__agyHl) !== -1)
+    ) {
+      window.localStorage.setItem('antigravity_locale', __agyHl);
+    }
+    var __agyLoc = window.localStorage.getItem('antigravity_locale');
+    if (__agyLoc && __agyNonDefault.indexOf(__agyLoc) !== -1) {
+      document.documentElement.lang = __agyLoc;
+      document.documentElement.setAttribute('data-i18n-pending', 'true');
+      window.__agyI18nTimer = window.setTimeout(function () {
+        document.documentElement.removeAttribute('data-i18n-pending');
+      }, 350);
+    }
+  } catch (e) {}
+
+  // 4. Adaptive Speculation Rules: dynamically injected ONLY on fast connections
+  try {
+    if (
+      typeof window.__agyIsSlowConnection === 'function' &&
+      !window.__agyIsSlowConnection() &&
+      'supports' in HTMLScriptElement &&
+      HTMLScriptElement.supports('speculationrules')
+    ) {
+      var __agySpecScript = document.createElement('script');
+      __agySpecScript.type = 'speculationrules';
+      __agySpecScript.textContent = JSON.stringify({
+        prefetch: [
+          {
+            where: {
+              and: [
+                { href_matches: '/*' },
+                { not: { href_matches: '/api/*' } },
+                { not: { selector_matches: '[download], [target=_blank]' } }
+              ]
+            },
+            eagerness: 'moderate'
+          }
+        ]
+      });
+      (document.head || document.documentElement).appendChild(__agySpecScript);
+    }
+  } catch (e) {}
+</script><script>(function(){const sensitiveParams = "*";
+const keepSearch = false;
+
+      try {
+        var search = window.location.search;
+        if (
+          window.location.hostname !== 'www.antigravity.google' &&
+          search.length > 1
+        ) {
+          var values = new URLSearchParams(search);
+          var moved = Object.create(null);
+          var kept = [];
+          var movedAny = false;
+          search
+            .slice(1)
+            .split('&')
+            .forEach(function (pair) {
+              if (!pair) return;
+              var rawKey = pair.split('=')[0];
+              var key;
+              try {
+                key = decodeURIComponent(rawKey.replace(/\+/g, ' '));
+              } catch (_err) {
+                key = rawKey;
+              }
+              if (
+                sensitiveParams === '*' ||
+                sensitiveParams.indexOf(key) !== -1
+              ) {
+                if (!Object.prototype.hasOwnProperty.call(moved, key)) {
+                  moved[key] = values.get(key);
+                }
+                movedAny = true;
+              } else {
+                kept.push(pair);
+              }
+            });
+          if (movedAny) {
+            window.__agySensitiveParams = moved;
+            if (keepSearch) window.__agySensitiveSearch = search;
+            window.history.replaceState(
+              window.history.state,
+              '',
+              window.location.pathname +
+                (kept.length ? '?' + kept.join('&') : '') +
+                window.location.hash
+            );
+          }
+        }
+      } catch (_err) {}
+    })();</script><!-- Client runtime modules: i18n dictionary runtime and adaptive network/transitions manager --><script type="module" src="./Google Antigravity Authentication_files/SharedHeadBootstrap.astro_astro_type_script_index_0_lang.C4-IsTcJ.js.download"></script><!-- Google Glue Cookie Notification Bar stylesheet (deferred print->all) --><link href="./Google Antigravity Authentication_files/cookienotificationbar.min.css" rel="stylesheet" media="all" onload="this.media='all'"><noscript><link href="https://www.gstatic.com/glue/cookienotificationbar/cookienotificationbar.min.css" rel="stylesheet" /></noscript><title>Google Antigravity Authentication</title><meta name="description" content="Retrieve your authentication codes for local configurations."><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex, nofollow"><link rel="canonical" href="https://antigravity.google/oauth-callback/"><!-- Open Graph / Social Media Meta Tags --><meta property="og:type" content="website"><meta property="og:site_name" content="Google Antigravity"><meta property="og:url" content="https://antigravity.google/oauth-callback/"><meta property="og:title" content="Google Antigravity Authentication"><meta property="og:description" content="Retrieve your authentication codes for local configurations."><meta property="og:image" content="https://antigravity.google/assets/image/sitecards/sitecard-default.png"><meta property="og:image:secure_url" content="https://antigravity.google/assets/image/sitecards/sitecard-default.png"><meta property="og:image:type" content="image/png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Google Antigravity Authentication"><!-- Twitter Card Meta Tags --><meta name="twitter:card" content="summary_large_image"><meta name="twitter:site" content="@antigravity"><meta name="twitter:title" content="Google Antigravity Authentication"><meta name="twitter:description" content="Retrieve your authentication codes for local configurations."><meta name="twitter:image" content="https://antigravity.google/assets/image/sitecards/sitecard-default.png"><meta name="twitter:image:alt" content="Google Antigravity Authentication"><!-- RSS Feed --><link rel="alternate" type="application/rss+xml" title="Google Antigravity Blog RSS Feed" href="https://antigravity.google/blog/rss.xml"><link rel="icon" type="image/svg+xml" href="https://antigravity.google/favicon.svg" sizes="any"><link rel="icon" type="image/x-icon" href="https://antigravity.google/favicon.ico" sizes="48x48"><link rel="icon" type="image/png" href="https://antigravity.google/assets/image/antigravity-logo.png" sizes="276x276"><link rel="icon" type="image/png" href="https://antigravity.google/apple-touch-icon.png" sizes="180x180"><link rel="apple-touch-icon" href="https://antigravity.google/apple-touch-icon.png" sizes="180x180"><link rel="apple-touch-icon-precomposed" href="https://antigravity.google/apple-touch-icon-precomposed.png" sizes="180x180"><link rel="preconnect" href="https://fonts.googleapis.com/"><link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin=""><!-- The wght range must cover every weight the CSS asks for (up to 700).
+       Browsers draw a fake bold for any weight above the declared range. --><link rel="stylesheet" href="./Google Antigravity Authentication_files/css2" media="all" onload="this.media='all'"><link href="./Google Antigravity Authentication_files/css2(1)" rel="stylesheet" media="all" onload="this.media='all'"><link rel="stylesheet" href="./Google Antigravity Authentication_files/css2(2)" media="all" onload="this.media='all'"><link rel="stylesheet" href="./Google Antigravity Authentication_files/BaseLayout.CIyAz6Yx.css"><style>.main-particles-component-section:where(.astro-esuf45jn){pointer-events:none;width:100%;height:100%;position:absolute;top:0;left:0;overflow:hidden}.main-particles-component-section:where(.astro-esuf45jn) .main-particles-container:where(.astro-esuf45jn),.main-particles-component-section:where(.astro-esuf45jn) .main-particles-container:where(.astro-esuf45jn) canvas{pointer-events:none;width:100%;height:100%;position:absolute;top:0;left:0}
+.oauth-callback-container:where(.astro-ytg3q627){color:#202124;background-color:#fff;justify-content:center;align-items:center;min-height:100vh;font-family:Google Sans,sans-serif;display:flex;position:relative;overflow:hidden auto}.particles-container:where(.astro-ytg3q627){z-index:0;width:100%;height:100%;position:fixed;top:0;left:0}.content:where(.astro-ytg3q627){text-align:center;z-index:1;box-sizing:border-box;flex-direction:column;align-items:center;gap:24px;width:100%;max-width:640px;padding:48px 24px;display:flex;position:relative}h1:where(.astro-ytg3q627){color:#202124;margin:0;font-size:32px;font-weight:500}.instructions:where(.astro-ytg3q627){color:#5f6368;margin-block-end:24px;font-size:16px;line-height:1.6}.code-box:where(.astro-ytg3q627){word-break:break-all;color:#202124;cursor:pointer;box-sizing:border-box;background:linear-gradient(135deg,#f8f9fa 0%,#e8eaed 100%);border:2px solid #dadce0;border-radius:12px;width:100%;max-height:180px;margin-block-end:24px;padding:16px 24px;font-family:Roboto Mono,Google Sans Mono,monospace;font-size:15px;line-height:1.5;transition:all .2s;position:relative;overflow-y:auto;box-shadow:0 2px 8px #0000001a}.code-box:where(.astro-ytg3q627):hover{background:linear-gradient(135deg,#e8eaed 0%,#dadce0 100%);transform:translateY(-2px);box-shadow:0 4px 16px #00000026}.copy-btn:where(.astro-ytg3q627){color:#fff;cursor:pointer;background:#202124;border:none;border-radius:24px;outline:none;padding:14px 36px;font-size:16px;font-weight:500;transition:all .2s;box-shadow:0 2px 8px #0003}.copy-btn:where(.astro-ytg3q627):hover{background:#3c4043;transform:translateY(-1px);box-shadow:0 4px 12px #0000004d}.copy-btn:where(.astro-ytg3q627).copied{background:#34a853;box-shadow:0 2px 8px #34a8534d}.error:where(.astro-ytg3q627){color:#d93025;background:#fce8e6;border-radius:12px;width:100%;margin:0;padding:20px;font-size:18px}.links:where(.astro-ytg3q627){align-items:center;gap:8px;margin-top:16px;display:flex}.separator:where(.astro-ytg3q627){color:#dadce0}.docs-link:where(.astro-ytg3q627){color:#1a73e8;font-size:14px;font-weight:500;text-decoration:none;transition:color .2s}.docs-link:where(.astro-ytg3q627):hover{color:#1557b0;text-decoration:underline}
+</style><link rel="stylesheet" href="./Google Antigravity Authentication_files/og-card-paths.Ca7GHXLM.css"><script type="module" src="./Google Antigravity Authentication_files/page.LAbJoB63.js.download"></script><style type="text/css">.dg ul{list-style:none;margin:0;padding:0;width:100%;clear:both}.dg.ac{position:fixed;top:0;left:0;right:0;height:0;z-index:0}.dg:not(.ac) .main{overflow:hidden}.dg.main{-webkit-transition:opacity .1s linear;-o-transition:opacity .1s linear;-moz-transition:opacity .1s linear;transition:opacity .1s linear}.dg.main.taller-than-window{overflow-y:auto}.dg.main.taller-than-window .close-button{opacity:1;margin-top:-1px;border-top:1px solid #2c2c2c}.dg.main ul.closed .close-button{opacity:1 !important}.dg.main:hover .close-button,.dg.main .close-button.drag{opacity:1}.dg.main .close-button{-webkit-transition:opacity .1s linear;-o-transition:opacity .1s linear;-moz-transition:opacity .1s linear;transition:opacity .1s linear;border:0;line-height:19px;height:20px;cursor:pointer;text-align:center;background-color:#000}.dg.main .close-button.close-top{position:relative}.dg.main .close-button.close-bottom{position:absolute}.dg.main .close-button:hover{background-color:#111}.dg.a{float:right;margin-right:15px;overflow-y:visible}.dg.a.has-save>ul.close-top{margin-top:0}.dg.a.has-save>ul.close-bottom{margin-top:27px}.dg.a.has-save>ul.closed{margin-top:0}.dg.a .save-row{top:0;z-index:1002}.dg.a .save-row.close-top{position:relative}.dg.a .save-row.close-bottom{position:fixed}.dg li{-webkit-transition:height .1s ease-out;-o-transition:height .1s ease-out;-moz-transition:height .1s ease-out;transition:height .1s ease-out;-webkit-transition:overflow .1s linear;-o-transition:overflow .1s linear;-moz-transition:overflow .1s linear;transition:overflow .1s linear}.dg li:not(.folder){cursor:auto;height:27px;line-height:27px;padding:0 4px 0 5px}.dg li.folder{padding:0;border-left:4px solid rgba(0,0,0,0)}.dg li.title{cursor:pointer;margin-left:-4px}.dg .closed li:not(.title),.dg .closed ul li,.dg .closed ul li>*{height:0;overflow:hidden;border:0}.dg .cr{clear:both;padding-left:3px;height:27px;overflow:hidden}.dg .property-name{cursor:default;float:left;clear:left;width:40%;overflow:hidden;text-overflow:ellipsis}.dg .cr.function .property-name{width:100%}.dg .c{float:left;width:60%;position:relative}.dg .c input[type=text]{border:0;margin-top:4px;padding:3px;width:100%;float:right}.dg .has-slider input[type=text]{width:30%;margin-left:0}.dg .slider{float:left;width:66%;margin-left:-5px;margin-right:0;height:19px;margin-top:4px}.dg .slider-fg{height:100%}.dg .c input[type=checkbox]{margin-top:7px}.dg .c select{margin-top:5px}.dg .cr.function,.dg .cr.function .property-name,.dg .cr.function *,.dg .cr.boolean,.dg .cr.boolean *{cursor:pointer}.dg .cr.color{overflow:visible}.dg .selector{display:none;position:absolute;margin-left:-9px;margin-top:23px;z-index:10}.dg .c:hover .selector,.dg .selector.drag{display:block}.dg li.save-row{padding:0}.dg li.save-row .button{display:inline-block;padding:0px 6px}.dg.dialogue{background-color:#222;width:460px;padding:15px;font-size:13px;line-height:15px}#dg-new-constructor{padding:10px;color:#222;font-family:Monaco, monospace;font-size:10px;border:0;resize:none;box-shadow:inset 1px 1px 1px #888;word-wrap:break-word;margin:12px 0;display:block;width:440px;overflow-y:scroll;height:100px;position:relative}#dg-local-explain{display:none;font-size:11px;line-height:17px;border-radius:3px;background-color:#333;padding:8px;margin-top:10px}#dg-local-explain code{font-size:10px}#dat-gui-save-locally{display:none}.dg{color:#eee;font:11px 'Lucida Grande', sans-serif;text-shadow:0 -1px 0 #111}.dg.main::-webkit-scrollbar{width:5px;background:#1a1a1a}.dg.main::-webkit-scrollbar-corner{height:0;display:none}.dg.main::-webkit-scrollbar-thumb{border-radius:5px;background:#676767}.dg li:not(.folder){background:#1a1a1a;border-bottom:1px solid #2c2c2c}.dg li.save-row{line-height:25px;background:#dad5cb;border:0}.dg li.save-row select{margin-left:5px;width:108px}.dg li.save-row .button{margin-left:5px;margin-top:1px;border-radius:2px;font-size:9px;line-height:7px;padding:4px 4px 5px 4px;background:#c5bdad;color:#fff;text-shadow:0 1px 0 #b0a58f;box-shadow:0 -1px 0 #b0a58f;cursor:pointer}.dg li.save-row .button.gears{background:#c5bdad url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAANCAYAAAB/9ZQ7AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAQJJREFUeNpiYKAU/P//PwGIC/ApCABiBSAW+I8AClAcgKxQ4T9hoMAEUrxx2QSGN6+egDX+/vWT4e7N82AMYoPAx/evwWoYoSYbACX2s7KxCxzcsezDh3evFoDEBYTEEqycggWAzA9AuUSQQgeYPa9fPv6/YWm/Acx5IPb7ty/fw+QZblw67vDs8R0YHyQhgObx+yAJkBqmG5dPPDh1aPOGR/eugW0G4vlIoTIfyFcA+QekhhHJhPdQxbiAIguMBTQZrPD7108M6roWYDFQiIAAv6Aow/1bFwXgis+f2LUAynwoIaNcz8XNx3Dl7MEJUDGQpx9gtQ8YCueB+D26OECAAQDadt7e46D42QAAAABJRU5ErkJggg==) 2px 1px no-repeat;height:7px;width:8px}.dg li.save-row .button:hover{background-color:#bab19e;box-shadow:0 -1px 0 #b0a58f}.dg li.folder{border-bottom:0}.dg li.title{padding-left:16px;background:#000 url(data:image/gif;base64,R0lGODlhBQAFAJEAAP////Pz8////////yH5BAEAAAIALAAAAAAFAAUAAAIIlI+hKgFxoCgAOw==) 6px 10px no-repeat;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.2)}.dg .closed li.title{background-image:url(data:image/gif;base64,R0lGODlhBQAFAJEAAP////Pz8////////yH5BAEAAAIALAAAAAAFAAUAAAIIlGIWqMCbWAEAOw==)}.dg .cr.boolean{border-left:3px solid #806787}.dg .cr.color{border-left:3px solid}.dg .cr.function{border-left:3px solid #e61d5f}.dg .cr.number{border-left:3px solid #2FA1D6}.dg .cr.number input[type=text]{color:#2FA1D6}.dg .cr.string{border-left:3px solid #1ed36f}.dg .cr.string input[type=text]{color:#1ed36f}.dg .cr.function:hover,.dg .cr.boolean:hover{background:#111}.dg .c input[type=text]{background:#303030;outline:none}.dg .c input[type=text]:hover{background:#3c3c3c}.dg .c input[type=text]:focus{background:#494949;color:#fff}.dg .c .slider{background:#303030;cursor:ew-resize}.dg .c .slider-fg{background:#2FA1D6;max-width:100%}.dg .c .slider:hover{background:#3c3c3c}.dg .c .slider:hover .slider-fg{background:#44abda}
+</style><style type="text/css">.dg ul{list-style:none;margin:0;padding:0;width:100%;clear:both}.dg.ac{position:fixed;top:0;left:0;right:0;height:0;z-index:0}.dg:not(.ac) .main{overflow:hidden}.dg.main{-webkit-transition:opacity .1s linear;-o-transition:opacity .1s linear;-moz-transition:opacity .1s linear;transition:opacity .1s linear}.dg.main.taller-than-window{overflow-y:auto}.dg.main.taller-than-window .close-button{opacity:1;margin-top:-1px;border-top:1px solid #2c2c2c}.dg.main ul.closed .close-button{opacity:1 !important}.dg.main:hover .close-button,.dg.main .close-button.drag{opacity:1}.dg.main .close-button{-webkit-transition:opacity .1s linear;-o-transition:opacity .1s linear;-moz-transition:opacity .1s linear;transition:opacity .1s linear;border:0;line-height:19px;height:20px;cursor:pointer;text-align:center;background-color:#000}.dg.main .close-button.close-top{position:relative}.dg.main .close-button.close-bottom{position:absolute}.dg.main .close-button:hover{background-color:#111}.dg.a{float:right;margin-right:15px;overflow-y:visible}.dg.a.has-save>ul.close-top{margin-top:0}.dg.a.has-save>ul.close-bottom{margin-top:27px}.dg.a.has-save>ul.closed{margin-top:0}.dg.a .save-row{top:0;z-index:1002}.dg.a .save-row.close-top{position:relative}.dg.a .save-row.close-bottom{position:fixed}.dg li{-webkit-transition:height .1s ease-out;-o-transition:height .1s ease-out;-moz-transition:height .1s ease-out;transition:height .1s ease-out;-webkit-transition:overflow .1s linear;-o-transition:overflow .1s linear;-moz-transition:overflow .1s linear;transition:overflow .1s linear}.dg li:not(.folder){cursor:auto;height:27px;line-height:27px;padding:0 4px 0 5px}.dg li.folder{padding:0;border-left:4px solid rgba(0,0,0,0)}.dg li.title{cursor:pointer;margin-left:-4px}.dg .closed li:not(.title),.dg .closed ul li,.dg .closed ul li>*{height:0;overflow:hidden;border:0}.dg .cr{clear:both;padding-left:3px;height:27px;overflow:hidden}.dg .property-name{cursor:default;float:left;clear:left;width:40%;overflow:hidden;text-overflow:ellipsis}.dg .cr.function .property-name{width:100%}.dg .c{float:left;width:60%;position:relative}.dg .c input[type=text]{border:0;margin-top:4px;padding:3px;width:100%;float:right}.dg .has-slider input[type=text]{width:30%;margin-left:0}.dg .slider{float:left;width:66%;margin-left:-5px;margin-right:0;height:19px;margin-top:4px}.dg .slider-fg{height:100%}.dg .c input[type=checkbox]{margin-top:7px}.dg .c select{margin-top:5px}.dg .cr.function,.dg .cr.function .property-name,.dg .cr.function *,.dg .cr.boolean,.dg .cr.boolean *{cursor:pointer}.dg .cr.color{overflow:visible}.dg .selector{display:none;position:absolute;margin-left:-9px;margin-top:23px;z-index:10}.dg .c:hover .selector,.dg .selector.drag{display:block}.dg li.save-row{padding:0}.dg li.save-row .button{display:inline-block;padding:0px 6px}.dg.dialogue{background-color:#222;width:460px;padding:15px;font-size:13px;line-height:15px}#dg-new-constructor{padding:10px;color:#222;font-family:Monaco, monospace;font-size:10px;border:0;resize:none;box-shadow:inset 1px 1px 1px #888;word-wrap:break-word;margin:12px 0;display:block;width:440px;overflow-y:scroll;height:100px;position:relative}#dg-local-explain{display:none;font-size:11px;line-height:17px;border-radius:3px;background-color:#333;padding:8px;margin-top:10px}#dg-local-explain code{font-size:10px}#dat-gui-save-locally{display:none}.dg{color:#eee;font:11px 'Lucida Grande', sans-serif;text-shadow:0 -1px 0 #111}.dg.main::-webkit-scrollbar{width:5px;background:#1a1a1a}.dg.main::-webkit-scrollbar-corner{height:0;display:none}.dg.main::-webkit-scrollbar-thumb{border-radius:5px;background:#676767}.dg li:not(.folder){background:#1a1a1a;border-bottom:1px solid #2c2c2c}.dg li.save-row{line-height:25px;background:#dad5cb;border:0}.dg li.save-row select{margin-left:5px;width:108px}.dg li.save-row .button{margin-left:5px;margin-top:1px;border-radius:2px;font-size:9px;line-height:7px;padding:4px 4px 5px 4px;background:#c5bdad;color:#fff;text-shadow:0 1px 0 #b0a58f;box-shadow:0 -1px 0 #b0a58f;cursor:pointer}.dg li.save-row .button.gears{background:#c5bdad url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAANCAYAAAB/9ZQ7AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAQJJREFUeNpiYKAU/P//PwGIC/ApCABiBSAW+I8AClAcgKxQ4T9hoMAEUrxx2QSGN6+egDX+/vWT4e7N82AMYoPAx/evwWoYoSYbACX2s7KxCxzcsezDh3evFoDEBYTEEqycggWAzA9AuUSQQgeYPa9fPv6/YWm/Acx5IPb7ty/fw+QZblw67vDs8R0YHyQhgObx+yAJkBqmG5dPPDh1aPOGR/eugW0G4vlIoTIfyFcA+QekhhHJhPdQxbiAIguMBTQZrPD7108M6roWYDFQiIAAv6Aow/1bFwXgis+f2LUAynwoIaNcz8XNx3Dl7MEJUDGQpx9gtQ8YCueB+D26OECAAQDadt7e46D42QAAAABJRU5ErkJggg==) 2px 1px no-repeat;height:7px;width:8px}.dg li.save-row .button:hover{background-color:#bab19e;box-shadow:0 -1px 0 #b0a58f}.dg li.folder{border-bottom:0}.dg li.title{padding-left:16px;background:#000 url(data:image/gif;base64,R0lGODlhBQAFAJEAAP////Pz8////////yH5BAEAAAIALAAAAAAFAAUAAAIIlI+hKgFxoCgAOw==) 6px 10px no-repeat;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.2)}.dg .closed li.title{background-image:url(data:image/gif;base64,R0lGODlhBQAFAJEAAP////Pz8////////yH5BAEAAAIALAAAAAAFAAUAAAIIlGIWqMCbWAEAOw==)}.dg .cr.boolean{border-left:3px solid #806787}.dg .cr.color{border-left:3px solid}.dg .cr.function{border-left:3px solid #e61d5f}.dg .cr.number{border-left:3px solid #2FA1D6}.dg .cr.number input[type=text]{color:#2FA1D6}.dg .cr.string{border-left:3px solid #1ed36f}.dg .cr.string input[type=text]{color:#1ed36f}.dg .cr.function:hover,.dg .cr.boolean:hover{background:#111}.dg .c input[type=text]{background:#303030;outline:none}.dg .c input[type=text]:hover{background:#3c3c3c}.dg .c input[type=text]:focus{background:#494949;color:#fff}.dg .c .slider{background:#303030;cursor:ew-resize}.dg .c .slider-fg{background:#2FA1D6;max-width:100%}.dg .c .slider:hover{background:#3c3c3c}.dg .c .slider:hover .slider-fg{background:#44abda}
+</style><script data-source="quetta-inject injectExternalJs" type="text/javascript" id="quetta-pc-translator-inject-shadowroot-js" src="chrome-extension://ifkmgejngpniamljlciolhkgpnilbmhh/injector-shadowroot.js"></script><link rel="prefetch" href="https://antigravity.google/docs/getting-started" as="document"><link rel="prefetch" as="document" href="https://antigravity.google/docs/getting-started"></head><body><div class="glue-cookie-notification-bar" id="glue-cookie-notification-bar-1" aria-labelledby="glue-cookie-notification-bar-1-label" role="region" data-nosnippet="" tabindex="-1" dir="ltr" lang="en" style="font-size: 1rem;"><p class="glue-cookie-notification-bar__text"><span id="glue-cookie-notification-bar-1-label">antigravity.google uses cookies from Google to deliver and enhance the quality of its services and to analyze traffic. </span><a href="https://policies.google.com/technologies/cookies?hl=en" class="glue-cookie-notification-bar__more" rel="noopener" aria-describedby="glue-cookie-notification-bar-1-label" target="_blank" aria-label="Learn more about how Google uses cookies. Opens in a new tab.">Learn more</a></p><button class="glue-cookie-notification-bar__accept">OK, got it</button></div><script>(function () {
+  var SUPPORTED_LOCALES = ["en-US","id","de","en-CA","en-GB","es-ES","es-MX","fr-FR","it","pl","pt-BR","hi","th","ja","zh-CN","zh-TW","ko"];
+  var DEFAULT_LOCALE = "en-US";
+  var matchBrowserLocale = function matchBrowserLocale(browserLanguages) {
+	if (!browserLanguages || browserLanguages.length === 0) return DEFAULT_LOCALE;
+	const lowerToCanonical = /* @__PURE__ */ new Map();
+	for (const loc of SUPPORTED_LOCALES) lowerToCanonical.set(loc.toLowerCase(), loc);
+	for (const rawTag of browserLanguages) {
+		if (!rawTag || typeof rawTag !== "string") continue;
+		const tag = rawTag.trim().replace(/_/g, "-");
+		if (!tag) continue;
+		const lower = tag.toLowerCase();
+		const exact = lowerToCanonical.get(lower);
+		if (exact) return exact;
+		const parts = lower.split("-");
+		const base = parts[0];
+		const subtag = parts[1] || "";
+		const region = parts[2] || subtag;
+		if (base === "zh") {
+			if (subtag === "tw" || subtag === "hk" || subtag === "mo" || subtag === "hant" || region === "tw" || region === "hk" || region === "mo") return "zh-TW";
+			return "zh-CN";
+		}
+		if (base === "id" || base === "in") return "id";
+		if (base === "th") return "th";
+		if (base === "it") return "it";
+		if (base === "pl") return "pl";
+		if (base === "es") return subtag === "es" ? "es-ES" : "es-MX";
+		if (base === "pt") return "pt-BR";
+		if (base === "fr") return "fr-FR";
+		if (base === "de") return "de";
+		if (base === "ja") return "ja";
+		if (base === "ko") return "ko";
+		if (base === "hi") return "hi";
+		if (base === "en") {
+			if (subtag === "gb" || subtag === "uk" || subtag === "au" || subtag === "nz" || subtag === "ie") return "en-GB";
+			if (subtag === "ca") return "en-CA";
+			return "en-US";
+		}
+	}
+	return DEFAULT_LOCALE;
+};
+  window.__agyResolvePageLocale = function () {
+    try {
+      var stored = window.localStorage.getItem("antigravity_locale");
+      var params = new URLSearchParams(window.location.search);
+      var hl = params.get('hl') || params.get('lang');
+      if (hl) {
+        return SUPPORTED_LOCALES.indexOf(hl) !== -1 ? hl : matchBrowserLocale([hl]);
+      }
+      if (stored === null) {
+        var nav = window.navigator;
+        return matchBrowserLocale(
+          nav.languages && nav.languages.length > 0
+            ? nav.languages
+            : nav.language
+              ? [nav.language]
+              : [],
+        );
+      }
+      return SUPPORTED_LOCALES.indexOf(stored) !== -1 ? stored : DEFAULT_LOCALE;
+    } catch (_err) {
+      return DEFAULT_LOCALE;
+    }
+  };
+  window.__agyInitialReferrer = (function () {
+    var referrer = document.referrer || '';
+    try {
+      var raw = window.sessionStorage.getItem("agy_redirect_referrer");
+      if (raw !== null) {
+        window.sessionStorage.removeItem("agy_redirect_referrer");
+        var handoff = JSON.parse(raw);
+        var trimPath = function (p) {
+          return String(p).replace(/\/+$/, '') || '/';
+        };
+        var age = Date.now() - handoff.at;
+        var from = referrer ? new URL(referrer) : null;
+        if (
+          from &&
+          from.origin === window.location.origin &&
+          trimPath(from.pathname) === trimPath(handoff.from) &&
+          trimPath(handoff.to) === trimPath(window.location.pathname) &&
+          age >= 0 &&
+          age <= 30000 &&
+          typeof handoff.referrer === 'string' &&
+          (handoff.referrer === '' || /^https?:\/\//.test(handoff.referrer))
+        ) {
+          referrer = handoff.referrer;
+        }
+      }
+    } catch (_err) {}
+    return referrer.split(/[?#]/)[0];
+  })();
+})();</script><script>
+  window.dataLayer = window.dataLayer || [];
+  window.__agyGtmLoaded = window.__agyGtmLoaded || false;
+  window.__agyLastPageViewPath = window.__agyLastPageViewPath || '';
+
+  var __agySegmentMql =
+    typeof window !== 'undefined' && window.matchMedia
+      ? window.matchMedia(
+          '(horizontal-viewport-segments: 2), (vertical-viewport-segments: 2)'
+        )
+      : null;
+  var __agyUa =
+    typeof navigator !== 'undefined' ? navigator.userAgent || '' : '';
+  var __agyIsFoldableUA =
+    /Pixel Fold|SM-F9|SM-F7|Galaxy Z Fold|Surface Duo/i.test(__agyUa);
+  var __agyIsIpad =
+    /ipad/i.test(__agyUa) ||
+    (typeof navigator !== 'undefined' &&
+      navigator.maxTouchPoints > 0 &&
+      /macintosh/i.test(__agyUa));
+  var __agyOs = 'unknown';
+  if (/iphone|ipod/i.test(__agyUa)) __agyOs = 'iphone';
+  else if (__agyIsIpad) __agyOs = 'ipad';
+  else if (/googlebook|cros/i.test(__agyUa)) __agyOs = 'googlebook';
+  else if (/android/i.test(__agyUa)) __agyOs = 'android';
+  else if (/windows/i.test(__agyUa)) __agyOs = 'windows';
+  else if (/macintosh|mac os x/i.test(__agyUa)) __agyOs = 'mac';
+  else if (/linux/i.test(__agyUa)) __agyOs = 'linux';
+
+  function __agyDetectViewport() {
+    const width = Math.round(
+      window.innerWidth ||
+        (document.documentElement && document.documentElement.clientWidth) ||
+        1440
+    );
+    const height = Math.round(
+      window.innerHeight ||
+        (document.documentElement && document.documentElement.clientHeight) ||
+        900
+    );
+    const orientation = width >= height ? 'landscape' : 'portrait';
+    const minDim = Math.min(width, height);
+    const maxDim = Math.max(width, height);
+    const aspectRatio = minDim > 0 ? maxDim / minDim : 1;
+
+    const hasSegments =
+      Boolean(
+        window.visualViewport &&
+          window.visualViewport.segments &&
+          window.visualViewport.segments.length > 1
+      ) ||
+      Boolean(
+        typeof navigator !== 'undefined' &&
+          navigator.devicePosture &&
+          navigator.devicePosture.type === 'folded'
+      ) ||
+      Boolean(__agySegmentMql && __agySegmentMql.matches);
+    const isFoldableUnfolded =
+      minDim >= 600 && maxDim <= 1150 && aspectRatio <= 1.3;
+    const isFoldableCover =
+      (width >= 320 &&
+        width <= 368 &&
+        height >= 700 &&
+        height / width >= 2.0) ||
+      (height >= 320 &&
+        height <= 368 &&
+        width >= 700 &&
+        width / height >= 2.0);
+
+    let viewportCategory = 'desktop';
+    if (
+      hasSegments ||
+      __agyIsFoldableUA ||
+      isFoldableUnfolded ||
+      isFoldableCover
+    ) {
+      viewportCategory = 'foldable';
+    } else if (width < 600) {
+      viewportCategory = 'mobile';
+    } else if (width <= 1024 || __agyIsIpad) {
+      viewportCategory = 'tablet';
+    }
+
+    return {
+      viewportCategory: viewportCategory,
+      formFactor: viewportCategory,
+      viewportWidth: width,
+      viewportHeight: height,
+      orientation: orientation,
+      operatingSystem: __agyOs,
+    };
+  }
+
+  function __agyPageLocale() {
+    try {
+      if (typeof window.__agyResolvePageLocale === 'function') {
+        return window.__agyResolvePageLocale();
+      }
+    } catch (_err) {
+      // Fall back to the document language.
+    }
+    return document.documentElement.lang || 'en-US';
+  }
+
+  function __agyRecordPageView() {
+    const currentPath = window.location.pathname || '/';
+    if (window.__agyLastPageViewPath === currentPath) return;
+
+    if (
+      window.agyAnalytics &&
+      typeof window.agyAnalytics.trackPageView === 'function'
+    ) {
+      window.agyAnalytics.trackPageView();
+      return;
+    }
+
+    window.__agyLastPageViewPath = currentPath;
+    const vp = __agyDetectViewport();
+    const eventParams = {
+      pagePath: currentPath,
+      locale: __agyPageLocale(),
+      viewportCategory: vp.viewportCategory,
+      formFactor: vp.formFactor,
+      viewportWidth: vp.viewportWidth,
+      viewportHeight: vp.viewportHeight,
+      orientation: vp.orientation,
+      operatingSystem: vp.operatingSystem,
+    };
+    if (document.title) {
+      eventParams.pageTitle = document.title;
+    }
+    // Same-origin referrers can carry tokens in their query string.
+    const referrer =
+      typeof window.__agyInitialReferrer === 'string'
+        ? window.__agyInitialReferrer
+        : (document.referrer || '').split(/[?#]/)[0];
+    if (referrer) {
+      eventParams.referrer = referrer;
+    }
+    try {
+      const sp = new URLSearchParams(window.location.search || '');
+      const utmSource = sp.get('utm_source');
+      const utmMedium = sp.get('utm_medium');
+      const utmCampaign = sp.get('utm_campaign');
+      const utmTerm = sp.get('utm_term');
+      const utmContent = sp.get('utm_content');
+      if (utmSource) {
+        eventParams.utm_source = utmSource;
+        eventParams.utmSource = utmSource;
+      }
+      if (utmMedium) {
+        eventParams.utm_medium = utmMedium;
+        eventParams.utmMedium = utmMedium;
+      }
+      if (utmCampaign) {
+        eventParams.utm_campaign = utmCampaign;
+        eventParams.utmCampaign = utmCampaign;
+      }
+      if (utmTerm) {
+        eventParams.utm_term = utmTerm;
+        eventParams.utmTerm = utmTerm;
+      }
+      if (utmContent) {
+        eventParams.utm_content = utmContent;
+        eventParams.utmContent = utmContent;
+      }
+    } catch (_err) {
+      // Ignore URLSearchParams errors
+    }
+
+    const entry = {
+      event: 'page_view',
+      pagePath: currentPath,
+      viewportCategory: vp.viewportCategory,
+      formFactor: vp.formFactor,
+      viewportWidth: vp.viewportWidth,
+      viewportHeight: vp.viewportHeight,
+      orientation: vp.orientation,
+      operatingSystem: vp.operatingSystem,
+      eventParams: eventParams,
+    };
+    if (eventParams.pageTitle) entry.pageTitle = eventParams.pageTitle;
+    if (eventParams.referrer) entry.referrer = eventParams.referrer;
+    if (eventParams.utm_source) {
+      entry.utm_source = eventParams.utm_source;
+      entry.utmSource = eventParams.utmSource;
+    }
+    if (eventParams.utm_medium) {
+      entry.utm_medium = eventParams.utm_medium;
+      entry.utmMedium = eventParams.utmMedium;
+    }
+    if (eventParams.utm_campaign) {
+      entry.utm_campaign = eventParams.utm_campaign;
+      entry.utmCampaign = eventParams.utmCampaign;
+    }
+    if (eventParams.utm_term) {
+      entry.utm_term = eventParams.utm_term;
+      entry.utmTerm = eventParams.utmTerm;
+    }
+    if (eventParams.utm_content) {
+      entry.utm_content = eventParams.utm_content;
+      entry.utmContent = eventParams.utmContent;
+    }
+
+    window.dataLayer.push(entry);
+    window.dataLayer.push({ eventParams: undefined });
+  }
+
+  __agyRecordPageView();
+
+  window.glueCookieNotificationBarLoaded = function () {
+    if (window.__agyGtmLoaded) return;
+    window.__agyGtmLoaded = true;
+    (function (w, d, s, l, i) {
+      w[l] = w[l] || [];
+      w[l].push({
+        'gtm.start': new Date().getTime(),
+        event: 'gtm.js',
+      });
+      const f = d.getElementsByTagName(s)[0],
+        j = d.createElement(s),
+        dl = l != 'dataLayer' ? '&l=' + l : '';
+      j.async = true;
+      j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
+      f.parentNode.insertBefore(j, f);
+    })(window, document, 'script', 'dataLayer', 'GTM-M4N2ZKXQ');
+    __agyRecordPageView();
+  };
+
+  document.addEventListener('astro:page-load', function () {
+    __agyRecordPageView();
+  });
+</script><script type="module" src="./Google Antigravity Authentication_files/AnalyticsBootstrap.astro_astro_type_script_index_0_lang.BDH2WotZ.js.download"></script><main><div class="oauth-callback-container astro-ytg3q627" data-oauth-page=""><div class="particles-container astro-ytg3q627"><div class="main-particles-component-section astro-esuf45jn" data-main-particles-component="" data-theme="light" data-ring-width="0.011" data-ring-width2="0.107" data-ring-displacement="0.53" data-density="230" data-particles-scale="0.59"><div class="main-particles-container astro-esuf45jn" data-container=""><canvas width="3388" height="1317" data-engine="three.js r180" style="width: 2711px; height: 1054px;"></canvas></div></div><script type="module" src="./Google Antigravity Authentication_files/MainParticlesComponent.astro_astro_type_script_index_0_lang.BBRcXE3Z.js.download"></script></div><div class="content astro-ytg3q627"><svg class="astro-ytg3q627" viewBox="0 0 1687 217" height="48" width="373.16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M301.141 177.959C288.865 177.84 277.662 174.8 267.532 168.841C257.461 162.823 249.506 154.689 243.666 144.439C237.886 134.19 234.996 122.927 234.996 110.652C234.996 98.1975 237.886 86.9052 243.666 76.7749C249.446 66.6446 257.402 58.6893 267.532 52.9091C277.662 47.0693 288.925 44.1493 301.319 44.1493C310.973 44.1493 319.822 45.7583 327.867 48.9761C335.911 52.194 342.764 57.14 348.425 63.8141L335.465 77.4006C330.399 72.2163 325.185 68.4919 319.822 66.2275C314.519 63.963 308.44 62.8308 301.588 62.8308C292.887 62.8308 285.022 64.7973 277.99 68.7302C270.958 72.6632 265.387 78.2944 261.275 85.624C257.223 92.894 255.197 101.326 255.197 110.92C255.197 120.276 257.223 128.648 261.275 136.037C265.327 143.367 270.869 149.087 277.901 153.199C284.932 157.311 292.828 159.367 301.588 159.367C309.394 159.367 316.366 157.996 322.504 155.255C328.701 152.454 333.707 148.283 337.52 142.741C341.334 137.199 343.628 130.465 344.403 122.54H300.873V104.037H362.906C363.502 107.97 363.8 111.546 363.8 114.764C363.8 127.277 361.207 138.361 356.023 148.015C350.839 157.609 343.479 165.028 333.945 170.272C324.47 175.516 313.535 178.078 301.141 177.959Z" fill="currentColor"></path><path d="M421.274 177.959C412.097 177.959 403.844 175.843 396.515 171.612C389.245 167.382 383.554 161.571 379.442 154.182C375.39 146.734 373.364 138.361 373.364 129.065C373.364 119.531 375.449 111.099 379.621 103.769C383.852 96.38 389.602 90.6594 396.872 86.6072C404.142 82.5551 412.276 80.5291 421.274 80.5291C430.391 80.5291 438.585 82.5849 445.855 86.6966C453.185 90.8083 458.935 96.5588 463.106 103.948C467.278 111.337 469.363 119.709 469.363 129.065C469.363 138.361 467.307 146.734 463.196 154.182C459.084 161.631 453.363 167.471 446.034 171.702C438.764 175.873 430.511 177.959 421.274 177.959ZM421.274 160.976C426.935 160.976 431.941 159.575 436.291 156.774C440.701 153.914 444.097 150.071 446.481 145.244C448.924 140.357 450.146 134.965 450.146 129.065C450.146 123.225 448.924 117.922 446.481 113.155C444.097 108.328 440.701 104.514 436.291 101.713C431.881 98.9126 426.876 97.5122 421.274 97.5122C416.03 97.5122 411.203 98.853 406.794 101.535C402.384 104.216 398.868 107.97 396.246 112.797C393.684 117.564 392.403 122.987 392.403 129.065C392.403 134.905 393.595 140.268 395.978 145.154C398.421 149.981 401.818 153.825 406.168 156.685C410.578 159.545 415.613 160.976 421.274 160.976Z" fill="currentColor"></path><path d="M525.229 177.959C516.052 177.959 507.799 175.843 500.469 171.612C493.199 167.382 487.508 161.571 483.397 154.182C479.345 146.734 477.319 138.361 477.319 129.065C477.319 119.531 479.404 111.099 483.576 103.769C487.806 96.38 493.557 90.6594 500.827 86.6072C508.097 82.5551 516.231 80.5291 525.229 80.5291C534.346 80.5291 542.54 82.5849 549.81 86.6966C557.139 90.8083 562.89 96.5588 567.061 103.948C571.232 111.337 573.318 119.709 573.318 129.065C573.318 138.361 571.262 146.734 567.151 154.182C563.039 161.631 557.318 167.471 549.989 171.702C542.719 175.873 534.465 177.959 525.229 177.959ZM525.229 160.976C530.89 160.976 535.896 159.575 540.246 156.774C544.655 153.914 548.052 150.071 550.436 145.244C552.879 140.357 554.1 134.965 554.1 129.065C554.1 123.225 552.879 117.922 550.436 113.155C548.052 108.328 544.655 104.514 540.246 101.713C535.836 98.9126 530.83 97.5122 525.229 97.5122C519.985 97.5122 515.158 98.853 510.749 101.535C506.339 104.216 502.823 107.97 500.201 112.797C497.639 117.564 496.358 122.987 496.358 129.065C496.358 134.905 497.549 140.268 499.933 145.154C502.376 149.981 505.773 153.825 510.123 156.685C514.533 159.545 519.568 160.976 525.229 160.976Z" fill="currentColor"></path><path d="M626.502 216.484C616.253 216.484 607.791 214.338 601.117 210.048C594.502 205.757 588.99 198.934 584.581 189.579L601.385 182.16C604.186 187.463 607.582 191.605 611.575 194.584C615.567 197.623 620.454 199.143 626.234 199.143C635.053 199.143 641.757 196.581 646.346 191.456C650.994 186.331 653.318 179.18 653.318 170.003V161.691H652.692C651.262 163.836 649.236 166.011 646.614 168.216C643.992 170.361 640.774 172.208 636.96 173.758C633.146 175.247 628.975 175.992 624.446 175.992C615.448 175.992 607.642 173.996 601.027 170.003C594.413 166.011 589.348 160.469 585.832 153.378C582.316 146.227 580.558 138.033 580.558 128.797C580.558 119.68 582.316 111.516 585.832 104.305C589.348 97.0355 594.353 91.3446 600.849 87.2329C607.404 83.1212 615.031 81.0654 623.731 81.0654C629.929 81.0654 635.619 82.287 640.804 84.7302C645.988 87.1733 650.04 90.6594 652.96 95.1882H653.318V83.8363H671.91V164.462C671.91 199.143 656.774 216.484 626.502 216.484ZM626.502 158.294C631.984 158.294 636.752 157.013 640.804 154.45C644.856 151.888 647.955 148.343 650.1 143.814C652.245 139.225 653.318 134.011 653.318 128.171C653.318 122.212 652.245 116.998 650.1 112.529C647.955 108 644.856 104.514 640.804 102.071C636.752 99.6277 632.014 98.4061 626.592 98.4061C621.288 98.4061 616.61 99.6575 612.558 102.16C608.506 104.603 605.348 108.089 603.083 112.618C600.819 117.147 599.687 122.361 599.687 128.261C599.687 134.458 600.819 139.821 603.083 144.35C605.407 148.879 608.595 152.335 612.648 154.719C616.7 157.102 621.318 158.294 626.502 158.294Z" fill="currentColor"></path><path d="M686.301 175.009V47.0097H705.787V175.009H686.301Z" fill="currentColor"></path><path d="M763.351 177.78C749.645 177.78 738.293 173.37 729.295 164.551C720.356 155.732 715.887 144.112 715.887 129.691C715.887 115.568 720.208 103.948 728.848 94.8307C737.548 85.6538 748.9 81.0654 762.904 81.0654C772.081 81.0654 780.006 83.4192 786.68 88.1268C793.414 92.8344 798.717 100.194 802.591 110.205C802.948 111.218 803.276 112.261 803.574 113.333C803.872 114.406 804.14 115.628 804.378 116.998L731.083 148.104L725.988 133.356L786.68 107.613L784.982 115.747C782.717 109.371 779.559 104.752 775.507 101.892C771.515 99.0318 767.075 97.6016 762.189 97.6016C753.846 97.6016 747.202 100.462 742.256 106.183C737.31 111.844 734.837 119.292 734.837 128.529C734.837 137.229 737.697 144.648 743.418 150.786C749.138 156.923 756.081 159.992 764.245 159.992C769.131 159.992 773.69 158.771 777.92 156.328C782.151 153.884 785.846 150.458 789.004 146.048L803.485 155.523C799.432 162.197 793.891 167.59 786.859 171.702C779.827 175.754 771.991 177.78 763.351 177.78Z" fill="currentColor"></path><path d="M841.06 175.009L889.953 47.0097H910.065L958.512 175.009H937.149L905.059 85.5346L900.054 69.8922H899.518L894.512 85.5346L862.065 175.009H841.06ZM862.78 143.277L868.769 126.831H927.495L933.663 143.277H862.78Z" fill="currentColor"></path><path d="M965.598 175.009V83.5682H984.19V100.015L981.688 96.9759H984.727C987.468 92.1491 991.609 88.2162 997.151 85.1771C1002.75 82.138 1008.56 80.6184 1014.58 80.6184C1025.13 80.6184 1033.35 83.7469 1039.25 90.0039C1045.21 96.2608 1048.19 104.842 1048.19 115.747V175.009H1028.7V119.501C1028.7 112.231 1026.95 106.749 1023.43 103.054C1019.97 99.2999 1014.85 97.4228 1008.06 97.4228C1001.56 97.4228 996.108 99.9852 991.699 105.11C987.289 110.235 985.084 116.402 985.084 123.613V175.009H965.598Z" fill="currentColor"></path><path d="M1097.09 177.959C1088.87 177.959 1082.32 175.575 1077.43 170.808C1072.54 165.981 1070.1 159.247 1070.1 150.607V58.0934H1089.5V146.853C1089.5 151.739 1090.48 155.374 1092.45 157.758C1094.41 160.082 1097.33 161.244 1101.21 161.244C1102.69 161.244 1104.3 161.065 1106.03 160.707C1107.82 160.29 1109.82 159.665 1112.02 158.83V175.367C1109.22 176.32 1106.69 176.976 1104.42 177.333C1102.16 177.75 1099.72 177.959 1097.09 177.959ZM1054.9 99.8362V83.5682H1111.66V99.8362H1054.9Z" fill="currentColor"></path><path d="M1124.59 175.009V83.5682H1143.99V175.009H1124.59ZM1134.34 66.1381C1131 66.1381 1128.14 64.9761 1125.76 62.652C1123.37 60.2685 1122.18 57.4081 1122.18 54.0711C1122.18 50.6745 1123.37 47.8439 1125.76 45.5795C1128.14 43.3151 1131 42.1829 1134.34 42.1829C1137.79 42.1829 1140.65 43.3151 1142.92 45.5795C1145.18 47.8439 1146.32 50.6745 1146.32 54.0711C1146.32 57.4081 1145.18 60.2685 1142.92 62.652C1140.65 64.9761 1137.79 66.1381 1134.34 66.1381Z" fill="currentColor"></path><path d="M1202.02 216.573C1191.59 216.573 1183.07 214.368 1176.46 209.959C1169.84 205.549 1164.36 198.815 1160.01 189.758L1177 182.249C1179.74 187.493 1183.07 191.635 1187.01 194.674C1190.94 197.772 1195.86 199.322 1201.75 199.322C1210.28 199.322 1216.95 196.789 1221.78 191.724C1226.6 186.659 1229.02 179.448 1229.02 170.093V161.78H1228.3C1225.74 165.475 1222.02 168.782 1217.13 171.702C1212.24 174.562 1206.52 175.992 1199.97 175.992C1186.86 175.992 1176.25 171.761 1168.15 163.3C1160.1 154.778 1156.08 143.277 1156.08 128.797C1156.08 114.495 1160.16 102.965 1168.32 94.205C1176.49 85.4453 1186.83 81.0654 1199.34 81.0654C1206.13 81.0654 1212.06 82.436 1217.13 85.1771C1222.25 87.9182 1226.04 91.2851 1228.48 95.2776H1231.97L1229.02 97.2441V83.8363H1247.52V164.551C1247.52 181.475 1243.86 194.376 1236.53 203.255C1229.2 212.134 1217.7 216.573 1202.02 216.573ZM1202.02 158.383C1209.95 158.383 1216.41 155.612 1221.42 150.071C1226.48 144.529 1229.02 137.259 1229.02 128.261C1229.02 119.143 1226.51 111.903 1221.51 106.54C1216.5 101.117 1210.04 98.4061 1202.11 98.4061C1194.37 98.4061 1187.96 101.088 1182.89 106.451C1177.83 111.814 1175.3 119.114 1175.3 128.35C1175.3 137.765 1177.83 145.125 1182.89 150.428C1188.02 155.732 1194.4 158.383 1202.02 158.383Z" fill="currentColor"></path><path d="M1262.59 175.009V83.5682H1281.18V100.462L1278.68 98.0485H1281.72C1283.44 93.1025 1286.78 88.961 1291.73 85.624C1296.73 82.287 1301.98 80.6184 1307.46 80.6184C1309.07 80.6184 1310.71 80.7674 1312.37 81.0654C1314.1 81.3037 1316.31 81.84 1318.99 82.6743V102.071C1315.23 100.879 1312.34 100.104 1310.32 99.7468C1308.35 99.3893 1306.65 99.2105 1305.22 99.2105C1298.73 99.2105 1293.25 101.713 1288.78 106.719C1284.31 111.724 1282.07 117.892 1282.07 125.222V175.009H1262.59Z" fill="currentColor"></path><path d="M1351.87 177.959C1341.92 177.959 1333.87 175.188 1327.74 169.646C1321.6 164.104 1318.53 156.864 1318.53 147.925C1318.53 138.451 1322.1 130.942 1329.26 125.4C1336.41 119.858 1345.67 117.088 1357.05 117.088C1362.06 117.088 1366.86 117.594 1371.45 118.607C1376.09 119.561 1379.85 120.752 1382.71 122.182V116.909C1382.71 110.652 1380.56 105.676 1376.27 101.981C1371.98 98.2273 1366.35 96.3502 1359.38 96.3502C1353.9 96.3502 1349.13 97.3632 1345.08 99.3893C1341.02 101.356 1337.12 104.425 1333.37 108.596L1321.75 97.8698C1327.88 91.5532 1333.9 87.1138 1339.8 84.5514C1345.76 81.989 1352.76 80.7078 1360.81 80.7078C1373.56 80.7078 1383.57 83.9257 1390.84 90.3614C1398.11 96.7375 1401.75 105.646 1401.75 117.088V175.009H1382.71V153.646L1388.07 161.691H1382.17C1379.55 166.398 1375.53 170.301 1370.1 173.4C1364.68 176.439 1358.6 177.959 1351.87 177.959ZM1356.7 162.227C1364.09 162.227 1370.25 159.724 1375.2 154.719C1380.21 149.653 1382.71 143.486 1382.71 136.216V136.037C1380.03 134.249 1376.75 132.879 1372.88 131.925C1369.06 130.912 1365.07 130.406 1360.9 130.406C1353.93 130.406 1348.35 131.806 1344.18 134.607C1340.01 137.348 1337.93 141.4 1337.93 146.763C1337.93 151.471 1339.68 155.225 1343.2 158.026C1346.72 160.827 1351.21 162.227 1356.7 162.227Z" fill="currentColor"></path><path d="M1438.37 175.009L1401.54 83.5682H1422.01L1446.05 147.389L1448.2 153.646H1448.82L1451.15 147.3L1475.28 83.5682H1495.22L1457.94 175.009H1438.37Z" fill="currentColor"></path><path d="M1501.96 175.009V83.5682H1521.36V175.009H1501.96ZM1511.7 66.1381C1508.37 66.1381 1505.51 64.9761 1503.12 62.652C1500.74 60.2685 1499.55 57.4081 1499.55 54.0711C1499.55 50.6745 1500.74 47.8439 1503.12 45.5795C1505.51 43.3151 1508.37 42.1829 1511.7 42.1829C1515.16 42.1829 1518.02 43.3151 1520.28 45.5795C1522.55 47.8439 1523.68 50.6745 1523.68 54.0711C1523.68 57.4081 1522.55 60.2685 1520.28 62.652C1518.02 64.9761 1515.16 66.1381 1511.7 66.1381Z" fill="currentColor"></path><path d="M1574.03 177.959C1565.8 177.959 1559.25 175.575 1554.36 170.808C1549.47 165.981 1547.03 159.247 1547.03 150.607V58.0934H1566.43V146.853C1566.43 151.739 1567.41 155.374 1569.38 157.758C1571.34 160.082 1574.26 161.244 1578.14 161.244C1579.63 161.244 1581.24 161.065 1582.96 160.707C1584.75 160.29 1586.75 159.665 1588.95 158.83V175.367C1586.15 176.32 1583.62 176.976 1581.35 177.333C1579.09 177.75 1576.65 177.959 1574.03 177.959ZM1531.84 99.8362V83.5682H1588.6V99.8362H1531.84Z" fill="currentColor"></path><path d="M1608.42 213.713L1631.57 163.389L1632.02 175.009L1591.43 83.5682H1611.99L1636.13 140.864L1638.54 148.015H1639.08L1641.67 140.685L1664.46 83.5682H1684.66L1628.71 213.713H1608.42Z" fill="currentColor"></path><path d="M175.277 181.636C185.19 189.071 200.06 184.115 186.429 170.484C145.536 130.83 154.211 21.7824 103.404 21.7824C52.5979 21.7824 61.2722 130.83 20.3793 170.484C5.50915 185.354 21.6185 189.071 31.5319 181.636C69.9464 155.614 67.4681 109.764 103.404 109.764C139.34 109.764 136.862 155.614 175.277 181.636Z" fill="white"></path><g clip-path="url(#agl_qicft_c)"><image x="11" y="19" width="183" height="169" preserveAspectRatio="none" href="data:image/png;base64,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"></image></g><defs><clippath id="agl_qicft_c"><path d="M175.277 181.636C185.19 189.071 200.06 184.115 186.429 170.484C145.536 130.83 154.211 21.7824 103.404 21.7824C52.5979 21.7824 61.2722 130.83 20.3793 170.484C5.50915 185.354 21.6185 189.071 31.5319 181.636C69.9464 155.614 67.4681 109.764 103.404 109.764C139.34 109.764 136.862 155.614 175.277 181.636Z"></path></clippath></defs></svg><div data-code-section="" style="display: block; width: 100%;" class="astro-ytg3q627"><p class="instructions astro-ytg3q627">Paste this code into your application to complete authentication:</p><div class="code-box astro-ytg3q627" data-code-box="">4/0AUn6Hd_Y7Jxk8gdrSmGRAvSCZOnrkzdKNWYhhRqPT-A63bgqqT5O5541AuTk481tNcGOUw</div><button class="copy-btn astro-ytg3q627" data-copy-btn="" type="button">Copy to Clipboard</button></div><div data-no-code-section="" style="display: none; width: 100%;" class="astro-ytg3q627"><p class="error astro-ytg3q627">No authorization code found. Please try authenticating again.</p></div><div class="links astro-ytg3q627"><a href="https://antigravity.google/docs/getting-started" class="docs-link astro-ytg3q627">Docs</a><span class="separator astro-ytg3q627">|</span><a href="https://x.com/antigravity" target="_blank" class="docs-link astro-ytg3q627">Twitter</a></div></div></div></main><template data-download-survey-template=""></template><script type="module" src="./Google Antigravity Authentication_files/DownloadSurvey.astro_astro_type_script_index_0_lang.BQ22O0x_.js.download"></script><!-- Cookie Notification Bar --><script defer="" src="./Google Antigravity Authentication_files/cookienotificationbar.min.js.download" data-glue-cookie-notification-bar-category="2A" data-glue-cookie-notification-bar-language="" data-glue-cookie-notification-bar-site-id="">
+  </script><script type="module">document.addEventListener(`DOMContentLoaded`,()=>{let e=document.querySelector(`[data-oauth-page]`);if(!e)return;let t=window,n=new URL(window.location.href),r=t.__agySensitiveParams?t.__agySensitiveParams.code:n.searchParams.get(`code`);delete t.__agySensitiveParams;let i=e.querySelector(`[data-code-section]`),a=e.querySelector(`[data-no-code-section]`),o=e.querySelector(`[data-code-box]`),s=e.querySelector(`[data-copy-btn]`);if(n.search&&window.history.replaceState({},document.title,n.pathname+n.hash),r){o.textContent=r,i.style.display=`block`;let e=()=>{navigator.clipboard.writeText(r).then(()=>{s.textContent=`Copied!`,s.classList.add(`copied`),setTimeout(()=>{s.textContent=`Copy to Clipboard`,s.classList.remove(`copied`)},2e3)})};s.addEventListener(`click`,e),o.addEventListener(`click`,e)}else a.style.display=`block`});</script><span id="und-addon-container" data-w="36px" data-h="73px" style="height: 73px; width: 36px; inset: 50% 0px auto auto; margin-left: 0px; margin-top: -36px; padding-left: 0px; padding-right: 0px; padding-top: 0px; display: none;"><span id="und-addon-btn-up" class="und-addon-btn und-addon-side-right und-addon-hovers" style="background-image: url(&quot;chrome-extension://dbofniohnfjigodceiebfkcfdhncnici/img/arrow-up.svg&quot;); opacity: 0.4; width: 36px; height: 36px; display: none;"></span><span id="und-addon-btn-dn" class="und-addon-btn und-addon-side-right und-addon-hovers" style="background-image: url(&quot;chrome-extension://dbofniohnfjigodceiebfkcfdhncnici/img/arrow-dn.svg&quot;); opacity: 0.4; width: 36px; height: 36px; display: none;"></span></span><div id="q30_from_quetta_translator-box" class="notranslate"><template shadowrootmode="open"><div class="q30_from_quetta_translator-box_wrapper notranslate"></div></template></div></body></html>

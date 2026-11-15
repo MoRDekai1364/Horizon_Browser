@@ -495,9 +495,25 @@ public partial class CommandBarWindow : Window
                 if (!string.IsNullOrEmpty(domain))
                 {
                     string normDomain = NormalizeFuzzy(domain);
-                    if (normDomain == normQ) return 940;
-                    if (normDomain.StartsWith(normQ, StringComparison.Ordinal)) return 810;
-                    if (normQ.Length >= 3 && normDomain.Contains(normQ, StringComparison.Ordinal)) return 680;
+                    bool isRootSite = false;
+                    if (Uri.TryCreate(url, UriKind.Absolute, out var parsedUri))
+                    {
+                        isRootSite = string.IsNullOrEmpty(parsedUri.AbsolutePath) || parsedUri.AbsolutePath == "/";
+                    }
+
+                    if (isRootSite)
+                    {
+                        if (normDomain == normQ) return 940;
+                        if (normDomain.StartsWith(normQ, StringComparison.Ordinal)) return 810;
+                        if (normQ.Length >= 3 && normDomain.Contains(normQ, StringComparison.Ordinal)) return 680;
+                    }
+                    else
+                    {
+                        // Deep inner bookmarks (subpages, videos, threads) must not outrank website search or direct navigation
+                        if (normDomain == normQ) return 380;
+                        if (normDomain.StartsWith(normQ, StringComparison.Ordinal)) return 280;
+                        if (normQ.Length >= 3 && normDomain.Contains(normQ, StringComparison.Ordinal)) return 180;
+                    }
                 }
             }
             catch { }
@@ -567,15 +583,15 @@ public partial class CommandBarWindow : Window
     {
         return group switch
         {
-            "Favorites" => 0,
-            "Bookmarks" => 1,
-            "Tabs" => 2,
-            "Utilities" => 3,
-            "Settings" => 4,
-            "Commands" => 5,
-            "Links" => 6,
-            "Scripts" => 7,
-            "Web" => 8,
+            "Web" => 0,
+            "Favorites" => 1,
+            "Bookmarks" => 2,
+            "Tabs" => 3,
+            "Utilities" => 4,
+            "Settings" => 5,
+            "Commands" => 6,
+            "Links" => 7,
+            "Scripts" => 8,
             _ => 9
         };
     }
@@ -599,10 +615,29 @@ public partial class CommandBarWindow : Window
                     DisplayIcon = "\uD83C\uDF10",
                     ActionHint = "Go to URL",
                     Group = "Web",
-                    Score = 900,
+                    Score = 1500,
                     Action = () =>
                     {
                         _mainWindow.CreateNewTab(navUrl, activate: true);
+                        Close();
+                        return Task.CompletedTask;
+                    }
+                });
+            }
+            else if (!q.Contains(' ') && !q.Contains('.'))
+            {
+                string directDomain = $"https://{q.ToLowerInvariant()}.com";
+                list.Add(new CommandBarItem
+                {
+                    Title = $"Open {q.ToLowerInvariant()}.com",
+                    Subtitle = $"Navigate directly to {directDomain}",
+                    DisplayIcon = "\uD83C\uDF10",
+                    ActionHint = "Go to Site",
+                    Group = "Web",
+                    Score = 850,
+                    Action = () =>
+                    {
+                        _mainWindow.CreateNewTab(directDomain, activate: true);
                         Close();
                         return Task.CompletedTask;
                     }
@@ -617,7 +652,7 @@ public partial class CommandBarWindow : Window
                 DisplayIcon = "\uD83D\uDD0D",
                 ActionHint = "Search",
                 Group = "Web",
-                Score = 300,
+                Score = 800,
                 Action = () =>
                 {
                     _mainWindow.CreateNewTab(BuildSearchUrl(q), activate: true);
@@ -892,10 +927,8 @@ public partial class CommandBarWindow : Window
         IEnumerable<CommandBarItem> ordered;
         if (hasQuery)
         {
-            ordered = list.GroupBy(i => i.Group)
-                .OrderByDescending(g => g.Max(i => i.Score))
-                .ThenBy(g => GroupRank(g.Key))
-                .SelectMany(g => g.OrderByDescending(i => i.Score));
+            ordered = list.OrderByDescending(i => i.Score)
+                          .ThenBy(i => GroupRank(i.Group));
         }
         else
         {

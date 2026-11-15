@@ -24,21 +24,21 @@
     "semantic_hash": ""
   },
   "Controls/BrowserView.xaml.cs": {
-    "mtime": 1794327553.618597,
-    "seen": 1794327793.4081156,
-    "ast_hash": "d5b7bb2f9e0731335ddb30576b312ada",
+    "mtime": 1794501439.72657,
+    "seen": 1794503516.8302786,
+    "ast_hash": "b6678f9bd45716624321f238f90aecdf",
     "semantic_hash": ""
   },
   "Controls/FluxSidebar.xaml": {
-    "mtime": 1793965403.6206985,
-    "seen": 1794297725.6022017,
-    "ast_hash": "4b0f06bc3f01358e61f0655b0e6a0722",
+    "mtime": 1794424857.6462865,
+    "seen": 1794500330.4244406,
+    "ast_hash": "b389d74d23d3f0ad73a5b7f2327e9c1c",
     "semantic_hash": ""
   },
   "Controls/FluxSidebar.xaml.cs": {
-    "mtime": 1793968465.3115692,
-    "seen": 1794297725.6022017,
-    "ast_hash": "8f2c6bfdc83f3cd1b3b3ebe308964f7b",
+    "mtime": 1794425132.3484983,
+    "seen": 1794500330.4244406,
+    "ast_hash": "037121c6946a9eab7fc40725d2482139",
     "semantic_hash": ""
   },
   "Controls/FolderCardView.cs": {
@@ -144,10 +144,10 @@
     "semantic_hash": "84015b9f4a1ced5ba818d353544e04e4"
   },
   "Core/ExtensionInstaller.cs": {
-    "mtime": 1792407693.967048,
-    "seen": 1793532466.9106145,
-    "ast_hash": "0610e8a53874707f7098b3583f33e0ed",
-    "semantic_hash": "0610e8a53874707f7098b3583f33e0ed"
+    "mtime": 1794399703.7366457,
+    "seen": 1794500330.425452,
+    "ast_hash": "42d5f5e37be8b88e41450d016d047e72",
+    "semantic_hash": ""
   },
   "Core/HorizonCore.cs": {
     "mtime": 1793523020.5394564,
@@ -156,9 +156,9 @@
     "semantic_hash": "e1ab1b5889fc8ad1d4de16b06e9120ce"
   },
   "Core/HorizonEnvironment.cs": {
-    "mtime": 1794291197.9883978,
-    "seen": 1794297725.6038277,
-    "ast_hash": "81ae93bc3908166050a29614b5d01b34",
+    "mtime": 1794496322.4632168,
+    "seen": 1794500330.425452,
+    "ast_hash": "add4b6f2efe77bff696e7691c98a4195",
     "semantic_hash": ""
   },
   "Core/MusicSites.cs": {
@@ -2872,9 +2872,9 @@
     "semantic_hash": "71b35b6cde36765e1410339ce7268d05"
   },
   "MainWindow.FullscreenTransition.cs": {
-    "mtime": 1793605182.1316931,
-    "seen": 1793605913.422169,
-    "ast_hash": "56ab531ba88f62979659fbf18c37b712",
+    "mtime": 1794404101.786701,
+    "seen": 1794500330.4520595,
+    "ast_hash": "487ab47b569d4e1c5c4ceb11a9054255",
     "semantic_hash": ""
   },
   "MainWindow.Widgets.cs": {
@@ -2884,15 +2884,15 @@
     "semantic_hash": ""
   },
   "MainWindow.xaml": {
-    "mtime": 1794327018.5834832,
-    "seen": 1794327793.4411337,
-    "ast_hash": "7e7f4e38d93ea9f2b085d586f54e50f0",
+    "mtime": 1794424910.1002843,
+    "seen": 1794500330.4535651,
+    "ast_hash": "7cca3917cfb9b1eff5857cd0245a3a72",
     "semantic_hash": ""
   },
   "MainWindow.xaml.cs": {
-    "mtime": 1794327530.4803667,
-    "seen": 1794327793.4411337,
-    "ast_hash": "a5da90dc81c75df724c5298b01aa5f75",
+    "mtime": 1794496340.788209,
+    "seen": 1794500330.4535651,
+    "ast_hash": "c1e9ec1dfc46146a0edc741073ed47e7",
     "semantic_hash": ""
   },
   "Native/horizon_core/Cargo.toml": {
@@ -2998,15 +2998,15 @@
     "semantic_hash": "d4031e63f3ae1889ed4d5a03f0e0a833"
   },
   "Services/ExtensionRecord.cs": {
-    "mtime": 1792407694.3735056,
-    "seen": 1793532466.9291718,
-    "ast_hash": "21c50feee2163070242119cf3dece6f3",
-    "semantic_hash": "21c50feee2163070242119cf3dece6f3"
+    "mtime": 1794396993.226067,
+    "seen": 1794500330.454598,
+    "ast_hash": "c5f8a54d72f7f2b28262010103a6bc05",
+    "semantic_hash": ""
   },
   "Services/ExtensionService.cs": {
-    "mtime": 1794292930.0738094,
-    "seen": 1794297725.6983838,
-    "ast_hash": "2d9fe0db083c0f4013ee3d2f67876bfb",
+    "mtime": 1794397054.7851932,
+    "seen": 1794500330.454598,
+    "ast_hash": "5500108c9a737f8f243bde70b768d847",
     "semantic_hash": ""
   },
   "Services/FluxJanitorService.cs": {
@@ -3106,9 +3106,9 @@
     "semantic_hash": "232c280a0073f85cae235556d237fb3f"
   },
   "Services/SettingsService.cs": {
-    "mtime": 1794291193.122473,
-    "seen": 1794297725.6983838,
-    "ast_hash": "c8b99ffad0c70116779a7cee7f46801e",
+    "mtime": 1794399412.6123579,
+    "seen": 1794500330.4551508,
+    "ast_hash": "22b22c2e2835a0e5c4dca357dd13c100",
     "semantic_hash": ""
   },
   "Services/SiteNotificationPermissionService.cs": {
@@ -3274,9 +3274,9 @@
     "semantic_hash": ""
   },
   "ViewModels/TabViewModel.cs": {
-    "mtime": 1793962318.2442608,
-    "seen": 1794297725.7042153,
-    "ast_hash": "fd99b8c777baa36f1152506314d2e5e7",
+    "mtime": 1794399368.8565197,
+    "seen": 1794500330.4571724,
+    "ast_hash": "1bf02dfe006a42909c320d644e4fc018",
     "semantic_hash": ""
   },
   "Views/AdvancedCalculatorWindow.cs": {
@@ -3328,15 +3328,15 @@
     "semantic_hash": ""
   },
   "Views/HomePageView.xaml": {
-    "mtime": 1793982025.5473588,
-    "seen": 1794297725.70883,
-    "ast_hash": "c0be1cdb0b9d073b54ebba29cf8028d9",
+    "mtime": 1794504304.0790122,
+    "seen": 1794504697.5660634,
+    "ast_hash": "f1b7f38a6713852eb51f245040b233f8",
     "semantic_hash": ""
   },
   "Views/HomePageView.xaml.cs": {
-    "mtime": 1794291234.6524053,
-    "seen": 1794297725.70883,
-    "ast_hash": "2c2112fd22288a7d9acb97a07443273c",
+    "mtime": 1794504324.1081765,
+    "seen": 1794504697.5660634,
+    "ast_hash": "73cf12b746b9053818e37d457fab46f0",
     "semantic_hash": ""
   },
   "Views/LoginRecoveryDialog.xaml": {
@@ -3376,15 +3376,15 @@
     "semantic_hash": "3f8a19bb8a48e539d2acf98675c067d2"
   },
   "Views/SettingsWindow.xaml": {
-    "mtime": 1794053363.9764023,
-    "seen": 1794297725.70883,
-    "ast_hash": "264fa08fa82e4afcce8214fd706bb7f5",
+    "mtime": 1794384784.4159067,
+    "seen": 1794500330.4581766,
+    "ast_hash": "5e3d09aeac249026c8a1a3b6c92476f1",
     "semantic_hash": ""
   },
   "Views/SettingsWindow.xaml.cs": {
-    "mtime": 1794291842.8236687,
-    "seen": 1794297725.70883,
-    "ast_hash": "1e79b7c1bf47a4c92861e6c4f6a2e513",
+    "mtime": 1794385093.839531,
+    "seen": 1794500330.4581766,
+    "ast_hash": "819336038ef9ec9eb56dbed8adc19c6b",
     "semantic_hash": ""
   },
   "Views/StackElementWizardWindow.xaml": {
@@ -3671,15 +3671,15 @@
     "semantic_hash": "b9a9341c0d22c21aa7bfbb6d89231b1b"
   },
   "Views/HomePageView.WidgetBoard.cs": {
-    "mtime": 1793722847.0616589,
-    "seen": 1794297725.70883,
-    "ast_hash": "04bdbabe4b68c3e58f9ed5500eb6b1f1",
+    "mtime": 1794501139.0535893,
+    "seen": 1794503516.8664074,
+    "ast_hash": "16fba1231e84d4d9809fee7095560fa7",
     "semantic_hash": ""
   },
   "AGENTS.md": {
-    "mtime": 1794315515.3153892,
-    "seen": 1794315943.489937,
-    "ast_hash": "b9eae857897d6791d44836084f54bdfb",
+    "mtime": 1794425301.6505668,
+    "seen": 1794500330.4601784,
+    "ast_hash": "59dc8715664964522d86d85d3f11705c",
     "semantic_hash": ""
   },
   "Extensions/CRX-Extractor-Downloader-Chrome-Web-Store/README.md": {
@@ -4331,9 +4331,9 @@
     "semantic_hash": ""
   },
   "changelog.txt": {
-    "mtime": 1794315496.406632,
-    "seen": 1794315943.518629,
-    "ast_hash": "39f38c85aef8cb73badb1d3d315cd0fa",
+    "mtime": 1794504395.8752263,
+    "seen": 1794504697.5756145,
+    "ast_hash": "b232f811cf145603000acd046b44bb3f",
     "semantic_hash": ""
   },
   "default_settings.txt": {
@@ -6461,9 +6461,9 @@
     "semantic_hash": ""
   },
   "MainWindow.SplitView.cs": {
-    "mtime": 1794158507.8759367,
-    "seen": 1794297725.6928864,
-    "ast_hash": "61dbc4b1bff9f4d454b55b5183150936",
+    "mtime": 1794403054.1958344,
+    "seen": 1794500330.4520595,
+    "ast_hash": "56b4c18ea2f826c76a77d331c11239e9",
     "semantic_hash": ""
   },
   "MainWindow.UrlOverlay.cs": {
@@ -6551,9 +6551,9 @@
     "semantic_hash": ""
   },
   "Views/CommandBarWindow.xaml.cs": {
-    "mtime": 1794293194.0629623,
-    "seen": 1794297725.7084734,
-    "ast_hash": "a291e1c18ce400f71ab2c9ce074ce2f7",
+    "mtime": 1794499927.1244557,
+    "seen": 1794500330.4571724,
+    "ast_hash": "986fd28a9730b471ed747d6950e0f49e",
     "semantic_hash": ""
   },
   "Views/FeedbackWindow.Context.cs": {
@@ -6611,9 +6611,9 @@
     "semantic_hash": ""
   },
   ".agents/gotchas.md": {
-    "mtime": 1794176663.8995054,
-    "seen": 1794297725.70883,
-    "ast_hash": "df68a5472f22285511e85954dd3236cd",
+    "mtime": 1794404250.8700826,
+    "seen": 1794500330.4601784,
+    "ast_hash": "987281e5c1525de6d40fd7262fbc9033",
     "semantic_hash": ""
   },
   "Extensions/YouTube-Subtitle-Pro-Chrome-Web-Store/fonts/ibm-plex-sans-arabic/license.txt": {
@@ -7583,15 +7583,45 @@
     "semantic_hash": ""
   },
   "Services/KeyboardNavigationScript.cs": {
-    "mtime": 1794327422.3280673,
-    "seen": 1794327793.4432366,
-    "ast_hash": "c81bab5addbd11af1f2bb3c8b46de47b",
+    "mtime": 1794384879.3838725,
+    "seen": 1794500330.4551508,
+    "ast_hash": "19308a6e1ba6874e6fa7a4420ead7e27",
     "semantic_hash": ""
   },
   "MainWindow.KeyboardNav.cs": {
     "mtime": 1794327457.6292193,
     "seen": 1794327793.4411337,
     "ast_hash": "b9941dc4394a8514f074e9589305cdd0",
+    "semantic_hash": ""
+  },
+  "Core/ExtensionNetworkProxyService.cs": {
+    "mtime": 1794402514.5735278,
+    "seen": 1794500330.425452,
+    "ast_hash": "d4b6079a7ce6cc11b2865268ba438e5f",
+    "semantic_hash": ""
+  },
+  "Core/ExtensionPolyfillService.cs": {
+    "mtime": 1794397192.6058016,
+    "seen": 1794500330.425452,
+    "ast_hash": "7fee392ad4bd4d08ad97af1d52f6fb27",
+    "semantic_hash": ""
+  },
+  "Services/ChromeWebStoreBridge.cs": {
+    "mtime": 1794386676.3763826,
+    "seen": 1794500330.4540842,
+    "ast_hash": "5d6d877183d97a68637b0b98f26dd0dd",
+    "semantic_hash": ""
+  },
+  "Views/ExtensionInstallDialog.xaml": {
+    "mtime": 1794399724.7426157,
+    "seen": 1794500330.4581766,
+    "ast_hash": "70a4fd56d897f7a9ffcd08f78a97f5d2",
+    "semantic_hash": ""
+  },
+  "Views/ExtensionInstallDialog.xaml.cs": {
+    "mtime": 1794399770.955498,
+    "seen": 1794500330.4581766,
+    "ast_hash": "8c7e0f7a8232980233917ba223a0feb8",
     "semantic_hash": ""
   }
 }

@@ -50,6 +50,13 @@ public partial class HomePageView
                 GetIslandTranslateTransform().Y = 28.0;
             }
         }
+        else if (!IsLoaded)
+        {
+            GridFavBookmarksIsland.Visibility = Visibility.Collapsed;
+            GridFavBookmarksIsland.Opacity = 0.0;
+            GetIslandTranslateTransform().Y = 28.0;
+            return;
+        }
 
         // Enable GPU raster cache mode during motion to achieve silky 60 FPS even with 100+ icons
         if (GridFavBookmarksIsland.CacheMode == null)

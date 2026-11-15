@@ -1442,7 +1442,7 @@ public partial class HomePageView : UserControl
         double idealCenterTop = Math.Max(30.0, Math.Round((layoutHeight - searchRowH) / 2.0) - 20.0);
 
         // Keep sufficient headroom below for favorites/bookmarks island without colliding with bottom island (560px for 2 complete rows)
-        bool hasIsland = _searchMode != "Search";
+        bool hasIsland = _searchMode is "Favorites" or "Bookmarks";
         double requiredHeadroom = hasIsland ? 560.0 : 120.0;
         double maxSafeTop = Math.Max(20.0, bottomBoundary - searchRowH - requiredHeadroom);
         double persistentSearchTop = idealCenterTop;
@@ -1890,9 +1890,9 @@ public partial class HomePageView : UserControl
 
         bool hasBkmItems = BookmarkService.Items != null && BookmarkService.Items.Count > 0;
 
-        bool favShow = _searchMode == "Favorites" || (_inFocusMode && _focusWidgetName == "Favorites") || s.HomeShowFavoritesWidget;
+        bool favShow = _searchMode == "Favorites" || (_inFocusMode && _focusWidgetName == "Favorites");
 
-        bool bkmShow = _searchMode == "Bookmarks" || (_inFocusMode && _focusWidgetName == "Bookmarks") || s.HomeShowBookmarksWidget;
+        bool bkmShow = _searchMode == "Bookmarks" || (_inFocusMode && _focusWidgetName == "Bookmarks");
 
         PnlFavoritesContainer.Visibility = favShow ? Visibility.Visible : Visibility.Collapsed;
 
@@ -2037,7 +2037,7 @@ public partial class HomePageView : UserControl
 
         }
 
-        else if (_searchMode == "Widgets")
+        else
 
         {
 
@@ -2047,12 +2047,6 @@ public partial class HomePageView : UserControl
 
             widVisible = false;
 
-        }
-
-        else
-        {
-            favVisible = s.HomeShowFavoritesWidget;
-            bkmVisible = s.HomeShowBookmarksWidget;
         }
 
 
@@ -4378,12 +4372,14 @@ public partial class HomePageView : UserControl
 
             UpdateBookmarksDrawer();
 
-            bool hasBkm = (_inFocusMode && _focusWidgetName == "Bookmarks") || _searchMode == "Bookmarks" || SettingsService.Current.HomeShowBookmarksWidget;
+            bool hasBkm = (_inFocusMode && _focusWidgetName == "Bookmarks") || _searchMode == "Bookmarks";
 
             PnlBookmarksContainer.Visibility = hasBkm ? Visibility.Visible : Visibility.Collapsed;
 
             bool isBkmEmpty = ordered.Count == 0;
             if (TxtBookmarksEmpty != null) TxtBookmarksEmpty.Visibility = (hasBkm && isBkmEmpty) ? Visibility.Visible : Visibility.Collapsed;
+            if (BookmarksIslandBorder != null)
+                BookmarksIslandBorder.Padding = (hasBkm && isBkmEmpty) ? new Thickness(20, 10, 20, 12) : new Thickness(28, 18, 28, 24);
             if (ScvBookmarks != null) ScvBookmarks.Visibility = (hasBkm && !isBkmEmpty) ? Visibility.Visible : (hasBkm ? Visibility.Collapsed : Visibility.Visible);
 
             UpdateFavBookmarksIslandVisibility();
@@ -5837,12 +5833,14 @@ public partial class HomePageView : UserControl
 
             UpdateFavoritesDrawer();
 
-            bool hasFav = (_inFocusMode && _focusWidgetName == "Favorites") || _searchMode == "Favorites" || SettingsService.Current.HomeShowFavoritesWidget;
+            bool hasFav = (_inFocusMode && _focusWidgetName == "Favorites") || _searchMode == "Favorites";
 
             PnlFavoritesContainer.Visibility = hasFav ? Visibility.Visible : Visibility.Collapsed;
 
             bool isFavEmpty = displayList.Count == 0;
             if (TxtFavoritesEmpty != null) TxtFavoritesEmpty.Visibility = (hasFav && isFavEmpty) ? Visibility.Visible : Visibility.Collapsed;
+            if (FavoritesIslandBorder != null)
+                FavoritesIslandBorder.Padding = (hasFav && isFavEmpty) ? new Thickness(20, 10, 20, 12) : new Thickness(28, 18, 28, 24);
             if (ScvFavorites != null) ScvFavorites.Visibility = (hasFav && !isFavEmpty) ? Visibility.Visible : (hasFav ? Visibility.Collapsed : Visibility.Visible);
 
             UpdateFavBookmarksIslandVisibility();

@@ -680,7 +680,7 @@ public partial class BrowserView : UserControl
     public BrowserView()
     {
         InitializeComponent();
-        MainWebView.DefaultBackgroundColor = System.Drawing.Color.FromArgb(255, 19, 19, 19);
+        MainWebView.DefaultBackgroundColor = System.Drawing.Color.White;
         _ = Task.Run(EnsureWhitelistLoaded);
         DisableScriptBtn.Click   += (_, _) => _ = DisableScriptForCurrentSiteAsync();
         SyncSessionBtn.Click     += (_, _) => _ = AttemptActiveRecovery();
@@ -2980,6 +2980,7 @@ public partial class BrowserView : UserControl
                 try { MainWebView.Dispose(); } catch { }
 
                 var freshWebView = new Microsoft.Web.WebView2.Wpf.WebView2();
+                freshWebView.DefaultBackgroundColor = System.Drawing.Color.White;
                 Grid.SetRow(freshWebView, Grid.GetRow(MainWebView));
 
                 if (index >= 0)

@@ -1,17 +1,17 @@
-# Graph Report - horizon-browser  (2026-11-10)
+# Graph Report - horizon-browser  (2026-11-12)
 
 ## Corpus Check
-- 666 files · ~5,116,935 words
+- 671 files · ~5,130,611 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 197 file(s) not represented in the graph (top: .log 87, .css 54, .bat 10)
 
 ## Summary
-- 31474 nodes · 68559 edges · 1330 communities (790 shown, 540 thin omitted)
-- Extraction: 92% EXTRACTED · 8% INFERRED · 0% AMBIGUOUS · INFERRED: 5453 edges (avg confidence: 0.85)
+- 31599 nodes · 68921 edges · 1313 communities (775 shown, 538 thin omitted)
+- Extraction: 92% EXTRACTED · 8% INFERRED · 0% AMBIGUOUS · INFERRED: 5478 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `d05e2c74`
+- Built from commit: `e4c4231f`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -26,7 +26,7 @@
 - shared/editor.js
 - 35386
 - UserControl
-- FluxSidebar
+- BrowserView
 - Window
 - filtering-log.js
 - vz
@@ -40,7 +40,7 @@
 - DependencyObject
 - tswebextension.js
 - 90507
-- MainWindow.SplitBuildLayout
+- UserControl
 - 47258
 - mb
 - i
@@ -53,9 +53,9 @@
 - o
 - MediaLibrary
 - um
-- SettingsWindow
-- FolderDrawerView
 - Button
+- FolderDrawerView
+- SW
 - _assertNotDisposed
 - polyfill.js
 - ng
@@ -63,19 +63,19 @@
 - TabSwitcherWindow
 - 32932
 - CustomShortcut
-- SW
+- dw
 - 32932
 - Eq
 - background-script.js
 - gE
 - Wie
 - Window
-- Qh
+- vu
 - YouTube-Subtitle-Pro-Chrome-Web-Store/content.js
 - Action
 - 53353
 - fullscreen-user-rules.js
-- Border
+- DateTime
 - pages/popup/popup.js
 - js/content.js
 - system_windows
@@ -86,23 +86,23 @@
 - oI
 - XE
 - Window
-- Pg
+- wv
 - i
 - ym
 - tsurlfilter-declarative-converter.js
-- Window
+- Grid
 - VpnProfile
 - aee
 - i
-- r
+- rr
 - Ng
 - history.js
 - xu
 - i
 - d3_geo_projectionMutator
-- Wm
+- cm
 - bergamot-translator-worker.js
-- Button
+- TextBlock
 - StackHost
 - d3
 - nA
@@ -115,9 +115,9 @@
 - brush
 - Window
 - wL
-- ww
+- zF
 - UserControl
-- o
+- e
 - 75334
 - 75334
 - 14776
@@ -145,14 +145,14 @@
 - oo
 - MediaManagerWindow
 - TWP-Translate-[BETA]-Chrome-Web-Store/manifest.json
-- RoutedEventArgs
+- WebAppWindow
 - __webpack_require__
 - hz
 - 41599
 - 40001
 - dictionary.js
 - yx
-- TextChangedEventArgs
+- mZ
 - n
 - subscribe.js
 - Action
@@ -163,7 +163,7 @@
 - dL
 - Fe
 - oN
-- ListSidebarUtilities
+- .fire
 - uE
 - u
 - wP
@@ -171,7 +171,7 @@
 - e
 - n
 - v1
-- PerformanceTelemetryService
+- HorizonCore
 - js/background.js
 - pL
 - 50343
@@ -182,7 +182,7 @@
 - S
 - pi
 - e
-- .fire
+- bre
 - r
 - 53298
 - SuperJSON
@@ -200,15 +200,15 @@
 - iE
 - lA
 - nne
-- Dh
+- g3
 - 83919
 - 83919
 - 83919
 - 83919
 - 83919
 - 83919
-- FluxSidebar.RefreshPins
-- l_
+- sm
+- mL
 - b2
 - F9
 - Xa
@@ -223,7 +223,7 @@
 - lf
 - StackElementWizardWindow
 - gA
-- AR
+- nx
 - iN
 - oy
 - i
@@ -250,7 +250,7 @@
 - d3_geo_projectionMutator
 - BrowserStorage
 - SuperJSON
-- Window
+- l_
 - d3_time_scale
 - BrowserStorage
 - BrowserStorage
@@ -266,7 +266,7 @@
 - 8129
 - 8129
 - 8129
-- FluxSidebar.OpenPreview
+- pce
 - 55897
 - 44285
 - 44285
@@ -277,16 +277,16 @@
 - Bi
 - ea
 - kZ
-- r
-- vu
+- It
+- Uq
 - xp
 - b
 - background/background.js
 - mobx.js
 - all_content_scripts.js
 - tw
-- .getEmpty
-- SettingsSearchResult
+- cW
+- h1
 - YouTube-Subtitle-Pro-Chrome-Web-Store/popup.js
 - Save-It-Later-Chrome-Web-Store/manifest.json
 - docs/push_to_github.py
@@ -318,27 +318,28 @@
 - 86136
 - e
 - Gi
-- uK
+- rv
 - Sh
 - Al
-- dz
+- lm
 - 81537
 - 5126
 - 56044
 - au
 - bf
-- hg
+- wq
 - cy
-- HomePageView.EnsureWidgetBoardPopulated
+- d3_geom_voronoi
 - kN
 - MR
 - xu
 - iA
-- FluxSidebar.RefreshBookmarks
+- BookmarkItem
 - scriptlets_preventFetch
 - 97342
 - tE
-- IPropertyStore
+- BackgroundKeepAliveService
+- Window
 - _x
 - Hp
 - MainWindow
@@ -353,7 +354,7 @@
 - 58267
 - 45801
 - e
-- update
+- N7
 - iU
 - dx
 - vL
@@ -379,10 +380,10 @@
 - consent-o-matic/manifest.json
 - y
 - l3
-- run
+- trigger
 - Uie
 - nte
-- IShellLinkW
+- d3_geo_clipExtent
 - Ex
 - P2
 - OO
@@ -407,7 +408,7 @@
 - a_
 - af
 - aie
-- b_
+- bv
 - rL
 - Lh
 - PN
@@ -426,11 +427,11 @@
 - xc
 - dv
 - hu
-- FluxItemViewModel
+- FluxItem
 - background_scripts/main.js
 - c0
 - MainWindow
-- fz
+- Qy
 - y
 - help.js
 - Lp
@@ -448,7 +449,7 @@
 - Matcher
 - t
 - gx
-- qg
+- .dispose
 - gP
 - kO
 - document.js
@@ -489,11 +490,11 @@
 - dbepggeogbaibhgnhhndojpepiihcmeb/pages/options.js
 - R9
 - I8
-- v
+- kL
 - bq
 - sO
 - zD
-- .setChildren
+- zT
 - popup-translate-document.js
 - mj
 - 54424
@@ -506,21 +507,20 @@
 - 93051
 - UserAgent
 - 93051
-- _isObservable
+- isFunction
 - scriptlets_trustedReplaceNodeText
 - scriptlets_trustedSetConstant
 - 70215
-- jl
+- go
 - d3_locale_timeFormat
 - FI
 - ev
-- e
-- pl
+- a
+- fz
 - gf
-- .getEmpty
 - HORIZON BROWSER MASTER PLAN (created 2026-10-07)
 - mf
-- .main
+- Rs
 - ZO
 - registerType
 - Remove-Paywalls-Chrome-Web-Store/manifest.json
@@ -528,7 +528,7 @@
 - nU
 - FindMode
 - SiteNotificationPermissionService
-- poe
+- AR
 - kP
 - IDBStorage
 - 28521
@@ -547,24 +547,24 @@
 - addDescendantStatesToEnter
 - togglePanel
 - dl
-- XI
+- uO
 - 19131
 - tA
 - uz
 - 1. Citations & Source Management
-- Ag
+- Iw
 - AegisPressureLevel
 - bP
-- LaunchStateResult
-- PerformanceTelemetryService.QueryFixedConditions
+- jj
+- Tx
 - dbepggeogbaibhgnhhndojpepiihcmeb/manifest.json
-- createModelFromProvider
+- K2
 - NotificationEntry
 - ExtractedCookie
 - FileBrowserExcluder
 - 11375
 - 54361
-- z3
+- kH
 - assocIndexOf
 - createAction
 - scriptlets_adjustSetInterval
@@ -605,15 +605,15 @@
 - debounce
 - GoogleTagServicesGpt
 - CRX-Extractor-Downloader-Chrome-Web-Store/background.js
-- aA
+- bne
 - HORIZON BROWSER HOMEPAGE REWORK: HANDOFF 2 (2026-10-06)
 - c0
 - getUrlBasedHistory
 - fL
-- vb
+- yE
 - fE
 - uv
-- Ij
+- no
 - Sf
 - qw
 - fU
@@ -623,14 +623,14 @@
 - ho
 - v
 - showOriginal.js
-- PerformanceTelemetryService.RunAutomatedBaselineSuiteAsync
+- sL
 - _slicedToArray
 - 18158
 - 55892
 - 85571
 - 85571
 - toArray
-- F2
+- Rectangle
 - I18n
 - createBar
 - DragdropHandler
@@ -647,17 +647,17 @@
 - init
 - HORIZON BROWSER - HOMEPAGE HANDOFF 2 (PHASE PLAN + STATE)
 - Horizon Browser: Split View Multi-Layout Rework (Handoff)
-- i0
+- ib
 - PI
 - ThrottleWrapper
 - ThumbButtonFlags
 - ff
 - H9
-- ProcessCpuMemorySnapshot
+- f5
 - kf
 - pf
 - ConfigService
-- ep
+- run
 - $
 - Horizon.Browser.csproj
 - ja
@@ -685,10 +685,10 @@
 - Em
 - 🌌 Horizon Browser
 - WeatherBridge
-- nN
-- Cd
+- jE
+- TabSleepRulesService
 - az
-- StateBenchmarkSummary
+- PerformanceTelemetryService
 - Task
 - computeDiff
 - XO
@@ -705,7 +705,7 @@
 - 8785
 - 32996
 - d3_time_interval
-- Pd
+- OW
 - copy
 - MessageHandler
 - MessageHandler
@@ -723,16 +723,17 @@
 - scriptlets_trustedSetAttr
 - 34258
 - __asyncGenerator
-- loadBookmarks
+- qg
 - getCaptionWindowSpatialMetrics
-- UserControl
-- soe
+- RoutedEventArgs
+- lu
 - search_engines.js
-- ManageRow
+- ExtensionPermissionModel
 - oie
 - qf
-- CalendarEvent
+- H
 - t$
+- aW
 - uf
 - popupMobile.js
 - ViewEngine
@@ -764,8 +765,8 @@
 - scriptlets_noProtectedAudience
 - scriptlets_Pardot
 - xm
-- SourceRow
-- TelemetrySnapshot
+- StackElementKind
+- FI
 - 10737
 - 45490
 - 56585
@@ -779,14 +780,14 @@
 - google-analytics.js
 - GoogleAnalyticsGa
 - pardot-1.0.js
-- Phase0BaselineReport
+- H2
 - CommandBarItem
-- StateAggregatedSummary
+- nZ
 - Gr
 - oP
 - ListResults
-- ore
-- renderBookmarks
+- z3
+- gK
 - Horizon Browser: Command Bar Improvement Plan
 - md
 - xN
@@ -836,7 +837,7 @@
 - HideAction
 - h
 - scriptlets_nowebrtc
-- Iu
+- ti
 - scriptlets_removeAttr
 - scriptlets_preventInnerHTML
 - jN
@@ -847,8 +848,8 @@
 - 🔒 Exposed Values in config.js
 - TWP-Translate-[BETA]-Chrome-Web-Store/popup/popup.js
 - LocExtension
-- RadioButton
-- StackWebHost
+- zN
+- Popup
 - xT
 - _typeof
 - upgradeHelper_typeof
@@ -880,11 +881,11 @@
 - qm
 - getCaptionOwnerVideoKey
 - c
-- Window
+- FolderSheetHost.Close
 - d3_Map
-- hud_page.js
+- ui_component_messenger.js
 - LinkHintsMode
-- Horizon Header Widget — Animation Pattern Guide
+- MainWindow.RefreshWidgetDisplay
 - 16949
 - 23103
 - 50782
@@ -904,17 +905,17 @@
 - prevent-popads-net.js
 - WaitCssAction
 - Qv
-- SystemMemoryInfo
+- PdfOpenDialog
 - vh
-- resampleRecursive
-- c
+- b_
+- h4
 - hL
 - Me
-- scriptlets_GoogleIma3
-- scriptlets_preventAdfly
+- jm
+- nN
 - ky
 - T6
-- r0
+- StackPanel
 - scriptlets_preventElementSrcLoading
 - tM
 - 37155
@@ -922,8 +923,8 @@
 - R2
 - translationCache.js
 - BU
-- ux
-- f
+- _extends
+- d
 - wx
 - 21899
 - 39606
@@ -980,7 +981,7 @@
 - 44469
 - scriptlets_preventPopadsNet
 - 98518
-- UB
+- JsonCookie
 - 18800
 - 3646
 - 51767
@@ -997,16 +998,16 @@
 - b
 - g
 - y
-- e0
-- Horizon.Updater/App.xaml.cs
+- SimpleCache
+- Gs
 - scriptlets_metrikaYandexWatch
-- XI
+- aL
 - cl
 - Dy
 - E6
-- DynamicIslandMode
+- BatteryBridge
 - HandlerStack
-- goe
+- TabBorder
 - jL
 - TabViewModel
 - StackElementWizardWindow.Card_MouseLeftButtonUp
@@ -1064,7 +1065,7 @@
 - uI
 - 16967
 - 28926
-- parse
+- Image
 - Horizon.SessionImporter.csproj
 - 58174
 - 68508
@@ -1078,8 +1079,8 @@
 - scorecardresearch-beacon.js
 - set-popads-dummy.js
 - u4
-- yO
-- d3_selection_classed
+- scriptlets_preventRefresh
+- scriptlets_trustedSetLocalStorageItem
 - Save-It-Later-Chrome-Web-Store/background.js
 - $
 - BrowserType
@@ -1108,14 +1109,14 @@
 - requireCore
 - requireCore$1
 - kx
-- a0
+- Cte
 - EDDSA
 - p8
 - Im
 - Q5
-- .constructor
+- _9
 - Fm
-- QD
+- eb
 - Rt
 - YT
 - SHA256
@@ -1145,9 +1146,9 @@
 - 11556
 - 12166
 - v4
-- CategoryEditMode
+- FluxSidebar.xaml.cs
 - AlphabetHints
-- HistSortField
+- scriptlets_injectCssInShadowDom
 - ja
 - 69395
 - 28101
@@ -1159,20 +1160,20 @@
 - SearchEngineEntry
 - 37250
 - 40437
-- PinSortField
+- __awaiter
 - 46552
 - 49986
 - BackupInfo
-- SortField
-- scriptlets_Fingerprintjs3
-- scriptlets_Gemius
+- b5
+- v_
+- LW
 - 63818
 - 64494
 - scriptlets_NaverWcslog
 - ExtensionSource
 - LN
-- hR
-- oU
+- Rg
+- v5
 - 75817
 - vi
 - h8
@@ -1191,12 +1192,12 @@
 - 75817
 - MusicSites
 - 91641
-- Km
+- TranslateTransform
 - raise_c17ec2bc_esm_and
 - raise_c17ec2bc_esm_cancel
 - raise_c17ec2bc_esm_stateIn
-- Reader
-- Pb
+- ThumbButtonMask
+- HomePageService.cs
 - categorization-service.js
 - package-for-store.sh
 - translationService.js
@@ -1206,38 +1207,37 @@
 - platformInfo.js
 - off_screen.js
 - Redmond.xaml
-- getQualifiedElementName
 - horizon_core
 - zK
 - isSmartTimingEffectLine
-- TitleBarRow
-- ln
-- rp
+- hr
+- e3
+- fb
 - $5
 - 81125
 - scriptlets_removeClass
 - Horizon Browser - Workspace Knowledge & Engine Directives
 - Tween
 - Horizon.Updater.csproj
-- ExtSortField
+- g8
 - UI_COLOR_RULES.md
 - UIComponent
-- rd
-- scriptlets_noTopics
-- scriptlets_preventEvalIf
-- Bm
+- KB
+- o3
+- DynamicIslandAudioGlow
+- MainWindow.TabMenu_OpenMultiContext
 - pK
 - qH
 - mutationMayReplaceMainCaptionTarget
-- StackLoginProfile
+- StackElementData
 - fK
-- vK
-- handleSignedIn
-- handleSignedIn
-- 23968
-- 46663
-- RbIsolated
-- N5
+- d3_selection_creator
+- 99090
+- BI
+- E5
+- p7
+- s3
+- W5
 - 31866
 - S6
 - 48380
@@ -1255,53 +1255,37 @@
 - 70883
 - 76505
 - SplitSlot
-- T8
+- y5
 - 80877
 - Tee
-- 3646
-- 72495
+- AudioDot
+- AudioGlowShadow
 - HintMarker
 - ac
 - b1
 - 16077
-- 19630
+- IslandExpDownloadProgress
 - 36570
-- 27903
 - 52996
 - 59387
-- 31607
-- 37190
-- 44087
-- PnlStep3
+- 15299
+- 43528
+- ColSidebar
+- Cp
 - 82339
-- 46879
-- 48118
-- parse
-- 51826
-- 59387
-- 64494
-- 68194
-- 70883
+- DynamicIslandScale
+- HeaderProximityGlow
+- MarqueeAnim
+- PART_Track
+- PnlNativeHintOverlay
+- RightSidebar
+- SliderWidgetCycle
 - YouTube-Subtitle-Pro-Chrome-Web-Store/i18n.js
-- 73752
-- 75128
-- 78767
-- 81742
-- 85832
-- 88577
-- 8887
-- 88877
 - 70591
 - 19630
-- 91641
-- 14190
 - 28077
-- 25132
-- 30223
 - 56327
-- 42228
 - 64513
-- 58863
 - 70579
 - d3_scale_threshold
 - 71712
@@ -1309,20 +1293,18 @@
 - 80478
 - 93926
 - 96242
-- Reader
-- getQualifiedElementName
 - ui
 
 ## God Nodes (most connected - your core abstractions)
 1. `$$` - 2675 edges
-2. `MainWindow` - 836 edges
+2. `MainWindow` - 852 edges
 3. `35386()` - 478 edges
-4. `HomePageView` - 353 edges
+4. `HomePageView` - 354 edges
 5. `constructor()` - 287 edges
-6. `Window` - 278 edges
-7. `SettingsData` - 241 edges
-8. `UserControl` - 235 edges
-9. `FluxSidebar` - 232 edges
+6. `Window` - 280 edges
+7. `SettingsData` - 248 edges
+8. `UserControl` - 239 edges
+9. `FluxSidebar` - 237 edges
 10. `25247()` - 230 edges
 
 ## Surprising Connections (you probably didn't know these)
@@ -1334,8 +1316,8 @@
   docs/horizon-widget-style-guide.md → Services/SettingsService.cs
 - `How Localization Works:` --references--> `HomePageView`  [INFERRED]
   docs/HORIZON_SYSTEM_KNOWLEDGE_BASE.md → Views/HomePageView.Themes.cs
-- `4. KEY FILES AND ANCHORS (verify before editing)` --references--> `RowsPanel`  [INFERRED]
-  docs/HORIZON_HOME_LAYOUT_PLAN.md → Controls/PuzzlePanel.cs
+- `8. Right-Column Defaults, Stack Calendar Widget & Settings Localization` --references--> `FolderDrawerView`  [INFERRED]
+  docs/HORIZON_SYSTEM_KNOWLEDGE_BASE.md → Controls/FolderDrawerView.cs
 
 ## Import Cycles
 - 2-file cycle: `Extensions/consent-o-matic/Action.js -> Extensions/consent-o-matic/Consent.js -> Extensions/consent-o-matic/Action.js`
@@ -1347,115 +1329,111 @@
 - 5-file cycle: `Extensions/consent-o-matic/Action.js -> Extensions/consent-o-matic/Consent.js -> Extensions/consent-o-matic/Matcher.js -> Extensions/consent-o-matic/ConsentEngine.js -> Extensions/consent-o-matic/CMP.js -> Extensions/consent-o-matic/Action.js`
 - 5-file cycle: `Extensions/consent-o-matic/CMP.js -> Extensions/consent-o-matic/Detector.js -> Extensions/consent-o-matic/Matcher.js -> Extensions/consent-o-matic/Tools.js -> Extensions/consent-o-matic/ConsentEngine.js -> Extensions/consent-o-matic/CMP.js`
 
-## Communities (1330 total, 540 thin omitted)
+## Communities (1313 total, 538 thin omitted)
 
 ### Community 0 - "$$"
 Cohesion: 0.00
-Nodes (410): $$, _acceptNext(), acceptNextLine(), acceptNextWord(), _acquireLocks(), _actualReadFontInfo(), add(), addDecoration() (+402 more)
+Nodes (401): $$, _acceptNext(), acceptNextLine(), acceptNextWord(), _acquireLocks(), _actualReadFontInfo(), add(), addDynamicKeybinding() (+393 more)
 
 ### Community 1 - "e"
 Cohesion: 0.01
-Nodes (308): Fo(), a(), aa(), abort(), ae(), l(), al(), an() (+300 more)
+Nodes (310): Fo(), Pa(), a(), aa(), abort(), ae(), l(), an() (+302 more)
 
 ### Community 2 - "Rect"
-Cohesion: 0.04
-Nodes (13): BitmapSourceHolder, TabDropGhostAdorner, GhostRect, HomeGlassService, MONITORINFO, RECT, MONITORINFO, RECT (+5 more)
+Cohesion: 0.05
+Nodes (9): HomeGlassService, MONITORINFO, RECT, MONITORINFO, RECT, WidgetBackdropService, CitationBuilderWindow, DoiResolverWindow (+1 more)
 
 ### Community 3 - "pages/background.js"
 Cohesion: 0.01
-Nodes (29): 11309(), 14190(), 15299(), 28339(), 31129(), 33978(), 36570(), 39928() (+21 more)
+Nodes (50): 11309(), 14190(), 19630(), 23968(), ReporterError(), 27903(), 28339(), 31129() (+42 more)
 
 ### Community 4 - "pages/popup.js"
 Cohesion: 0.01
-Nodes (54): 10931(), 11556(), 16077(), 27903(), 28339(), 28926(), 33708(), 33978() (+46 more)
+Nodes (55): 10931(), 11556(), 16077(), 27903(), 28339(), 28926(), 33708(), 33978() (+47 more)
 
 ### Community 5 - "Color"
-Cohesion: 0.04
-Nodes (15): GradientUtility, HistoryItemViewModel, ItemGradient, Title, Url, VisitTime, TabColorPaletteExtractor, Backdrop (+7 more)
+Cohesion: 0.03
+Nodes (32): FluxAccentGradientConverter, GradientUtility, HistoryItemViewModel, ItemGradient, Title, Url, VisitTime, TabColorPaletteExtractor (+24 more)
 
 ### Community 6 - "constructor"
 Cohesion: 0.01
-Nodes (136): _9, a(), l(), s(), acceptSelected(), _addLoadingMessage(), _adjustOptionsForLeftHandSide(), _adjustOptionsForRightHandSide() (+128 more)
+Nodes (148): a3, acceptSelected(), addAction(), addCommand(), addDecoration(), _addLoadingMessage(), _adjustOptionsForLeftHandSide(), _adjustOptionsForRightHandSide() (+140 more)
 
 ### Community 7 - "shared/editor.js"
 Cohesion: 0.01
-Nodes (32): RFC-9110, 11556(), 16077(), 27903(), 28957(), SplitComponent(), 33978(), 36570() (+24 more)
+Nodes (34): RFC-9110, 11556(), 16077(), 27903(), 28957(), SplitComponent(), 33978(), 36570() (+26 more)
 
 ### Community 8 - "35386"
 Cohesion: 0.01
-Nodes (137): 35386(), angle(), apportion(), arc(), chord(), circleSegment(), cluster(), curve() (+129 more)
+Nodes (134): 35386(), angle(), apportion(), arc(), chord(), circleSegment(), cluster(), compareRanges() (+126 more)
 
 ### Community 9 - "UserControl"
-Cohesion: 0.02
-Nodes (227): AsPin, Background, BorderBrush, BorderThickness, Content.ItemCount, PinIconConverter, FileName, IsDropDownOpen (+219 more)
+Cohesion: 0.01
+Nodes (236): AsPin, Background, BorderBrush, BorderThickness, Content.ItemCount, PinIconConverter, FileName, IsDropDownOpen (+228 more)
 
-### Community 10 - "FluxSidebar"
+### Community 10 - "BrowserView"
 Cohesion: 0.04
-Nodes (8): BtnCtxExtractHere, ListBookmarks, ListPins, FluxSidebar, FluxItems, IsAnyPopupOpen, IsMiniMode, SortDefaultsPath
+Nodes (20): Chrome Web Store Native Button Interception & Audio Permissions, BrowserView, CanGoBackToHome, CanGoForwardToSite, ContainerId, IsCrashLoopHalted, IsDownloadPaused, IsHomeActive (+12 more)
 
 ### Community 11 - "Window"
-Cohesion: 0.01
-Nodes (259): AnimatedBrush, CleanMediaTitle, CompactFavicon, CompactIconVisibility, CompactInitial, CompactInitialBackground, CompactInitialBorder, ContainerBadgeBrush (+251 more)
+Cohesion: 0.03
+Nodes (75): CleanMediaTitle, CompactInitial, CompactInitialBackground, CompactInitialBorder, ContainerBadgeBrush, ContainerBadgeText, ContainerBadgeVisibility, DomainTitle (+67 more)
 
 ### Community 12 - "filtering-log.js"
 Cohesion: 0.01
-Nodes (5): 88226(), emptyFunction(), emptyFunctionWithReset(), getShim(), shim()
-
-### Community 13 - "vz"
-Cohesion: 0.02
-Nodes (8): gZ(), hZ(), lZ, mZ, nZ, pZ, vc, vz
+Nodes (10): 14190(), 25132(), 30223(), 42228(), 58863(), 88226(), emptyFunction(), emptyFunctionWithReset() (+2 more)
 
 ### Community 14 - "HomePageView"
 Cohesion: 0.02
-Nodes (16): 3. Engineered Workarounds & Gotchas, FolderFallback, HomeRowLimits, 4. KEY FILES AND ANCHORS (verify before editing), 8. Structural rules (apply to every widget), BtnChangeWallpaper, BtnHomeSettings, RootHomeGrid (+8 more)
+Nodes (32): 3. Engineered Workarounds & Gotchas, SegmentThumb, SnapMotion, FolderFallback, HomeRowLimits, 4. KEY FILES AND ANCHORS (verify before editing), 8. Right-Column Defaults, Stack Calendar Widget & Settings Localization, 8. Structural rules (apply to every widget) (+24 more)
 
 ### Community 15 - "LogService.RecordCrash"
 Cohesion: 0.02
-Nodes (89): HorizonEnvironment, Instance, BackgroundKeepAliveService, HasLiveMainWindow, PipeName, BookmarkService, Items, ChromiumHarvester (+81 more)
+Nodes (78): StackWebHost, HorizonEnvironment, Instance, ChromiumHarvester, ExtractedCookie, Host, IsHttpOnly, IsSecure (+70 more)
 
 ### Community 16 - "IntPtr"
 Cohesion: 0.01
-Nodes (75): Application, App, BrowserProcessMemoryReport, HorizonCore, IsAvailable, NativeBrowserMemoryMetrics, NativeLayoutRect, NativeLuminanceMetrics (+67 more)
+Nodes (66): Application, App, IslandAccentPolicy, IslandCompositionData, GlassMargins, CustomDestinationList, EnumerableObjectCollection, IDataTransferManagerInterop (+58 more)
 
 ### Community 17 - "SettingsData"
 Cohesion: 0.01
-Nodes (215): SettingsData, AccountProfiles, AccountSwitcherButtonX, AccountSwitcherButtonY, ActiveLayoutSetId, AdGuard_BlockAds, AdGuard_BlockAnnoyances, AdGuard_BlockTrackers (+207 more)
+Nodes (222): SettingsData, AccountProfiles, AccountSwitcherButtonX, AccountSwitcherButtonY, ActiveLayoutSetId, AdGuard_BlockAds, AdGuard_BlockAnnoyances, AdGuard_BlockTrackers (+214 more)
 
 ### Community 18 - "Horizon.Stealth.Services"
 Cohesion: 0.08
-Nodes (4): Horizon.Stealth.Services, Horizon.Stealth.Core, Horizon.SessionImporter, TabExemptionService
+Nodes (5): ExtensionPolyfillService, Horizon.Updater, Horizon.Stealth.Services, Horizon.Stealth.Core, Horizon.SessionImporter
 
 ### Community 19 - "Window"
-Cohesion: 0.03
-Nodes (103): BadgeTheme_CyberTerminal, BadgeTheme_Default, BadgeTheme_EditorialPaper, BadgeTheme_MetroMatrix, BadgeTheme_RetroCRT, BadgeTheme_RustNeoCanvas, BadgeTheme_StarshipLCARS, BadgeTheme_Win95RetroDesk (+95 more)
+Cohesion: 0.02
+Nodes (105): BadgeTheme_CyberTerminal, BadgeTheme_Default, BadgeTheme_EditorialPaper, BadgeTheme_MetroMatrix, BadgeTheme_RetroCRT, BadgeTheme_RustNeoCanvas, BadgeTheme_StarshipLCARS, BadgeTheme_Win95RetroDesk (+97 more)
 
 ### Community 21 - "DependencyObject"
-Cohesion: 0.04
-Nodes (19): FolderCardHost, PageDiag, SegmentThumb, AutoGridPanel, ClusterRect, Mode, GroupCollapseMode, FirstRow (+11 more)
+Cohesion: 0.05
+Nodes (18): FolderCardHost, PageDiag, AutoGridPanel, ClusterRect, Mode, GroupCollapseMode, FirstRow, Folder (+10 more)
 
 ### Community 22 - "tswebextension.js"
 Cohesion: 0.01
-Nodes (49): RFC-2616, RFC-7230, path(), data(), 10931(), 11215(), 12483(), 17293() (+41 more)
+Nodes (48): RFC-2616, RFC-7230, path(), data(), 10931(), 11215(), 12483(), 17293() (+40 more)
 
 ### Community 23 - "90507"
 Cohesion: 0.04
 Nodes (143): mapRouteProperties(), 90507(), callDataStrategyImpl(), callLoaderOrAction(), compareIndexes(), compilePath(), computeScore(), convertDataStrategyResultToDataResult() (+135 more)
 
-### Community 24 - "MainWindow.SplitBuildLayout"
-Cohesion: 0.03
-Nodes (14): Header tab drag (reference behaviour to replicate), MainWindow.xaml.cs, SplitCell, SplitDropTarget, SplitPickerTarget, SplitLayoutCatalog, SplitLayoutDef, Id, Name (+6 more)
+### Community 24 - "UserControl"
+Cohesion: 0.05
+Nodes (31): Bd, ListVault, MainContent, OverlayEdit, OverlayLocked, TxtEditPass, TxtEditTitle, TxtEditUrl (+23 more)
 
 ### Community 25 - "47258"
 Cohesion: 0.02
 Nodes (118): 47258(), addAltCursorListeners(), addIosSelectionHandler(), addSplit(), addTokens(), addWordBoundary(), afterLoad(), alignLeft() (+110 more)
 
 ### Community 26 - "mb"
-Cohesion: 0.10
-Nodes (5): Fb(), mb, runCoreEditingCommand(), Vm, zm()
+Cohesion: 0.06
+Nodes (9): Dm(), Fb(), hb(), Km, mb, Pb, runCoreEditingCommand(), Vm (+1 more)
 
 ### Community 27 - "i"
-Cohesion: 0.08
-Nodes (43): a(), ae(), b(), be(), C(), ce(), D(), de() (+35 more)
+Cohesion: 0.06
+Nodes (33): a(), an(), b(), C(), constructor(), Cs, defaultValue(), ee() (+25 more)
 
 ### Community 30 - "content-script-start.js"
 Cohesion: 0.03
@@ -1470,8 +1448,8 @@ Cohesion: 0.02
 Nodes (4): 18867(), 92153(), 95971(), platform()
 
 ### Community 33 - "ExtensionService"
-Cohesion: 0.08
-Nodes (18): ExtensionInstaller, ExtensionRecord, Description, Enabled, FolderName, Icon, Id, InstalledAt (+10 more)
+Cohesion: 0.03
+Nodes (51): Extension Backend API Cross-Origin Authorization ('Request origin not allowed'), Extension Dynamic Session Loading & Zero Restart, Extension Native PNG/ICO Icons in Sidebar & Pinned Lists, Extension Shortcut Modification & Vimium Interception, Extensions Sidebar Sort Buttons & Accent Reversion, Floating Media Controller Subtitle Title Duplication, Fullscreen Exit Reflow Settle Synchronization, Gotchas & Failure Mode Ledger (+43 more)
 
 ### Community 34 - "post-install.js"
 Cohesion: 0.03
@@ -1482,32 +1460,28 @@ Cohesion: 0.03
 Nodes (87): 1110(), 1291(), 14475(), 15144(), 16037(), 17909(), 19419(), 19450() (+79 more)
 
 ### Community 36 - "o"
-Cohesion: 0.08
-Nodes (69): Aa(), aa(), al(), ao(), ba(), bo(), Ca(), ce() (+61 more)
+Cohesion: 0.14
+Nodes (43): Aa(), aa(), ae(), al(), ba(), bo(), Ca(), co() (+35 more)
 
 ### Community 37 - "MediaLibrary"
 Cohesion: 0.09
 Nodes (18): MediaCollection, MediaImportResult, Cancelled, CollectionName, Copied, Failed, Skipped, MediaItem (+10 more)
 
 ### Community 38 - "um"
-Cohesion: 0.05
-Nodes (6): E5, fee, p7, um, W5, y5
+Cohesion: 0.06
+Nodes (5): fee, N5, runCoreEditorCommand(), T8, um
 
-### Community 39 - "SettingsWindow"
+### Community 39 - "Button"
 Cohesion: 0.05
-Nodes (12): BtnChangeStartupVideo, BtnCheckForUpdates, CboUpdateChannel, SliderCompactHoverDelay, SliderPaletteSampleRate, SliderScrollSpeed, SliderWidgetTint, SettingsWindow (+4 more)
+Nodes (36): CloseButtonVisibility, BtnBack, BtnClose, BtnCloseHeader, BtnCompactTabsBadge, BtnCreateWebApp, BtnDismissUpdateBanner, BtnForward (+28 more)
 
 ### Community 40 - "FolderDrawerView"
-Cohesion: 0.03
-Nodes (44): FolderCardView, Group, FolderSheetHost, Content, CornerRadius, HasWallpaperBlur, IsOpen, SheetBorder (+36 more)
-
-### Community 41 - "Button"
 Cohesion: 0.04
-Nodes (21): BtnAddBookmark, BtnAddPin, BtnCtxPaste, BtnDlCancel, BtnDlPause, BtnExtInstall, BtnExtInstallUrl, BtnExtSortName (+13 more)
+Nodes (41): FolderCardView, Group, FolderSheetHost, Content, CornerRadius, HasWallpaperBlur, IsOpen, SheetBorder (+33 more)
 
 ### Community 42 - "_assertNotDisposed"
 Cohesion: 0.03
-Nodes (74): applyEdits(), _applyRedo(), _applyUndo(), _applyUndoRedoEdits(), _assertNotDisposed(), BT, _changeDecorationImpl(), _changeDecorationOptionsImpl() (+66 more)
+Nodes (80): AI, applyEdits(), _applyRedo(), _applyUndo(), _applyUndoRedoEdits(), _assertNotDisposed(), BT, _changeDecorationImpl() (+72 more)
 
 ### Community 43 - "polyfill.js"
 Cohesion: 0.05
@@ -1515,7 +1489,7 @@ Nodes (84): a(), b(), c(), cleanup(), closeCurrentTag(), constructor(), d(), don
 
 ### Community 44 - "ng"
 Cohesion: 0.02
-Nodes (70): accept(), ane, apply(), aQ, _buildContent(), cg(), clear(), clearContents() (+62 more)
+Nodes (81): Bc(), accept(), Af(), ane, append(), apply(), _buildContent(), cg() (+73 more)
 
 ### Community 45 - "js/popup.js"
 Cohesion: 0.03
@@ -1523,23 +1497,27 @@ Nodes (84): Yn(), aa(), addDefaults(), ao(), At(), Ba(), br(), Bt() (+76 more)
 
 ### Community 46 - "TabSwitcherWindow"
 Cohesion: 0.08
-Nodes (5): BtnSwitcherClose, GlassMargins, IslandAccentPolicy, IslandCompositionData, TabSwitcherWindow
+Nodes (4): GlassMargins, IslandAccentPolicy, IslandCompositionData, TabSwitcherWindow
+
+### Community 47 - "32932"
+Cohesion: 0.02
+Nodes (7): 32932(), getQualifiedElementName(), parse(), parseModule(), parseScript(), Reader(), Tokenizer()
 
 ### Community 48 - "CustomShortcut"
-Cohesion: 0.11
+Cohesion: 0.10
 Nodes (14): Status of earlier work this session (all confirmed working by user), CustomShortcut, ActionType, Category, Description, Icon, Id, IsBuiltIn (+6 more)
 
-### Community 49 - "SW"
-Cohesion: 0.04
-Nodes (5): dw, fW, SW, Tv(), ug()
+### Community 51 - "32932"
+Cohesion: 0.02
+Nodes (7): 32932(), getQualifiedElementName(), parse(), parseModule(), parseScript(), Reader(), Tokenizer()
 
 ### Community 52 - "Eq"
-Cohesion: 0.12
-Nodes (5): Av(), Eq, Pv(), Rv(), TB
+Cohesion: 0.15
+Nodes (4): Av(), Eq, Pv(), Rv()
 
 ### Community 53 - "background-script.js"
-Cohesion: 0.04
-Nodes (87): as(), au(), cn(), cr(), di(), Dn(), dr(), ds() (+79 more)
+Cohesion: 0.05
+Nodes (69): as(), Br(), cn(), cr(), Dn(), ds(), eo(), es() (+61 more)
 
 ### Community 54 - "gE"
 Cohesion: 0.07
@@ -1550,32 +1528,32 @@ Cohesion: 0.16
 Nodes (5): Bie, Fie(), Rie(), Vie(), Wie
 
 ### Community 56 - "Window"
-Cohesion: 0.03
-Nodes (126): Breadcrumb, IsSelected, Label, Query, Rows, SectionHeader, StartUrl, BannerSettingsRestart (+118 more)
+Cohesion: 0.01
+Nodes (190): Breadcrumb, Label, Query, Rows, SectionHeader, StartUrl, BannerSettingsRestart, Bd (+182 more)
 
-### Community 57 - "Qh"
-Cohesion: 0.04
-Nodes (12): append(), Fg, IL, Iy, kK, kne, Lne, LW (+4 more)
+### Community 57 - "vu"
+Cohesion: 0.02
+Nodes (28): cu(), Dh, dimension(), Dne, dR, du, Fg, _focusNav() (+20 more)
 
 ### Community 58 - "YouTube-Subtitle-Pro-Chrome-Web-Store/content.js"
 Cohesion: 0.05
 Nodes (66): activatePanelTab(), applyCaptionDirectionMarkerCleanup(), applyPlayerCaptionProfileInheritance(), applyStableCaptionDragPosition(), attachSubtitleStyleTag(), buildCustomSubtitleFontFaceCss(), cachedSettings, CAPTION_EFFECT_KEYWORDS (+58 more)
 
 ### Community 59 - "Action"
-Cohesion: 0.08
-Nodes (18): WeatherRetryHandler, DownloadItem, BytesReceived, FileName, FilePath, Id, IsComplete, IsFailed (+10 more)
+Cohesion: 0.05
+Nodes (19): IShellLinkW, WeatherRetryHandler, DownloadItem, BytesReceived, FileName, FilePath, Id, IsComplete (+11 more)
 
 ### Community 60 - "53353"
 Cohesion: 0.03
-Nodes (62): 53353(), buildCosmeticRuleParts(), cleanUrlParamByRegExp(), countEnabledBits(), es_getErrorMessage(), getBitCount(), getHostRuleParts(), getRuleParts() (+54 more)
+Nodes (72): 53353(), buildCosmeticRuleParts(), cleanUrlParamByRegExp(), countEnabledBits(), es_getErrorMessage(), getBitCount(), getHostRuleParts(), getRuleParts() (+64 more)
 
 ### Community 61 - "fullscreen-user-rules.js"
 Cohesion: 0.02
 Nodes (10): 14190(), 19630(), 28339(), 48225(), 64494(), 69395(), 70579(), 75817() (+2 more)
 
-### Community 62 - "Border"
+### Community 62 - "DateTime"
 Cohesion: 0.03
-Nodes (42): StackCalendarWidget, Data, StackElementBuilders, NativeHintItem, Action, Badge, Code, Element (+34 more)
+Nodes (27): StackCalendarWidget, Data, NativeHintItem, Action, Badge, Code, Element, TextPrefix (+19 more)
 
 ### Community 63 - "pages/popup/popup.js"
 Cohesion: 0.05
@@ -1586,68 +1564,72 @@ Cohesion: 0.02
 Nodes (110): Qs(), addDefaults(), applyInvidiousPermissions(), attachToPage(), attachToPageInternal(), bl(), Bs(), bu() (+102 more)
 
 ### Community 65 - "system_windows"
-Cohesion: 0.11
+Cohesion: 0.14
 Nodes (4): Horizon.Stealth, Horizon.Stealth.Views, Horizon.Stealth.Controls, Horizon.Stealth.ViewModels
 
 ### Community 66 - "37350"
 Cohesion: 0.03
-Nodes (50): 37350(), addObserver(), _arrayLikeToArray(), assertComputedDescriptor(), assertObservableDescriptor(), bindDependencies(), checkIfStateReadsAreAllowed(), clearObserving() (+42 more)
+Nodes (45): 37350(), addObserver(), _arrayLikeToArray(), assertObservableDescriptor(), bindDependencies(), checkIfStateReadsAreAllowed(), clearObserving(), configure() (+37 more)
 
 ### Community 67 - "js/options.js"
 Cohesion: 0.04
 Nodes (69): Tn(), addDefaults(), applyInvidiousPermissions(), ar(), At(), Bn(), bo(), Br() (+61 more)
 
 ### Community 68 - "25247"
-Cohesion: 0.04
-Nodes (72): 25247(), $a(), ab(), Ae(), af(), aj(), bb(), Be() (+64 more)
+Cohesion: 0.05
+Nodes (70): 25247(), $a(), ab(), Ae(), af(), aj(), bb(), Be() (+62 more)
 
 ### Community 70 - "oI"
-Cohesion: 0.04
-Nodes (4): aN, nL, oI, yE
+Cohesion: 0.05
+Nodes (4): aN, nL, oI, tI
 
 ### Community 72 - "Window"
-Cohesion: 0.09
-Nodes (28): CmbRefresh, LstSource, PnlSiteUrl, PnlStep1, PnlStep2, PnlStep4, PnlTemplateUrl, PnlWebOptions (+20 more)
+Cohesion: 0.08
+Nodes (33): CmbRefresh, LstSource, PnlSiteUrl, PnlStep1, PnlStep2, PnlStep3, PnlStep4, PnlTemplateUrl (+25 more)
 
-### Community 73 - "Pg"
-Cohesion: 0.10
-Nodes (12): Bg(), BG, create(), createActionGroups(), Dv(), NJ, Pg, setActions() (+4 more)
+### Community 73 - "wv"
+Cohesion: 0.04
+Nodes (28): applyUpdate(), Bg(), create(), createActionGroups(), Dv(), ey(), fy, getOrCreate() (+20 more)
 
 ### Community 74 - "i"
 Cohesion: 0.08
 Nodes (42): ea(), aa(), ae(), Ao(), Ba(), Ca(), ci(), da() (+34 more)
 
+### Community 75 - "ym"
+Cohesion: 0.07
+Nodes (7): computeHoverRanges(), _getColumnSelectResult(), Gm, Ng, shouldShowHoverAt(), updateObservables(), ym
+
 ### Community 76 - "tsurlfilter-declarative-converter.js"
 Cohesion: 0.03
-Nodes (8): 11215(), 16967(), 17293(), 51413(), 55422(), 8315(), 99090(), RFC-3492
+Nodes (10): 11215(), 16967(), 17293(), 3646(), 51413(), 55422(), 72495(), 8315() (+2 more)
 
-### Community 77 - "Window"
+### Community 77 - "Grid"
 Cohesion: 0.05
-Nodes (39): ActiveMark, BadgeVisibility, CountText, Display, PlaceholderText, Thumbnail, Bd, BtnCancelImport (+31 more)
+Nodes (36): CompactIconVisibility, Visibility, CompactIconHost, DownloadHoverPanel, DynamicIslandCompact, DynamicIslandContentHost, DynamicIslandExpanded, DynamicIslandHost (+28 more)
 
 ### Community 78 - "VpnProfile"
-Cohesion: 0.09
-Nodes (17): VpnProfile, Country, HasCredentials, Host, Id, Name, Password, Port (+9 more)
+Cohesion: 0.08
+Nodes (19): VpnProfile, Country, HasCredentials, Host, Id, Name, Password, Port (+11 more)
 
 ### Community 79 - "aee"
-Cohesion: 0.02
-Nodes (47): _8, A5, a8, aee, b8(), B8, Bv(), c8() (+39 more)
+Cohesion: 0.03
+Nodes (39): _8, a8, aee, b8(), B8, cancelSelectionAnchor(), canNavigateLoop(), canNavigateNext() (+31 more)
 
 ### Community 80 - "i"
 Cohesion: 0.14
-Nodes (49): a(), ae(), b(), c(), Ct(), d(), di(), f() (+41 more)
+Nodes (49): a(), b(), c(), Ct(), d(), de(), di(), f() (+41 more)
 
-### Community 81 - "r"
-Cohesion: 0.11
-Nodes (29): ar(), Cc(), g(), Gn(), Gr(), Hn(), ir(), jr() (+21 more)
+### Community 81 - "rr"
+Cohesion: 0.13
+Nodes (36): At(), Bn(), Bt(), cn(), dn(), En(), er(), Et() (+28 more)
 
 ### Community 83 - "history.js"
 Cohesion: 0.06
 Nodes (53): b(), be(), bi(), Bt(), Bu(), de(), dr(), Dt() (+45 more)
 
 ### Community 84 - "xu"
-Cohesion: 0.12
-Nodes (46): br(), Cl(), Cu(), dl(), Dt(), ec(), El(), fi() (+38 more)
+Cohesion: 0.13
+Nodes (45): br(), Cl(), Ct(), Cu(), dl(), Dt(), ec(), El() (+37 more)
 
 ### Community 85 - "i"
 Cohesion: 0.09
@@ -1661,9 +1643,9 @@ Nodes (38): d3_acos(), d3_asin(), d3_geo_cartesian(), d3_geo_cartesianAdd(), d3_
 Cohesion: 0.04
 Nodes (15): ___cxa_throw(), _emscripten_get_heap_max(), emscripten_realloc_buffer(), _emscripten_resize_heap(), _environ_get(), _environ_sizes_get(), ExceptionInfo(), _exit() (+7 more)
 
-### Community 89 - "Button"
-Cohesion: 0.07
-Nodes (17): BtnCancel, BtnFeedback, BtnFilterAll, BtnFilterSettings, BtnManageMedia, BtnNuclear, BtnOpenHomepageSettings, BtnOpenVideosFolder (+9 more)
+### Community 89 - "TextBlock"
+Cohesion: 0.06
+Nodes (35): DisplayTitle, TabTextMaxWidth, TitleForeground, ArrowText, BtnTools, HoverMarqueeText, IslandAmbientTabDomain, IslandAmbientTabTitle (+27 more)
 
 ### Community 90 - "StackHost"
 Cohesion: 0.06
@@ -1671,51 +1653,47 @@ Nodes (31): CardBackdrop, Dots, EmptyAdd, EmptyAddCircle, EmptyAddLabel, EmptyAd
 
 ### Community 91 - "d3"
 Cohesion: 0.05
-Nodes (10): d3_ascending(), d3_number(), d3_numeric(), d3_scale_quantile(), d3_transposeLength(), formatRow(), formatValue(), d3 (+2 more)
+Nodes (9): d3_ascending(), d3_number(), d3_numeric(), d3_scale_quantile(), d3_transposeLength(), formatRow(), formatValue(), d3 (+1 more)
 
 ### Community 92 - "nA"
-Cohesion: 0.09
-Nodes (4): mA, nA, pA, RA
+Cohesion: 0.05
+Nodes (9): aA, fA, mA, nA, oU, pA, u(), tU (+1 more)
 
 ### Community 93 - "HorizonInstallationInfo"
 Cohesion: 0.04
-Nodes (43): FormattedSize, BackupService, DefaultBackupsRoot, HorizonInstallationInfo, Channel, DisplayName, FormattedDataSize, FullVersionString (+35 more)
+Nodes (42): FormattedSize, BackupService, DefaultBackupsRoot, HorizonInstallationInfo, Channel, DisplayName, FormattedDataSize, FullVersionString (+34 more)
 
 ### Community 94 - "jie"
 Cohesion: 0.06
-Nodes (8): _documentHasFocus(), foe, Hie, Iv(), jie, resolveKeyboardEvent(), wv(), Xb()
+Nodes (6): _documentHasFocus(), foe, Hie, jie, resolveKeyboardEvent(), Xie()
 
 ### Community 96 - "92287"
 Cohesion: 0.05
 Nodes (31): 92287(), createActor(), formatTransitions(), getDevTools(), getGlobal(), getPersistedSnapshot(), getStateNode(), getStateNodeByPath() (+23 more)
+
+### Community 97 - "_z"
+Cohesion: 0.07
+Nodes (5): BZ, CZ(), SZ(), wZ(), _z
 
 ### Community 98 - "78851"
 Cohesion: 0.06
 Nodes (52): BrowserRouter(), HashRouter(), HistoryRouter(), 78851(), Await(), createMemoryRouter(), createRoutesFromChildren(), DataRoutes() (+44 more)
 
 ### Community 99 - "brush"
-Cohesion: 0.06
-Nodes (53): axis(), brush(), brushstart(), brushend(), brushmove(), keydown(), keyup(), move1() (+45 more)
+Cohesion: 0.08
+Nodes (42): keydown(), keyup(), d3_documentElement(), d3_event_dragSuppress(), d3_eventPreventDefault(), d3_interpolate(), d3_interpolateArray(), d3_interpolateObject() (+34 more)
 
 ### Community 100 - "Window"
 Cohesion: 0.08
-Nodes (31): BtnCloseOthers, BtnCloseSelected, BtnModeToggle, CardBaseBg, CardClipHost, GlassBackdropHost, MultiActionBar, OuterShadowMarginGrid (+23 more)
-
-### Community 101 - "wL"
-Cohesion: 0.05
-Nodes (5): cW, kL, scrollLeft(), wL, yL
-
-### Community 102 - "ww"
-Cohesion: 0.06
-Nodes (15): e3, fetch(), a(), i(), l(), o(), s(), getOrCreate() (+7 more)
+Nodes (32): BtnCloseOthers, BtnCloseSelected, BtnModeToggle, BtnSwitcherClose, CardBaseBg, CardClipHost, GlassBackdropHost, MultiActionBar (+24 more)
 
 ### Community 103 - "UserControl"
 Cohesion: 0.09
 Nodes (23): BtnSecurityShield, ChipDefault, ChipFinance, ChipPersonal, ChipSocial, ChipWork, ChkAegisAdBlock, ChkAudioDefender (+15 more)
 
-### Community 104 - "o"
-Cohesion: 0.13
-Nodes (39): Aa(), au(), bi(), ca(), da(), Do(), eu(), Ga() (+31 more)
+### Community 104 - "e"
+Cohesion: 0.11
+Nodes (32): Aa(), an(), Bn(), ca(), cr(), da(), dn(), e() (+24 more)
 
 ### Community 105 - "75334"
 Cohesion: 0.07
@@ -1746,36 +1724,36 @@ Cohesion: 0.06
 Nodes (40): 99732(), copyStaticProperties(), createChainableTypeChecker(), createDefinition(), createObservableArrayOfTypeChecker(), createObservableTypeCheckerCreator(), createReactiveRender(), createStoreInjector() (+32 more)
 
 ### Community 112 - "t"
-Cohesion: 0.10
-Nodes (31): abort(), At(), Ct(), Dt(), fa(), Fr(), Ft(), getAudioBuffer() (+23 more)
+Cohesion: 0.09
+Nodes (32): abort(), At(), Ct(), di(), Dt(), fa(), Fr(), Ft() (+24 more)
 
-### Community 114 - "Vq"
-Cohesion: 0.06
-Nodes (3): Hq, Vq, wq
+### Community 113 - "Im"
+Cohesion: 0.13
+Nodes (3): getVisibleColumnFromPosition(), shiftIndent(), Zm
 
 ### Community 115 - "Type"
-Cohesion: 0.08
-Nodes (10): BookmarkIconConverter, FirstLetterConverter, CategoryColorConverter, FaviconConverter, FluxAccentColorConverter, FluxAccentGradientConverter, LocalImageConverter, NullOrEmptyConverter (+2 more)
+Cohesion: 0.07
+Nodes (11): Extension Store ID vs Internal WebView2 ID Mismatch & Origin Whitelist, BookmarkIconConverter, FirstLetterConverter, CategoryColorConverter, FaviconConverter, FluxAccentColorConverter, LocalImageConverter, NullOrEmptyConverter (+3 more)
 
 ### Community 116 - "MediaKindProfile"
 Cohesion: 0.07
 Nodes (27): MediaKind, StartupVideo, Wallpaper, MediaKindProfile, ActiveCollection, AddText, D, DropHint (+19 more)
 
 ### Community 118 - "HomeGlassInlineLayer"
-Cohesion: 0.06
-Nodes (12): BatteryBridge, HasBattery, IsCharging, Percent, TimeRemaining, HomeGlassInlineLayer, BlurDisabled, FlatColorProvider (+4 more)
+Cohesion: 0.07
+Nodes (7): HomeGlassInlineLayer, BlurDisabled, FlatColorProvider, Mode, Image, None, Video
 
 ### Community 120 - "bookmarks.js"
 Cohesion: 0.06
-Nodes (33): allBookmarksData, autoSaveToggle, bookmarkSearch, bookmarksList, bookmarkSort, bookmarksTab, bookmarksView, clearSearchBtn (+25 more)
+Nodes (50): allBookmarksData, autoSaveToggle, bookmarkSearch, bookmarksList, bookmarkSort, bookmarksTab, bookmarksView, checkPendingBookmark() (+42 more)
 
 ### Community 121 - "Save-It-Later-Chrome-Web-Store/popup.js"
 Cohesion: 0.05
-Nodes (35): allBookmarksData, autoSaveToggle, bookmarkSearch, bookmarksList, bookmarkSort, bookmarksTab, bookmarksView, clearSearchBtn (+27 more)
+Nodes (50): allBookmarksData, autoSaveToggle, bookmarkSearch, bookmarksList, bookmarkSort, bookmarksTab, bookmarksView, clearSearchBtn (+42 more)
 
 ### Community 122 - "23604"
 Cohesion: 0.04
-Nodes (8): 23604(), createFrameMatchQuery(), findHeaderByName(), getDomain(), getHost(), hasHeader(), hasHeaderByName(), isLocalFrame()
+Nodes (9): 23604(), createFrameMatchQuery(), findHeaderByName(), getDomain(), getHost(), hasHeader(), hasHeaderByName(), isLocalFrame() (+1 more)
 
 ### Community 123 - "Horizon Blur & Tint System — Style Guide"
 Cohesion: 0.18
@@ -1790,32 +1768,32 @@ Cohesion: 0.09
 Nodes (43): Bn(), br(), Cl(), dr(), er(), fo(), Gr(), Hn() (+35 more)
 
 ### Community 126 - "ju"
-Cohesion: 0.13
-Nodes (40): Au(), cu(), Dt(), du(), fl(), fu(), Gn(), gu() (+32 more)
+Cohesion: 0.14
+Nodes (37): Au(), cu(), Dt(), du(), es(), fu(), Gn(), gu() (+29 more)
 
 ### Community 127 - "wi"
-Cohesion: 0.10
-Nodes (46): Ag(), ak(), Bg(), bk(), $c(), dc(), di(), eg() (+38 more)
+Cohesion: 0.09
+Nodes (49): Ag(), ak(), Bg(), bj(), bk(), $c(), cj(), dc() (+41 more)
 
 ### Community 128 - "detectLanguage"
 Cohesion: 0.06
 Nodes (58): addPlayerCaptionProfileEvidence(), applyCinematicCaptionLines(), asArray(), captionSegmentsNeedCinematicRender(), clearCaptionLanguagePendingFailSafe(), clearCreatorCustomCaptionReflow(), clearCreatorCustomExtensionArtifacts(), clearStaleCreatorCustomCaptionState() (+50 more)
 
 ### Community 129 - "oo"
-Cohesion: 0.14
-Nodes (18): Bt(), ci(), du(), fn(), ia(), It(), na(), b() (+10 more)
+Cohesion: 0.15
+Nodes (17): dr(), Et(), Gt(), ia(), ki(), ms(), na(), b() (+9 more)
 
 ### Community 130 - "MediaManagerWindow"
-Cohesion: 0.06
-Nodes (25): BtnAdd, BtnNewCollection, BtnRenameCollection, ChkRemember, FolderChoice, AsCollection, ExtractOnly, Skip (+17 more)
+Cohesion: 0.03
+Nodes (64): ActiveMark, BadgeVisibility, CountText, Display, PlaceholderText, Thumbnail, Bd, BtnAdd (+56 more)
 
 ### Community 131 - "TWP-Translate-[BETA]-Chrome-Web-Store/manifest.json"
 Cohesion: 0.04
 Nodes (48): action, browser_style, default_icon, default_title, background, service_worker, commands, hotkey-hot-translate-selected-text (+40 more)
 
-### Community 132 - "RoutedEventArgs"
-Cohesion: 0.02
-Nodes (83): ChkRemember, Window, PdfOpenDialog, OpenExternal, Remember, CheckBox, Bd, ListVault (+75 more)
+### Community 132 - "WebAppWindow"
+Cohesion: 0.04
+Nodes (46): WebAppJournalEntry, Generation, Height, Id, Left, Maximized, MediaTime, SavedUtc (+38 more)
 
 ### Community 133 - "__webpack_require__"
 Cohesion: 0.04
@@ -1831,19 +1809,19 @@ Nodes (43): deregister(), deregister(), 41599(), Big5Decoder(), Big5Encoder(), c
 
 ### Community 136 - "40001"
 Cohesion: 0.05
-Nodes (18): 40001(), __asyncDelegator(), __asyncValues(), __await(), __awaiter(), adopt(), fulfilled(), rejected() (+10 more)
+Nodes (16): 40001(), __asyncDelegator(), __asyncValues(), __await(), createHidingCssRule(), __disposeResources(), fail(), next() (+8 more)
 
 ### Community 137 - "dictionary.js"
 Cohesion: 0.05
-Nodes (57): al(), At(), ba(), Bc(), bl(), Bn(), Bt(), ci() (+49 more)
+Nodes (61): At(), ba(), Be(), bl(), Bt(), Cc(), ci(), de() (+53 more)
 
 ### Community 138 - "yx"
-Cohesion: 0.07
-Nodes (4): bx, Lx, xx, yx
+Cohesion: 0.06
+Nodes (5): bx, Lx, Qx, xx, yx
 
-### Community 139 - "TextChangedEventArgs"
-Cohesion: 0.10
-Nodes (11): TxtBookmarksSearch, TxtCategoryEditInput, TxtExtSearch, TxtFluxSearch, TxtHistorySearch, TxtPinSearchBar, TxtPinsSearch, TxtPreviewSearch (+3 more)
+### Community 139 - "mZ"
+Cohesion: 0.07
+Nodes (3): gZ(), mZ, pZ
 
 ### Community 140 - "n"
 Cohesion: 0.13
@@ -1858,12 +1836,12 @@ Cohesion: 0.06
 Nodes (11): Action, CloseAction, ForEachAction, IfAllowAllAction, IfAllowNoneAction, IfCssAction, ListAction, NopAction (+3 more)
 
 ### Community 143 - "l"
-Cohesion: 0.09
-Nodes (12): c, d, r(), s(), u(), destroy(), fetch(), a() (+4 more)
+Cohesion: 0.06
+Nodes (13): c, d, r(), s(), u(), destroy(), fetch(), a() (+5 more)
 
 ### Community 144 - "Zp"
-Cohesion: 0.08
-Nodes (6): _d, ep(), Jp, np, tp, Zp
+Cohesion: 0.06
+Nodes (9): Cd, _d, ep(), jd, Jp, np, Pd, tp (+1 more)
 
 ### Community 146 - "vs"
 Cohesion: 0.10
@@ -1871,39 +1849,35 @@ Nodes (28): be(), bs(), co(), cs(), fe(), fo(), ge(), he() (+20 more)
 
 ### Community 147 - "dL"
 Cohesion: 0.07
-Nodes (3): dL, eL, Wh()
+Nodes (3): dL, eL, Su
 
 ### Community 148 - "Fe"
 Cohesion: 0.13
 Nodes (34): Ee(), ae(), at(), bi(), Br(), ct(), di(), dt() (+26 more)
 
-### Community 150 - "ListSidebarUtilities"
-Cohesion: 0.10
-Nodes (8): BtnSidebarUtilitiesTab, CmbSidebarUtilitySort, ListChangeCatOptions, ListFlux, ListHistory, ListSidebarUtilities, ComboBox, ListBox
+### Community 150 - ".fire"
+Cohesion: 0.09
+Nodes (3): am, lK, zw
 
 ### Community 152 - "u"
-Cohesion: 0.07
-Nodes (30): ace(), cce(), ce(), Cle(), dce(), Dle(), Ele(), fle() (+22 more)
+Cohesion: 0.04
+Nodes (11): appendMenuItem(), appendMenuItems(), dc, hc, lc, pl(), qc(), registerCommand() (+3 more)
 
 ### Community 154 - "i"
 Cohesion: 0.11
 Nodes (37): be(), D(), es(), f(), l(), gs(), H(), hs() (+29 more)
 
 ### Community 155 - "e"
-Cohesion: 0.09
-Nodes (42): ai(), an(), Bl(), Ci(), b(), g(), h(), m() (+34 more)
+Cohesion: 0.08
+Nodes (52): ai(), an(), ao(), ar(), Bl(), bu(), Ci(), b() (+44 more)
 
 ### Community 156 - "n"
 Cohesion: 0.12
 Nodes (41): ao(), ar(), At(), br(), Cu(), er(), fo(), Gn() (+33 more)
 
-### Community 157 - "v1"
-Cohesion: 0.05
-Nodes (5): d1, h1, j1(), v1, y1
-
-### Community 158 - "PerformanceTelemetryService"
-Cohesion: 0.20
-Nodes (7): MEMORYSTATUSEX, PerformanceTelemetryService, OutputCsvPath, OutputJsonPath, OutputLaunchesCsvPath, PROCESSENTRY32W, SYSTEM_POWER_STATUS
+### Community 158 - "HorizonCore"
+Cohesion: 0.06
+Nodes (18): BrowserProcessMemoryReport, HorizonCore, IsAvailable, NativeBrowserMemoryMetrics, NativeLayoutRect, NativeLuminanceMetrics, NativeSystemMemoryInfo, NativeTextFitResult (+10 more)
 
 ### Community 159 - "js/background.js"
 Cohesion: 0.10
@@ -1918,28 +1892,28 @@ Cohesion: 0.11
 Nodes (38): Fs(), Ns(), as(), au(), cl(), cu(), dt(), Eu() (+30 more)
 
 ### Community 163 - "HistoryService"
-Cohesion: 0.14
-Nodes (11): BtnClearHistory, HistoryItem, Title, Url, Visited, VisitTime, HistoryService, DataFile (+3 more)
+Cohesion: 0.19
+Nodes (10): HistoryItem, Title, Url, Visited, VisitTime, HistoryService, DataFile, DataRoot (+2 more)
 
 ### Community 164 - "oL"
-Cohesion: 0.07
-Nodes (5): cx, oL, _onContextMenu(), qL, ZL
+Cohesion: 0.08
+Nodes (4): cx, oL, qL, ZL
 
 ### Community 165 - "StartupVideoWindow"
-Cohesion: 0.16
+Cohesion: 0.15
 Nodes (6): RootGrid, VideoPlayer, Window, StartupVideoWindow, Grid, MediaElement
 
 ### Community 167 - "pi"
-Cohesion: 0.14
-Nodes (39): 56327(), q(), 56327(), q(), Cg(), ef(), Ff(), hf() (+31 more)
+Cohesion: 0.13
+Nodes (43): cf(), Cg(), ef(), Ff(), hd(), ik(), la(), ma() (+35 more)
 
 ### Community 168 - "e"
-Cohesion: 0.10
-Nodes (15): compile(), e(), indented(), l, onDestroy(), or(), set(), take() (+7 more)
+Cohesion: 0.08
+Nodes (34): au(), be(), checkLimitExceeding(), compile(), D(), e(), fe(), g() (+26 more)
 
-### Community 169 - ".fire"
-Cohesion: 0.03
-Nodes (13): aK, am, bre, createModelReference(), gK, H2, jw, lK (+5 more)
+### Community 169 - "bre"
+Cohesion: 0.07
+Nodes (3): bre, vre, wre
 
 ### Community 170 - "r"
 Cohesion: 0.12
@@ -1966,12 +1940,12 @@ Cohesion: 0.17
 Nodes (38): 80667(), captureSegment(), charFromCodepoint(), _class(), composeNode(), escapedHexLen(), fromDecimalCode(), fromHexCode() (+30 more)
 
 ### Community 176 - "contentscript.js"
-Cohesion: 0.06
-Nodes (75): ar(), At(), bi(), Bn(), br(), Bt(), bu(), Cr() (+67 more)
+Cohesion: 0.05
+Nodes (54): bi(), br(), ce(), Cl(), Cr(), dl(), ds(), ee() (+46 more)
 
 ### Community 177 - "xo"
-Cohesion: 0.20
-Nodes (20): o(), Co(), ko(), lO, Uo(), xo(), c(), d() (+12 more)
+Cohesion: 0.22
+Nodes (19): o(), Co(), ko(), lO, xo(), c(), d(), f() (+11 more)
 
 ### Community 178 - "dl"
 Cohesion: 0.18
@@ -1979,7 +1953,7 @@ Nodes (14): Gs(), as(), cs(), cu(), fe(), is(), kt(), ls() (+6 more)
 
 ### Community 179 - "gb"
 Cohesion: 0.06
-Nodes (6): fb, gb, getScrolledVisiblePosition(), getScrollLeft(), KB, pb()
+Nodes (5): gb, getScrolledVisiblePosition(), getScrollLeft(), pb(), vb
 
 ### Community 180 - "permissions.js"
 Cohesion: 0.10
@@ -1994,8 +1968,8 @@ Cohesion: 0.09
 Nodes (32): BrowserMemoryMetrics, CloseHandle(), color_dist_sq(), CreateToolhelp32Snapshot(), get_hue(), GetProcessMemoryInfo(), horizon_calculate_contrast_ratio(), horizon_calculate_region_luminance() (+24 more)
 
 ### Community 183 - "die"
-Cohesion: 0.12
-Nodes (32): apiDefineProperty(), apiOwnKeys(), cache(), die(), entries(), extend_(), get(), getAdministration() (+24 more)
+Cohesion: 0.11
+Nodes (38): apiDefineProperty(), apiOwnKeys(), cache(), convertToMap(), createObservable(), deepEnhancer(), die(), entries() (+30 more)
 
 ### Community 185 - "lA"
 Cohesion: 0.09
@@ -2003,11 +1977,7 @@ Nodes (4): cA, getLanguageId(), lA, Mv()
 
 ### Community 186 - "nne"
 Cohesion: 0.07
-Nodes (7): gu, Kz(), nne, pu, pU(), rne, zz
-
-### Community 187 - "Dh"
-Cohesion: 0.04
-Nodes (14): Dh, dimension(), f5, g3, g5, getLayoutInfo(), layout(), q3 (+6 more)
+Nodes (8): gu, ine(), Kz(), nne, pu, pU(), rne, zz
 
 ### Community 188 - "83919"
 Cohesion: 0.11
@@ -2033,17 +2003,17 @@ Nodes (34): 83919(), getType(), isAnyObject(), isArray(), isBlob(), isBoolean(),
 Cohesion: 0.11
 Nodes (34): 83919(), getType(), isAnyObject(), isArray(), isBlob(), isBoolean(), isDate(), isEmptyArray() (+26 more)
 
-### Community 194 - "FluxSidebar.RefreshPins"
-Cohesion: 0.09
-Nodes (4): BtnPinSearch, BtnPinSortCat, BtnPinSortDir, BtnPinSortName
-
-### Community 195 - "l_"
-Cohesion: 0.03
-Nodes (10): aL, ax(), bL, l_, lx(), mL, sL, Su (+2 more)
+### Community 194 - "sm"
+Cohesion: 0.08
+Nodes (9): _computeOptions(), cw(), qb, _readEnvConfiguration(), runCommand(), setPosition(), sm, xy (+1 more)
 
 ### Community 196 - "b2"
-Cohesion: 0.10
-Nodes (9): $1(), _2(), b2, a(), l(), s(), m2, mh() (+1 more)
+Cohesion: 0.13
+Nodes (4): $1(), _2(), b2, v2()
+
+### Community 198 - "Xa"
+Cohesion: 0.07
+Nodes (3): kA, vv(), Xa
 
 ### Community 199 - "vl"
 Cohesion: 0.12
@@ -2062,8 +2032,12 @@ Cohesion: 0.06
 Nodes (10): 92287(), getDevTools(), getGlobal(), getPersistedSnapshot(), persistContext(), raise_c17ec2bc_esm_not(), raise_c17ec2bc_esm_or(), raise_c17ec2bc_esm_raise() (+2 more)
 
 ### Community 204 - ".constructor"
-Cohesion: 0.17
-Nodes (4): AH, MH, OH, PH
+Cohesion: 0.12
+Nodes (6): AH, _disposeAllLenses(), MH, OH, PH, rH
+
+### Community 205 - "Im"
+Cohesion: 0.10
+Nodes (3): Im, mM, unshiftIndent()
 
 ### Community 206 - "e"
 Cohesion: 0.12
@@ -2073,13 +2047,17 @@ Nodes (36): ai(), bl(), Bn(), cn(), Dn(), e(), eu(), fi() (+28 more)
 Cohesion: 0.07
 Nodes (5): cf(), df, lf, Mf(), xf()
 
-### Community 209 - "gA"
-Cohesion: 0.09
-Nodes (4): gA, gT, hA, qA()
+### Community 208 - "StackElementWizardWindow"
+Cohesion: 0.17
+Nodes (3): BtnBack, StackElementWizardWindow, Result
 
-### Community 210 - "AR"
-Cohesion: 0.12
-Nodes (3): AR, TR, XG
+### Community 209 - "gA"
+Cohesion: 0.10
+Nodes (3): gA, gT, qA()
+
+### Community 210 - "nx"
+Cohesion: 0.08
+Nodes (5): ax(), lx(), nx, rx, sx
 
 ### Community 213 - "i"
 Cohesion: 0.15
@@ -2090,8 +2068,8 @@ Cohesion: 0.06
 Nodes (35): action, default_icon, default_popup, default_title, theme_icons, background, service_worker, content_scripts (+27 more)
 
 ### Community 215 - "UtilityItem"
-Cohesion: 0.04
-Nodes (36): Architectural Notes, Horizon Browser - Ideas Registry & Feature Backlog, BookmarkItem, AsPin, Category, DateAdded, GroupKey, IconPath (+28 more)
+Cohesion: 0.09
+Nodes (16): Architectural Notes, Horizon Browser - Ideas Registry & Feature Backlog, UtilitiesService, Instance, Items, UtilityItem, AccentColor, ActionId (+8 more)
 
 ### Community 216 - "ElementCollapser"
 Cohesion: 0.08
@@ -2106,8 +2084,8 @@ Cohesion: 0.11
 Nodes (23): a(), c(), destroy(), f(), g(), get(), i(), l() (+15 more)
 
 ### Community 220 - "Pw"
-Cohesion: 0.08
-Nodes (3): aW, Pw, rW()
+Cohesion: 0.10
+Nodes (6): Pw, a(), l(), s(), rW(), Vh()
 
 ### Community 221 - "Task"
 Cohesion: 0.07
@@ -2139,27 +2117,23 @@ Nodes (3): getMetadata(), KI, uA
 
 ### Community 229 - "M"
 Cohesion: 0.15
-Nodes (35): ch(), ai(), Ch(), dh(), eh(), fh(), fi(), gf() (+27 more)
+Nodes (37): ch(), 56327(), q(), ai(), Ch(), dh(), eh(), fh() (+29 more)
 
 ### Community 230 - "consent-o-matic/editor.js"
 Cohesion: 0.08
 Nodes (11): a, A(), C(), E(), f(), g(), h(), o (+3 more)
 
 ### Community 231 - "coe"
-Cohesion: 0.13
-Nodes (3): aoe, coe, loe
-
-### Community 232 - "Kv"
-Cohesion: 0.07
-Nodes (4): FN, Kv, LV, xV
+Cohesion: 0.11
+Nodes (3): aoe, coe, soe
 
 ### Community 233 - "nE"
-Cohesion: 0.09
-Nodes (3): gne(), nE, pne()
+Cohesion: 0.08
+Nodes (4): gne(), nE, pne(), vne
 
 ### Community 234 - "d3_geo_projectionMutator"
-Cohesion: 0.13
-Nodes (16): circle(), d3_geo_compose(), d3_geo_conic(), d3_geo_forwardRotationλ(), d3_geo_pathProjectStream(), d3_geo_projectionMutator(), invalidate(), projection() (+8 more)
+Cohesion: 0.10
+Nodes (24): circle(), d3_geo_compose(), d3_geo_conic(), d3_geo_forwardRotationλ(), d3_geo_pathProjectStream(), d3_geo_projectionMutator(), invalidate(), projection() (+16 more)
 
 ### Community 235 - "BrowserStorage"
 Cohesion: 0.08
@@ -2169,13 +2143,9 @@ Nodes (7): browser_storage_define_property(), BrowserStorage, ExtendedLogger, ge
 Cohesion: 0.07
 Nodes (9): ClassRegistry, CustomTransformerRegistry, DoubleIndexedKV, ExtCssDocument, find(), generateReferentialEqualityAnnotations(), Registry, SuperJSON (+1 more)
 
-### Community 237 - "Window"
-Cohesion: 0.09
-Nodes (24): BrowserDetectionService, BrowserInfo, IsChromium, Name, ProcessName, UserDataPath, Bd, BtnForceCloseAndSync (+16 more)
-
 ### Community 238 - "d3_time_scale"
-Cohesion: 0.09
-Nodes (25): d3_interpolateRound(), d3_scale_identity(), d3_scale_linear(), rescale(), d3_scale_linearFormatPrecision(), d3_scale_linearNice(), d3_scale_linearPrecision(), d3_scale_linearRebind() (+17 more)
+Cohesion: 0.08
+Nodes (35): axis(), brush(), brushstart(), brushend(), brushmove(), move1(), d3_identity(), d3_interpolateRound() (+27 more)
 
 ### Community 239 - "BrowserStorage"
 Cohesion: 0.08
@@ -2194,15 +2164,15 @@ Cohesion: 0.12
 Nodes (3): are, dre(), xre
 
 ### Community 243 - "jU"
-Cohesion: 0.13
-Nodes (4): Cte, jU, op(), zU
+Cohesion: 0.19
+Nodes (3): jU, op(), zU
 
 ### Community 244 - "Window"
 Cohesion: 0.07
-Nodes (36): ActionHint, DisplayIcon, IsEnabled, KeyGesture, KeyGestureVisibility, ManageVisibility, Subtitle, BtnClear (+28 more)
+Nodes (37): ActionHint, DisplayIcon, IsEnabled, KeyGesture, KeyGestureVisibility, ManageVisibility, Subtitle, BtnClear (+29 more)
 
 ### Community 247 - "CommandBarWindow"
-Cohesion: 0.12
+Cohesion: 0.11
 Nodes (5): CommandBarWindow, GlassMargins, TxtSearch, IslandAccentPolicy, IslandCompositionData
 
 ### Community 248 - "36540"
@@ -2224,6 +2194,10 @@ Nodes (21): 8129(), addLeadingZeros(), format_format(), formatTimezone(), format
 ### Community 252 - "8129"
 Cohesion: 0.11
 Nodes (21): 8129(), addLeadingZeros(), format_format(), formatTimezone(), formatTimezoneShort(), formatTimezoneWithOptionalMinutes(), getDayOfYear(), getDefaultOptions() (+13 more)
+
+### Community 253 - "pce"
+Cohesion: 0.19
+Nodes (27): ace(), cce(), Cle(), dce(), Dle(), Ele(), fle(), hce() (+19 more)
 
 ### Community 254 - "55897"
 Cohesion: 0.09
@@ -2261,33 +2235,21 @@ Nodes (5): Bi(), Ei, Fi, Oi, Zi
 Cohesion: 0.10
 Nodes (15): ba(), ea(), g(), h, m(), f(), p(), s() (+7 more)
 
-### Community 264 - "r"
-Cohesion: 0.07
-Nodes (25): ai(), an(), Br(), constructor(), defaultValue(), en(), Er(), Hr() (+17 more)
-
-### Community 265 - "vu"
-Cohesion: 0.03
-Nodes (9): Cu, Fq, gL, Rq, Tq, Uq, vu, y2 (+1 more)
+### Community 264 - "It"
+Cohesion: 0.11
+Nodes (27): ai(), ar(), Bt(), ci(), du(), ei(), Er(), fn() (+19 more)
 
 ### Community 268 - "background/background.js"
 Cohesion: 0.13
 Nodes (24): disableTranslationOnClickingALink(), enableTranslationOnClickingALink(), getSVGIcon(), hexToRgb(), isDarkColor(), onThemeUpdated(), resetPageAction(), runtimeOnMessage() (+16 more)
 
 ### Community 269 - "mobx.js"
-Cohesion: 0.11
-Nodes (22): addHiddenFinalProp(), allowStateChanges(), allowStateChangesEnd(), allowStateChangesStart(), _assertThisInitialized(), Atom(), cancelPromise(), createAtom() (+14 more)
+Cohesion: 0.09
+Nodes (26): addHiddenFinalProp(), allowStateChanges(), allowStateChangesEnd(), allowStateChangesStart(), asDynamicObservableObject(), assertProxies(), _assertThisInitialized(), Atom() (+18 more)
 
 ### Community 270 - "all_content_scripts.js"
 Cohesion: 0.06
-Nodes (21): keywordToEngine, parseConfig(), set(), UserSearchEngine, Marks, Vomnibar, DomUtils, KeyboardUtils (+13 more)
-
-### Community 271 - "tw"
-Cohesion: 0.05
-Nodes (3): Iw, Nw, tw
-
-### Community 273 - "SettingsSearchResult"
-Cohesion: 0.10
-Nodes (16): TxtSettingsSearch, SettingsSearchGroup, Rows, SectionHeader, SettingsSearchResult, AnchorElement, Breadcrumb, Control (+8 more)
+Nodes (25): keywordToEngine, parseConfig(), set(), UserSearchEngine, Marks, Vomnibar, DomUtils, FindModeHistory (+17 more)
 
 ### Community 274 - "YouTube-Subtitle-Pro-Chrome-Web-Store/popup.js"
 Cohesion: 0.08
@@ -2314,8 +2276,8 @@ Cohesion: 0.15
 Nodes (20): Di(), $a(), Cs(), da(), Ha(), ia(), is(), ma() (+12 more)
 
 ### Community 281 - "MediaRef"
-Cohesion: 0.15
-Nodes (8): Gotchas & Failure Mode Ledger, Inno Setup `CreateProcess failed; code 2` & Elevation Mismatch, WebView2 Zero-Crash & Content-Script Guardrails, MediaRef, Collection, FileName, MediaSelectionSync, MediaSource
+Cohesion: 0.19
+Nodes (6): WebView2 Zero-Crash & Content-Script Guardrails, MediaRef, Collection, FileName, MediaSelectionSync, MediaSource
 
 ### Community 282 - "ka"
 Cohesion: 0.18
@@ -2348,10 +2310,6 @@ Nodes (3): CssHitsCounter, ElementUtils, HitsStorage
 ### Community 289 - "scriptlets_jsonPruneFetchResponse"
 Cohesion: 0.13
 Nodes (24): scriptlets_jsonPruneFetchResponse(), backupRegExpValues(), escapeRegExp(), getFetchData(), getMatchPropsData(), getNativeRegexpTest(), getPrunePath(), getRequestData() (+16 more)
-
-### Community 291 - "mx"
-Cohesion: 0.13
-Nodes (4): Pa(), mx, yl(), zs()
 
 ### Community 292 - "Linguist-web-page-translator-Chrome-Web-Store/manifest.json"
 Cohesion: 0.07
@@ -2389,9 +2347,9 @@ Nodes (24): 86136(), es6_getDomain(), extract_hostname_extractHostname(), extrac
 Cohesion: 0.21
 Nodes (27): A(), b(), G(), Gi(), a(), c(), d(), f() (+19 more)
 
-### Community 305 - "uK"
-Cohesion: 0.14
-Nodes (3): dK, _K, uK
+### Community 305 - "rv"
+Cohesion: 0.12
+Nodes (3): ov, rv, sv()
 
 ### Community 306 - "Sh"
 Cohesion: 0.10
@@ -2418,24 +2376,28 @@ Cohesion: 0.22
 Nodes (25): ae(), au(), ca(), ce(), Et(), ie(), It(), J() (+17 more)
 
 ### Community 313 - "bf"
-Cohesion: 0.08
+Cohesion: 0.09
 Nodes (3): bf, Cf, Of()
+
+### Community 314 - "wq"
+Cohesion: 0.09
+Nodes (4): fW, TB, ug(), wq
 
 ### Community 315 - "cy"
 Cohesion: 0.12
 Nodes (4): compute(), cy, Ty, wy()
 
-### Community 316 - "HomePageView.EnsureWidgetBoardPopulated"
-Cohesion: 0.16
-Nodes (7): WidgetBoardCardConfig, ColSpan, Column, Id, Row, RowSpan, Title
+### Community 316 - "d3_geom_voronoi"
+Cohesion: 0.13
+Nodes (23): d3_geom_voronoi(), d3_geom_voronoiAddBeach(), d3_geom_voronoiAttachCircle(), d3_geom_voronoiBeach(), d3_geom_voronoiCell(), d3_geom_voronoiCircle(), d3_geom_voronoiCloseCells(), d3_geom_voronoiCreateBeach() (+15 more)
 
 ### Community 319 - "xu"
 Cohesion: 0.20
 Nodes (25): At(), Cu(), Dt(), du(), fa(), Ft(), fu(), gu() (+17 more)
 
-### Community 321 - "FluxSidebar.RefreshBookmarks"
-Cohesion: 0.12
-Nodes (5): BtnBmSortDate, BtnBmSortDir, BtnBmSortDomain, BtnBmSortName, BtnManualBookmarkImport
+### Community 321 - "BookmarkItem"
+Cohesion: 0.09
+Nodes (14): BtnManualBookmarkImport, BookmarkItem, AsPin, Category, DateAdded, GroupKey, IconPath, LastOpened (+6 more)
 
 ### Community 322 - "scriptlets_preventFetch"
 Cohesion: 0.14
@@ -2446,16 +2408,20 @@ Cohesion: 0.20
 Nodes (24): 97342(), biggestPowerOfTwo(), compressIPv6(), contains(), diff(), doNetsOverlap(), doNormalize(), exclude() (+16 more)
 
 ### Community 324 - "tE"
-Cohesion: 0.06
-Nodes (15): ise, onUnexpectedError(), ose(), Ov(), rE, sse(), a(), l() (+7 more)
+Cohesion: 0.05
+Nodes (16): ise, nse, onUnexpectedError(), ose(), Ov(), rE, sse(), a() (+8 more)
 
-### Community 327 - "_x"
-Cohesion: 0.09
-Nodes (3): eU(), q$, _x
+### Community 325 - "BackgroundKeepAliveService"
+Cohesion: 0.16
+Nodes (3): BackgroundKeepAliveService, HasLiveMainWindow, PipeName
+
+### Community 326 - "Window"
+Cohesion: 0.11
+Nodes (20): CanToggle, EssentialBadgeVisibility, BtnCancel, BtnInstall, IcnPermissions, ImgIcon, ProgressBarInstall, TxtIconFallback (+12 more)
 
 ### Community 329 - "MainWindow"
 Cohesion: 0.01
-Nodes (43): MainWindow, BtnExpandOverflow, BtnInstallUpdate, BtnWidgetNext, BtnWidgetPrev, HeaderWidgetBorder, IsStickyKeyboardNavActive, LstWidgetOrder (+35 more)
+Nodes (58): Fullscreen & Split View Transition Overlays, MainWindow, BtnExpandOverflow, BtnNewTab, DynamicIslandMode, Ambient, Download, Media (+50 more)
 
 ### Community 330 - "ll"
 Cohesion: 0.13
@@ -2493,17 +2459,13 @@ Nodes (10): 45801(), assign(), createSpawner(), emit(), enqueueActions(), forwar
 Cohesion: 0.13
 Nodes (3): a(), e, t()
 
-### Community 341 - "update"
-Cohesion: 0.03
-Nodes (52): a4, a6, _alertCompletionItem(), _applyCodeAction(), C7, _cacheHintsForFastRestore(), _cancelModelPromise(), CK (+44 more)
+### Community 341 - "N7"
+Cohesion: 0.07
+Nodes (16): a4, C7, _comparator(), createModelFromProvider(), createStickyModel(), _findSumOfRangesOfGroup(), getRangeProvider(), i4 (+8 more)
 
 ### Community 342 - "iU"
-Cohesion: 0.09
-Nodes (8): aU(), iU, ny(), refineDiff(), a(), o(), tU, uU
-
-### Community 343 - "dx"
-Cohesion: 0.06
-Nodes (3): dx, FY(), Tx
+Cohesion: 0.11
+Nodes (8): aU(), DU(), iU, ny(), refineDiff(), a(), o(), SU()
 
 ### Community 345 - "_strftime"
 Cohesion: 0.11
@@ -2546,12 +2508,12 @@ Cohesion: 0.12
 Nodes (4): i, n, r, s
 
 ### Community 356 - "ay"
-Cohesion: 0.08
-Nodes (4): ay(), iI, VN, zN
+Cohesion: 0.10
+Nodes (4): ay(), iI, VN, vy
 
 ### Community 358 - "_1"
 Cohesion: 0.18
-Nodes (5): _1, f1(), g1(), m1, p1()
+Nodes (3): _1, m1, y1
 
 ### Community 360 - "ll"
 Cohesion: 0.27
@@ -2574,28 +2536,28 @@ Cohesion: 0.10
 Nodes (20): action, default_popup, default_title, author, background, service_worker, content_scripts, description (+12 more)
 
 ### Community 365 - "y"
-Cohesion: 0.11
-Nodes (27): Ah(), Bh(), bi(), bj(), ci(), cj(), ih(), Jh() (+19 more)
+Cohesion: 0.13
+Nodes (21): Ah(), Bh(), bi(), ci(), ih(), Jh(), Kh(), Lh() (+13 more)
 
 ### Community 366 - "l3"
-Cohesion: 0.13
-Nodes (5): a3, c3(), fJ(), l3, q4
+Cohesion: 0.21
+Nodes (3): c3(), l3, q4
 
-### Community 367 - "run"
+### Community 367 - "trigger"
 Cohesion: 0.03
-Nodes (64): _4(), Ab(), _addEditOperation(), adjustWhitespace(), b4(), bb(), buildIndentConverter(), _compositionType() (+56 more)
+Nodes (64): Ab(), _addEditOperation(), adjustWhitespace(), ap(), _attachModel(), bb(), bp(), buildIndentConverter() (+56 more)
 
 ### Community 369 - "nte"
 Cohesion: 0.10
 Nodes (5): ete, ite, nte, ote, ste
 
-### Community 371 - "Ex"
-Cohesion: 0.11
-Nodes (3): Ex, nx, rx
+### Community 370 - "d3_geo_clipExtent"
+Cohesion: 0.13
+Nodes (15): d3_geo_clipBufferListener(), d3_geo_clipExtent(), compare(), comparePoints(), corner(), interpolate(), lineEnd(), linePoint() (+7 more)
 
-### Community 374 - "zH"
-Cohesion: 0.11
-Nodes (3): jH, UH, zH
+### Community 372 - "P2"
+Cohesion: 0.09
+Nodes (3): F2, m2, P2
 
 ### Community 375 - "r"
 Cohesion: 0.07
@@ -2641,10 +2603,6 @@ Nodes (10): 91939(), assert(), BN(), FFTM(), jumboMulTo(), Mont(), MPrime(), par
 Cohesion: 0.13
 Nodes (18): areStateNodeCollectionsEqual(), checkNot(), computeExitSet(), evaluateGuard(), exitStates(), getAction(), getHistoryNodes(), hasIntersection() (+10 more)
 
-### Community 395 - "b_"
-Cohesion: 0.08
-Nodes (4): b_, bv, eb, v_
-
 ### Community 397 - "Lh"
 Cohesion: 0.22
 Nodes (6): Eh(), Ih(), kh(), Lh, oh(), Th()
@@ -2658,8 +2616,8 @@ Cohesion: 0.16
 Nodes (19): attachFinalizer(), ClassHandle_clone(), ClassHandle_delete(), ClassHandle_deleteLater(), constNoSmartPtrRawPointerToWireType(), detachFinalizer(), _embind_repr(), ensureOverloadTable() (+11 more)
 
 ### Community 402 - "oo"
-Cohesion: 0.07
-Nodes (14): ar(), bo(), checkLimitExceeding(), Et(), gi(), go(), ho(), io() (+6 more)
+Cohesion: 0.09
+Nodes (7): bo(), go(), ho(), mi(), po(), qn(), ro
 
 ### Community 403 - "22240"
 Cohesion: 0.16
@@ -2683,19 +2641,19 @@ Nodes (17): action, default_icon, default_popup, background, service_worker, des
 
 ### Community 408 - "update"
 Cohesion: 0.04
-Nodes (20): _3, b3, a(), l(), s(), createEditsAndSnippetsFromEdits(), createEditsAndSnippetsFromSelections(), d3 (+12 more)
+Nodes (27): _3, a0(), b3, a(), l(), s(), createEditsAndSnippetsFromEdits(), createEditsAndSnippetsFromSelections() (+19 more)
 
 ### Community 409 - "ka"
-Cohesion: 0.31
-Nodes (18): dr(), H(), ka(), a(), c(), d(), f(), g() (+10 more)
+Cohesion: 0.15
+Nodes (30): dr(), H(), ka(), a(), c(), d(), f(), g() (+22 more)
 
 ### Community 410 - "ki"
-Cohesion: 0.33
-Nodes (18): ki(), c(), d(), f(), g(), h(), i(), l() (+10 more)
+Cohesion: 0.27
+Nodes (20): ki(), c(), d(), f(), g(), h(), i(), l() (+12 more)
 
 ### Community 411 - "xc"
-Cohesion: 0.19
-Nodes (16): ac(), B(), bc(), cb(), cc(), b(), jd(), Nb() (+8 more)
+Cohesion: 0.18
+Nodes (17): ac(), B(), bc(), cb(), cc(), b(), jd(), jk() (+9 more)
 
 ### Community 412 - "dv"
 Cohesion: 0.16
@@ -2705,9 +2663,9 @@ Nodes (4): dv, hv(), wV, yV
 Cohesion: 0.09
 Nodes (48): Ai(), au(), bu(), cl(), dt(), Eu(), Fa(), fl() (+40 more)
 
-### Community 414 - "FluxItemViewModel"
-Cohesion: 0.06
-Nodes (24): BtnCtxPinLocation, BtnFluxBack, FluxItemViewModel, CreationTime, DisplayName, FileName, FilePath, FileSizeDisplay (+16 more)
+### Community 414 - "FluxItem"
+Cohesion: 0.25
+Nodes (8): FluxItem, FileName, FilePath, Id, IsExpanded, ReceivedBytes, State, TotalBytes
 
 ### Community 415 - "background_scripts/main.js"
 Cohesion: 0.07
@@ -2715,15 +2673,15 @@ Nodes (21): MultiCompleter, ExclusionRegexpCache, getRule(), isEnabledForUrl(), 
 
 ### Community 416 - "c0"
 Cohesion: 0.12
-Nodes (4): createChildContext(), ioe, noe, ooe
+Nodes (3): ioe, noe, ooe
 
 ### Community 417 - "MainWindow"
 Cohesion: 0.11
 Nodes (15): PART_Indicator, PART_Track, ProgressBarUpdate, Root, TxtError, TxtHeaderSubtitle, TxtHeaderTitle, TxtPercent (+7 more)
 
-### Community 418 - "fz"
-Cohesion: 0.05
-Nodes (11): EZ, fz, _getNoResultFoundMessage(), IG, Iz(), mz(), nz(), ox (+3 more)
+### Community 418 - "Qy"
+Cohesion: 0.15
+Nodes (3): _getNoResultFoundMessage(), ox, Qy
 
 ### Community 419 - "y"
 Cohesion: 0.19
@@ -2737,6 +2695,10 @@ Nodes (11): a(), addDefaults(), c(), configProxy(), constructor(), fetchConfig()
 Cohesion: 0.13
 Nodes (8): AbsolutePseudoClassNode, AnySelectorNode, _defineProperty(), EventTracker, observeDocument(), RegularSelectorNode, RelativePseudoClassNode, shouldIgnoreMutations()
 
+### Community 423 - "t0"
+Cohesion: 0.11
+Nodes (6): dp(), gp(), hp(), kv(), t0, vp()
+
 ### Community 424 - "d3_svg_lineLinear"
 Cohesion: 0.19
 Nodes (17): d3_svg_lineBasis(), d3_svg_lineBasisBezier(), d3_svg_lineBasisClosed(), d3_svg_lineBasisOpen(), d3_svg_lineBundle(), d3_svg_lineCardinal(), d3_svg_lineCardinalClosed(), d3_svg_lineCardinalOpen() (+9 more)
@@ -2746,8 +2708,8 @@ Cohesion: 0.24
 Nodes (4): 11449(), 67868(), hybrid_storage_define_property(), HybridStorage
 
 ### Community 426 - "asObservableObject"
-Cohesion: 0.13
-Nodes (23): addHiddenProp(), asDynamicObservableObject(), asObservableObject(), assertNotDecorated(), assertProxies(), collectStoredAnnotations(), createDecoratorAnnotation(), decorator() (+15 more)
+Cohesion: 0.19
+Nodes (17): addHiddenProp(), asObservableObject(), assertNotDecorated(), collectStoredAnnotations(), createDecoratorAnnotation(), decorator(), endBatch(), extendObservable() (+9 more)
 
 ### Community 427 - "30116"
 Cohesion: 0.19
@@ -2777,33 +2739,29 @@ Nodes (4): CheckboxMatcher, CssMatcher, Matcher, URLMatcher
 Cohesion: 0.21
 Nodes (16): co(), Ei(), Ge(), ia(), iu(), _l(), lo(), mi() (+8 more)
 
-### Community 436 - "qg"
+### Community 435 - "gx"
 Cohesion: 0.04
-Nodes (6): bne, fre, mc, qg, yne, yw
+Nodes (17): Ax, b7, gx, a(), l(), n(), s(), Hte (+9 more)
 
 ### Community 439 - "document.js"
 Cohesion: 0.26
 Nodes (14): a(), b(), c(), E(), g(), i(), k(), l() (+6 more)
 
-### Community 440 - "mw"
-Cohesion: 0.16
-Nodes (3): ene, mw, yv()
+### Community 442 - "o0"
+Cohesion: 0.06
+Nodes (5): e0, i0, n0, o0, r0
 
 ### Community 443 - "Window"
-Cohesion: 0.05
-Nodes (44): VpnUpstreamType, Http, Socks5, BtnSaveAll, BtnVpnDelete, BtnVpnNew, BtnVpnQuickConnect, BtnVpnSaveServer (+36 more)
-
-### Community 447 - "_0"
-Cohesion: 0.14
-Nodes (13): _0, cleanUpActiveLinkDecoration(), getLinkOccurrence(), _hideWidgets(), _hookEvents(), _onEditorMouseDown(), _onEditorMouseLeave(), _onEditorMouseMove() (+5 more)
+Cohesion: 0.08
+Nodes (38): BtnSaveAll, BtnVpnDelete, BtnVpnNew, BtnVpnQuickConnect, BtnVpnSaveServer, BtnVpnTest, BtnVpnUse, CboGeoLookupMode (+30 more)
 
 ### Community 448 - "LocalizationService"
 Cohesion: 0.09
 Nodes (17): 2. Dual Storage & File System Model, 3. Configuration & Settings Architecture, 4. Multilingual & Localization Architecture (`LocalizationService`), 6. Standalone Updater & Data Migration Engine (`Horizon.Updater`), 7. Developer Rules & Critical Constraints, Critical File Locking Rule, HORIZON BROWSER // SYSTEM ARCHITECTURE & DEVELOPER COMPENDIUM, Key Configuration Settings (+9 more)
 
 ### Community 450 - "._register"
-Cohesion: 0.03
-Nodes (14): cc, fc, gc, iee, JA, jE, Mg, nee (+6 more)
+Cohesion: 0.01
+Nodes (57): Aj, al(), BG, bU(), cc, controller(), createController(), createModelReference() (+49 more)
 
 ### Community 451 - "93495"
 Cohesion: 0.16
@@ -2820,6 +2778,10 @@ Nodes (3): 11449(), hybrid_storage_define_property(), HybridStorage
 ### Community 454 - "xa"
 Cohesion: 0.35
 Nodes (15): H(), ka(), xa(), a(), c(), d(), f(), g() (+7 more)
+
+### Community 456 - "GithubUpdateService"
+Cohesion: 0.13
+Nodes (9): GithubUpdateService, UpdateCheckResult, AssetName, AssetUrl, CurrentChannel, CurrentVersion, ErrorMessage, LatestVersion (+1 more)
 
 ### Community 457 - "Movement"
 Cohesion: 0.14
@@ -2838,7 +2800,7 @@ Cohesion: 0.06
 Nodes (34): action, default_icon, default_title, background, service_worker, commands, font-size-down, font-size-up (+26 more)
 
 ### Community 462 - "Window"
-Cohesion: 0.14
+Cohesion: 0.16
 Nodes (13): border, BtnClose, BtnDontAskAgain, PanelInstallations, PanelProgress, ProgressBarRestore, TxtProgressStatus, Window (+5 more)
 
 ### Community 464 - "_myTokenize"
@@ -2878,24 +2840,24 @@ Cohesion: 0.09
 Nodes (5): _E, ev, iv, Qm(), tv
 
 ### Community 474 - "dbepggeogbaibhgnhhndojpepiihcmeb/pages/options.js"
-Cohesion: 0.10
-Nodes (27): allCommands, Commands, defaultKeyMappings, KeyMappingsParser, RegistryEntry, specialKeyRegexp, compareKeys(), populatePage() (+19 more)
+Cohesion: 0.13
+Nodes (26): allCommands, Commands, defaultKeyMappings, KeyMappingsParser, RegistryEntry, specialKeyRegexp, compareKeys(), populatePage() (+18 more)
 
 ### Community 476 - "I8"
-Cohesion: 0.05
-Nodes (21): addAction(), addCommand(), c9, computeMoreMinimalEdits(), createContextKey(), D8, dQ(), E2 (+13 more)
-
-### Community 477 - "v"
-Cohesion: 0.11
-Nodes (19): d3_hcl(), d3_hcl_lab(), d3_hsl(), d3_hsl_rgb(), v(), vv(), d3_interpolateHcl(), d3_interpolateHsl() (+11 more)
+Cohesion: 0.07
+Nodes (8): E2, Ef, hf, I8, If(), k2(), N2, n9()
 
 ### Community 478 - "bq"
-Cohesion: 0.06
-Nodes (7): bq, FW(), GQ, kq, Sq, xq, yq
+Cohesion: 0.09
+Nodes (4): GQ, kq, Sq, xq
 
-### Community 481 - ".setChildren"
-Cohesion: 0.14
-Nodes (4): BZ, CZ(), SZ(), wZ()
+### Community 479 - "sO"
+Cohesion: 0.08
+Nodes (3): hI, iO, sO
+
+### Community 481 - "zT"
+Cohesion: 0.17
+Nodes (3): HT, VT, zT
 
 ### Community 482 - "popup-translate-document.js"
 Cohesion: 0.14
@@ -2933,9 +2895,9 @@ Nodes (10): 93051(), cacheDonePromiseForTransaction(), deleteDB(), getCursorAdva
 Cohesion: 0.23
 Nodes (10): 93051(), cacheDonePromiseForTransaction(), deleteDB(), getCursorAdvanceMethods(), getIdbProxyableTypes(), openDB(), promisifyRequest(), transformCachableValue() (+2 more)
 
-### Community 494 - "_isObservable"
-Cohesion: 0.22
-Nodes (14): convertToMap(), createObservable(), deepEnhancer(), eq(), isAction(), isES6Map(), isES6Set(), isGenerator() (+6 more)
+### Community 494 - "isFunction"
+Cohesion: 0.14
+Nodes (14): cancelPromise(), deepEqual(), eq(), intercept(), interceptInterceptable(), interceptProperty(), isAnnotation(), isFunction() (+6 more)
 
 ### Community 495 - "scriptlets_trustedReplaceNodeText"
 Cohesion: 0.22
@@ -2949,37 +2911,29 @@ Nodes (13): scriptlets_trustedSetConstant(), backupRegExpValues(), getNativeRege
 Cohesion: 0.18
 Nodes (6): 70215(), fastHash(), fastHash31(), hasUnquotedSubstring(), indexOfAny(), startsAtIndexWith()
 
-### Community 498 - "jl"
+### Community 498 - "go"
 Cohesion: 0.10
-Nodes (25): b(), Bu(), d(), d(), p(), v(), H(), K() (+17 more)
+Nodes (39): ar(), b(), Bu(), c(), cn(), Do(), g(), Gn() (+31 more)
 
 ### Community 499 - "d3_locale_timeFormat"
 Cohesion: 0.08
 Nodes (24): d3_locale_timeFormat(), d3_time_format(), d3_time_parse(), d3_time_parseLocaleDate(), d3_time_parseLocaleFull(), d3_time_parseLocaleTime(), d3_time_expandYear(), d3_time_formatPad() (+16 more)
 
-### Community 500 - "FI"
-Cohesion: 0.09
-Nodes (3): BI, FI, WI
+### Community 502 - "a"
+Cohesion: 0.12
+Nodes (54): a(), ai(), al(), au(), bi(), bo(), co(), ee() (+46 more)
 
-### Community 501 - "ev"
-Cohesion: 0.20
-Nodes (3): dv, ev, Nr
-
-### Community 502 - "e"
-Cohesion: 0.10
-Nodes (52): ai(), an(), ao(), bo(), ce(), co(), cr(), Ct() (+44 more)
-
-### Community 503 - "pl"
-Cohesion: 0.03
-Nodes (25): appendMenuItem(), appendMenuItems(), controller(), createController(), cu(), dc, du, Ef (+17 more)
+### Community 503 - "fz"
+Cohesion: 0.08
+Nodes (10): bestKeybindingForCodeAction(), fz, getResolver(), IG, jf(), Kie, sW(), tne (+2 more)
 
 ### Community 506 - "HORIZON BROWSER MASTER PLAN (created 2026-10-07)"
 Cohesion: 0.13
 Nodes (14): 0. RESUME PROTOCOL (any Claude, any account), 10. VP VPN PHASES 2 TO 4, 11. BL CARRY-OVER BACKLOG (from earlier planning; statuses unverified), 12. HOW TO UPDATE THIS FILE, 1. RULES (apply to every task), 2. MASTER TABLE (order of execution), 3. APPROVED DECISIONS LOG, 4. V0 BASELINE VERIFY AND REPO HYGIENE (+6 more)
 
-### Community 508 - ".main"
-Cohesion: 0.10
-Nodes (7): Cs, Gs, Os, Rs, ws, Ls(), o()
+### Community 508 - "Rs"
+Cohesion: 0.23
+Nodes (4): Os, Rs, Ls(), o()
 
 ### Community 510 - "registerType"
 Cohesion: 0.18
@@ -2990,20 +2944,20 @@ Cohesion: 0.14
 Nodes (13): action, default_icon, background, service_worker, 128, 16, 48, description (+5 more)
 
 ### Community 513 - "nU"
-Cohesion: 0.03
-Nodes (27): Ax, _computeOptions(), cw(), dI, G4(), getLanguage(), getValue(), GH (+19 more)
+Cohesion: 0.06
+Nodes (7): fv(), GH, Jg(), Jm(), nU, $p, yP
 
 ### Community 514 - "FindMode"
 Cohesion: 0.13
 Nodes (12): FindMode, focusFoundLink(), getAllTextNodes(), getAllTextNodes(), getCurrentRange(), getLinkFromSelection(), getRegexMatchIndices(), highlight() (+4 more)
 
 ### Community 515 - "SiteNotificationPermissionService"
-Cohesion: 0.21
+Cohesion: 0.22
 Nodes (8): SiteNotificationPermissionService, Entries, _folder, _path, SitePermissionEntry, Allow, LastRequested, Origin
 
-### Community 516 - "poe"
-Cohesion: 0.13
-Nodes (5): Ev(), hoe, isResolved(), pc, poe
+### Community 516 - "AR"
+Cohesion: 0.05
+Nodes (15): AR, Ev(), goe, hoe, isResolved(), oJ, pc, poe (+7 more)
 
 ### Community 519 - "28521"
 Cohesion: 0.18
@@ -3053,9 +3007,9 @@ Nodes (30): capturePreviewFrame(), createAssistantUI(), createPlayerBarButton(),
 Cohesion: 0.21
 Nodes (15): Bi(), Bl(), dl(), Ea(), ei(), ji(), Ki(), Oi() (+7 more)
 
-### Community 535 - "XI"
-Cohesion: 0.21
-Nodes (3): dO(), pO, uO
+### Community 535 - "uO"
+Cohesion: 0.08
+Nodes (6): dO(), pO, qI, uO, XI, YI
 
 ### Community 536 - "19131"
 Cohesion: 0.19
@@ -3077,24 +3031,16 @@ Nodes (11): 1.1 Instant Citation Builder, 1.2 DOI / Paywall Resolver, 1.3 ISBN T
 Cohesion: 0.33
 Nodes (6): AegisPressureLevel, Critical, Elevated, Emergency, Guarded, Nominal
 
-### Community 543 - "LaunchStateResult"
-Cohesion: 0.17
-Nodes (10): LaunchStateResult, CpuTimeMs, FrameTimeP50Ms, FrameTimeP99Ms, LaunchId, LongTasksCount, PrivateBytesMb, StateName (+2 more)
-
-### Community 544 - "PerformanceTelemetryService.QueryFixedConditions"
-Cohesion: 0.33
-Nodes (6): FixedEnvironmentConditions, ActivePowerPlan, DisplayRefreshRate, EnvironmentIsolation, PowerSource, WindowFocusState
+### Community 543 - "jj"
+Cohesion: 0.12
+Nodes (7): _deserialize(), eH, Hj(), jj, Jre, put(), set()
 
 ### Community 545 - "dbepggeogbaibhgnhhndojpepiihcmeb/manifest.json"
 Cohesion: 0.07
 Nodes (26): action, default_icon, default_popup, background, service_worker, type, content_scripts, 16 (+18 more)
 
-### Community 546 - "createModelFromProvider"
-Cohesion: 0.15
-Nodes (5): createModelFromProvider(), getRangeProvider(), i4, K2, U2
-
 ### Community 547 - "NotificationEntry"
-Cohesion: 0.16
+Cohesion: 0.18
 Nodes (9): NotificationCenterService, History, UnreadCount, NotificationEntry, Body, IsRead, Origin, Time (+1 more)
 
 ### Community 548 - "ExtractedCookie"
@@ -3105,17 +3051,17 @@ Nodes (8): ExtractedCookie, Host, IsHttpOnly, IsSecure, Name, Path, Value, Progr
 Cohesion: 0.20
 Nodes (5): 54361(), getFetchOpts(), handleAccessBlockedModals(), handleModalOpen(), processPreload()
 
-### Community 552 - "z3"
-Cohesion: 0.03
-Nodes (27): AI, D6, dp(), _getTriggerCharacterInfo(), gp(), hp(), i3(), i6() (+19 more)
+### Community 552 - "kH"
+Cohesion: 0.14
+Nodes (3): kH, o6, pR
 
 ### Community 553 - "assocIndexOf"
 Cohesion: 0.17
 Nodes (12): arraySome(), assocIndexOf(), eq(), equalArrays(), equalByTag(), listCacheDelete(), listCacheGet(), listCacheHas() (+4 more)
 
 ### Community 554 - "createAction"
-Cohesion: 0.22
-Nodes (11): assertActionDescriptor(), ComputedValue(), createAction(), createActionAnnotation(), createActionDescriptor(), createAutoAnnotation(), extend_$1(), extend_$5() (+3 more)
+Cohesion: 0.20
+Nodes (12): assertActionDescriptor(), ComputedValue(), createAction(), createActionAnnotation(), createActionDescriptor(), createAutoAnnotation(), extend_$1(), extend_$5() (+4 more)
 
 ### Community 555 - "scriptlets_adjustSetInterval"
 Cohesion: 0.26
@@ -3150,8 +3096,8 @@ Cohesion: 0.25
 Nodes (10): addToTaskContainer(), addToTranslateQueue(), directTranslate(), getTrimmed(), makeTask(), runWorker(), splitAndTranslate(), taskErrorHandler() (+2 more)
 
 ### Community 568 - "quadtree"
-Cohesion: 0.07
-Nodes (30): d3_cross2d(), d3_functor(), d3_geo_clipBufferListener(), d3_geo_clipExtent(), compare(), comparePoints(), corner(), insidePolygon() (+22 more)
+Cohesion: 0.12
+Nodes (18): d3_cross2d(), d3_functor(), insidePolygon(), d3_geom_hullOrder(), d3_geom_hullUpper(), d3_geom_quadtreeFind(), d3_geom_quadtreeNode(), d3_geom_quadtreeVisit() (+10 more)
 
 ### Community 570 - "background_scripts/marks.js"
 Cohesion: 0.28
@@ -3198,8 +3144,8 @@ Cohesion: 0.25
 Nodes (5): 13569(), handleBlur(), handleFocus(), setupScopedFocus(), teardownScopedFocus()
 
 ### Community 584 - "shouldCompute"
-Cohesion: 0.19
-Nodes (16): allowStateReadsEnd(), allowStateReadsStart(), changeDependenciesStateTo0(), res(), _endAction(), executeAction(), interceptChange(), notifyListeners() (+8 more)
+Cohesion: 0.27
+Nodes (11): allowStateReadsEnd(), allowStateReadsStart(), changeDependenciesStateTo0(), interceptChange(), notifyListeners(), shouldCompute(), trackDerivedFunction(), untracked() (+3 more)
 
 ### Community 585 - "scriptlets_abortCurrentInlineScript"
 Cohesion: 0.25
@@ -3241,17 +3187,17 @@ Nodes (10): 1. ROLE AND RULES (user: MoRDekai1364), 2. REPO STATE (new_changes, 
 Cohesion: 0.29
 Nodes (10): createBrowserHistory(), createBrowserHref(), createBrowserLocation(), getHistoryState(), getUrlBasedHistory(), createURL(), getIndex(), handlePop() (+2 more)
 
-### Community 603 - "qw"
-Cohesion: 0.07
-Nodes (5): Hw(), Kw, qU, qw, $w
+### Community 601 - "no"
+Cohesion: 0.25
+Nodes (13): ae(), ce(), de(), ie(), ne(), no(), oe(), q() (+5 more)
 
-### Community 604 - "fU"
-Cohesion: 0.17
-Nodes (3): bU(), fU, mU()
+### Community 603 - "qw"
+Cohesion: 0.08
+Nodes (4): Hw(), Kw, qw, $w
 
 ### Community 605 - "sJ"
-Cohesion: 0.04
-Nodes (20): aJ(), cJ, _deserialize(), dJ(), Doe(), eH, gJ(), Hj() (+12 more)
+Cohesion: 0.15
+Nodes (3): cJ, Doe(), sJ
 
 ### Community 607 - "createWasm"
 Cohesion: 0.20
@@ -3264,10 +3210,6 @@ Nodes (21): ee(), en(), Fn(), fo(), Hn(), ho(), K(), ke() (+13 more)
 ### Community 610 - "showOriginal.js"
 Cohesion: 0.29
 Nodes (7): hideOnESC(), hideOriginalText(), isShowingOriginalText(), onMouseDown(), onMouseEnter(), onMouseOut(), showOriginalText()
-
-### Community 611 - "PerformanceTelemetryService.RunAutomatedBaselineSuiteAsync"
-Cohesion: 0.22
-Nodes (5): BaselineWorkloads, InteractiveForegroundPage, StandardStaticPage, StateA_SingleTab, TimerHeavyBackgroundPage
 
 ### Community 612 - "_slicedToArray"
 Cohesion: 0.22
@@ -3292,6 +3234,10 @@ Nodes (6): 85571(), areAllLettersSame(), filterOptions(), getActionFromKey(), ge
 ### Community 617 - "toArray"
 Cohesion: 0.22
 Nodes (10): formatInitialTransition(), formatTransition(), formatTransitions(), isArray(), normalizeTarget(), resolveHistoryDefaultTransition(), resolveTarget(), toArray() (+2 more)
+
+### Community 618 - "Rectangle"
+Cohesion: 0.12
+Nodes (16): HeaderAmbientGlow, HeaderWallpaperBWOverlay, MobileHeaderAmbientGlow, MobileHeaderWallpaperBWOverlay, OverflowAmbientGlow, OverflowWallpaperBWOverlay, SensorPillLeft, SensorRight (+8 more)
 
 ### Community 620 - "createBar"
 Cohesion: 0.36
@@ -3346,8 +3292,12 @@ Cohesion: 0.20
 Nodes (9): FOLDER RULE (done), HARD RULES, HORIZON BROWSER - HOMEPAGE HANDOFF 2 (PHASE PLAN + STATE), HOW TO CONTINUE, KEY CODE FACTS, NEW REQUIREMENTS FROM THE OWNER (this handoff), OWNER DECISIONS (do not re-ask), PHASE PLAN (one phase at a time; ask for the listed files before each) (+1 more)
 
 ### Community 634 - "Horizon Browser: Split View Multi-Layout Rework (Handoff)"
-Cohesion: 0.22
-Nodes (8): Current split view (as found), Design constraints discovered, End goal, Horizon Browser: Split View Multi-Layout Rework (Handoff), Layout catalog (normalised rectangles, x y w h in 0..1), Open items needing the user, Phases (one at a time, user tests after each), Working rules (from the user)
+Cohesion: 0.20
+Nodes (9): Current split view (as found), Design constraints discovered, End goal, Header tab drag (reference behaviour to replicate), MainWindow.xaml.cs, Horizon Browser: Split View Multi-Layout Rework (Handoff), Layout catalog (normalised rectangles, x y w h in 0..1), Open items needing the user, Phases (one at a time, user tests after each) (+1 more)
+
+### Community 635 - "ib"
+Cohesion: 0.14
+Nodes (3): ib, nb, rb
 
 ### Community 637 - "ThrottleWrapper"
 Cohesion: 0.20
@@ -3357,17 +3307,13 @@ Nodes (6): applyReferentialEqualityAnnotations(), apply(), applyValueAnnotations
 Cohesion: 0.29
 Nodes (7): ThumbButtonFlags, Disabled, DismissOnClick, Enabled, Hidden, NoBackground, NonInteractive
 
-### Community 641 - "ProcessCpuMemorySnapshot"
-Cohesion: 0.20
-Nodes (10): ProcessCpuMemorySnapshot, KernelCpuTicks, Pid, PrivateBytes, PrivateBytesMb, ProcessName, TotalCpuTimeMs, UserCpuTicks (+2 more)
-
 ### Community 644 - "ConfigService"
 Cohesion: 0.14
 Nodes (12): ConfigService, AppRoot, CrashTapeFile, DataRoot, DebugLogFile, ExtensionsRoot, IsDevMode, LogsRoot (+4 more)
 
-### Community 645 - "ep"
+### Community 645 - "run"
 Cohesion: 0.03
-Nodes (24): applyUpdate(), B2(), Bj(), ep(), fy, g, getParameterLabelOffsets(), hw (+16 more)
+Nodes (37): _4(), _6, A5, adjustSelection(), b4(), Bj(), Bv(), C6 (+29 more)
 
 ### Community 646 - "$"
 Cohesion: 0.29
@@ -3378,8 +3324,8 @@ Cohesion: 0.33
 Nodes (5): net8.0-windows10.0.19041.0, System.Security.Cryptography.ProtectedData (8.0.0), Microsoft.NET.Sdk, Microsoft.Web.WebView2 (1.0.2849.39), WpfAnimatedGif (2.0.2)
 
 ### Community 648 - "ja"
-Cohesion: 0.02
-Nodes (51): cB(), ch(), db(), _doOpenExternal(), E0(), a(), l(), s() (+43 more)
+Cohesion: 0.03
+Nodes (40): ch(), CK, computeAsync(), n(), createColorHover(), db(), _doOpenExternal(), E0() (+32 more)
 
 ### Community 651 - "38998"
 Cohesion: 0.31
@@ -3402,8 +3348,8 @@ Cohesion: 0.31
 Nodes (5): 43146(), _classCallCheck(), getParentElement(), Modal(), _possibleConstructorReturn()
 
 ### Community 656 - "Reaction"
-Cohesion: 0.21
-Nodes (12): autorun(), reactionRunner(), createSchedulerFromOptions(), Reaction(), reactionRunner(), when(), whenPromise(), wrapErrorHandler() (+4 more)
+Cohesion: 0.28
+Nodes (9): autorun(), reactionRunner(), createSchedulerFromOptions(), Reaction(), reactionRunner(), when(), whenPromise(), wrapErrorHandler() (+1 more)
 
 ### Community 657 - "scriptlets_debugOnPropertyRead"
 Cohesion: 0.31
@@ -3453,13 +3399,17 @@ Nodes (18): 🌌 1. Fluent Acrylic Glass Homepage & Dynamic Island, 💡 About H
 Cohesion: 0.08
 Nodes (22): 1. Design intent, 2. Shared theme source: `WeatherBridge`-style pattern, 3. Color tokens (derive, don't hard-code), 4. Backdrop (blurred, tinted wallpaper), 6. Compact/Wide layout (optional, use if the widget has enough content to benefit), 9. What to send the other AI, per widget, Horizon Widget Visual Refresh — Style Guide, WeatherBridge (+14 more)
 
-### Community 676 - "StateBenchmarkSummary"
-Cohesion: 0.12
-Nodes (13): PageFrameMetrics, FrameTimeP50Ms, FrameTimeP99Ms, LongTasksCount, SampledFrames, StateBenchmarkSummary, CpuTimeMs, PageFrames (+5 more)
+### Community 674 - "TabSleepRulesService"
+Cohesion: 0.27
+Nodes (5): DomainRule, IdleMinutes, NeverSleep, RamThresholdMb, TabSleepRulesService
+
+### Community 676 - "PerformanceTelemetryService"
+Cohesion: 0.02
+Nodes (89): StackElementBuilders, BaselineWorkloads, InteractiveForegroundPage, StandardStaticPage, StateA_SingleTab, TimerHeavyBackgroundPage, DEVMODE, FixedEnvironmentConditions (+81 more)
 
 ### Community 677 - "Task"
-Cohesion: 0.01
-Nodes (75): BrowserView, CanGoBackToHome, CanGoForwardToSite, ContainerId, IsCrashLoopHalted, IsDownloadPaused, IsHomeActive, IsProcessCrashed (+67 more)
+Cohesion: 0.03
+Nodes (30): FingerprintExemptions, FilePath, FingerprintProfile, ScriptHolder, AccountSyncService, SyncAccount, AccessToken, AccountId (+22 more)
 
 ### Community 678 - "computeDiff"
 Cohesion: 0.11
@@ -3542,36 +3492,36 @@ Cohesion: 0.43
 Nodes (7): scriptlets_trustedSetAttr(), hit(), logMessage(), observeDOMChanges(), setAttributeBySelector(), throttle(), trustedSetAttr()
 
 ### Community 711 - "__asyncGenerator"
-Cohesion: 0.31
-Nodes (9): next(), onFulfilled(), onRejected(), __asyncGenerator(), fulfill(), reject(), resume(), settle() (+1 more)
-
-### Community 712 - "loadBookmarks"
-Cohesion: 0.24
-Nodes (13): checkPendingBookmark(), deleteBookmark(), escapeHtml(), filterAndSortBookmarks(), formatBookmarkDate(), isValidUrl(), loadBookmarks(), parseFirestoreValue() (+5 more)
+Cohesion: 0.50
+Nodes (6): __asyncGenerator(), fulfill(), reject(), resume(), settle(), step()
 
 ### Community 713 - "getCaptionWindowSpatialMetrics"
 Cohesion: 0.13
 Nodes (22): applyCaptionFontFamilyInline(), getCaptionInlineStyleText(), getCaptionNodeCreatorStyleText(), getCaptionPlayerRoot(), getCaptionWindowInlinePositionText(), getCaptionWindowPositionMetric(), getCaptionWindowPositionSignature(), getCaptionWindowSpatialMetrics() (+14 more)
 
-### Community 714 - "UserControl"
-Cohesion: 0.02
-Nodes (133): BadgeText, Category, BoolToVisConverter, CategoryColorConverter, FluxAccentColorConverter, FluxAccentGradientConverter, LocalImageConverter, NullOrEmptyConverter (+125 more)
+### Community 714 - "RoutedEventArgs"
+Cohesion: 0.01
+Nodes (227): BadgeText, Category, BoolToVisConverter, CategoryColorConverter, FluxAccentColorConverter, FluxAccentGradientConverter, LocalImageConverter, NullOrEmptyConverter (+219 more)
+
+### Community 715 - "lu"
+Cohesion: 0.18
+Nodes (5): lu(), v6, wU(), x6, xU()
 
 ### Community 716 - "search_engines.js"
 Cohesion: 0.06
 Nodes (18): Amazon, BaseEngine, Bing, Brave, DuckDuckGo, Google, GoogleMaps, Kagi (+10 more)
 
-### Community 717 - "ManageRow"
-Cohesion: 0.15
-Nodes (8): BtnManage, ManageRow, Icon, IsEnabled, ManageVisibility, Shortcut, Subtitle, Title
+### Community 717 - "ExtensionPermissionModel"
+Cohesion: 0.12
+Nodes (16): ExtensionPermissionModel, CanToggle, Category, Description, DisplayName, EssentialBadgeVisibility, IsEssential, IsSelected (+8 more)
 
 ### Community 718 - "oie"
 Cohesion: 0.20
 Nodes (3): oie, rie, sie
 
-### Community 720 - "CalendarEvent"
-Cohesion: 0.21
-Nodes (9): CalendarEvent, End, Id, Location, Source, Start, Title, CalendarBridge (+1 more)
+### Community 720 - "H"
+Cohesion: 0.27
+Nodes (10): H(), K(), q(), V(), W(), K(), nc(), oc() (+2 more)
 
 ### Community 724 - "popupMobile.js"
 Cohesion: 0.39
@@ -3666,16 +3616,12 @@ Cohesion: 0.33
 Nodes (3): scriptlets_Pardot(), hit(), Pardot()
 
 ### Community 754 - "xm"
-Cohesion: 0.01
-Nodes (60): _6, $7, adjustSelection(), B4, Bw, C6, cancelInput(), closeMessage() (+52 more)
+Cohesion: 0.02
+Nodes (37): $7, B4, closeMessage(), Cv(), delete(), DK(), EK(), f7() (+29 more)
 
-### Community 755 - "SourceRow"
-Cohesion: 0.50
-Nodes (4): SourceRow, Icon, Id, Name
-
-### Community 756 - "TelemetrySnapshot"
-Cohesion: 0.22
-Nodes (8): TelemetrySnapshot, ChildProcessCount, Processes, SystemMemory, TimestampUtc, TotalCpuTimeMs, TotalPrivateBytesMb, TotalWorkingSetMb
+### Community 755 - "StackElementKind"
+Cohesion: 0.20
+Nodes (8): StackElementKind, Site, Template, Widget, SourceRow, Icon, Id, Name
 
 ### Community 757 - "10737"
 Cohesion: 0.33
@@ -3721,29 +3667,17 @@ Nodes (3): GoogleAnalytics(), hit(), noopFunc()
 Cohesion: 0.38
 Nodes (3): GoogleAnalyticsGa(), hit(), logMessage()
 
-### Community 771 - "Phase0BaselineReport"
-Cohesion: 0.15
-Nodes (9): DEVMODE, Phase0BaselineReport, AggregatedStates, FixedConditions, GeneratedUtc, MachineName, OsVersion, States (+1 more)
-
 ### Community 772 - "CommandBarItem"
 Cohesion: 0.15
 Nodes (11): CommandBarItem, Action, ActionHint, DisplayIcon, Group, KeyGesture, KeyGestureVisibility, Score (+3 more)
-
-### Community 773 - "StateAggregatedSummary"
-Cohesion: 0.13
-Nodes (13): MetricDistribution, Mean, StdDev, Threshold2Sigma, StateAggregatedSummary, CompletedLaunches, CpuTimeMs, FrameTimeP50Ms (+5 more)
 
 ### Community 775 - "oP"
 Cohesion: 0.06
 Nodes (3): eN, nP, oP
 
 ### Community 776 - "ListResults"
-Cohesion: 0.29
+Cohesion: 0.50
 Nodes (3): ListManage, ListResults, ListBox
-
-### Community 778 - "renderBookmarks"
-Cohesion: 0.25
-Nodes (11): deleteBookmark(), escapeHtml(), filterAndSortBookmarks(), formatBookmarkDate(), isValidUrl(), loadBookmarks(), parseFirestoreValue(), renderBookmarks() (+3 more)
 
 ### Community 779 - "Horizon Browser: Command Bar Improvement Plan"
 Cohesion: 0.11
@@ -3850,8 +3784,8 @@ Cohesion: 0.47
 Nodes (5): scriptlets_metrikaYandexTag(), hit(), metrikaYandexTag(), init(), ym()
 
 ### Community 815 - "sl"
-Cohesion: 0.03
-Nodes (32): adjustValueSelection(), _attachModel(), cZ, doProvideWithEditorSymbols(), doProvideWithoutEditorSymbols(), doShowOrPick(), focus(), gee (+24 more)
+Cohesion: 0.02
+Nodes (37): adjustValueSelection(), aQ, Bw, cancelInput(), createChildContext(), cZ, doProvideWithEditorSymbols(), doProvideWithoutEditorSymbols() (+29 more)
 
 ### Community 816 - "fX"
 Cohesion: 0.33
@@ -3862,8 +3796,12 @@ Cohesion: 0.43
 Nodes (7): 28280(), cleanup(), onclose(), ondata(), ondrain(), onend(), onerror()
 
 ### Community 818 - "NotificationToast"
-Cohesion: 0.24
-Nodes (8): BtnClose, TxtBody, TxtOrigin, TxtTitle, Window, NotificationToast, Button, TextBlock
+Cohesion: 0.32
+Nodes (7): BtnClose, TxtBody, TxtOrigin, TxtTitle, Window, Button, TextBlock
+
+### Community 819 - "sz"
+Cohesion: 0.12
+Nodes (5): bZ(), oZ(), rZ, sz, UB
 
 ### Community 820 - "toArray"
 Cohesion: 0.40
@@ -3885,9 +3823,9 @@ Nodes (4): hit(), noopArray(), noopStr(), Prebid()
 Cohesion: 0.40
 Nodes (3): scriptlets_nowebrtc(), noopFunc(), nowebrtc()
 
-### Community 828 - "Iu"
+### Community 828 - "ti"
 Cohesion: 0.17
-Nodes (23): a(), ae(), Be(), de(), ee(), Fe(), He(), ie() (+15 more)
+Nodes (25): ae(), ao(), ce(), fn(), fo(), ie(), jo(), le() (+17 more)
 
 ### Community 829 - "scriptlets_removeAttr"
 Cohesion: 0.43
@@ -3917,9 +3855,9 @@ Nodes (39): checkPremiumStatus(), deleteBookmark(), getFirebaseProjectId(), save
 Cohesion: 0.33
 Nodes (3): LocExtension, Fallback, Key
 
-### Community 839 - "RadioButton"
-Cohesion: 0.24
-Nodes (9): RboCookieBoth, RboCookieChrome, RboCookieEdge, RboCookieScopeAll, RboCookieScopeCurrent, RbVideoModeCustom, RbVideoModeFixed, RbVideoModeRandom (+1 more)
+### Community 840 - "Popup"
+Cohesion: 0.22
+Nodes (9): IsChecked, DynamicIslandPopup, MultiTabContextPopup, MusicWidgetPopup, OverflowMediaPopup, ToolsPopup, WeatherDetailPopup, WidgetContextPopup (+1 more)
 
 ### Community 842 - "_typeof"
 Cohesion: 0.50
@@ -3985,21 +3923,21 @@ Nodes (5): d3_geo_pathCentroidLineStart(), nextPoint(), d3_geo_pathCentroidPoint
 Cohesion: 0.18
 Nodes (16): areCaptionTrackKeysCompatible(), areKnownCaptionTrackKeysCompatible(), canReuseCaptionProfileTrack(), clearCaptionFontFamilyInline(), clearCaptionRuntimeState(), clearCreatorCustomCaptionFallback(), clearPlayerCaptionProfileState(), commitPlayerCaptionProfileEvidence() (+8 more)
 
-### Community 873 - "Window"
-Cohesion: 0.05
-Nodes (41): UpdateCheckResult, AssetName, AssetUrl, CurrentChannel, CurrentVersion, ErrorMessage, LatestVersion, UpdateAvailable (+33 more)
+### Community 873 - "FolderSheetHost.Close"
+Cohesion: 0.03
+Nodes (57): BrowserDetectionService, BrowserInfo, IsChromium, Name, ProcessName, UserDataPath, Bd, BtnForceCloseAndSync (+49 more)
 
 ### Community 874 - "d3_Map"
-Cohesion: 0.16
-Nodes (14): bind(), d3_dispatch(), d3_dispatch_event(), event(), d3_eventDispatch(), d3_Map(), d3_selection_dataNode(), d3_time_formatLookup() (+6 more)
+Cohesion: 0.13
+Nodes (15): bind(), d3_dispatch(), d3_dispatch_event(), event(), d3_eventDispatch(), d3_Map(), d3_scale_ordinal(), d3_selection_dataNode() (+7 more)
 
-### Community 875 - "hud_page.js"
-Cohesion: 0.11
-Nodes (10): FindModeHistory, handlers, init(), onKeyEvent(), setTextInInputElement(), dispatchReadyEventWhenReady(), init(), openPort() (+2 more)
+### Community 875 - "ui_component_messenger.js"
+Cohesion: 0.19
+Nodes (6): HelpDialogPage, dispatchReadyEventWhenReady(), init(), openPort(), postMessage(), registerPortWithOwnerPage()
 
-### Community 877 - "Horizon Header Widget — Animation Pattern Guide"
-Cohesion: 0.22
-Nodes (8): 1. What this pattern is for, 2. Width animation: `AnimateWidgetWidth`, 3. Content fade: `FadeWidgetContent`, 4. Marquee scroll: `StartWidgetMarquee` / `MarqueeTimer_Tick` / `StopWidgetMarquee`, 5. How the three compose (orchestration reference), 6. Applying this to the Weather popup (Phase 18 scope — not implemented yet), 7. Structural rules (apply wherever this pattern is reused), Horizon Header Widget — Animation Pattern Guide
+### Community 877 - "MainWindow.RefreshWidgetDisplay"
+Cohesion: 0.04
+Nodes (15): OverflowTabs, Tabs, 1. What this pattern is for, 2. Width animation: `AnimateWidgetWidth`, 3. Content fade: `FadeWidgetContent`, 4. Marquee scroll: `StartWidgetMarquee` / `MarqueeTimer_Tick` / `StopWidgetMarquee`, 5. How the three compose (orchestration reference), 6. Applying this to the Weather popup (Phase 18 scope — not implemented yet) (+7 more)
 
 ### Community 883 - "95719"
 Cohesion: 0.60
@@ -4021,25 +3959,17 @@ Nodes (3): hit(), noopFunc(), preventFab()
 Cohesion: 0.70
 Nodes (4): createOnErrorHandler(), hit(), preventPopadsNet(), randomId()
 
-### Community 897 - "SystemMemoryInfo"
-Cohesion: 0.25
-Nodes (8): SystemMemoryInfo, AvailablePhysicalBytes, AvailablePhysicalMb, HardwareTier, LogicalCores, MemoryLoadPercent, TotalPhysicalBytes, TotalPhysicalMb
+### Community 897 - "PdfOpenDialog"
+Cohesion: 0.28
+Nodes (6): ChkRemember, Window, PdfOpenDialog, OpenExternal, Remember, CheckBox
 
-### Community 899 - "resampleRecursive"
-Cohesion: 0.33
-Nodes (8): resampleLineTo(), resampleRecursive(), lineEnd(), linePoint(), lineStart(), ringEnd(), ringPoint(), ringStart()
+### Community 902 - "Me"
+Cohesion: 0.32
+Nodes (4): gu(), Ie, we(), Me()
 
-### Community 900 - "c"
-Cohesion: 0.42
-Nodes (9): c(), Nt(), Ta(), b(), g(), h(), m(), y() (+1 more)
-
-### Community 903 - "scriptlets_GoogleIma3"
-Cohesion: 0.60
-Nodes (4): scriptlets_GoogleIma3(), GoogleIma3(), hit(), noopFunc()
-
-### Community 904 - "scriptlets_preventAdfly"
-Cohesion: 0.70
-Nodes (5): scriptlets_preventAdfly(), hit(), logMessage(), preventAdfly(), setPropertyAccess()
+### Community 907 - "StackPanel"
+Cohesion: 0.22
+Nodes (9): IslandWaveform, NormalTitlePanel, PanelUpdateBanner, PnlHeaderNavButtons, PnlHeaderRightIcons, PnlPinnedHeaderExtensions, PnlWidgetCycle, WidgetTextHost (+1 more)
 
 ### Community 908 - "scriptlets_preventElementSrcLoading"
 Cohesion: 0.43
@@ -4056,6 +3986,14 @@ Nodes (5): __emval_call(), __emval_lookupTypes(), __emval_take_value(), getTypeN
 ### Community 913 - "translationCache.js"
 Cohesion: 0.60
 Nodes (4): _assertClassBrand(), _checkPrivateRedeclaration(), _classPrivateMethodInitSpec(), translationCache
+
+### Community 915 - "_extends"
+Cohesion: 0.29
+Nodes (8): assertComputedDescriptor(), createComputedAnnotation(), extend_$3(), _extends(), make_$3(), spyReport(), spyReportEnd(), spyReportStart()
+
+### Community 916 - "d"
+Cohesion: 0.14
+Nodes (6): d(), d(), p(), v(), f(), s()
 
 ### Community 918 - "21899"
 Cohesion: 0.16
@@ -4185,9 +4123,9 @@ Nodes (5): scriptlets_preventPopadsNet(), createOnErrorHandler(), hit(), prevent
 Cohesion: 0.83
 Nodes (4): 98518(), cloneArrayDeep(), cloneDeep(), cloneObjectDeep()
 
-### Community 975 - "UB"
+### Community 975 - "JsonCookie"
 Cohesion: 0.29
-Nodes (3): bZ(), rZ, UB
+Nodes (7): JsonCookie, domain, httpOnly, name, path, secure, value
 
 ### Community 982 - "amazon-apstag.js"
 Cohesion: 0.83
@@ -4213,21 +4151,21 @@ Nodes (3): hit(), NaverWcslog(), noopFunc()
 Cohesion: 0.83
 Nodes (3): hit(), logMessage(), noeval()
 
-### Community 993 - "Horizon.Updater/App.xaml.cs"
-Cohesion: 0.29
-Nodes (3): Horizon.Updater, Application, App
-
 ### Community 994 - "scriptlets_metrikaYandexWatch"
 Cohesion: 0.40
 Nodes (3): scriptlets_metrikaYandexWatch(), hit(), metrikaYandexWatch()
 
-### Community 999 - "DynamicIslandMode"
+### Community 999 - "BatteryBridge"
 Cohesion: 0.33
-Nodes (6): DynamicIslandMode, Ambient, Download, Media, Notes, Timer
+Nodes (5): BatteryBridge, HasBattery, IsCharging, Percent, TimeRemaining
+
+### Community 1001 - "TabBorder"
+Cohesion: 0.33
+Nodes (4): AnimatedBrush, TabWidth, BaseBorder, TabBorder
 
 ### Community 1003 - "TabViewModel"
-Cohesion: 0.01
-Nodes (120): OverflowTabs, Tabs, BtnNewTab, ListOverflowTabs, ListTabs, MBtnNewTab, ListBox, MediaBridge (+112 more)
+Cohesion: 0.02
+Nodes (112): AegisResourceManager, CryoTabsCount, CurrentPressure, DormantTabsCount, IsAegisShieldActive, SuspendedTabsCount, TotalRamSavedMb, CacheJanitorService (+104 more)
 
 ### Community 1004 - "StackElementWizardWindow.Card_MouseLeftButtonUp"
 Cohesion: 0.38
@@ -4242,8 +4180,8 @@ Cohesion: 0.50
 Nodes (4): GoogleBrowserAccount, AvatarUrl, Email, Name
 
 ### Community 1009 - "WidgetPosition"
-Cohesion: 0.12
-Nodes (15): LayoutProfile, Widgets, LayoutSet, Id, InactivityLayout, Name, NormalLayout, WidgetPosition (+7 more)
+Cohesion: 0.14
+Nodes (14): LayoutProfile, Widgets, LayoutSet, Id, InactivityLayout, Name, NormalLayout, WidgetPosition (+6 more)
 
 ### Community 1011 - "ResourceDictionary"
 Cohesion: 0.13
@@ -4313,9 +4251,9 @@ Nodes (3): 70103(), getTarget(), insertBySelector()
 Cohesion: 1.00
 Nodes (3): 70103(), getTarget(), insertBySelector()
 
-### Community 1060 - "parse"
-Cohesion: 0.67
-Nodes (3): parse(), parseModule(), parseScript()
+### Community 1060 - "Image"
+Cohesion: 0.33
+Nodes (6): CompactFavicon, CompactFaviconImage, IslandTabFaviconImage, WidgetExtIcon, WidgetVideoImage, Image
 
 ### Community 1061 - "Horizon.SessionImporter.csproj"
 Cohesion: 0.40
@@ -4329,9 +4267,17 @@ Nodes (3): 68508(), compileStyleAliases(), Type()
 Cohesion: 0.70
 Nodes (5): scriptlets_Prebid(), hit(), noopArray(), noopStr(), Prebid()
 
-### Community 1075 - "d3_selection_classed"
-Cohesion: 0.29
-Nodes (5): d3_collapse(), d3_selection_classed(), d3_selection_classedName(), d3_selection_classedRe(), d3_selection_classes()
+### Community 1073 - "u4"
+Cohesion: 0.15
+Nodes (3): l4, u4, Xee
+
+### Community 1074 - "scriptlets_preventRefresh"
+Cohesion: 0.40
+Nodes (3): scriptlets_preventRefresh(), getNumberFromString(), nativeIsNaN()
+
+### Community 1075 - "scriptlets_trustedSetLocalStorageItem"
+Cohesion: 0.67
+Nodes (6): scriptlets_trustedSetLocalStorageItem(), hit(), logMessage(), parseKeywordValue(), setStorageItem(), trustedSetLocalStorageItem()
 
 ### Community 1079 - "BrowserType"
 Cohesion: 0.67
@@ -4353,13 +4299,9 @@ Nodes (7): checkNot(), computeExitSet(), evaluateGuard(), hasIntersection(), isD
 Cohesion: 0.83
 Nodes (4): 29880(), buildAlphabetIndexMap(), isNumberCode(), naturalCompare()
 
-### Community 1105 - "a0"
-Cohesion: 0.48
-Nodes (3): a0(), u3(), v3
-
-### Community 1108 - "Im"
-Cohesion: 0.09
-Nodes (3): mM, Pm, sP
+### Community 1110 - "_9"
+Cohesion: 0.07
+Nodes (17): _9, a(), l(), s(), b9(), _doTriggerQuickSuggest(), EZ, GX() (+9 more)
 
 ### Community 1116 - "getPermissionRegex"
 Cohesion: 0.43
@@ -4369,17 +4311,17 @@ Nodes (7): applyInvidiousPermissions(), containsInvidiousPermission(), getExtraS
 Cohesion: 0.50
 Nodes (4): BmSortField, Date, Domain, Name
 
-### Community 1142 - "CategoryEditMode"
-Cohesion: 0.50
+### Community 1142 - "FluxSidebar.xaml.cs"
+Cohesion: 0.13
 Nodes (4): CategoryEditMode, Add, Delete, Rename
 
-### Community 1144 - "HistSortField"
-Cohesion: 0.50
-Nodes (4): HistSortField, Date, Domain, Title
+### Community 1144 - "scriptlets_injectCssInShadowDom"
+Cohesion: 0.60
+Nodes (4): scriptlets_injectCssInShadowDom(), hijackAttachShadow(), injectCssInShadowDom(), logMessage()
 
 ### Community 1145 - "ja"
-Cohesion: 0.02
-Nodes (77): a7, acceptSelectedSuggestion(), _afterRender(), beginCompute(), bp(), clearRanges(), closeWidget(), computeLinksNow() (+69 more)
+Cohesion: 0.01
+Nodes (118): a6, a7, acceptSelectedSuggestion(), _afterRender(), _alertCompletionItem(), _applyCodeAction(), beginCompute(), bq (+110 more)
 
 ### Community 1148 - "scriptlets_GoogleAnalytics"
 Cohesion: 0.60
@@ -4393,25 +4335,13 @@ Nodes (3): 71713(), createConversionResult(), createNodeConversionResult()
 Cohesion: 0.50
 Nodes (4): SearchEngineEntry, BuiltIn, Name, Url
 
-### Community 1156 - "PinSortField"
-Cohesion: 0.50
-Nodes (4): PinSortField, Category, Manual, Name
+### Community 1156 - "__awaiter"
+Cohesion: 0.70
+Nodes (5): __awaiter(), adopt(), fulfilled(), rejected(), step()
 
 ### Community 1159 - "BackupInfo"
 Cohesion: 0.29
 Nodes (6): BackupInfo, CreatedAt, FormattedSize, Name, Path, SizeBytes
-
-### Community 1160 - "SortField"
-Cohesion: 0.50
-Nodes (4): SortField, Date, Name, Size
-
-### Community 1161 - "scriptlets_Fingerprintjs3"
-Cohesion: 0.83
-Nodes (4): scriptlets_Fingerprintjs3(), Fingerprintjs3(), hit(), noopStr()
-
-### Community 1162 - "scriptlets_Gemius"
-Cohesion: 0.83
-Nodes (4): scriptlets_Gemius(), Gemius(), hit(), noopFunc()
 
 ### Community 1165 - "scriptlets_NaverWcslog"
 Cohesion: 0.83
@@ -4430,8 +4360,8 @@ Cohesion: 0.33
 Nodes (6): AegisTabTier, Active, Cryo, Dormant, Suspended, Warm
 
 ### Community 1179 - "BtnCancel"
-Cohesion: 0.40
-Nodes (4): BtnBack, BtnCancel, BtnNext, Button
+Cohesion: 0.50
+Nodes (3): BtnCancel, BtnNext, Button
 
 ### Community 1180 - "BarProgress"
 Cohesion: 0.40
@@ -4441,17 +4371,21 @@ Nodes (5): ReceivedBytes, TotalBytes, BarProgress, PbDlProgress, ProgressBar
 Cohesion: 1.00
 Nodes (3): 68508(), compileStyleAliases(), Type()
 
+### Community 1188 - "TranslateTransform"
+Cohesion: 0.40
+Nodes (5): DynamicIslandTranslate, HeaderProximityGlowTransform, HoverMarqueeTT, SidebarSlideTransform, TranslateTransform
+
+### Community 1195 - "ThumbButtonMask"
+Cohesion: 0.40
+Nodes (5): ThumbButtonMask, Bitmap, Flags, Icon, Tooltip
+
 ### Community 1224 - "isSmartTimingEffectLine"
 Cohesion: 0.46
 Nodes (8): applyCustomBlockingToCaption(), containsCaptionEffectKeyword(), escapeRegex(), evaluateCaptionCleanup(), isEnhancedBlockingNoiseLine(), isSmartTimingEffectLine(), normalizeCaptionFilterText(), stripCaptionDiacritics()
 
-### Community 1225 - "TitleBarRow"
-Cohesion: 0.40
-Nodes (4): GlassBackdropHost, GridSearchResults, TitleBarRow, Grid
-
-### Community 1226 - "ln"
+### Community 1225 - "hr"
 Cohesion: 0.67
-Nodes (3): ln(), t(), on()
+Nodes (4): er(), hr(), Lt(), Z()
 
 ### Community 1230 - "scriptlets_removeClass"
 Cohesion: 0.43
@@ -4461,73 +4395,61 @@ Nodes (5): scriptlets_removeClass(), observeDOMChanges(), parseFlags(), removeCl
 Cohesion: 0.50
 Nodes (3): 1. Stack & Architecture, 2. Key Commands, Horizon Browser - Workspace Knowledge & Engine Directives
 
-### Community 1234 - "ExtSortField"
+### Community 1239 - "DynamicIslandAudioGlow"
 Cohesion: 0.50
-Nodes (4): ExtSortField, Name, Source, State
+Nodes (4): DynamicIslandAudioGlow, ActualHeight, ActualWidth, CornerRadius
 
-### Community 1237 - "rd"
-Cohesion: 0.50
-Nodes (4): pd(), rd(), b(), od()
-
-### Community 1238 - "scriptlets_noTopics"
+### Community 1240 - "MainWindow.TabMenu_OpenMultiContext"
 Cohesion: 0.67
-Nodes (3): scriptlets_noTopics(), hit(), noTopics()
-
-### Community 1239 - "scriptlets_preventEvalIf"
-Cohesion: 0.67
-Nodes (3): scriptlets_preventEvalIf(), preventEvalIf(), toRegExp()
+Nodes (3): MnuMultiTabActions1, MnuMultiTabActions2, MenuItem
 
 ### Community 1241 - "pK"
-Cohesion: 0.20
-Nodes (4): MK(), OK, pK, TK
+Cohesion: 0.16
+Nodes (5): mK, MK(), OK, pK, TK
 
 ### Community 1243 - "mutationMayReplaceMainCaptionTarget"
 Cohesion: 0.48
 Nodes (7): getCaptionMutationElement(), hasCaptionMutation(), hasMainCaptionRootIdentityClass(), isNodeCoveredByMainCaptionObserverTargets(), mutationMayReplaceMainCaptionTarget(), nodeContainsCaptionTree(), nodeTouchesCaptionTree()
 
-### Community 1244 - "StackLoginProfile"
-Cohesion: 0.67
-Nodes (3): StackLoginProfile, Isolated, Shared
-
-### Community 1247 - "handleSignedIn"
-Cohesion: 0.83
-Nodes (4): handleSignedIn(), handleSignedOut(), init(), showView()
-
-### Community 1248 - "handleSignedIn"
-Cohesion: 0.83
-Nodes (4): handleSignedIn(), handleSignedOut(), init(), showView()
-
-### Community 1251 - "RbIsolated"
-Cohesion: 0.67
-Nodes (3): RbIsolated, RbShared, RadioButton
+### Community 1244 - "StackElementData"
+Cohesion: 0.14
+Nodes (15): StackElementData, Icon, Id, Kind, LoginProfile, RefreshMinutes, SourceId, Title (+7 more)
 
 ### Community 1269 - "SplitSlot"
 Cohesion: 0.40
 Nodes (5): SplitSlot, H, W, X, Y
 
-### Community 1292 - "parse"
+### Community 1273 - "AudioDot"
 Cohesion: 0.67
-Nodes (3): parse(), parseModule(), parseScript()
+Nodes (3): AudioDot, OverflowAudioDot, Ellipse
+
+### Community 1274 - "AudioGlowShadow"
+Cohesion: 0.67
+Nodes (3): AudioGlowShadow, DynamicIslandShadow, DropShadowEffect
+
+### Community 1279 - "IslandExpDownloadProgress"
+Cohesion: 0.67
+Nodes (3): IslandExpDownloadProgress, IslandExpTimerProgress, ProgressBar
 
 ## Knowledge Gaps
-- **1282 isolated node(s):** `WebView2`, `HomePageView`, `IsProcessCrashed`, `IsDownloadPaused`, `LoadedExtensionIds` (+1277 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 10232 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **540 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **1311 isolated node(s):** `WebView2`, `HomePageView`, `IsProcessCrashed`, `IsDownloadPaused`, `LoadedExtensionIds` (+1306 more)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 10280 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **538 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `$$` connect `$$` to `e`, `nU`, `poe`, `kP`, `constructor`, `vz`, `XI`, `tA`, `uz`, `i`, `Ag`, `mb`, `bP`, `tsurlfilter.js`, `uI`, `createModelFromProvider`, `um`, `z3`, `_assertNotDisposed`, `ng`, `zV`, `dE`, `SW`, `u4`, `Eq`, `background-script.js`, `gE`, `Wie`, `Gie`, `Qh`, `l9`, `rP`, `ZI`, `25247`, `oI`, `XE`, `Pg`, `ym`, `aee`, `kx`, `a0`, `aA`, `history.js`, `Ng`, `c0`, `fL`, `fE`, `Fm`, `Ij`, `Im`, `d3`, `fU`, `sJ`, `jie`, `DP`, `qw`, `nA`, `Sf`, `wf`, `_z`, `wL`, `ww`, `F2`, `t`, `f0`, `Vq`, `Im`, `iZ`, `v4`, `JT`, `ja`, `i0`, `PI`, `ju`, `ff`, `H9`, `kf`, `pf`, `ep`, `hz`, `ja`, `dictionary.js`, `yx`, `LN`, `hR`, `pE`, `oU`, `dL`, `h8`, `oN`, `vi`, `uE`, `u`, `wP`, `rI`, `v1`, `Em`, `mO`, `pL`, `nN`, `az`, `oL`, `Km`, `computeDiff`, `pi`, `e`, `.fire`, `r`, `vw`, `XO`, `Pb`, `yf`, `contentscript.js`, `xo`, `gb`, `We`, `iE`, `lA`, `nne`, `Dh`, `uw`, `l_`, `b2`, `F9`, `Xa`, `zK`, `soe`, `$5`, `.constructor`, `Im`, `lf`, `oie`, `gA`, `AR`, `iN`, `oy`, `qf`, `t$`, `uf`, `Bm`, `react.js`, `pK`, `cE`, `Pw`, `fK`, `qH`, `vK`, `kl`, `uA`, `jq`, `M`, `N5`, `coe`, `Kv`, `nE`, `S6`, `xm`, `xre`, `jU`, `hK`, `Lre`, `T8`, `Tee`, `ac`, `b1`, `Gr`, `oP`, `kZ`, `vu`, `ore`, `Horizon Browser: Command Bar Improvement Plan`, `xp`, `xN`, `bY`, `tw`, `.getEmpty`, `xstate.js`, `yO`, `.isUri`, `mx`, `._render`, `yN`, `dA`, `om`, `Id`, `sl`, `fX`, `uK`, `Sh`, `sz`, `dz`, `bf`, `hg`, `cy`, `kN`, `MR`, `jN`, `iA`, `yA`, `tE`, `_x`, `Hp`, `xT`, `ll`, `iP`, `update`, `iU`, `dx`, `vL`, `ay`, `_1`, `qm`, `QN`, `l3`, `run`, `Uie`, `nte`, `Ex`, `P2`, `OO`, `zH`, `tN`, `r`, `Qv`, `eP`, `.create`, `dk`, `rm`, `hL`, `HE`, `Me`, `a_`, `af`, `aie`, `b_`, `ky`, `Lh`, `PN`, `r0`, `R2`, `rL`, `BU`, `T6`, `tM`, `ux`, `wx`, `QT`, `update`, `xc`, `dv`, `c0`, `fz`, `CRX-Extractor-Downloader-Chrome-Web-Store/background.js`, `Lp`, `t0`, `vh`, `gx`, `qg`, `gP`, `kO`, `Wm`, `mw`, `Ew`, `o0`, `pP`, `px`, `zp`, `_0`, `vb`, `._register`, `p8`, `a9`, `uv`, `Q5`, `nI`, `UB`, `_myTokenize`, `Oq`, `.constructor`, `ly`, `ev`, `QD`, `I8`, `R9`, `bq`, `sO`, `e0`, `.setChildren`, `zD`, `mj`, `cl`, `Dy`, `E6`, `XI`, `YT`, `goe`, `jL`, `jl`, `jK`, `FI`, `e`, `pl`, `gf`, `.getEmpty`, `mf`, `ZO`?**
-  _High betweenness centrality (0.597) - this node is a cross-community bridge._
+- **Why does `$$` connect `$$` to `e`, `constructor`, `vz`, `mb`, `i`, `tsurlfilter.js`, `um`, `SW`, `_assertNotDisposed`, `ng`, `dw`, `Eq`, `background-script.js`, `gE`, `Wie`, `vu`, `25247`, `oI`, `XE`, `wv`, `ym`, `aee`, `rr`, `Ng`, `history.js`, `cm`, `d3`, `nA`, `jie`, `DP`, `_z`, `wL`, `zF`, `e`, `Im`, `Vq`, `iZ`, `JT`, `ju`, `hz`, `dictionary.js`, `yx`, `mZ`, `pE`, `dL`, `oN`, `.fire`, `uE`, `u`, `wP`, `v1`, `pL`, `oL`, `pi`, `e`, `bre`, `r`, `xo`, `gb`, `We`, `iE`, `lA`, `nne`, `g3`, `sm`, `mL`, `b2`, `F9`, `Xa`, `.constructor`, `Im`, `lf`, `gA`, `nx`, `iN`, `oy`, `react.js`, `cE`, `Pw`, `kl`, `uA`, `jq`, `M`, `coe`, `Kv`, `nE`, `l_`, `xre`, `jU`, `hK`, `Lre`, `pce`, `kZ`, `Uq`, `xp`, `tw`, `cW`, `h1`, `xstate.js`, `.isUri`, `mx`, `._render`, `yN`, `dA`, `om`, `Id`, `rv`, `Sh`, `lm`, `bf`, `wq`, `cy`, `kN`, `MR`, `iA`, `tE`, `_x`, `Hp`, `ll`, `iP`, `N7`, `iU`, `dx`, `vL`, `ay`, `_1`, `QN`, `l3`, `trigger`, `Uie`, `nte`, `Ex`, `P2`, `OO`, `zH`, `r`, `eP`, `.create`, `QT`, `dk`, `rm`, `HE`, `a_`, `af`, `aie`, `bv`, `rL`, `Lh`, `PN`, `update`, `xc`, `dv`, `c0`, `Qy`, `Lp`, `t0`, `gx`, `.dispose`, `gP`, `kO`, `mw`, `Ew`, `o0`, `pP`, `px`, `zp`, `_0`, `._register`, `a9`, `nI`, `Oq`, `_myTokenize`, `ly`, `ev`, `R9`, `I8`, `kL`, `bq`, `sO`, `zD`, `zT`, `mj`, `go`, `FI`, `fz`, `gf`, `mf`, `ZO`, `nU`, `AR`, `kP`, `uO`, `tA`, `uz`, `Iw`, `bP`, `jj`, `Tx`, `K2`, `kH`, `zV`, `dE`, `Gie`, `l9`, `rP`, `CRX-Extractor-Downloader-Chrome-Web-Store/background.js`, `bne`, `c0`, `fL`, `yE`, `fE`, `uv`, `Sf`, `qw`, `fU`, `sJ`, `wf`, `sL`, `f0`, `ib`, `PI`, `ff`, `H9`, `f5`, `kf`, `pf`, `run`, `ja`, `rI`, `mO`, `Em`, `jE`, `az`, `computeDiff`, `XO`, `yf`, `vw`, `OW`, `uw`, `qg`, `lu`, `oie`, `qf`, `H`, `t$`, `aW`, `uf`, `xm`, `FI`, `H2`, `nZ`, `Gr`, `oP`, `z3`, `gK`, `Horizon Browser: Command Bar Improvement Plan`, `xN`, `bY`, `sl`, `fX`, `sz`, `jN`, `yA`, `zN`, `xT`, `qm`, `tN`, `Qv`, `vh`, `b_`, `h4`, `hL`, `Me`, `jm`, `nN`, `ky`, `T6`, `tM`, `R2`, `BU`, `wx`, `aL`, `cl`, `Dy`, `E6`, `jL`, `jK`, `uI`, `u4`, `ZI`, `kx`, `Cte`, `p8`, `Im`, `Q5`, `_9`, `Fm`, `eb`, `YT`, `v4`, `ja`, `b5`, `v_`, `LW`, `LN`, `Rg`, `v5`, `vi`, `h8`, `zK`, `e3`, `fb`, `$5`, `g8`, `KB`, `o3`, `pK`, `qH`, `fK`, `BI`, `E5`, `p7`, `s3`, `W5`, `S6`, `y5`, `Tee`, `ac`, `b1`?**
+  _High betweenness centrality (0.601) - this node is a cross-community bridge._
 - **Are the 55 inferred relationships involving `$$` (e.g. with `B()` and `Oe()`) actually correct?**
   _`$$` has 55 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `WebView2`, `HomePageView`, `IsProcessCrashed` to the rest of the system?**
-  _1282 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _1311 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `$$` be split into smaller, more focused modules?**
-  _Cohesion score 0.0032504106701653165 - nodes in this community are weakly interconnected._
-- **Why does `3. Engineered Workarounds & Gotchas` connect `HomePageView` to `Rect`, `LogService.RecordCrash`, `DependencyObject`, `MainWindow.SplitBuildLayout`, `47258`, `vimium_frontend.js`, `Task`, `FolderDrawerView`, `CustomShortcut`, `HomePageView.EnsureWidgetBoardPopulated`, `GithubUpdateService`, `MainWindow`, `ManageRow`, `Horizon Browser - Workspace Knowledge & Engine Directives`, `UtilityItem`, `d3`, `brush`, `UserControl`, `14776`, `TabViewModel`, `HomeGlassInlineLayer`, `CommandBarWindow`?**
-  _High betweenness centrality (0.317) - this node is a cross-community bridge._
+  _Cohesion score 0.0032781394225093415 - nodes in this community are weakly interconnected._
+- **Why does `3. Engineered Workarounds & Gotchas` connect `HomePageView` to `Rect`, `BrowserView`, `LogService.RecordCrash`, `IntPtr`, `47258`, `vimium_frontend.js`, `ExtensionService`, `Task`, `CustomShortcut`, `BookmarkItem`, `GithubUpdateService`, `MainWindow`, `Horizon Browser - Workspace Knowledge & Engine Directives`, `d3`, `brush`, `UserControl`, `FolderSheetHost.Close`, `14776`, `TabViewModel`, `HomeGlassInlineLayer`, `CommandBarWindow`?**
+  _High betweenness centrality (0.319) - this node is a cross-community bridge._
 - **Are the 2 inferred relationships involving `MainWindow` (e.g. with `App.OnStartup()` and `App.ShowNewMainWindow()`) actually correct?**
   _`MainWindow` has 2 INFERRED edges - model-reasoned connections that need verification._
 - **Should `e` be split into smaller, more focused modules?**
-  _Cohesion score 0.013759370605843636 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.013952750911685428 - nodes in this community are weakly interconnected._

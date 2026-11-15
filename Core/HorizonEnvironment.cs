@@ -61,62 +61,20 @@ public static class HorizonEnvironment
             if (window.__horizonScriptDisabled) return;
             if (!window.location.hostname.includes('tiktok.com')) return;
 
-            const origPlay = HTMLMediaElement.prototype.play;
-            HTMLMediaElement.prototype.play = function() {
-                if (!window.__hzUserInteracted && !window.__horizonScriptDisabled) {
-                    try { this.pause(); } catch(e) {}
-                    return Promise.resolve();
-                }
-                return origPlay.apply(this, arguments);
-            };
-
-            const blockAutoplay = (e) => {
-                if (window.__horizonScriptDisabled || window.__hzUserInteracted) return;
-                if (e.target && e.target.tagName === 'VIDEO') {
-                    try { e.target.pause(); } catch(err) {}
-                }
-            };
-            document.addEventListener('play', blockAutoplay, true);
-            document.addEventListener('playing', blockAutoplay, true);
-
-            const markTrustedInteraction = (e) => {
-                if (e && e.isTrusted) {
-                    window.__hzUserInteracted = true;
-                }
-            };
-            document.addEventListener('pointerdown', markTrustedInteraction, true);
-            document.addEventListener('keydown', markTrustedInteraction, true);
-            document.addEventListener('wheel', markTrustedInteraction, { capture: true, passive: true });
-
+            // Only hide explicit login modals/guest gates; NEVER hide UI portals or video player controls
             const CSS = `
                 #login-modal,
+                [data-e2e=""login-modal""],
                 [id*=""login-modal""],
-                [id*=""loginContainer""],
-                [class*=""DivLoginContainer""],
-                [class*=""DivModalContainer""],
-                [class*=""DivLoginModal""],
-                [class*=""DivLoginWall""],
-                [class*=""DivLoginGate""],
-                [class*=""DivGuestMode""],
                 [class*=""login-modal-mask""],
-                [class*=""tiktok-modal__mask""],
-                [class*=""DivMask-StyledMask""],
-                [class*=""DivModalMask""],
-                [class*=""DivModalWrap""],
-                [class*=""DivPopupContainer""],
-                [class*=""DivBannerContainer""],
-                [data-floating-ui-portal],
-                #tiktok-portal-container,
-                [data-e2e=""feed-follow-popup""],
-                [data-e2e=""login-modal""] {
+                [class*=""tiktok-modal__mask""] {
                     display: none !important;
                     visibility: hidden !important;
                     opacity: 0 !important;
                     pointer-events: none !important;
                 }
-                html, body, #app, #main-content-homepage_hot {
+                html, body {
                     overflow: auto !important;
-                    pointer-events: auto !important;
                 }
             `;
 
@@ -131,14 +89,16 @@ public static class HorizonEnvironment
 
             const unlockScrollAndDismiss = () => {
                 if (window.__horizonScriptDisabled) return;
-                const closeBtn = document.querySelector('[data-e2e=""modal-close-inner-button""]')
-                              || document.querySelector('[data-e2e=""modal-close-icon""]')
-                              || document.querySelector('[class*=""DivCloseWrapper""]')
-                              || document.querySelector('div[role=""dialog""] button[aria-label=""Close""]')
-                              || document.querySelector('button[aria-label=""Close""]');
-                if (closeBtn && !closeBtn.dataset.hzDismissed) {
-                    closeBtn.dataset.hzDismissed = 'true';
-                    try { closeBtn.click(); } catch(e) {}
+
+                // Close login modal if present, but only search inside the actual modal container
+                const loginModal = document.querySelector('[data-e2e=""login-modal""], #login-modal, [id*=""login-modal""]');
+                if (loginModal) {
+                    const closeBtn = loginModal.querySelector('[data-e2e=""modal-close-inner-button""], [data-e2e=""modal-close-icon""], button[aria-label=""Close""]');
+                    if (closeBtn && !closeBtn.dataset.hzDismissed) {
+                        closeBtn.dataset.hzDismissed = 'true';
+                        try { closeBtn.click(); } catch(e) {}
+                    }
+                    try { loginModal.remove(); } catch(e) {}
                 }
 
                 const appRoot = document.getElementById('app');
@@ -147,15 +107,11 @@ public static class HorizonEnvironment
                     if (appRoot.getAttribute('aria-hidden') === 'true') appRoot.removeAttribute('aria-hidden');
                 }
 
-                if (!window.__hzUserInteracted) {
-                    const videos = document.querySelectorAll('video');
-                    for (let i = 0; i < videos.length; i++) {
-                        const v = videos[i];
-                        if (v.hasAttribute('autoplay')) v.removeAttribute('autoplay');
-                        if (!v.paused) {
-                            try { v.pause(); } catch(e) {}
-                        }
-                    }
+                if (document.body && document.body.style.overflow === 'hidden') {
+                    document.body.style.overflow = 'auto';
+                }
+                if (document.documentElement && document.documentElement.style.overflow === 'hidden') {
+                    document.documentElement.style.overflow = 'auto';
                 }
             };
 
@@ -169,7 +125,7 @@ public static class HorizonEnvironment
                 _timer = setTimeout(() => {
                     _timer = null;
                     unlockScrollAndDismiss();
-                }, 400);
+                }, 500);
             };
 
             if (window.MutationObserver) {
