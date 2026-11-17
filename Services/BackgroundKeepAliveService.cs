@@ -253,6 +253,14 @@ public static class BackgroundKeepAliveService
                             Application.Current?.Dispatcher.Invoke(() => OnOpenWebAppReceived?.Invoke(webAppId));
                         }
                     }
+                    else if (cmd != null && cmd.StartsWith("CLOSEWEBAPP:"))
+                    {
+                        var closeId = cmd.Substring("CLOSEWEBAPP:".Length).Trim();
+                        if (WebAppService.IsValidId(closeId))
+                        {
+                            Application.Current?.Dispatcher.Invoke(() => WebAppHostService.CloseById(closeId));
+                        }
+                    }
                     else if (cmd != null && cmd.StartsWith("OPENURL:"))
                     {
                         var openUrl = cmd.Substring("OPENURL:".Length).Trim();

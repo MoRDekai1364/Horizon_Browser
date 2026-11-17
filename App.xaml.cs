@@ -120,6 +120,23 @@ public partial class App : Application
             }
         }
 
+        string? uninstallId = null;
+        foreach (var arg in e.Args)
+        {
+            if (arg.StartsWith("--webapp-uninstall=", StringComparison.OrdinalIgnoreCase))
+            {
+                uninstallId = arg.Substring("--webapp-uninstall=".Length).Trim('"');
+                break;
+            }
+        }
+        if (uninstallId != null)
+        {
+            RunWebAppUninstall(uninstallId);
+            return;
+        }
+
+        System.Threading.Tasks.Task.Run(() => WebAppService.LoadAll());
+
         string? webAppId = null;
         foreach (var arg in e.Args)
         {
@@ -514,6 +531,42 @@ public partial class App : Application
         {
             LogService.RecordCrash(ex, "ShowNewMainWindow");
             MessageBox.Show("Could not open the main window.\n" + ex.Message, "Horizon", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private void RunWebAppUninstall(string id)
+    {
+        try
+        {
+            var manifest = WebAppService.IsValidId(id) ? WebAppService.Load(id) : null;
+            if (manifest == null)
+            {
+                MessageBox.Show("This Web App is no longer installed.", "Horizon", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            var answer = MessageBox.Show(
+                "Uninstall '" + manifest.Name + "'?\n\nIts shortcuts and saved files will be deleted.",
+                "Horizon",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning,
+                MessageBoxResult.No);
+            if (answer != MessageBoxResult.Yes) return;
+
+            if (BackgroundKeepAliveService.TryActivateExistingInstance("CLOSEWEBAPP:" + id))
+                System.Threading.Thread.Sleep(800);
+
+            var errors = new List<string>();
+            if (!WebAppService.Uninstall(id, errors))
+                MessageBox.Show("Uninstall incomplete: " + string.Join("; ", errors), "Horizon", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+        catch (Exception ex)
+        {
+            LogService.RecordCrash(ex, "App.RunWebAppUninstall");
+        }
+        finally
+        {
+            Shutdown();
         }
     }
 

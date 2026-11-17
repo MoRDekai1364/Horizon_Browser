@@ -195,6 +195,7 @@ public static class WebAppService
             File.Move(tmp, manifestPath, true);
 
             result.Manifest = manifest;
+            RegisterUninstallEntry(manifest);
             LogService.Write(LogTag, $"Install done. id={id} icon={result.IconOk} desktop={result.DesktopOk} startMenu={result.StartMenuOk} errors={result.Errors.Count}");
             RaiseChanged();
         }
@@ -206,6 +207,64 @@ public static class WebAppService
         return result;
     }
 
+    private const string UninstallKeyRoot = @"Software\Microsoft\Windows\CurrentVersion\Uninstall";
+    private static bool _uninstallEntriesSynced;
+
+    private static string UninstallKeyPath(string id) => UninstallKeyRoot + "\\HorizonWebApp_" + id;
+
+    public static void RegisterUninstallEntry(WebAppManifest m)
+    {
+        try
+        {
+            string exe = ResolveExePath();
+            if (string.IsNullOrEmpty(exe) || !File.Exists(exe)) return;
+            string iconPath = string.IsNullOrEmpty(m.Icon) ? "" : Path.Combine(GetAppDir(m.Id), m.Icon);
+            string icon = (!string.IsNullOrEmpty(iconPath) && File.Exists(iconPath) ? iconPath : exe) + ",0";
+            using var key = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(UninstallKeyPath(m.Id));
+            if (key == null) return;
+            key.SetValue("DisplayName", m.Name);
+            key.SetValue("DisplayIcon", icon);
+            key.SetValue("Publisher", "Horizon");
+            key.SetValue("UninstallString", "\"" + exe + "\" --webapp-uninstall=" + m.Id);
+            key.SetValue("NoModify", 1, Microsoft.Win32.RegistryValueKind.DWord);
+            key.SetValue("NoRepair", 1, Microsoft.Win32.RegistryValueKind.DWord);
+            LogService.Write(LogTag, "UNINSTALLREG registered " + m.Id + " -> " + exe);
+        }
+        catch (Exception ex)
+        {
+            LogService.RecordCrash(ex, "WebAppService.RegisterUninstallEntry");
+        }
+    }
+
+    public static void UnregisterUninstallEntry(string id)
+    {
+        try { Microsoft.Win32.Registry.CurrentUser.DeleteSubKeyTree(UninstallKeyPath(id), false); }
+        catch (Exception ex) { LogService.RecordCrash(ex, "WebAppService.UnregisterUninstallEntry"); }
+    }
+
+    private static void SyncUninstallEntries(List<WebAppManifest> list)
+    {
+        if (_uninstallEntriesSynced) return;
+        _uninstallEntriesSynced = true;
+        foreach (var m in list) RegisterUninstallEntry(m);
+        try
+        {
+            using var root = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(UninstallKeyRoot);
+            if (root == null) return;
+            var live = new HashSet<string>(list.Select(x => "HorizonWebApp_" + x.Id), StringComparer.OrdinalIgnoreCase);
+            foreach (var sub in root.GetSubKeyNames())
+            {
+                if (sub.StartsWith("HorizonWebApp_", StringComparison.OrdinalIgnoreCase) && !live.Contains(sub))
+                    Microsoft.Win32.Registry.CurrentUser.DeleteSubKeyTree(UninstallKeyRoot + "\\" + sub, false);
+            }
+        }
+        catch (Exception ex)
+        {
+            LogService.RecordCrash(ex, "WebAppService.SyncUninstallEntries");
+        }
+    }
+
+    
     public static List<WebAppManifest> LoadAll()
     {
         var list = new List<WebAppManifest>();
@@ -220,6 +279,7 @@ public static class WebAppService
                 if (m != null) list.Add(m);
             }
             list.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.CurrentCultureIgnoreCase));
+            SyncUninstallEntries(list);
         }
         catch (Exception ex)
         {
@@ -312,6 +372,7 @@ public static class WebAppService
 
             var manifest = Load(id);
             WebAppHostService.CloseById(id);
+            UnregisterUninstallEntry(id);
 
             if (manifest != null)
             {
@@ -376,6 +437,7 @@ public static class WebAppService
             m.Name = name;
             CreateShortcutsFor(m, hadDesktop, hadMenu, errors);
             SaveManifest(m);
+            RegisterUninstallEntry(m);
             LogService.Write(LogTag, $"Renamed {id} to '{name}'.");
             return true;
         }

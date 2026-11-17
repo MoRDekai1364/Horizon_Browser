@@ -129,6 +129,7 @@ public partial class WebAppWindow : Window
             bool c = WindowPropertyStore.SetString(hwnd, WindowPropertyStore.PidRelaunchDisplayName, _manifest.Name);
             bool d = WindowPropertyStore.SetString(hwnd, WindowPropertyStore.PidAppUserModelId, aumid);
             LogService.Write(LogTag, $"Window identity set. aumid={aumid} relaunch={a} icon={b} name={c} id={d}");
+            WebAppJumpList.Apply(aumid, exe, _manifest.Id);
         }
         catch (Exception ex)
         {
