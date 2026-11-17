@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using Horizon.Stealth.Services;
 
 namespace Horizon.Stealth.Views;
@@ -22,6 +23,11 @@ public partial class WebAppManagerWindow : Window
     {
         _id = webAppId;
         InitializeComponent();
+
+        MaxHeight = SystemParameters.WorkArea.Height - 40;
+        CardClipHost.Loaded += (_, _) => UpdateCardClip();
+        CardClipHost.SizeChanged += (_, _) => UpdateCardClip();
+        AttachNativeBlur();
 
         var manifest = WebAppService.Load(_id);
         string name = manifest?.Name ?? _id;
@@ -205,6 +211,18 @@ public partial class WebAppManagerWindow : Window
         UpdateIsolationNote();
         TxtStatus.Text = "Unsaved changes.";
     }
+
+    private void Window_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Escape) Close();
+    }
+
+    private void Header_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ButtonState == MouseButtonState.Pressed) DragMove();
+    }
+
+    private void BtnClose_Click(object sender, MouseButtonEventArgs e) => Close();
 
     private void BtnSave_Click(object sender, RoutedEventArgs e) => SavePolicy();
 
