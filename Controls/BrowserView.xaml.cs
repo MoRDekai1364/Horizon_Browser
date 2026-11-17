@@ -941,6 +941,7 @@ public partial class BrowserView : UserControl
                     }
                 }
                 InjectRecoveryCookies();
+                if (!string.IsNullOrEmpty(WebAppId)) await LoadExtensionsAsync();
                 if (!_extensionsLoaded) _ = LoadExtensionsAsync();
 
 
@@ -1033,7 +1034,120 @@ public partial class BrowserView : UserControl
     }
     
     
+    private bool IsIsolatedWebApp =>
+        !string.IsNullOrEmpty(WebAppId) &&
+        !string.IsNullOrEmpty(ContainerId) &&
+        string.Equals(ContainerId, WebAppAccessService.ProfileKey(WebAppId), StringComparison.Ordinal);
+
+    private Task? _isolatedExtensionsTask;
+
+    private Task LoadIsolatedWebAppExtensionsAsync()
+    {
+        if (_isolatedExtensionsTask != null) return _isolatedExtensionsTask;
+        var core = MainWebView?.CoreWebView2;
+        if (core == null) return Task.CompletedTask;
+        _isolatedExtensionsTask = LoadIsolatedWebAppExtensionsCoreAsync(core);
+        return _isolatedExtensionsTask;
+    }
+
+    private async Task LoadIsolatedWebAppExtensionsCoreAsync(CoreWebView2 core)
+    {
+        string webAppId = WebAppId ?? "";
+        try
+        {
+            string expectedProfile = "container_" + ContainerId;
+            string actualProfile = "";
+            try { actualProfile = core.Profile.ProfileName ?? ""; } catch { }
+            if (!string.Equals(actualProfile, expectedProfile, StringComparison.OrdinalIgnoreCase))
+            {
+                LogService.Write("EXT", $"WebApp {webAppId}: isolated profile not active (expected '{expectedProfile}', got '{actualProfile}'). Extensions not loaded.");
+                return;
+            }
+
+            var policy = WebAppAccessService.Load(webAppId);
+            string extensionsRoot = ExtensionService.InstallRoot;
+            var candidates = new List<(string dir, string folderName)>();
+
+            if (policy.ExtensionsEnabled && System.IO.Directory.Exists(extensionsRoot))
+            {
+                foreach (var extDir in System.IO.Directory.GetDirectories(extensionsRoot))
+                {
+                    string manifest = System.IO.Path.Combine(extDir, "manifest.json");
+                    if (!System.IO.File.Exists(manifest)) continue;
+
+                    string folderName = System.IO.Path.GetFileName(extDir).ToLowerInvariant();
+                    if (IsFirefoxOnlyExtension(manifest)) continue;
+
+                    var rec = ExtensionService.Find(folderName);
+                    if (rec != null && !rec.Enabled) continue;
+                    if (folderName.Contains("consent") && !SettingsService.Current.ConsentOMaticEnabled) continue;
+                    if (folderName.Contains("adguard") && !SettingsService.Current.AdGuardEnabled) continue;
+                    if (folderName == "kjchkpkjpiloipaonppkmepcbhcncedo") continue;
+                    if (ExtensionService.ModifiesShortcuts(extDir, folderName, rec?.Name, rec?.Description) &&
+                        ExtensionService.GetShortcutPermission(folderName) != true) continue;
+
+                    candidates.Add((extDir, folderName));
+                }
+            }
+
+            var allowedIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var loadTasks = candidates.Select(async item =>
+            {
+                try
+                {
+                    string? prepared = await Task.Run(() => WebAppAccessService.PrepareExtension(webAppId, item.dir, item.folderName, policy));
+                    if (prepared == null)
+                    {
+                        LogService.Write("EXT", $"WebApp {webAppId}: blocked '{item.folderName}'");
+                        return;
+                    }
+
+                    var ext = await core.Profile.AddBrowserExtensionAsync(prepared);
+                    try { if (!ext.IsEnabled) await ext.EnableAsync(true); } catch { }
+                    lock (allowedIds) allowedIds.Add(ext.Id);
+                    LogService.Write("EXT", $"WebApp {webAppId}: loaded '{item.folderName}' ('{ext.Name}') -> ID={ext.Id}");
+                }
+                catch (Exception ex)
+                {
+                    LogService.Write("EXT", $"WebApp {webAppId}: FAILED '{item.folderName}': {ex.GetType().Name}: {ex.Message}");
+                }
+            });
+            await Task.WhenAll(loadTasks);
+
+            try
+            {
+                var installed = await core.Profile.GetBrowserExtensionsAsync();
+                foreach (var inst in installed)
+                {
+                    bool keep;
+                    lock (allowedIds) keep = allowedIds.Contains(inst.Id);
+                    if (keep) continue;
+                    LogService.Write("EXT", $"WebApp {webAppId}: removing extension not allowed here '{inst.Name}' (ID={inst.Id})");
+                    try { await inst.RemoveAsync(); } catch { }
+                }
+            }
+            catch { }
+
+            LogService.Write("EXT", $"WebApp {webAppId}: restricted extension set ready, {allowedIds.Count} loaded.");
+        }
+        catch (Exception ex)
+        {
+            LogService.RecordCrash(ex, "BrowserView.LoadIsolatedWebAppExtensions");
+        }
+    }
+
     private async Task LoadExtensionsAsync()
+    {
+        if (IsIsolatedWebApp)
+        {
+            await LoadIsolatedWebAppExtensionsAsync();
+            return;
+        }
+
+        await LoadSharedExtensionsAsync();
+    }
+
+    private async Task LoadSharedExtensionsAsync()
     {
         lock (_extensionLock)
         {
@@ -2832,6 +2946,7 @@ public partial class BrowserView : UserControl
 
     public const string HomeSentinel = "horizon://home";
     public string? ContainerId { get; set; }
+    public string? WebAppId { get; set; }   
 
     public event Action? HomeStateChanged;
 

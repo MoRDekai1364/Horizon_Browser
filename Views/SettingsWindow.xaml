@@ -733,6 +733,7 @@
                         </DockPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
                             <Button Content="Open" Width="90" Height="28" Style="{StaticResource Style_StealthButton}" Click="BtnWebAppOpen_Click"/>
+                            <Button Content="Access..." Width="90" Height="28" Margin="8,0,0,0" Style="{StaticResource Style_StealthButton}" Click="BtnWebAppManage_Click"/>
                             <Button Content="Recreate shortcuts" Width="140" Height="28" Margin="8,0,0,0" Style="{StaticResource Style_StealthButton}" Click="BtnWebAppShortcuts_Click"/>
                             <Button Content="Uninstall" Width="90" Height="28" Margin="8,0,0,0" Style="{StaticResource Style_StealthButton}" Click="BtnWebAppUninstall_Click"/>
                         </StackPanel>

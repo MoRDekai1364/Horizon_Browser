@@ -29,7 +29,7 @@ public partial class WebAppWindow : Window
     private const string LogTag = "WEBAPP";
     private const int WM_NCLBUTTONDOWN = 0x00A1;
     private const int HTCAPTION = 2;
-    private const long BarHoldMs = 4000;
+    private const long BarHoldMs = 3800;    
 
     private readonly WebAppManifest _manifest;
     private readonly string _scopeHost;
@@ -62,6 +62,10 @@ public partial class WebAppWindow : Window
         _scopeSite = RegistrableDomain(_scopeHost);
 
         InitializeComponent();
+
+        Browser.WebAppId = manifest.Id;
+        if (WebAppAccessService.RequiresIsolation(WebAppAccessService.Load(manifest.Id)))
+            Browser.ContainerId = WebAppAccessService.ProfileKey(manifest.Id);
 
         if (_restore != null) PrepareRestore(_restore);
 
@@ -614,6 +618,23 @@ public partial class WebAppWindow : Window
 
     private void ToggleMaximize()
         => WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+
+    private WebAppManagerWindow? _managerWindow;
+
+    private void BtnBarSettings_Click(object sender, RoutedEventArgs e)
+    {
+        HideBar(true);
+        if (_managerWindow != null)
+        {
+            if (_managerWindow.WindowState == WindowState.Minimized) _managerWindow.WindowState = WindowState.Normal;
+            _managerWindow.Activate();
+            return;
+        }
+
+        _managerWindow = new WebAppManagerWindow(_manifest.Id) { Owner = this };
+        _managerWindow.Closed += (_, _) => _managerWindow = null;
+        _managerWindow.Show();
+    }
 
     private void BtnBarMin_Click(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
     private void BtnBarMax_Click(object sender, RoutedEventArgs e) => ToggleMaximize();

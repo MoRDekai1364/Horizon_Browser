@@ -286,6 +286,36 @@ public static class WebAppHostService
         return true;
     }
 
+    public static async System.Threading.Tasks.Task<bool> RestartByIdAsync(string id)
+    {
+        var app = Application.Current;
+        if (app == null || !app.Dispatcher.CheckAccess()) return false;
+        if (!Windows.TryGetValue(id, out var entry)) return false;
+
+        var old = entry.Window;
+        var manifest = WebAppService.Load(id) ?? entry.Manifest;
+        var state = await old.CaptureStateAsync(false);
+        if (!Windows.TryGetValue(id, out var current) || !ReferenceEquals(current.Window, old)) return false;
+
+        try
+        {
+            var window = new WebAppWindow(manifest, state);
+            Windows[id] = (manifest, window);
+            window.Closed += (s, _) => OnWindowClosed(id, (Window)s!);
+            window.Show();
+            ActivateWindow(window);
+            old.Close();
+            LogService.Write(LogTag, "Restarted window: " + id);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            LogService.RecordCrash(ex, "WebAppHostService.RestartByIdAsync");
+            Windows[id] = entry;
+            return false;
+        }
+    }
+
     public static void CloseById(string id)
     {
         var app = Application.Current;
@@ -401,7 +431,7 @@ public static class WebAppHostService
 
             var window = new WebAppWindow(manifest, restore);
             Windows[manifest.Id] = (manifest, window);
-            window.Closed += (_, _) => OnWindowClosed(manifest.Id);
+            window.Closed += (s, _) => OnWindowClosed(manifest.Id, (Window)s!);
             window.Show();
             ActivateWindow(window);
             WebAppJournalService.EnsureRunning(() => Windows.Values.Select(v => v.Window).ToList());
@@ -426,6 +456,12 @@ public static class WebAppHostService
             window.Topmost = false;
         }
         window.Focus();
+    }
+
+    private static void OnWindowClosed(string id, Window closed)
+    {
+        if (Windows.TryGetValue(id, out var current) && !ReferenceEquals(current.Window, closed)) return;
+        OnWindowClosed(id);
     }
 
     private static void OnWindowClosed(string id)

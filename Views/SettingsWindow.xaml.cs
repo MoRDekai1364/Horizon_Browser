@@ -1519,6 +1519,18 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
         WebAppHostService.OpenOrActivate(m);
     }
 
+    private void BtnWebAppManage_Click(object sender, RoutedEventArgs e)
+    {
+        var m = SelectedWebApp();
+        if (m == null)
+        {
+            TxtWebAppStatus.Text = "Select a Web App first.";
+            return;
+        }
+
+        new WebAppManagerWindow(m.Id) { Owner = this }.Show();
+    }
+
     private void BtnWebAppRename_Click(object sender, RoutedEventArgs e)
     {
         var m = SelectedWebApp();

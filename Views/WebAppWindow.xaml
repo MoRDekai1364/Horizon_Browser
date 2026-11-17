@@ -143,12 +143,13 @@
                 </Border>
                 <Rectangle x:Name="BarDragGrip" Fill="#01000000" Cursor="SizeAll"
                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                           Margin="0,0,140,0" MouseLeftButtonDown="BarDragGrip_MouseLeftButtonDown"/>
+                           Margin="0,0,186,0" MouseLeftButtonDown="BarDragGrip_MouseLeftButtonDown"/>
                 <TextBlock x:Name="BarTitle" HorizontalAlignment="Left" VerticalAlignment="Center"
-                           Margin="12,0,140,0" Foreground="#CCCCCC" FontSize="12"
+                           Margin="12,0,186,0" Foreground="#CCCCCC" FontSize="12"
                            TextTrimming="CharacterEllipsis" IsHitTestVisible="False"/>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
                             VerticalAlignment="Stretch" Margin="0">
+                    <Button x:Name="BtnBarSettings" Style="{StaticResource BarButton}" Content="&#x2699;" FontFamily="Segoe UI Symbol" FontSize="16" ToolTip="Web App settings" Click="BtnBarSettings_Click"/>
                     <Button x:Name="BtnBarMin" Style="{StaticResource BarButton}" Content="&#x2500;" Click="BtnBarMin_Click"/>
                     <Button x:Name="BtnBarMax" Style="{StaticResource BarButton}" Content="&#x25A1;" Click="BtnBarMax_Click"/>
                     <Button x:Name="BtnBarClose" Style="{StaticResource BarCloseButton}" Content="&#x2715;" Click="BtnBarClose_Click"/>
