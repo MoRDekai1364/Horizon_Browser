@@ -37,6 +37,105 @@ public static class HorizonEnvironment
         (function() {
             if (window.__horizonScriptDisabled) return;
             if (!window.location.hostname.includes('youtube.com') || window.location.hostname.includes('music.youtube.com')) return;
+            if (window.__hzAd) return;
+
+            const SKIP = '.ytp-skip-ad-button, .ytp-ad-skip-button-modern, .ytp-ad-skip-button, .ytp-ad-skip-button-container button, .ytp-ad-skip-button-slot button, .videoAdUiSkipButton, [class*=\'skip-ad\'] button, [class*=\'skip-button\']';
+            const SKIP_TEXT = /^(skip|skip ad|skip ads|пропускане|пропусни)$/i;
+            const findSkip = (root) => {
+                const hit = root.querySelector(SKIP);
+                if (hit) return hit;
+                const buttons = root.querySelectorAll('button, [role=\'button\']');
+                for (const b of buttons) {
+                    if (SKIP_TEXT.test((b.textContent || '').trim()) && visible(b)) return b;
+                }
+                return null;
+            };
+            const state = { mutedByUs: false, prevMuted: false, lastSkip: 0, log: [] };
+            window.__hzAd = state;
+
+            const note = (m) => {
+                state.log.push(Date.now() + ' ' + m);
+                if (state.log.length > 60) state.log.shift();
+            };
+
+            const visible = (el) => {
+                if (!el || !el.isConnected) return false;
+                const r = el.getBoundingClientRect();
+                if (r.width < 2 || r.height < 2) return false;
+                const cs = getComputedStyle(el);
+                return cs.display !== 'none' && cs.visibility !== 'hidden' && cs.opacity !== '0';
+            };
+
+            const press = (el) => {
+                const r = el.getBoundingClientRect();
+                const o = { bubbles: true, cancelable: true, composed: true, view: window, button: 0, clientX: r.left + r.width / 2, clientY: r.top + r.height / 2 };
+                try { el.dispatchEvent(new PointerEvent('pointerdown', o)); } catch (e) {}
+                try { el.dispatchEvent(new MouseEvent('mousedown', o)); } catch (e) {}
+                try { el.dispatchEvent(new PointerEvent('pointerup', o)); } catch (e) {}
+                try { el.dispatchEvent(new MouseEvent('mouseup', o)); } catch (e) {}
+                try { el.click(); } catch (e) {}
+            };
+
+            const tick = () => {
+                if (window.__horizonScriptDisabled) return;
+                const player = document.querySelector('#movie_player') || document.querySelector('.html5-video-player');
+                const adOn = !!(player && (player.classList.contains('ad-showing') || player.classList.contains('ad-interrupting') || player.querySelector('.ytp-ad-player-overlay-layout, .ytp-ad-player-overlay')));
+                const video = player ? (player.querySelector('video.html5-main-video') || player.querySelector('video')) : null;
+                if (adOn) {
+                    const sb0 = findSkip(player);
+                    if (sb0 && visible(sb0) && Date.now() - state.lastSkip > 700) {
+                        state.lastSkip = Date.now();
+                        press(sb0);
+                        note('skip pressed: ' + sb0.className);
+                    }
+                }
+
+                if (!adOn) {
+                    if (state.mutedByUs) {
+                        state.mutedByUs = false;
+                        try {
+                            if (!state.prevMuted) {
+                                if (player && player.unMute) player.unMute();
+                                if (video) video.muted = false;
+                            }
+                        } catch (e) {}
+                        note('ad ended, restored mute=' + state.prevMuted);
+                    }
+                    return;
+                }
+                if (!video) return;
+
+                if (!state.mutedByUs) {
+                    state.prevMuted = !!video.muted || (player.isMuted ? !!player.isMuted() : false);
+                    state.mutedByUs = true;
+                    note('ad started, prevMuted=' + state.prevMuted);
+                }
+                try { if (player.mute) player.mute(); } catch (e) {}
+                video.muted = true;
+
+                const btn = findSkip(player);
+                if (btn && visible(btn) && Date.now() - state.lastSkip > 700) {
+                    state.lastSkip = Date.now();
+                    press(btn);
+                    note('skip pressed: ' + btn.className);
+                    return;
+                }
+
+                const d = video.duration;
+                if (isFinite(d) && d > 0 && d < 900 && d - video.currentTime > 0.3) {
+                    try { video.currentTime = d - 0.1; } catch (e) {}
+                    if (video.paused) { try { video.play(); } catch (e) {} }
+                }
+            };
+
+            setInterval(tick, 150);
+        })();
+    ";
+
+    private const string SCRIPT_YOUTUBE_INTERVENTION_LEGACY = @"
+        (function() {
+            if (window.__horizonScriptDisabled) return;
+            if (!window.location.hostname.includes('youtube.com') || window.location.hostname.includes('music.youtube.com')) return;
             
             setInterval(() => {
                 if (window.__horizonScriptDisabled || document.hidden) return;

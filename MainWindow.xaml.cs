@@ -8466,7 +8466,7 @@ public partial class MainWindow : Window
 
 
 
-            if (ad && ad.playbackRate !== 16.0) ad.playbackRate = 16.0;
+            
 
 
 
