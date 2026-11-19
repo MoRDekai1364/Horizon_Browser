@@ -222,6 +222,8 @@ public partial class WebAppManagerWindow : Window
         if (e.ButtonState == MouseButtonState.Pressed) DragMove();
     }
 
+    private void BtnClose_Down(object sender, MouseButtonEventArgs e) => e.Handled = true;
+
     private void BtnClose_Click(object sender, MouseButtonEventArgs e) => Close();
 
     private void BtnSave_Click(object sender, RoutedEventArgs e) => SavePolicy();

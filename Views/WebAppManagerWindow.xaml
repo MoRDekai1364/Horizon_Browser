@@ -31,7 +31,7 @@
                                        Foreground="{DynamicResource Brush_MutedText}"/>
                         </StackPanel>
                         <Border Grid.Column="1" Width="24" Height="24" CornerRadius="12" Cursor="Hand"
-                                Background="{DynamicResource Brush_SurfaceField}" MouseLeftButtonUp="BtnClose_Click">
+                                Background="{DynamicResource Brush_SurfaceField}" MouseLeftButtonDown="BtnClose_Down" MouseLeftButtonUp="BtnClose_Click">
                             <TextBlock Text="&#x2715;" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center"
                                        Foreground="{DynamicResource Brush_SoftText}"/>
                         </Border>

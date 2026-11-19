@@ -29,13 +29,13 @@ public partial class WebAppWindow : Window
     private const string LogTag = "WEBAPP";
     private const int WM_NCLBUTTONDOWN = 0x00A1;
     private const int HTCAPTION = 2;
-    private const long BarHoldMs = 3800;    
+    private const long BarHoldMs = 200;    
 
     private readonly WebAppManifest _manifest;
     private readonly string _scopeHost;
     private readonly string _scopeSite;
     private readonly HashSet<string> _allowedSites = new(StringComparer.OrdinalIgnoreCase);
-    private readonly DispatcherTimer _barTimer = new() { Interval = TimeSpan.FromMilliseconds(100) };
+    private readonly DispatcherTimer _barTimer = new() { Interval = TimeSpan.FromMilliseconds(33) };
 
     private string? _pendingOfferUrl;
     private string? _bypassUrl;
@@ -583,8 +583,8 @@ public partial class WebAppWindow : Window
         Matrix toDevice = source.CompositionTarget.TransformToDevice;
         Point tl = RootGrid.PointToScreen(new Point(0, 0));
         double width = RootGrid.ActualWidth * toDevice.M11;
-        double edge = (_barVisible ? 56 : 24) * toDevice.M22;
-        double zoneLeft = tl.X + width * 0.75;
+        double edge = (_barVisible ? BarRoot.Height : 24) * toDevice.M22;
+        double zoneLeft = _barVisible ? tl.X : tl.X + width * 0.75;
         return p.X >= zoneLeft && p.X <= tl.X + width && p.Y >= tl.Y && p.Y <= tl.Y + edge;
     }
 
@@ -609,7 +609,7 @@ public partial class WebAppWindow : Window
             return;
         }
 
-        var anim = new DoubleAnimation(0, TimeSpan.FromMilliseconds(300));
+        var anim = new DoubleAnimation(0, TimeSpan.FromMilliseconds(120));
         anim.Completed += (_, _) =>
         {
             if (!_barVisible) BarPopup.IsOpen = false;

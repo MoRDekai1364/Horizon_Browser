@@ -1259,7 +1259,7 @@ public partial class BrowserView : UserControl
                         _loadedExtensionIds[ext.Name.ToLowerInvariant()] = ext.Id;
                     }
                 }
-                LogService.Write("EXT", $"Loaded: '{item.folderName}' ('{ext.Name}') \u2192 ID={ext.Id}");
+                LogService.Write("EXT", $"Loaded: '{item.folderName}' ('{ext.Name}') enabled={ext.IsEnabled} \u2192 ID={ext.Id}");
                 System.Threading.Interlocked.Increment(ref loaded);
             }
             catch (Exception ex)

@@ -20,6 +20,7 @@ version 2.8.0
 + "Copy Image" now invisibly loads the full-resolution image in the background before copying, and shows a "please wait" notice if it takes longer
 + downloaded images keep their original file names (no more automatic renaming)
 + removed the "Open log file?" prompt after media downloads
++ webapp improvements
 
 version 2.7.9
 + integrated native Rust core engine (horizon_core.dll) for SIMD wallpaper luminance, text fitting, and sub-millisecond memory audits
