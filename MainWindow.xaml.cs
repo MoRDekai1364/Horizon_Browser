@@ -9925,6 +9925,8 @@ return colors.length > 0 ? colors : null;
 
         IsSidebarAnimating = true;
 
+        int generation = ++_sidebarToggleGeneration;
+
         // Temporarily enable GPU raster cache on the sidebar during motion for silky 60 FPS
         if (RightSidebar != null && RightSidebar.CacheMode == null)
         {
@@ -9960,6 +9962,7 @@ return colors.length > 0 ? colors : null;
 
                 animX.Completed += (s, e) =>
                 {
+                    if (generation != _sidebarToggleGeneration) return;
                     IsSidebarAnimating = false;
                     if (RightSidebar != null) RightSidebar.CacheMode = null;
                     if (!isOpen)
@@ -9992,6 +9995,7 @@ return colors.length > 0 ? colors : null;
 
             if (SidebarSlideTransform != null)
             {
+                SidebarSlideTransform.BeginAnimation(TranslateTransform.XProperty, null);
                 SidebarSlideTransform.X = 0;
             }
             if (SidebarSlideHost != null)
@@ -10016,6 +10020,7 @@ return colors.length > 0 ? colors : null;
 
             animW.Completed += (s, e) =>
             {
+                if (generation != _sidebarToggleGeneration) return;
                 IsSidebarAnimating = false;
                 if (RightSidebar != null) RightSidebar.CacheMode = null;
                 SidebarContainer.BeginAnimation(FrameworkElement.WidthProperty, null);
@@ -15285,6 +15290,9 @@ return colors.length > 0 ? colors : null;
 
 
         public static bool IsSidebarAnimating { get; set; } = false;
+    internal const string TrackPrevScript = "(() => { const s=['ytmusic-player-bar .previous-button','.ytp-prev-button','[data-testid=\"previous-button\"]','.skipControl__previous','tp-yt-paper-icon-button#previous-button','.previous-button','[aria-label=\"Previous\"]','[aria-label=\"Previous track\"]','[title=\"Previous\"]']; for(const q of s){const b=document.querySelector(q); if(b){b.click();return;}} const m=document.querySelector('video,audio'); if(m)m.currentTime=0; })()";
+    internal const string TrackNextScript = "(() => { const s=['ytmusic-player-bar .next-button','.ytp-next-button','[data-testid=\"next-button\"]','.skipControl__next','tp-yt-paper-icon-button#next-button','.next-button','[aria-label=\"Next\"]','[aria-label=\"Next track\"]','[title=\"Next\"]']; for(const q of s){const b=document.querySelector(q); if(b){b.click();return;}} const m=document.querySelector('video,audio'); if(m&&isFinite(m.duration))m.currentTime=m.duration-0.1; })()";
+    private int _sidebarToggleGeneration;
 
 
 
@@ -33176,7 +33184,8 @@ private sealed class WeatherRetryHandler : DelegatingHandler
 
 
 
-            const string prevScript =
+            const string prevScript = TrackPrevScript;
+            const string prevScriptLegacy =
 
 
 
@@ -33200,7 +33209,8 @@ private sealed class WeatherRetryHandler : DelegatingHandler
 
 
 
-            const string nextScript =
+            const string nextScript = TrackNextScript;
+            const string nextScriptLegacy =
 
 
 
@@ -34199,7 +34209,7 @@ private sealed class WeatherRetryHandler : DelegatingHandler
 
 
 
-                            _ = core.ExecuteScriptAsync("(() => { const b=document.querySelector('.ytp-prev-button,[data-testid=\"previous-button\"],.skipControl__previous'); if(b){b.click();}else{const m=document.querySelector('video,audio');if(m)m.currentTime=0;}})()");
+                            _ = core.ExecuteScriptAsync(TrackPrevScript);
 
 
 
@@ -34223,7 +34233,7 @@ private sealed class WeatherRetryHandler : DelegatingHandler
 
 
 
-                            _ = core.ExecuteScriptAsync("(() => { const b=document.querySelector('.ytp-next-button,[data-testid=\"next-button\"],.skipControl__next'); if(b){b.click();}else{const m=document.querySelector('video,audio');if(m&&isFinite(m.duration))m.currentTime=m.duration-0.1;}})()");
+                            _ = core.ExecuteScriptAsync(TrackNextScript);
 
 
 
@@ -45899,7 +45909,11 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
 
             ColSidebar.Width = new GridLength(0);
 
-            if (SidebarSlideTransform != null) SidebarSlideTransform.X = 0;
+            if (SidebarSlideTransform != null)
+            {
+                SidebarSlideTransform.BeginAnimation(TranslateTransform.XProperty, null);
+                SidebarSlideTransform.X = 0;
+            }
 
             if (SidebarSlideHost != null)
 
@@ -45923,7 +45937,11 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
 
             Panel.SetZIndex(SidebarContainer, 0);
 
-            if (SidebarSlideTransform != null) SidebarSlideTransform.X = 0;
+            if (SidebarSlideTransform != null)
+            {
+                SidebarSlideTransform.BeginAnimation(TranslateTransform.XProperty, null);
+                SidebarSlideTransform.X = 0;
+            }
 
             if (SidebarSlideHost != null)
 
