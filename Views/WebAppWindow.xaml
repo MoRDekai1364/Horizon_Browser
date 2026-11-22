@@ -81,7 +81,7 @@
         <Style x:Key="OfferButton" TargetType="Button">
             <Setter Property="Height" Value="26"/>
             <Setter Property="Padding" Value="12,0"/>
-            <Setter Property="Margin" Value="8,0,0,0"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
             <Setter Property="Background" Value="#1f3a4d"/>
             <Setter Property="Foreground" Value="#e6f3fb"/>
             <Setter Property="BorderThickness" Value="0"/>
@@ -113,14 +113,14 @@
         <Border x:Name="OfferBar" Grid.Row="0" Visibility="Collapsed"
                 Background="#12202b" BorderBrush="#2f6f9f" BorderThickness="0,0,0,1">
             <DockPanel Margin="12,7">
-                <Button x:Name="BtnOfferNever" DockPanel.Dock="Right" Style="{StaticResource OfferButton}"
-                        Content="Don't ask again" Click="BtnOfferNever_Click"/>
-                <Button x:Name="BtnOfferBrowser" DockPanel.Dock="Right" Style="{StaticResource OfferButton}"
-                        Content="Open in default browser" Click="BtnOfferBrowser_Click"/>
-                <Button x:Name="BtnOfferHorizon" DockPanel.Dock="Right" Style="{StaticResource OfferButton}"
-                        Content="Open in Horizon" Click="BtnOfferHorizon_Click"/>
-                <Button x:Name="BtnOfferStay" DockPanel.Dock="Right" Style="{StaticResource OfferButton}"
+                <Button x:Name="BtnOfferStay" DockPanel.Dock="Left" Style="{StaticResource OfferButton}"
                         Content="Stay in this window" Click="BtnOfferStay_Click"/>
+                <Button x:Name="BtnOfferHorizon" DockPanel.Dock="Left" Style="{StaticResource OfferButton}"
+                        Content="Open in Horizon" Click="BtnOfferHorizon_Click"/>
+                <Button x:Name="BtnOfferBrowser" DockPanel.Dock="Left" Style="{StaticResource OfferButton}"
+                        Content="Open in default browser" Click="BtnOfferBrowser_Click"/>
+                <Button x:Name="BtnOfferNever" DockPanel.Dock="Left" Style="{StaticResource OfferButton}"
+                        Content="Don't ask again" Click="BtnOfferNever_Click"/>
                 <TextBlock x:Name="OfferText" VerticalAlignment="Center" Foreground="#cfe6f5"
                            FontSize="13" TextTrimming="CharacterEllipsis"/>
             </DockPanel>

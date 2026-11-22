@@ -49,11 +49,22 @@ public partial class WebAppManagerWindow
         if (SettingsService.Current.DisableBlurEffects)
         {
             CardBaseBg.Background = new SolidColorBrush(Color.FromArgb(0xF2, 0x12, 0x12, 0x12));
+            ApplyContrastForeground();
             return;
         }
 
         CardBaseBg.Background = new SolidColorBrush(Color.FromArgb(0x8C, 0x0E, 0x0E, 0x0E));
+        ApplyContrastForeground();
         SourceInitialized += (_, _) => EnableNativeBlur();
+    }
+
+    private void ApplyContrastForeground()
+    {
+        Color bg = (CardBaseBg.Background as SolidColorBrush)?.Color ?? Colors.Black;
+        double lum = (0.2126 * bg.R + 0.7152 * bg.G + 0.0722 * bg.B) / 255.0;
+        Color fg = lum < 0.5 ? Colors.White : Colors.Black;
+        foreach (string key in new[] { "Brush_Text", "Brush_SoftText", "Brush_MutedText", "Brush_Accent" })
+            Resources[key] = new SolidColorBrush(fg);
     }
 
     private void EnableNativeBlur()

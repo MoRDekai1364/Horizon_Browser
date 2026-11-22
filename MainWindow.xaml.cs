@@ -6837,7 +6837,7 @@ public partial class MainWindow : Window
 
 
 
-            tab.TabWidth += diff * 0.22;
+            tab.TabWidth += diff * 0.44;
 
 
 

@@ -29,7 +29,7 @@ public partial class WebAppWindow : Window
     private const string LogTag = "WEBAPP";
     private const int WM_NCLBUTTONDOWN = 0x00A1;
     private const int HTCAPTION = 2;
-    private const long BarHoldMs = 200;    
+    private const long BarHoldMs = 80;    
 
     private readonly WebAppManifest _manifest;
     private readonly string _scopeHost;
