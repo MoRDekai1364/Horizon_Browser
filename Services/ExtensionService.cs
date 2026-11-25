@@ -180,6 +180,61 @@ public static class ExtensionService
 
     public static string GetInstallFolder(string id) => Path.Combine(InstallRoot, id);
 
+    // ── Startup extension tab suppression & runtime ID persistence ──────────
+    private static long _extensionsLoadStartedTick = 0;
+
+    public static void MarkExtensionsLoadingStarted()
+    {
+        System.Threading.Interlocked.Exchange(ref _extensionsLoadStartedTick, Environment.TickCount64);
+    }
+
+    /// <summary>
+    /// True for 12 seconds after extensions begin loading, preventing extension
+    /// onInstalled/update handlers from hijacking the browser with unwanted tabs.
+    /// </summary>
+    public static bool IsWithinStartupPopupSuppressionWindow
+    {
+        get
+        {
+            long start = System.Threading.Interlocked.Read(ref _extensionsLoadStartedTick);
+            if (start == 0) return false;
+            return (Environment.TickCount64 - start) < 12_000;
+        }
+    }
+
+    public static bool IsLikelyExtensionAutoOpenUrl(string? url)
+    {
+        if (string.IsNullOrWhiteSpace(url)) return false;
+        string lower = url.ToLowerInvariant();
+        if (lower.StartsWith("chrome-extension://", StringComparison.Ordinal) ||
+            lower.StartsWith("extension://", StringComparison.Ordinal))
+            return true;
+
+        return lower.Contains("/update/") || lower.Contains("/update?") || lower.EndsWith("/update") ||
+               lower.Contains("/welcome") || lower.Contains("/installed") ||
+               lower.Contains("/onboard") || lower.Contains("/changelog") ||
+               lower.Contains("/thank-you") || lower.Contains("/thanks") ||
+               lower.Contains("?version=") || lower.Contains("&version=") ||
+               lower.Contains("utm_source=extension");
+    }
+
+    public static void RecordLoadedRuntimeId(string folderName, string runtimeId, string? manifestVersion)
+    {
+        try
+        {
+            var ext = Find(folderName);
+            if (ext == null) return;
+            bool changed = !string.Equals(ext.RuntimeId, runtimeId, StringComparison.OrdinalIgnoreCase) ||
+                           (!string.IsNullOrEmpty(manifestVersion) && !string.Equals(ext.LastLoadedVersion, manifestVersion, StringComparison.Ordinal));
+            if (!changed) return;
+            ext.RuntimeId = runtimeId;
+            if (!string.IsNullOrEmpty(manifestVersion))
+                ext.LastLoadedVersion = manifestVersion;
+            SaveCatalog();
+        }
+        catch { }
+    }
+
     public static bool? GetShortcutPermission(string id)
     {
         var ext = Find(id);

@@ -10,9 +10,12 @@ namespace Horizon.Stealth.Services;
 public class UpdateCheckResult
 {
     public bool UpdateAvailable { get; set; }
+    public bool IsSameVersionRefresh { get; set; }
     public string CurrentVersion { get; set; } = "";
     public string CurrentChannel { get; set; } = "";
     public string LatestVersion { get; set; } = "";
+    public string? ReleaseSignature { get; set; }
+    public DateTime? AssetUpdatedAtUtc { get; set; }
     public string? AssetUrl { get; set; }
     public string? AssetName { get; set; }
     public string? ErrorMessage { get; set; }
@@ -27,12 +30,23 @@ public static class GithubUpdateService
         UpdateReadyToInstall?.Invoke(installerPath);
     }
 
+    private sealed class ReleaseApiCache
+    {
+        public string OwnerRepo { get; set; } = "";
+        public string ETag { get; set; } = "";
+        public string Json { get; set; } = "";
+        public DateTime CachedAtUtc { get; set; }
+    }
+
+    private static string ReleaseCachePath => Path.Combine(ConfigService.UserDataRoot, "_github_release_cache.json");
+
     private static readonly HttpClient _apiClient = new HttpClient();
     private static readonly HttpClient _downloadClient = new HttpClient();
 
     static GithubUpdateService()
     {
         _apiClient.DefaultRequestHeaders.UserAgent.ParseAdd("Horizon-Browser-Update-Checker");
+        _apiClient.DefaultRequestHeaders.Accept.ParseAdd("application/vnd.github+json");
         _apiClient.Timeout = TimeSpan.FromSeconds(15);
 
         _downloadClient.DefaultRequestHeaders.UserAgent.ParseAdd("Horizon-Browser-Update-Downloader");
@@ -114,14 +128,13 @@ public static class GithubUpdateService
             }
 
             string apiUrl = $"https://api.github.com/repos/{ownerRepo}/releases?per_page=30";
-            using var response = await _apiClient.GetAsync(apiUrl);
-            if (!response.IsSuccessStatusCode)
+            string? json = await FetchReleasesJsonWithRetryAsync(apiUrl, ownerRepo);
+            if (string.IsNullOrWhiteSpace(json))
             {
-                result.ErrorMessage = $"GitHub API returned {(int)response.StatusCode}.";
+                result.ErrorMessage = "Could not reach GitHub Releases API (network or rate limit).";
                 return result;
             }
 
-            string json = await response.Content.ReadAsStringAsync();
             using var doc = JsonDocument.Parse(json);
             JsonElement root = default;
             bool releaseFound = false;
@@ -161,6 +174,11 @@ public static class GithubUpdateService
 
             string? matchedUrl = null;
             string? matchedName = null;
+            long matchedAssetId = 0;
+            long matchedAssetSize = 0;
+            string matchedAssetUpdatedRaw = "";
+            string matchedAssetDigest = "";
+            DateTime? matchedAssetUpdatedUtc = null;
             int bestRank = int.MaxValue;
             foreach (var asset in assetsEl.EnumerateArray())
             {
@@ -174,6 +192,12 @@ public static class GithubUpdateService
                 bestRank = rank;
                 matchedName = name;
                 matchedUrl = assetUrl;
+                matchedAssetId = asset.TryGetProperty("id", out var idEl) && idEl.TryGetInt64(out long aid) ? aid : 0;
+                matchedAssetSize = asset.TryGetProperty("size", out var szEl) && szEl.TryGetInt64(out long asz) ? asz : 0;
+                matchedAssetUpdatedRaw = asset.TryGetProperty("updated_at", out var updEl) ? updEl.GetString() ?? "" : "";
+                matchedAssetDigest = asset.TryGetProperty("digest", out var digEl) ? digEl.GetString() ?? "" : "";
+                if (DateTime.TryParse(matchedAssetUpdatedRaw, null, System.Globalization.DateTimeStyles.AdjustToUniversal | System.Globalization.DateTimeStyles.AssumeUniversal, out var parsedDt))
+                    matchedAssetUpdatedUtc = parsedDt;
             }
 
             if (matchedUrl == null)
@@ -184,6 +208,10 @@ public static class GithubUpdateService
 
             result.AssetUrl = matchedUrl;
             result.AssetName = matchedName;
+            result.AssetUpdatedAtUtc = matchedAssetUpdatedUtc;
+            result.ReleaseSignature = string.IsNullOrEmpty(matchedAssetDigest)
+                ? $"{remoteVersion}|{matchedAssetId}|{matchedAssetUpdatedRaw}|{matchedAssetSize}"
+                : $"{remoteVersion}|{matchedAssetDigest}";
 
             if (string.IsNullOrEmpty(remoteVersion))
             {
@@ -191,7 +219,33 @@ public static class GithubUpdateService
                 return result;
             }
 
-            result.UpdateAvailable = CompareVersions(remoteVersion, localVersion) > 0;
+            int cmp = CompareVersions(remoteVersion, localVersion);
+            if (cmp > 0)
+            {
+                result.UpdateAvailable = true;
+            }
+            else if (cmp == 0)
+            {
+                // Detect same-version GitHub release refreshes (re-uploaded asset / updated build)
+                string lastInstalledSig = SettingsService.Current.LastInstalledReleaseSignature ?? "";
+                bool alreadyInstalledThisSig = !string.IsNullOrEmpty(lastInstalledSig) &&
+                                               string.Equals(lastInstalledSig, result.ReleaseSignature, StringComparison.Ordinal);
+
+                if (!alreadyInstalledThisSig && matchedAssetUpdatedUtc.HasValue)
+                {
+                    DateTime localBinaryUtc = GetLocalBinaryTimestampUtc();
+                    // Require remote asset to be at least 10 minutes newer than local binary
+                    // so a freshly installed/built binary never self-reprompts.
+                    if (localBinaryUtc != DateTime.MinValue &&
+                        matchedAssetUpdatedUtc.Value > localBinaryUtc.AddMinutes(10))
+                    {
+                        result.UpdateAvailable = true;
+                        result.IsSameVersionRefresh = true;
+                        result.LatestVersion = $"{remoteVersion} (updated {matchedAssetUpdatedUtc.Value.ToLocalTime():MMM d, HH:mm})";
+                    }
+                }
+            }
+
             return result;
         }
         catch (Exception ex)
@@ -199,6 +253,96 @@ public static class GithubUpdateService
             result.ErrorMessage = ex.Message;
             return result;
         }
+    }
+
+    private static DateTime GetLocalBinaryTimestampUtc()
+    {
+        try
+        {
+            string exe = DefaultBrowserService.ResolveExecutablePath();
+            if (!string.IsNullOrEmpty(exe) && File.Exists(exe))
+                return File.GetLastWriteTimeUtc(exe);
+        }
+        catch { }
+        return DateTime.MinValue;
+    }
+
+    private static async Task<string?> FetchReleasesJsonWithRetryAsync(string apiUrl, string ownerRepo)
+    {
+        ReleaseApiCache? cache = null;
+        try
+        {
+            if (File.Exists(ReleaseCachePath))
+                cache = JsonSerializer.Deserialize<ReleaseApiCache>(File.ReadAllText(ReleaseCachePath));
+            if (cache != null && !string.Equals(cache.OwnerRepo, ownerRepo, StringComparison.OrdinalIgnoreCase))
+                cache = null;
+        }
+        catch { cache = null; }
+
+        for (int attempt = 0; attempt < 2; attempt++)
+        {
+            try
+            {
+                using var req = new HttpRequestMessage(HttpMethod.Get, apiUrl);
+                req.Headers.CacheControl = new System.Net.Http.Headers.CacheControlHeaderValue { NoCache = true };
+                if (cache != null && !string.IsNullOrEmpty(cache.ETag))
+                    req.Headers.TryAddWithoutValidation("If-None-Match", cache.ETag);
+
+                using var response = await _apiClient.SendAsync(req);
+
+                if (response.StatusCode == System.Net.HttpStatusCode.NotModified && cache != null && !string.IsNullOrEmpty(cache.Json))
+                {
+                    return cache.Json;
+                }
+
+                if (response.IsSuccessStatusCode)
+                {
+                    string json = await response.Content.ReadAsStringAsync();
+                    string etag = response.Headers.ETag?.ToString() ?? "";
+                    try
+                    {
+                        Directory.CreateDirectory(ConfigService.UserDataRoot);
+                        string tmp = ReleaseCachePath + ".tmp";
+                        File.WriteAllText(tmp, JsonSerializer.Serialize(new ReleaseApiCache
+                        {
+                            OwnerRepo = ownerRepo,
+                            ETag = etag,
+                            Json = json,
+                            CachedAtUtc = DateTime.UtcNow
+                        }));
+                        File.Move(tmp, ReleaseCachePath, true);
+                    }
+                    catch { }
+                    return json;
+                }
+
+                // Rate-limited (403/429): use cached JSON if available rather than hard-failing
+                if ((int)response.StatusCode == 403 || (int)response.StatusCode == 429)
+                {
+                    if (cache != null && !string.IsNullOrEmpty(cache.Json))
+                        return cache.Json;
+                    return null;
+                }
+            }
+            catch
+            {
+                if (attempt == 0)
+                    await Task.Delay(1200);
+            }
+        }
+
+        return cache?.Json;
+    }
+
+    public static void RecordInstalledSignature(string? signature)
+    {
+        if (string.IsNullOrWhiteSpace(signature)) return;
+        try
+        {
+            SettingsService.Current.LastInstalledReleaseSignature = signature;
+            SettingsService.Save();
+        }
+        catch { }
     }
 
     private static readonly string[] ArchiveExtensions = { ".zip", ".7z", ".rar", ".tar", ".gz", ".tgz" };

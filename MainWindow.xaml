@@ -2101,19 +2101,28 @@
                         <StackPanel x:Name="PanelUpdateBanner" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,8,0" Visibility="Collapsed">
 
                             <Button x:Name="BtnInstallUpdate" Click="BtnInstallUpdate_Click"
-
-                                    Background="#0D1A2A" Foreground="#00D9FF" BorderBrush="#00D9FF" BorderThickness="1"
-
-                                    Height="35" Padding="14,0" Cursor="Hand" FontWeight="Bold" FontSize="12"
-
-                                    Content="&#x2B06; INSTALL UPDATE"
-
-                                    ToolTip="Closes Horizon, backs up your data, installs the update, then restores and relaunches."/>
+                                    Background="#263B82F6" Foreground="#E0F2FE" BorderBrush="#6660A5FA" BorderThickness="1"
+                                    Height="32" Padding="12,0" Cursor="Hand" FontWeight="SemiBold" FontSize="12"
+                                    Content="&#x2B06; Install Update"
+                                    ToolTip="Closes Horizon, backs up your data, installs the update, then restores and relaunches.">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="Bd" Property="Background" Value="#443B82F6"/>
+                                                <Setter TargetName="Bd" Property="BorderBrush" Value="#AA93C5FD"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
 
                             <Button x:Name="BtnDismissUpdateBanner" Content="&#x2715;" Click="BtnDismissUpdateBanner_Click"
-
                                     Style="{StaticResource Style_StealthButton}" Width="28" Height="28" FontSize="11"
-
                                     Margin="4,0,0,0" ToolTip="Dismiss (you can install later from Settings)"/>
 
                         </StackPanel>
@@ -3532,74 +3541,74 @@
 
 
 
-                <!-- Session Restore Banner -->
-
+                <!-- Session Restore Banner (Ctrl+Tab smoked-glass palette) -->
                 <Border x:Name="RestoreBanner"
-
                         Visibility="Collapsed"
-
-                        Background="{DynamicResource Brush_BannerInfoBg}" BorderBrush="{DynamicResource Brush_BannerInfoBorder}" BorderThickness="0,0,0,1"
-
-                        Padding="14,8">
-
-                    <StackPanel Orientation="Horizontal">
-
-                        <TextBlock Text="&#x1F5C3; Restore previous session?" Foreground="{DynamicResource Brush_Text}" VerticalAlignment="Center" Margin="0,0,15,0"/>
-
-                        <Button Content="RESTORE" Click="BtnRestoreSession_Click"
-
-                                Background="{DynamicResource Brush_Accent}" Foreground="Black" FontWeight="Bold"
-
-                                Padding="10,4" BorderThickness="0" Cursor="Hand">
-
-                            <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="3"/></Style></Button.Resources>
-
+                        Background="#E60E0E0E" BorderBrush="#333B82F6" BorderThickness="0,0,0,1"
+                        Padding="14,7">
+                    <DockPanel>
+                        <Button DockPanel.Dock="Right" Content="&#x2715;" Click="BtnDismissRestore_Click"
+                                Background="Transparent" Foreground="#9CA3AF" BorderThickness="0"
+                                Padding="8,4" Margin="6,0,0,0" FontSize="12" Cursor="Hand"/>
+                        <Button DockPanel.Dock="Right" Content="Restore Session" Click="BtnRestoreSession_Click"
+                                Background="#FF3B82F6" Foreground="#FFFFFF" BorderBrush="#6693C5FD" BorderThickness="1"
+                                FontWeight="SemiBold" FontSize="12" Padding="12,5" Margin="8,0,0,0" Cursor="Hand">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="7" Padding="{TemplateBinding Padding}">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="Bd" Property="Background" Value="#FF2563EB"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
                         </Button>
-
-                        <Button Content="&#x2715;" Click="BtnDismissRestore_Click"
-
-                                Background="Transparent" Foreground="#888" BorderThickness="0"
-
-                                Margin="10,0,0,0" FontSize="14" Cursor="Hand"/>
-
-                    </StackPanel>
-
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Width="22" Height="22" CornerRadius="6" Background="#263B82F6" BorderBrush="#4D3B82F6" BorderThickness="1" Margin="0,0,9,0">
+                                <TextBlock Text="&#x1F5C3;" FontSize="11.5" Foreground="#60A5FA" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="Restore previous session?" Foreground="#EFF6FF" FontSize="12.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </DockPanel>
                 </Border>
 
-
-
-                <!-- Image Detected Banner -->
-
+                <!-- Image Detected Banner (Ctrl+Tab smoked-glass palette) -->
                 <Border x:Name="OverlaySingleImage"
-
                         Visibility="Collapsed"
-
-                        Background="{DynamicResource Brush_BannerSuccessBg}" BorderBrush="{DynamicResource Brush_BannerSuccessBorder}" BorderThickness="0,0,0,1"
-
-                        Padding="14,8">
-
-                    <StackPanel Orientation="Horizontal">
-
-                        <TextBlock Text="&#x1F5BC; Image detected &#x2014; open as standalone" Foreground="{DynamicResource Brush_Text}" VerticalAlignment="Center" Margin="0,0,15,0" FontWeight="SemiBold"/>
-
-                        <Button Content="DOWNLOAD" Click="BtnDownloadImage_Click"
-
-                                Background="{DynamicResource Brush_Accent}" Foreground="Black" FontWeight="Bold"
-
-                                Padding="10,4" BorderThickness="0" Cursor="Hand">
-
-                            <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="3"/></Style></Button.Resources>
-
+                        Background="#E60E0E0E" BorderBrush="#3310B981" BorderThickness="0,0,0,1"
+                        Padding="14,7">
+                    <DockPanel>
+                        <Button DockPanel.Dock="Right" Content="&#x2715;" Click="BtnDismissImageOverlay_Click"
+                                Background="Transparent" Foreground="#9CA3AF" BorderThickness="0"
+                                Padding="8,4" Margin="6,0,0,0" FontSize="12" Cursor="Hand"/>
+                        <Button DockPanel.Dock="Right" Content="Download Image" Click="BtnDownloadImage_Click"
+                                Background="#FF059669" Foreground="#FFFFFF" BorderBrush="#6634D399" BorderThickness="1"
+                                FontWeight="SemiBold" FontSize="12" Padding="12,5" Margin="8,0,0,0" Cursor="Hand">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="7" Padding="{TemplateBinding Padding}">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="Bd" Property="Background" Value="#FF047857"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
                         </Button>
-
-                        <Button Content="&#x2715;" Click="BtnDismissImageOverlay_Click"
-
-                                Background="Transparent" Foreground="#888" BorderThickness="0"
-
-                                Margin="10,0,0,0" FontSize="14" Cursor="Hand"/>
-
-                    </StackPanel>
-
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Width="22" Height="22" CornerRadius="6" Background="#2610B981" BorderBrush="#4D10B981" BorderThickness="1" Margin="0,0,9,0">
+                                <TextBlock Text="&#x1F5BC;" FontSize="11.5" Foreground="#34D399" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="Standalone image detected" Foreground="#ECFDF5" FontSize="12.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </DockPanel>
                 </Border>
 
 

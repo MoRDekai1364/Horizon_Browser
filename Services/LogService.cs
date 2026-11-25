@@ -10,9 +10,18 @@ public static class LogService
     private static string _logDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs");
     private static string _debugLogFile;
     private static string _crashTapeFile;
+    private static string? _deepTraceSinkFile;
 
     public static volatile bool DebugEnabled;
     public static string CurrentLogPath => _debugLogFile;
+
+    public static void SetDeepTraceSink(string path)
+    {
+        lock (_lock)
+        {
+            _deepTraceSinkFile = path;
+        }
+    }
 
     private const int DebugQueueCap = 20000;
     private static readonly System.Collections.Concurrent.ConcurrentQueue<string> _debugQueue = new();
@@ -70,6 +79,11 @@ public static class LogService
         {
             try { File.AppendAllText(_debugLogFile, sb.ToString()); }
             catch { }
+            if (!string.IsNullOrEmpty(_deepTraceSinkFile))
+            {
+                try { File.AppendAllText(_deepTraceSinkFile, sb.ToString()); }
+                catch { }
+            }
         }
     }
 
@@ -105,7 +119,12 @@ public static class LogService
             {
                 
                 try { File.WriteAllText("emergency_log_failure.txt", ex.Message); } catch { }
-            } 
+            }
+            if (!string.IsNullOrEmpty(_deepTraceSinkFile))
+            {
+                try { File.AppendAllText(_deepTraceSinkFile, line + Environment.NewLine); }
+                catch { }
+            }
         }
     }
 
@@ -141,6 +160,11 @@ public static class LogService
                 File.AppendAllText(_debugLogFile, Environment.NewLine + "[CRITICAL FAILURE DETECTED - MERGING TAPE]" + Environment.NewLine);
                 File.AppendAllText(_debugLogFile, sb.ToString());
                 File.AppendAllText(_debugLogFile, "[TAPE MERGE COMPLETE]" + Environment.NewLine);
+
+                if (!string.IsNullOrEmpty(_deepTraceSinkFile))
+                {
+                    File.AppendAllText(_deepTraceSinkFile, Environment.NewLine + sb.ToString());
+                }
             }
             catch { /* System is likely dying, nothing more to do */ }
         }

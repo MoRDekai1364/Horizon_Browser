@@ -1,4 +1,29 @@
 version 2.8.0
++ fixed video/audio keeping playing in the background after closing a WebApp window (now immediately mutes, stops, and disposes the WebView2 controller on close)
++ fixed "existing installation detected" popup spamming on every launch after refusing/closing it
++ redesigned Zen Garden theme with a misty sage watercolor backdrop, heavy soft blur, and frosted white glass pills + quick-add button
++ fixed missing favorite icons in Rust Neo-Canvas (now keeps fallback letters visible until favicons actually finish downloading)
++ added new Celestial Observatory homepage theme (midnight indigo planetarium with cosmic nebula blur, brass astrolabe rings, and constellation cards)
++ added new medieval strategy homepage theme ("Imperial Citadel") with live resource bar, royal search scroll, and heraldic crest shortcuts
++ fixed alternate homepage themes overlapping the default bottom buttons (default bottom docks now hide automatically when an alternate theme is active) and centered Rust Neo-Canvas shortcut icons
++ added Live Wallpapers (play once when a homepage tab opens, then stop on the last frame) in the Wallpaper & Homepage Background menus
++ finished all 8 alternate homepage themes (CyberTerminal, MetroMatrix, RustNeoCanvas, RetroCRT, EditorialPaper, StarshipLCARS, ZenGarden, Win95RetroDesk) with full feature parity: Favorites & Bookmarks switching, live search filtering, real favicons, right-click menus, add favorite, search engine picker, Widget Board access, live clock/weather/media/battery/RAM dock, and quick AdGuard/VPN/Wallpaper/Themes/Settings controls
++ added automatic self-repair on crash (tries up to 2 times with a progress overlay before moving on to crash reporting)
++ added dedicated debug mode in developer settings with detailed logging
++ crash reporting now runs independently, asks if you want to report, gathers debug logs in the background, and attaches them automatically
++ added release/build id to settings version display and auto-attached it to feedback
++ fixed empty favorites and bookmarks pills not showing when empty, fixed their background alignment, and added a "not found" message when searching
++ updated in-browser notification banners to match the rest of the browser (with ctrl+tab blur on the webapp external-link banner)
++ updater now detects updated github releases even if the version number is the same, and doesn't lock out auto-checks after a failed check
++ fixed horizon not appearing in the windows 11 default apps list
++ set as default browser button now tries to set it automatically and opens horizon's page in windows settings if windows requires confirmation
++ stopped extensions from opening update/welcome webpages on every launch
++ browser settings now uses the same blur background as the weather widget
++ fixed fullscreen video in webapps staying stuck on top of all other windows
++ fixed text contrast in the webapp settings menu
++ fixed extensions not working properly in webapps and applied the main browser's fullscreen animation rules to webapps
++ moved the webapp external-link banner to the header left and shrunk the top-right header sensor closer to the buttons
++ fixed low quality webapp icons and made existing webapps auto-update when installing the same or a newer browser version
 + compacted homepage empty-state notices for Favorites and Bookmarks: reduced font size (14→12), opacity (0.85→0.75), max width (440→300px), and margins (24,24→12,8); island border padding dynamically tightens to compact insets (20,10,20,12) when empty and restores full insets (28,18,28,24) when items are present
 + resolved unwanted dark pages on light-theme websites (CNBC, Wikipedia, news sites): corrected WebView2 default background color to System.Drawing.Color.White so HTML bodies without explicit background CSS render on their native white canvas instead of painting black text over a dark canvas
 + enforced strict tri-switch state gating on homepage: Favorites drawer and Bookmarks island (including empty bookmarks notice) are strictly hidden when in Search mode and only appear when their respective tri-switch segment is active or focused

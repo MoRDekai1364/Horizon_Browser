@@ -44,17 +44,23 @@ public partial class WebAppManagerWindow : Window
 
     private static CheckBox MakeCheckBox(string text, bool isChecked)
     {
-        return new CheckBox
+        var tb = new TextBlock { Text = text, TextWrapping = TextWrapping.Wrap };
+        tb.SetResourceReference(TextBlock.ForegroundProperty, "Brush_Text");
+        var cb = new CheckBox
         {
-            Content = new TextBlock { Text = text, TextWrapping = TextWrapping.Wrap },
+            Content = tb,
             IsChecked = isChecked,
             Margin = new Thickness(0, 4, 0, 4)
         };
+        cb.SetResourceReference(Control.ForegroundProperty, "Brush_Text");
+        return cb;
     }
 
     private static TextBlock MakeNote(string text)
     {
-        return new TextBlock { Text = text, Opacity = 0.65, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 4, 0, 4) };
+        var tb = new TextBlock { Text = text, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 4, 0, 4) };
+        tb.SetResourceReference(TextBlock.ForegroundProperty, "Brush_MutedText");
+        return tb;
     }
 
     private void BuildUi()

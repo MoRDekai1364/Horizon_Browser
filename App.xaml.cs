@@ -45,12 +45,77 @@ public partial class App : Application
                 AttachThreadInput(currentThread, foregroundThread, false);
         }
     }
+    private static bool _isCrashReporterProcess;
+    private static int _crashReporterLaunched;
+
     protected override void OnStartup(StartupEventArgs e)
     {
+        // 1. Fully independent out-of-process Self-Repair Overlay (--self-repair="<payload.json>")
+        string? selfRepairPayload = null;
+        int repairAttempt = 1;
+        foreach (var arg in e.Args)
+        {
+            if (arg.StartsWith("--self-repair=", StringComparison.OrdinalIgnoreCase))
+                selfRepairPayload = arg.Substring("--self-repair=".Length).Trim('"');
+            else if (arg.StartsWith("--repair-attempt=", StringComparison.OrdinalIgnoreCase) &&
+                     int.TryParse(arg.Substring("--repair-attempt=".Length).Trim('"'), out int parsedAttempt))
+                repairAttempt = Math.Clamp(parsedAttempt, 1, SelfRepairService.MaxRepairAttempts);
+        }
+        if (!string.IsNullOrEmpty(selfRepairPayload))
+        {
+            _isCrashReporterProcess = true;
+            RunStandaloneSelfRepair(e, selfRepairPayload, repairAttempt);
+            return;
+        }
+
+        // 2. Fully independent out-of-process Crash Feedback Reporter (--crash-report="<payload.json>")
+        // Runs before ConfigService/ExtensionService/MainWindow so it works even if browser state is corrupt.
+        foreach (var arg in e.Args)
+        {
+            if (arg.StartsWith("--crash-report=", StringComparison.OrdinalIgnoreCase))
+            {
+                _isCrashReporterProcess = true;
+                string payloadPath = arg.Substring("--crash-report=".Length).Trim('"');
+                RunStandaloneCrashReporter(e, payloadPath);
+                return;
+            }
+        }
+
+        // 2. Headless background Debug Mode crash reproduction probe (--repro-crash="<payload.json>" --debug-output="<trace.log>")
+        string? reproPayload = null;
+        string? debugOutput = null;
+        bool debugModeFlag = false;
+        foreach (var arg in e.Args)
+        {
+            if (arg.Equals("--debug-mode", StringComparison.OrdinalIgnoreCase))
+                debugModeFlag = true;
+            else if (arg.StartsWith("--repro-crash=", StringComparison.OrdinalIgnoreCase))
+                reproPayload = arg.Substring("--repro-crash=".Length).Trim('"');
+            else if (arg.StartsWith("--debug-output=", StringComparison.OrdinalIgnoreCase))
+                debugOutput = arg.Substring("--debug-output=".Length).Trim('"');
+        }
+
+        if (!string.IsNullOrEmpty(reproPayload))
+        {
+            _isCrashReporterProcess = true; // never spawn recursive crash reporters from a probe
+            RunBackgroundCrashReproProbe(e, reproPayload, debugOutput ?? "");
+            return;
+        }
+
         ConfigService.Initialize(e.Args);
         LogService.Initialize();
+        SelfRepairService.ScheduleHealthyReset();
+        if (debugModeFlag)
+        {
+            DebugModeService.Enable(debugOutput, isReproProbe: false);
+        }
         LogService.Write("BOOT", $"Horizon Browser is starting (Mode={(ConfigService.IsDevMode ? "Dev" : "Production")}, Profile={ConfigService.ProfileName})...");
         ExtensionService.EnsureInstalled();
+        _ = Task.Run(() =>
+        {
+            try { DefaultBrowserService.EnsureRegistered(notifyShell: false); }
+            catch (Exception ex) { LogService.RecordCrash(ex, "DefaultBrowserService.EnsureRegistered (startup)"); }
+        });
         _ = Task.Run(() =>
         {
             try { BookmarkService.Initialize(); }
@@ -135,7 +200,7 @@ public partial class App : Application
             return;
         }
 
-        System.Threading.Tasks.Task.Run(() => WebAppService.LoadAll());
+        System.Threading.Tasks.Task.Run(() => WebAppService.SyncAllWebAppsIfNeededAsync());
 
         string? webAppId = null;
         foreach (var arg in e.Args)
@@ -641,12 +706,108 @@ public partial class App : Application
         }
     }
 
+    private void RunStandaloneSelfRepair(StartupEventArgs e, string payloadPath, int attemptNumber)
+    {
+        try
+        {
+            base.OnStartup(e);
+            ConfigService.Initialize(e.Args);
+            CrashReportPayload? payload = null;
+            if (!string.IsNullOrWhiteSpace(payloadPath) && System.IO.File.Exists(payloadPath))
+            {
+                string json = System.IO.File.ReadAllText(payloadPath, System.Text.Encoding.UTF8);
+                payload = System.Text.Json.JsonSerializer.Deserialize<CrashReportPayload>(json);
+            }
+            payload ??= new CrashReportPayload
+            {
+                TimestampUtc = DateTime.UtcNow.ToString("o"),
+                BrowserVersion = "2.8.0",
+                UpdateChannel = "release",
+                ReleaseBuildId = BuildIdentityService.GetReleaseBuildId(),
+                ExceptionType = "UnhandledException"
+            };
+
+            var win = new SelfRepairOverlayWindow(payload, payloadPath, attemptNumber);
+            MainWindow = win;
+            ShutdownMode = ShutdownMode.OnMainWindowClose;
+            win.Show();
+        }
+        catch
+        {
+            Shutdown();
+        }
+    }
+
+    private async void RunBackgroundCrashReproProbe(StartupEventArgs e, string payloadPath, string outputTracePath)
+    {
+        try
+        {
+            base.OnStartup(e);
+            ShutdownMode = ShutdownMode.OnExplicitShutdown;
+            ConfigService.Initialize(e.Args);
+            LogService.Initialize();
+
+            string tracePath = string.IsNullOrWhiteSpace(outputTracePath)
+                ? System.IO.Path.Combine(ConfigService.LogsRoot, $"repro_debug_{DateTime.Now:yyyyMMdd_HHmmss}.log")
+                : outputTracePath;
+
+            await DebugModeService.RunCrashReproProbeAsync(payloadPath, tracePath);
+        }
+        catch (Exception ex)
+        {
+            LogService.RecordCrash(ex, "RunBackgroundCrashReproProbe");
+        }
+        finally
+        {
+            Shutdown();
+        }
+    }
+
+    private void RunStandaloneCrashReporter(StartupEventArgs e, string payloadPath)
+    {
+        try
+        {
+            base.OnStartup(e);
+            CrashReportPayload? payload = null;
+            if (!string.IsNullOrWhiteSpace(payloadPath) && System.IO.File.Exists(payloadPath))
+            {
+                string json = System.IO.File.ReadAllText(payloadPath, System.Text.Encoding.UTF8);
+                payload = System.Text.Json.JsonSerializer.Deserialize<CrashReportPayload>(json);
+            }
+
+            payload ??= new CrashReportPayload
+            {
+                TimestampUtc = DateTime.UtcNow.ToString("o"),
+                CrashSource = "Unknown",
+                BrowserVersion = "2.8.0",
+                UpdateChannel = "release",
+                ReleaseBuildId = BuildIdentityService.GetReleaseBuildId(),
+                ExceptionType = "UnhandledException",
+                ExceptionMessage = "Crash payload could not be read."
+            };
+
+            var win = new CrashFeedbackWindow(payload, payloadPath);
+            MainWindow = win;
+            ShutdownMode = ShutdownMode.OnMainWindowClose;
+            win.Show();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(
+                $"Horizon Browser crashed and the standalone Crash Reporter could not start:\n\n{ex.Message}",
+                "Horizon Crash Reporter",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+            Shutdown();
+        }
+    }
+
     private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
         LogService.RecordCrash(e.Exception, "UI Dispatcher");
-        e.Handled = true; 
+        e.Handled = true;
         WebAppJournalService.CrashShutdown = true;
-        ShowCrashDialog(e.Exception);
+        ShowCrashDialog(e.Exception, "UI Dispatcher");
         Shutdown();
     }
 
@@ -655,21 +816,30 @@ public partial class App : Application
         if (e.ExceptionObject is Exception ex)
         {
             LogService.RecordCrash(ex, "AppDomain (Critical)");
+            if (e.IsTerminating)
+                ShowCrashDialog(ex, "AppDomain (Fatal)");
         }
     }
 
     private void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
     {
         LogService.RecordCrash(e.Exception, "Background Task");
-        e.SetObserved(); 
+        e.SetObserved();
     }
 
-    private void ShowCrashDialog(Exception ex)
+    private void ShowCrashDialog(Exception ex, string source = "UI Dispatcher")
     {
+        if (!_isCrashReporterProcess && System.Threading.Interlocked.Exchange(ref _crashReporterLaunched, 1) == 0)
+        {
+            // Unified crash workflow: Attempt 1 & 2 run Self-Repair; Attempt 3+ escalates to Crash Feedback + Background Debug Mode
+            if (SelfRepairService.HandleCrash(ex, source))
+                return;
+        }
+
         MessageBox.Show(
-            $"A critical error occurred.\n\nError: {ex.Message}\n\nCheck the 'logs' folder for the Crash Tape.", 
-            "Horizon Black Box", 
-            MessageBoxButton.OK, 
+            $"A critical error occurred.\n\nError: {ex.Message}\n\nCheck the 'logs' folder for the Crash Tape.",
+            "Horizon Black Box",
+            MessageBoxButton.OK,
             MessageBoxImage.Error);
     }
 

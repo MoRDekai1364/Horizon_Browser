@@ -232,11 +232,152 @@ public partial class MediaManagerWindow : Window
         SetStatus("");
     }
 
-    private void TabWallpapers_Click(object sender, RoutedEventArgs e) => _ = SwitchKindAsync(MediaKind.Wallpaper);
-    private void TabVideos_Click(object sender, RoutedEventArgs e) => _ = SwitchKindAsync(MediaKind.StartupVideo);
+    private readonly List<string> _mgrLiveVideoPaths = new();
+    private bool _loadingMgrLive;
+
+    private void TabWallpapers_Click(object sender, RoutedEventArgs e)
+    {
+        PnlLiveWallpapers.Visibility = Visibility.Collapsed;
+        PnlBody.Visibility = Visibility.Visible;
+        _ = SwitchKindAsync(MediaKind.Wallpaper);
+    }
+
+    private void TabVideos_Click(object sender, RoutedEventArgs e)
+    {
+        PnlLiveWallpapers.Visibility = Visibility.Collapsed;
+        PnlBody.Visibility = Visibility.Visible;
+        _ = SwitchKindAsync(MediaKind.StartupVideo);
+    }
+
+    private void TabLiveWallpapers_Click(object sender, RoutedEventArgs e)
+    {
+        PnlBody.Visibility = Visibility.Collapsed;
+        PnlLiveWallpapers.Visibility = Visibility.Visible;
+        TxtHeaderTitle.Text = "LIVE WALLPAPERS //";
+        TxtHeaderSub.Text = "Plays once when a homepage tab opens, then stops";
+        LoadMgrLiveWallpapers();
+    }
+
+    private void LoadMgrLiveWallpapers()
+    {
+        _loadingMgrLive = true;
+        try
+        {
+            ChkMgrLiveWallpaperEnabled.IsChecked = SettingsService.Current.HomeLiveWallpaperEnabled;
+            _mgrLiveVideoPaths.Clear();
+            LstLiveWallpapers.Items.Clear();
+
+            string[] exts = { ".mp4", ".webm", ".mov", ".wmv" };
+            var dirs = new[]
+            {
+                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "wallpapers"),
+                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "start_videos"),
+                SettingsService.Current.WallpaperFolderPath
+            };
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (string d in dirs)
+            {
+                if (string.IsNullOrWhiteSpace(d) || !Directory.Exists(d)) continue;
+                try
+                {
+                    foreach (string f in Directory.GetFiles(d))
+                    {
+                        if (!exts.Contains(Path.GetExtension(f).ToLowerInvariant())) continue;
+                        if (seen.Add(f))
+                        {
+                            _mgrLiveVideoPaths.Add(f);
+                            LstLiveWallpapers.Items.Add(Path.GetFileName(f) + "  (" + Path.GetFileName(d) + ")");
+                        }
+                    }
+                }
+                catch { }
+            }
+
+            string cur = SettingsService.Current.HomeLiveWallpaperPath ?? "";
+            if (!string.IsNullOrWhiteSpace(cur) && File.Exists(cur) && seen.Add(cur))
+            {
+                _mgrLiveVideoPaths.Insert(0, cur);
+                LstLiveWallpapers.Items.Insert(0, Path.GetFileName(cur));
+            }
+
+            int idx = _mgrLiveVideoPaths.FindIndex(p => string.Equals(p, cur, StringComparison.OrdinalIgnoreCase));
+            if (idx >= 0) LstLiveWallpapers.SelectedIndex = idx;
+            else if (LstLiveWallpapers.Items.Count > 0) LstLiveWallpapers.SelectedIndex = 0;
+        }
+        finally
+        {
+            _loadingMgrLive = false;
+        }
+    }
+
+    private void ApplyMgrLiveWallpaper()
+    {
+        SettingsService.Save();
+        if (Application.Current?.MainWindow is MainWindow mw)
+            mw.CurrentBrowser?.NativeHomePage?.ReloadWallpaper();
+    }
+
+    private void LstLiveWallpapers_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_loadingMgrLive) return;
+        int idx = LstLiveWallpapers.SelectedIndex;
+        if (idx >= 0 && idx < _mgrLiveVideoPaths.Count)
+        {
+            SettingsService.Current.HomeLiveWallpaperPath = _mgrLiveVideoPaths[idx];
+        }
+    }
+
+    private void ChkMgrLiveWallpaperEnabled_Click(object sender, RoutedEventArgs e)
+    {
+        if (_loadingMgrLive) return;
+        SettingsService.Current.HomeLiveWallpaperEnabled = ChkMgrLiveWallpaperEnabled.IsChecked == true;
+        if (SettingsService.Current.HomeLiveWallpaperEnabled &&
+            string.IsNullOrWhiteSpace(SettingsService.Current.HomeLiveWallpaperPath) &&
+            LstLiveWallpapers.SelectedIndex >= 0 &&
+            LstLiveWallpapers.SelectedIndex < _mgrLiveVideoPaths.Count)
+        {
+            SettingsService.Current.HomeLiveWallpaperPath = _mgrLiveVideoPaths[LstLiveWallpapers.SelectedIndex];
+        }
+        ApplyMgrLiveWallpaper();
+    }
+
+    private void BtnMgrBrowseLiveWallpaper_Click(object sender, RoutedEventArgs e)
+    {
+        var ofd = new OpenFileDialog
+        {
+            Title = "Select Live Wallpaper Video",
+            Filter = "Video Files|*.mp4;*.webm;*.mov;*.wmv|All Files|*.*"
+        };
+        if (ofd.ShowDialog(this) != true) return;
+        SettingsService.Current.HomeLiveWallpaperPath = ofd.FileName;
+        SettingsService.Current.HomeLiveWallpaperEnabled = true;
+        LoadMgrLiveWallpapers();
+        ApplyMgrLiveWallpaper();
+    }
+
+    private void BtnMgrApplyLiveWallpaper_Click(object sender, RoutedEventArgs e)
+    {
+        int idx = LstLiveWallpapers.SelectedIndex;
+        if (idx >= 0 && idx < _mgrLiveVideoPaths.Count)
+        {
+            SettingsService.Current.HomeLiveWallpaperPath = _mgrLiveVideoPaths[idx];
+            SettingsService.Current.HomeLiveWallpaperEnabled = true;
+            ChkMgrLiveWallpaperEnabled.IsChecked = true;
+            ApplyMgrLiveWallpaper();
+            SetStatus("Live wallpaper applied (plays once when a homepage tab opens).");
+        }
+    }
 
     private void SyncTabs()
     {
+        if (PnlLiveWallpapers.Visibility == Visibility.Visible)
+        {
+            TabLiveWallpapers.IsChecked = true;
+            TabWallpapers.IsChecked = false;
+            TabVideos.IsChecked = false;
+            return;
+        }
+        TabLiveWallpapers.IsChecked = false;
         TabWallpapers.IsChecked = _p.IsWallpaper;
         TabVideos.IsChecked = !_p.IsWallpaper;
     }

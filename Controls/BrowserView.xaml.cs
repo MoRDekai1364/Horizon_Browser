@@ -582,6 +582,12 @@ public partial class BrowserView : UserControl
         // ── Regular new-tab link ─────────────────────────────────────────────
         e.Handled = true;
         if (string.IsNullOrEmpty(e.Uri) || e.Uri == "about:blank") return;
+        if (ExtensionService.IsWithinStartupPopupSuppressionWindow &&
+            (!e.IsUserInitiated || ExtensionService.IsLikelyExtensionAutoOpenUrl(e.Uri)))
+        {
+            LogService.Write("EXT", $"Suppressed startup extension tab: {e.Uri}");
+            return;
+        }
         if (!e.IsUserInitiated)
         {
             LogService.Write("POPUP", $"Blocked non-user popup: {e.Uri}");
@@ -1066,7 +1072,8 @@ public partial class BrowserView : UserControl
 
             var policy = WebAppAccessService.Load(webAppId);
             string extensionsRoot = ExtensionService.InstallRoot;
-            var candidates = new List<(string dir, string folderName)>();
+            var candidates = new List<(string dir, string folderName, string manifestName, string manifestVersion)>();
+            var seenManifestNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             if (policy.ExtensionsEnabled && System.IO.Directory.Exists(extensionsRoot))
             {
@@ -1078,19 +1085,52 @@ public partial class BrowserView : UserControl
                     string folderName = System.IO.Path.GetFileName(extDir).ToLowerInvariant();
                     if (IsFirefoxOnlyExtension(manifest)) continue;
 
+                    string mName = "", mVer = "", mHome = "";
+                    try
+                    {
+                        using var mDoc = System.Text.Json.JsonDocument.Parse(System.IO.File.ReadAllText(manifest));
+                        mName = mDoc.RootElement.TryGetProperty("name", out var np) ? (np.GetString() ?? "") : "";
+                        mVer  = mDoc.RootElement.TryGetProperty("version", out var vp) ? (vp.GetString() ?? "") : "";
+                        mHome = mDoc.RootElement.TryGetProperty("homepage_url", out var hp) ? (hp.GetString() ?? "") : "";
+                        string dedupKey = !string.IsNullOrWhiteSpace(mName) && !mName.StartsWith("__MSG_", StringComparison.Ordinal)
+                            ? mName.Trim()
+                            : $"{mName}|{mVer}|{mHome}";
+                        if (!string.IsNullOrWhiteSpace(dedupKey) && dedupKey != "||" && !seenManifestNames.Add(dedupKey))
+                            continue;
+                    }
+                    catch { }
+
                     var rec = ExtensionService.Find(folderName);
                     if (rec != null && !rec.Enabled) continue;
                     if (folderName.Contains("consent") && !SettingsService.Current.ConsentOMaticEnabled) continue;
                     if (folderName.Contains("adguard") && !SettingsService.Current.AdGuardEnabled) continue;
                     if (folderName == "kjchkpkjpiloipaonppkmepcbhcncedo") continue;
                     if (ExtensionService.ModifiesShortcuts(extDir, folderName, rec?.Name, rec?.Description) &&
-                        ExtensionService.GetShortcutPermission(folderName) != true) continue;
+                        ExtensionService.GetShortcutPermission(folderName) == false) continue;
 
-                    candidates.Add((extDir, folderName));
+                    candidates.Add((extDir, folderName, mName, mVer));
                 }
             }
 
+            ExtensionService.MarkExtensionsLoadingStarted();
+
+            // Query already-persisted extensions on this isolated profile to avoid triggering onInstalled on every launch
+            var existingById = new Dictionary<string, CoreWebView2BrowserExtension>(StringComparer.OrdinalIgnoreCase);
+            var existingByName = new Dictionary<string, CoreWebView2BrowserExtension>(StringComparer.OrdinalIgnoreCase);
+            try
+            {
+                var preInstalled = await core.Profile.GetBrowserExtensionsAsync();
+                foreach (var inst in preInstalled)
+                {
+                    existingById[inst.Id] = inst;
+                    if (!string.IsNullOrWhiteSpace(inst.Name))
+                        existingByName.TryAdd(inst.Name.Trim(), inst);
+                }
+            }
+            catch { }
+
             var allowedIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            int newlyAdded = 0;
             var loadTasks = candidates.Select(async item =>
             {
                 try
@@ -1102,9 +1142,36 @@ public partial class BrowserView : UserControl
                         return;
                     }
 
+                    // Reuse already-installed extension if unchanged (prevents onInstalled spam)
+                    var rec = ExtensionService.Find(item.folderName);
+                    CoreWebView2BrowserExtension? reused = null;
+                    if (prepared == item.dir)
+                    {
+                        if (!string.IsNullOrEmpty(rec?.RuntimeId) && existingById.TryGetValue(rec.RuntimeId, out var byId))
+                            reused = byId;
+                        else if (!string.IsNullOrWhiteSpace(item.manifestName) && !item.manifestName.StartsWith("__MSG_", StringComparison.Ordinal) &&
+                                 existingByName.TryGetValue(item.manifestName.Trim(), out var byName))
+                            reused = byName;
+                        else if (!string.IsNullOrWhiteSpace(rec?.Name) && existingByName.TryGetValue(rec.Name.Trim(), out var byRecName))
+                            reused = byRecName;
+                    }
+
+                    bool versionUnchanged = string.IsNullOrEmpty(item.manifestVersion) ||
+                                            string.IsNullOrEmpty(rec?.LastLoadedVersion) ||
+                                            string.Equals(item.manifestVersion, rec.LastLoadedVersion, StringComparison.Ordinal);
+
+                    if (reused != null && versionUnchanged)
+                    {
+                        try { if (!reused.IsEnabled) await reused.EnableAsync(true); } catch { }
+                        lock (allowedIds) allowedIds.Add(reused.Id);
+                        LogService.Write("EXT", $"WebApp {webAppId}: reused '{item.folderName}' ('{reused.Name}') -> ID={reused.Id}");
+                        return;
+                    }
+
                     var ext = await core.Profile.AddBrowserExtensionAsync(prepared);
                     try { if (!ext.IsEnabled) await ext.EnableAsync(true); } catch { }
                     lock (allowedIds) allowedIds.Add(ext.Id);
+                    System.Threading.Interlocked.Increment(ref newlyAdded);
                     LogService.Write("EXT", $"WebApp {webAppId}: loaded '{item.folderName}' ('{ext.Name}') -> ID={ext.Id}");
                 }
                 catch (Exception ex)
@@ -1113,6 +1180,9 @@ public partial class BrowserView : UserControl
                 }
             });
             await Task.WhenAll(loadTasks);
+
+            if (newlyAdded > 0)
+                await Task.Delay(150);
 
             try
             {
@@ -1167,7 +1237,7 @@ public partial class BrowserView : UserControl
         if (!System.IO.Directory.Exists(extensionsRoot)) return;
 
         // ── Build the list of extension dirs to load (filter first, then load in parallel) ──
-        var toLoad = new List<(string dir, string folderName)>();
+        var toLoad = new List<(string dir, string folderName, string manifestName, string manifestVersion)>();
         var seenManifestNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         foreach (var extDir in System.IO.Directory.GetDirectories(extensionsRoot))
@@ -1183,12 +1253,13 @@ public partial class BrowserView : UserControl
                 continue;
             }
 
+            string extName = "", extVer = "", extHome = "";
             try
             {
                 using var mDoc = System.Text.Json.JsonDocument.Parse(System.IO.File.ReadAllText(manifest));
-                string extName = mDoc.RootElement.TryGetProperty("name", out var nameProp) ? (nameProp.GetString() ?? "") : "";
-                string extVer  = mDoc.RootElement.TryGetProperty("version", out var verProp) ? (verProp.GetString() ?? "") : "";
-                string extHome = mDoc.RootElement.TryGetProperty("homepage_url", out var homeProp) ? (homeProp.GetString() ?? "") : "";
+                extName = mDoc.RootElement.TryGetProperty("name", out var nameProp) ? (nameProp.GetString() ?? "") : "";
+                extVer  = mDoc.RootElement.TryGetProperty("version", out var verProp) ? (verProp.GetString() ?? "") : "";
+                extHome = mDoc.RootElement.TryGetProperty("homepage_url", out var homeProp) ? (homeProp.GetString() ?? "") : "";
                 string dedupKey = !string.IsNullOrWhiteSpace(extName) && !extName.StartsWith("__MSG_", StringComparison.Ordinal)
                     ? extName.Trim()
                     : $"{extName}|{extVer}|{extHome}";
@@ -1237,16 +1308,68 @@ public partial class BrowserView : UserControl
             if (folderName == "kjchkpkjpiloipaonppkmepcbhcncedo")
             { LogService.Write("EXT", $"Skipped (crash suspect): {folderName}"); continue; }
 
-            toLoad.Add((extDir, folderName));
+            toLoad.Add((extDir, folderName, extName, extVer));
         }
+
+        ExtensionService.MarkExtensionsLoadingStarted();
+
+        // Check extensions already persisted in the WebView2 profile so we do NOT re-call
+        // AddBrowserExtensionAsync on every launch (which would re-fire chrome.runtime.onInstalled
+        // and cause extensions to open update/welcome webpages on every startup).
+        var existingById = new Dictionary<string, CoreWebView2BrowserExtension>(StringComparer.OrdinalIgnoreCase);
+        var existingByName = new Dictionary<string, CoreWebView2BrowserExtension>(StringComparer.OrdinalIgnoreCase);
+        try
+        {
+            var preInstalled = await MainWebView.CoreWebView2.Profile.GetBrowserExtensionsAsync();
+            foreach (var inst in preInstalled)
+            {
+                existingById[inst.Id] = inst;
+                if (!string.IsNullOrWhiteSpace(inst.Name))
+                    existingByName.TryAdd(inst.Name.Trim(), inst);
+            }
+        }
+        catch { }
 
         // ── Load all qualifying extensions concurrently ───────────────────────
         // AddBrowserExtensionAsync is safe to call in parallel on the same profile.
-        int loaded = 0, failed = 0;
+        int loaded = 0, reusedCount = 0, failed = 0;
         var tasks = toLoad.Select(async item =>
         {
             try
             {
+                var rec = ExtensionService.Find(item.folderName);
+                CoreWebView2BrowserExtension? reused = null;
+                if (!string.IsNullOrEmpty(rec?.RuntimeId) && existingById.TryGetValue(rec.RuntimeId, out var byId))
+                    reused = byId;
+                else if (!string.IsNullOrWhiteSpace(item.manifestName) && !item.manifestName.StartsWith("__MSG_", StringComparison.Ordinal) &&
+                         existingByName.TryGetValue(item.manifestName.Trim(), out var byName))
+                    reused = byName;
+                else if (!string.IsNullOrWhiteSpace(rec?.Name) && existingByName.TryGetValue(rec.Name.Trim(), out var byRecName))
+                    reused = byRecName;
+
+                bool versionUnchanged = string.IsNullOrEmpty(item.manifestVersion) ||
+                                        string.IsNullOrEmpty(rec?.LastLoadedVersion) ||
+                                        string.Equals(item.manifestVersion, rec.LastLoadedVersion, StringComparison.Ordinal);
+
+                if (reused != null && versionUnchanged)
+                {
+                    try { if (!reused.IsEnabled) await reused.EnableAsync(true); } catch { }
+                    lock (_extensionLock)
+                    {
+                        _loadedExtensionIds[item.folderName] = reused.Id;
+                        _loadedExtensionIds[reused.Id] = reused.Id;
+                        if (!string.IsNullOrEmpty(reused.Name))
+                        {
+                            _loadedExtensionIds[reused.Name] = reused.Id;
+                            _loadedExtensionIds[reused.Name.ToLowerInvariant()] = reused.Id;
+                        }
+                    }
+                    ExtensionService.RecordLoadedRuntimeId(item.folderName, reused.Id, item.manifestVersion);
+                    LogService.Write("EXT", $"Reused persisted: '{item.folderName}' ('{reused.Name}') enabled={reused.IsEnabled} \u2192 ID={reused.Id}");
+                    System.Threading.Interlocked.Increment(ref reusedCount);
+                    return;
+                }
+
                 var ext = await MainWebView.CoreWebView2.Profile.AddBrowserExtensionAsync(item.dir);
                 try { if (!ext.IsEnabled) await ext.EnableAsync(true); } catch { }
                 lock (_extensionLock)
@@ -1259,6 +1382,7 @@ public partial class BrowserView : UserControl
                         _loadedExtensionIds[ext.Name.ToLowerInvariant()] = ext.Id;
                     }
                 }
+                ExtensionService.RecordLoadedRuntimeId(item.folderName, ext.Id, item.manifestVersion);
                 LogService.Write("EXT", $"Loaded: '{item.folderName}' ('{ext.Name}') enabled={ext.IsEnabled} \u2192 ID={ext.Id}");
                 System.Threading.Interlocked.Increment(ref loaded);
             }
@@ -1270,6 +1394,10 @@ public partial class BrowserView : UserControl
         });
 
         await Task.WhenAll(tasks);
+
+        // Give newly-installed MV3 extensions a brief moment to register content scripts before WebApp first nav
+        if (!string.IsNullOrEmpty(WebAppId) && loaded > 0)
+            await Task.Delay(150);
 
         try
         {
@@ -1287,9 +1415,9 @@ public partial class BrowserView : UserControl
         }
         catch { }
 
-        LogService.Write("EXT", $"Extension loading done \u2014 {loaded} loaded, {failed} failed.");
+        LogService.Write("EXT", $"Extension loading done \u2014 {loaded} added, {reusedCount} reused, {failed} failed.");
 
-        if (loaded == 0 && failed > 0)
+        if (loaded == 0 && reusedCount == 0 && failed > 0)
             lock (_extensionLock) _extensionsLoaded = false;
     }
 

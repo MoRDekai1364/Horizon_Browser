@@ -228,22 +228,33 @@ public partial class ExistingInstallationDialog : Window
         }
     }
 
+    private void DismissAllDetectedInstallations()
+    {
+        try
+        {
+            foreach (var inst in _installations)
+            {
+                string normPath = InstallationDiscoveryService.NormalizePath(inst.Path);
+                if (!SettingsService.Current.DismissedInstallationPaths.Any(p => string.Equals(InstallationDiscoveryService.NormalizePath(p), normPath, StringComparison.OrdinalIgnoreCase)))
+                {
+                    SettingsService.Current.DismissedInstallationPaths.Add(normPath);
+                }
+            }
+            SettingsService.Current.DismissedAllInstallationPrompts = true;
+            SettingsService.Save();
+        }
+        catch { }
+    }
+
     private void BtnDontAskAgain_Click(object sender, RoutedEventArgs e)
     {
-        foreach (var inst in _installations)
-        {
-            string normPath = InstallationDiscoveryService.NormalizePath(inst.Path);
-            if (!SettingsService.Current.DismissedInstallationPaths.Any(p => string.Equals(InstallationDiscoveryService.NormalizePath(p), normPath, StringComparison.OrdinalIgnoreCase)))
-            {
-                SettingsService.Current.DismissedInstallationPaths.Add(normPath);
-            }
-        }
-        SettingsService.Save();
+        DismissAllDetectedInstallations();
         Close();
     }
 
     private void BtnClose_Click(object sender, RoutedEventArgs e)
     {
+        DismissAllDetectedInstallations();
         Close();
     }
 }

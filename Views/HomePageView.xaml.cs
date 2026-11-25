@@ -1989,6 +1989,62 @@ public partial class HomePageView : UserControl
 
 
 
+    private bool _lastFavFilteredEmpty;
+    private bool _lastBkmFilteredEmpty;
+
+    private void SyncEmptyStatePills(bool favVisible, bool bkmVisible)
+    {
+        string query = (TxtHomeSearch?.Text ?? "").Trim();
+
+        bool favTotalEmpty = SettingsService.Current.PinnedUrls == null || SettingsService.Current.PinnedUrls.Count == 0;
+        bool isFavEmpty = favTotalEmpty || (query.Length > 0 && _lastFavFilteredEmpty);
+        bool showFavEmpty = favVisible && isFavEmpty;
+
+        if (TxtFavoritesEmpty != null)
+        {
+            TxtFavoritesEmpty.Text = (showFavEmpty && query.Length > 0 && !favTotalEmpty)
+                ? $"\"{query}\" favorite not found."
+                : "No favorites yet. Press Ctrl+D on any page to add one.";
+            TxtFavoritesEmpty.Visibility = showFavEmpty ? Visibility.Visible : Visibility.Collapsed;
+        }
+        if (ScvFavorites != null)
+            ScvFavorites.Visibility = (favVisible && !isFavEmpty) ? Visibility.Visible : Visibility.Collapsed;
+        if (BtnToggleFavorites != null && showFavEmpty)
+            BtnToggleFavorites.Visibility = Visibility.Collapsed;
+        if (FavoritesIslandBorder != null)
+        {
+            FavoritesIslandBorder.MinWidth = showFavEmpty ? 0 : 420;
+            FavoritesIslandBorder.CornerRadius = showFavEmpty ? new CornerRadius(18) : new CornerRadius(28);
+            FavoritesIslandBorder.Padding = showFavEmpty ? new Thickness(22, 12, 22, 12) : new Thickness(28, 18, 28, 24);
+        }
+
+        bool bkmTotalEmpty = BookmarkService.Items == null || BookmarkService.Items.Count == 0;
+        bool isBkmEmpty = bkmTotalEmpty || (query.Length > 0 && _lastBkmFilteredEmpty);
+        bool showBkmEmpty = bkmVisible && isBkmEmpty;
+
+        if (TxtBookmarksEmpty != null)
+        {
+            TxtBookmarksEmpty.Text = (showBkmEmpty && query.Length > 0 && !bkmTotalEmpty)
+                ? $"\"{query}\" bookmark not found."
+                : "No bookmarks yet. Press Ctrl+D on any page to add one.";
+            TxtBookmarksEmpty.Visibility = showBkmEmpty ? Visibility.Visible : Visibility.Collapsed;
+        }
+        if (ScvBookmarks != null)
+            ScvBookmarks.Visibility = (bkmVisible && !isBkmEmpty) ? Visibility.Visible : Visibility.Collapsed;
+        if (BtnToggleBookmarks != null && showBkmEmpty)
+            BtnToggleBookmarks.Visibility = Visibility.Collapsed;
+        if (BookmarksIslandBorder != null)
+        {
+            BookmarksIslandBorder.MinWidth = showBkmEmpty ? 0 : 420;
+            BookmarksIslandBorder.CornerRadius = showBkmEmpty ? new CornerRadius(18) : new CornerRadius(28);
+            BookmarksIslandBorder.Padding = showBkmEmpty ? new Thickness(22, 12, 22, 12) : new Thickness(28, 18, 28, 24);
+        }
+
+        // Re-sync glass backdrop after WPF finishes measuring the updated compact/expanded pill bounds
+        _homeGlass?.Invalidate();
+        Dispatcher.BeginInvoke(new Action(() => _homeGlass?.Invalidate()), DispatcherPriority.Loaded);
+    }
+
     private void UpdateFavBookmarksIslandVisibility()
 
     {
@@ -2077,6 +2133,7 @@ public partial class HomePageView : UserControl
         if (PnlBookmarksContainer != null) PnlBookmarksContainer.Visibility = bkmVisible ? Visibility.Visible : Visibility.Collapsed;
         if (WidgetBoardIslandBorder != null) WidgetBoardIslandBorder.Visibility = widVisible ? Visibility.Visible : Visibility.Collapsed;
         if (PnlWidgetBoardContainer != null) { PnlWidgetBoardContainer.Visibility = widVisible ? Visibility.Visible : Visibility.Collapsed; if (widVisible) EnsureWidgetBoardPopulated(); }
+        SyncEmptyStatePills(favVisible, bkmVisible);
         AnimateFavBookmarksIsland(favVisible || bkmVisible || widVisible);
 
         if (GridFavBookmarksIsland != null)
@@ -2355,6 +2412,8 @@ public partial class HomePageView : UserControl
         BtnChangeWallpaperClickCore();
     }
 
+    public void ReloadWallpaper() => ApplyWallpaper();
+
     private void BtnChangeWallpaperClickCore()
 
     {
@@ -2460,7 +2519,11 @@ public partial class HomePageView : UserControl
 
         {
 
-            string path = ResolveWallpaperPath();
+            string path = (SettingsService.Current.HomeLiveWallpaperEnabled &&
+                           !string.IsNullOrWhiteSpace(SettingsService.Current.HomeLiveWallpaperPath) &&
+                           File.Exists(SettingsService.Current.HomeLiveWallpaperPath))
+                ? SettingsService.Current.HomeLiveWallpaperPath
+                : ResolveWallpaperPath();
 
             int myToken = ++_wallpaperLoadToken;
             var perfClick = System.Diagnostics.Stopwatch.StartNew();
@@ -2514,10 +2577,13 @@ public partial class HomePageView : UserControl
 
                 BgVideoElement.Volume = 0;
 
-                BgVideoElement.MediaEnded += (s, e) => { BgVideoElement.Position = TimeSpan.Zero; BgVideoElement.Play(); };
+                BgVideoElement.MediaEnded -= BgVideoElement_MediaEnded;
+                BgVideoElement.MediaEnded += BgVideoElement_MediaEnded;
 
+                BgVideoElement.MediaOpened -= BgVideoElement_MediaOpened_SampleColor;
                 BgVideoElement.MediaOpened += BgVideoElement_MediaOpened_SampleColor;
 
+                BgVideoElement.Position = TimeSpan.Zero;
                 BgVideoElement.Play();
 
             }
@@ -2899,6 +2965,22 @@ public partial class HomePageView : UserControl
     }
 
 
+
+    private void BgVideoElement_MediaEnded(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (SettingsService.Current.HomeLiveWallpaperEnabled)
+            {
+                // Play once when the homepage tab opens, then stop cleanly on the final frame
+                BgVideoElement.Pause();
+                return;
+            }
+            BgVideoElement.Position = TimeSpan.Zero;
+            BgVideoElement.Play();
+        }
+        catch { }
+    }
 
     private void BgVideoElement_MediaOpened_SampleColor(object? sender, RoutedEventArgs e)
 
@@ -4376,13 +4458,10 @@ public partial class HomePageView : UserControl
 
             PnlBookmarksContainer.Visibility = hasBkm ? Visibility.Visible : Visibility.Collapsed;
 
-            bool isBkmEmpty = ordered.Count == 0;
-            if (TxtBookmarksEmpty != null) TxtBookmarksEmpty.Visibility = (hasBkm && isBkmEmpty) ? Visibility.Visible : Visibility.Collapsed;
-            if (BookmarksIslandBorder != null)
-                BookmarksIslandBorder.Padding = (hasBkm && isBkmEmpty) ? new Thickness(20, 10, 20, 12) : new Thickness(28, 18, 28, 24);
-            if (ScvBookmarks != null) ScvBookmarks.Visibility = (hasBkm && !isBkmEmpty) ? Visibility.Visible : (hasBkm ? Visibility.Collapsed : Visibility.Visible);
+            _lastBkmFilteredEmpty = ordered.Count == 0;
 
             UpdateFavBookmarksIslandVisibility();
+            RefreshActiveNonDefaultTheme();
 
         });
 
@@ -5837,13 +5916,10 @@ public partial class HomePageView : UserControl
 
             PnlFavoritesContainer.Visibility = hasFav ? Visibility.Visible : Visibility.Collapsed;
 
-            bool isFavEmpty = displayList.Count == 0;
-            if (TxtFavoritesEmpty != null) TxtFavoritesEmpty.Visibility = (hasFav && isFavEmpty) ? Visibility.Visible : Visibility.Collapsed;
-            if (FavoritesIslandBorder != null)
-                FavoritesIslandBorder.Padding = (hasFav && isFavEmpty) ? new Thickness(20, 10, 20, 12) : new Thickness(28, 18, 28, 24);
-            if (ScvFavorites != null) ScvFavorites.Visibility = (hasFav && !isFavEmpty) ? Visibility.Visible : (hasFav ? Visibility.Collapsed : Visibility.Visible);
+            _lastFavFilteredEmpty = displayList.Count == 0;
 
             UpdateFavBookmarksIslandVisibility();
+            RefreshActiveNonDefaultTheme();
 
         });
 
@@ -5880,6 +5956,8 @@ public partial class HomePageView : UserControl
 
 
             HomeVizCanvas.Visibility = HomeVisualizerAllowed() ? Visibility.Visible : Visibility.Collapsed;
+            if (!string.IsNullOrEmpty(_activeTheme) && _activeTheme != "Default")
+                UpdateThemeParityLiveState(_activeTheme);
 
         });
 

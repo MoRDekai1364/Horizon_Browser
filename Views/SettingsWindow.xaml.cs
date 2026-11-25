@@ -307,6 +307,8 @@ public partial class SettingsWindow : Window
 
     private void BuildGlassBackdrop()
     {
+        // Identical glass backdrop pipeline to MainWindow.BuildWidgetBackdrop (Weather widget)
+        var baseLayer = new Border();
         var wallBrush = new ImageBrush();
         bool isFlat = SettingsService.Current.DisableBlurEffects;
         var wallLayer = new Border
@@ -322,9 +324,18 @@ public partial class SettingsWindow : Window
             }
         };
         var tintLayer = new Border();
+        var shadeLayer = new Border
+        {
+            Background = new LinearGradientBrush(
+                Color.FromArgb(0x0F, 0, 0, 0),
+                Color.FromArgb(0x1A, 0, 0, 0),
+                90)
+        };
         var glassHost = new Grid { Visibility = Visibility.Collapsed };
         glassHost.Children.Add(wallLayer);
         glassHost.Children.Add(tintLayer);
+        glassHost.Children.Add(shadeLayer);
+        GlassBackdropHost.Children.Add(baseLayer);
         GlassBackdropHost.Children.Add(glassHost);
 
         Rect? lastOverlap = null;
@@ -338,13 +349,10 @@ public partial class SettingsWindow : Window
                 KernelType = KernelType.Gaussian,
                 RenderingBias = RenderingBias.Performance
             };
-            if (flat || overlap == null || !Services.CommandBarGlass.IsHomeActive())
-            {
-                glassHost.Visibility = Visibility.Collapsed;
-                return;
-            }
-            glassHost.Clip = new RectangleGeometry(overlap.Value);
-            glassHost.Visibility = Visibility.Visible;
+            glassHost.Clip = null;
+            glassHost.Visibility = (flat || overlap == null || !Services.CommandBarGlass.IsHomeActive())
+                ? Visibility.Collapsed
+                : Visibility.Visible;
         }
 
         var unbind = WidgetBackdropService.Bind(this, wallBrush, overlap =>
@@ -356,7 +364,14 @@ public partial class SettingsWindow : Window
         {
             UpdateGlass(lastOverlap);
             bool flat = SettingsService.Current.DisableBlurEffects;
-            byte bgAlpha = (byte)Math.Max((int)TintService.Apply(0xD9), 0xB0);
+            var fallbackPanelColor = WeatherBridge.ThemeDarkWallpaper
+                ? Color.FromArgb(0xF5, 0x16, 0x18, 0x20)
+                : Color.FromArgb(0xF5, 0xF2, 0xF4, 0xF8);
+            baseLayer.Background = Services.CommandBarGlass.ShouldUse()
+                ? Brushes.Transparent
+                : new SolidColorBrush(fallbackPanelColor);
+
+            byte bgAlpha = TintService.Apply(0xD9);
             Color searchBg = WeatherBridge.ThemeDarkWallpaper
                 ? Color.FromArgb(bgAlpha, 0x1A, 0x1A, 0x1A)
                 : Color.FromArgb(bgAlpha, 0xFF, 0xFF, 0xFF);
@@ -367,7 +382,11 @@ public partial class SettingsWindow : Window
         }
 
         Apply();
-        var detachCmdGlass = Services.CommandBarGlass.Attach(this, GlassBackdropHost, _ => Apply());
+        var detachCmdGlass = Services.CommandBarGlass.Attach(this, GlassBackdropHost, _ =>
+        {
+            glassHost.Visibility = Visibility.Collapsed;
+            Apply();
+        });
         Action handler = () => Dispatcher.BeginInvoke(new Action(Apply));
         WeatherBridge.ThemeUpdated += handler;
         Controls.HomeGlassMotion.BlurSettingChanged += handler;
@@ -857,15 +876,39 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
 
         string normalized = ParseVersion(raw);
         string channel = ParseChannel(raw);
+        string buildId = BuildIdentityService.GetReleaseBuildId();
 
         TblVersionDisplay.Text = string.IsNullOrEmpty(channel)
-            ? "VERSION " + normalized
-            : "VERSION " + normalized + " " + channel.ToUpperInvariant() + " ";
+            ? $"VERSION {normalized}  \u2022  BUILD {buildId}"
+            : $"VERSION {normalized} {channel.ToUpperInvariant()}  \u2022  BUILD {buildId}";
 
         SetComboByTag(CboUpdateChannel, channel);
         _isLoadingVersion = false;
 
+        UpdateDebugModeUi();
         LoadChangelogDisplay();
+    }
+
+    private void UpdateDebugModeUi()
+    {
+        if (TxtDebugModeStatus == null || BtnToggleDebugMode == null || BadgeDebugModeState == null) return;
+        bool active = DebugModeService.IsDebugMode;
+        TxtDebugModeStatus.Text = active ? "ACTIVE" : "OFF";
+        TxtDebugModeStatus.Foreground = new SolidColorBrush(active ? Color.FromRgb(0x34, 0xD3, 0x99) : Color.FromRgb(0x9C, 0xA3, 0xAF));
+        BadgeDebugModeState.Background = new SolidColorBrush(active ? Color.FromArgb(0x28, 0x10, 0xB9, 0x81) : Color.FromArgb(0x22, 0xFF, 0xFF, 0xFF));
+        BtnToggleDebugMode.Content = active ? "EXIT DEBUG MODE" : "LAUNCH IN DEBUG MODE";
+    }
+
+    private void BtnToggleDebugMode_Click(object sender, RoutedEventArgs e)
+    {
+        bool enter = !DebugModeService.IsDebugMode;
+        string msg = enter
+            ? "Horizon Browser will restart in Dedicated Debug Mode with ultra-detailed logging, first-chance exception tracing, and telemetry enabled.\n\nContinue?"
+            : "Exit Debug Mode and restart Horizon Browser in normal mode?";
+        if (MessageBox.Show(this, msg, "Horizon Debug Mode", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+            return;
+
+        DebugModeService.RestartWithDebugMode(enter);
     }
 
     private void LoadChangelogDisplay()
@@ -1980,11 +2023,12 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
     {
         try
         {
-            string exePath = Path.Combine(AppContext.BaseDirectory, "Horizon.Stealth.exe");
-            RegisterAsDefaultBrowser(exePath);
-
-            // Open Windows Default Apps settings — user makes the final selection there
-            Process.Start(new ProcessStartInfo("ms-settings:defaultapps") { UseShellExecute = true });
+            bool isDefault = DefaultBrowserService.TrySetAsDefaultBrowser();
+            if (isDefault)
+            {
+                MessageBox.Show("Horizon Browser is now set as your default browser.",
+                    "Horizon", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
         }
         catch (Exception ex)
         {
@@ -1992,85 +2036,6 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
             MessageBox.Show($"Could not register as default browser:\n{ex.Message}",
                 "Horizon", MessageBoxButton.OK, MessageBoxImage.Error);
         }
-    }
-
-    private static void RegisterAsDefaultBrowser(string exePath)
-    {
-        const string progId  = "HorizonStealth.HTML";
-        const string appName = "Horizon Browser";
-        const string appKey  = @"Software\Clients\StartMenuInternet\HorizonBrowser";
-        const string capsKey = @"Software\Horizon Browser\Capabilities";
-
-        // \u2500\u2500 1. ProgID: what Windows invokes when opening http/https/html \u2500\u2500\u2500\u2500\u2500\u2500
-        using (var key = Registry.CurrentUser.CreateSubKey($@"Software\Classes\{progId}"))
-        {
-            key.SetValue("", appName + " Document");
-            key.SetValue("FriendlyTypeName", appName + " Document");
-        }
-        using (var key = Registry.CurrentUser.CreateSubKey($@"Software\Classes\{progId}\DefaultIcon"))
-            key.SetValue("", $"\"{exePath}\",0");
-        using (var key = Registry.CurrentUser.CreateSubKey($@"Software\Classes\{progId}\shell\open\command"))
-            key.SetValue("", $"\"{exePath}\" \"%1\"");
-
-        // ── 2. StartMenuInternet registration (shows in "Default apps" chooser) ─
-        using (var key = Registry.CurrentUser.CreateSubKey(appKey))
-            key.SetValue("", appName);
-        using (var key = Registry.CurrentUser.CreateSubKey($@"{appKey}\DefaultIcon"))
-            key.SetValue("", $"\"{exePath}\",0");
-        using (var key = Registry.CurrentUser.CreateSubKey($@"{appKey}\shell\open\command"))
-            key.SetValue("", $"\"{exePath}\"");
-        // Recommended start URL shown in Default Apps UI
-        using (var key = Registry.CurrentUser.CreateSubKey($@"{appKey}\shell\open\command"))
-            key.SetValue("", $"\"{exePath}\"");
-        using (var key = Registry.CurrentUser.CreateSubKey($@"{appKey}\Capabilities"))
-        {
-            key.SetValue("ApplicationName",        appName);
-            key.SetValue("ApplicationDescription", "Privacy-focused Stealth Browser");
-            key.SetValue("ApplicationIcon",        $"\"{exePath}\",0");
-            using (var url = key.CreateSubKey("URLAssociations"))
-            {
-                url.SetValue("http",  progId);
-                url.SetValue("https", progId);
-                url.SetValue("ftp",   progId);
-            }
-            using (var fa = key.CreateSubKey("FileAssociations"))
-            {
-                fa.SetValue(".htm",   progId);
-                fa.SetValue(".html",  progId);
-                fa.SetValue(".xhtml", progId);
-                fa.SetValue(".xht",   progId);
-            }
-        }
-
-        // ── 3. Capabilities (RegisteredApplications path) ─────────────────────
-        using (var caps = Registry.CurrentUser.CreateSubKey(capsKey))
-        {
-            caps.SetValue("ApplicationName",        appName);
-            caps.SetValue("ApplicationDescription", "Privacy-focused Stealth Browser");
-            caps.SetValue("ApplicationIcon",        $"\"{exePath}\",0");
-            using (var url = caps.CreateSubKey("URLAssociations"))
-            {
-                url.SetValue("http",  progId);
-                url.SetValue("https", progId);
-                url.SetValue("ftp",   progId);
-            }
-            using (var fa = caps.CreateSubKey("FileAssociations"))
-            {
-                fa.SetValue(".htm",   progId);
-                fa.SetValue(".html",  progId);
-            }
-            using (var mimes = caps.CreateSubKey("MIMEAssociations"))
-            {
-                mimes.SetValue("text/html",             progId);
-                mimes.SetValue("application/xhtml+xml", progId);
-            }
-        }
-
-        // ── 4. RegisteredApplications pointer ─────────────────────────────────
-        using (var regApps = Registry.CurrentUser.CreateSubKey(@"Software\RegisteredApplications"))
-            regApps.SetValue(appName, capsKey);
-
-        LogService.Write("SETTINGS", "Registered Horizon as candidate default browser.");
     }
 
     // \u2500\u2500 Extensions tab: dynamic card list \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
@@ -2571,6 +2536,7 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
             string? installerPath = await DownloadUpdateAsync(result.AssetUrl, result.AssetName);
             if (!string.IsNullOrEmpty(installerPath) && File.Exists(installerPath))
             {
+                Services.GithubUpdateService.RecordInstalledSignature(result.ReleaseSignature);
                 LaunchAutoInstallFromSettings(installerPath, appropriateTarget);
             }
         }

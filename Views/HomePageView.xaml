@@ -1966,7 +1966,7 @@
 
                     </ScrollViewer>
 
-                    <TextBlock x:Name="TxtFavoritesEmpty" Text="No favorites yet. Press Ctrl+D on any page to add one." Foreground="{DynamicResource HomeTextBrush}" Opacity="0.75" FontSize="12" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="300" Margin="12,8" Visibility="Collapsed"/>
+                    <TextBlock x:Name="TxtFavoritesEmpty" Text="No favorites yet. Press Ctrl+D on any page to add one." Foreground="{DynamicResource HomeTextBrush}" Opacity="0.82" FontSize="12.5" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="420" Margin="0" Visibility="Collapsed"/>
 
                     <Button x:Name="BtnToggleFavorites" Style="{StaticResource PillButtonStyle}" HorizontalAlignment="Right" Margin="0,12,24,0" Click="BtnToggleFavorites_Click" Visibility="Collapsed">
 
@@ -2049,7 +2049,7 @@
 
                     </ScrollViewer>
 
-                    <TextBlock x:Name="TxtBookmarksEmpty" Text="No bookmarks yet. Press Ctrl+D on any page to add one." Foreground="{DynamicResource HomeTextBrush}" Opacity="0.75" FontSize="12" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="300" Margin="12,8" Visibility="Collapsed"/>
+                    <TextBlock x:Name="TxtBookmarksEmpty" Text="No bookmarks yet. Press Ctrl+D on any page to add one." Foreground="{DynamicResource HomeTextBrush}" Opacity="0.82" FontSize="12.5" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="420" Margin="0" Visibility="Collapsed"/>
 
                     <Button x:Name="BtnToggleBookmarks" Style="{StaticResource PillButtonStyle}" HorizontalAlignment="Right" Margin="0,12,24,0" Click="BtnToggleBookmarks_Click" Visibility="Collapsed">
 
@@ -2075,7 +2075,7 @@
 
             <!-- ====================================================================== -->
 
-            <Grid x:Name="ThemeHost_CyberTerminal" Grid.Row="1" Visibility="Collapsed" Background="#080B0F">
+            <Grid x:Name="ThemeHost_CyberTerminal" Grid.Row="1" Visibility="Collapsed" Background="#B8080B0F">
 
                 <Grid Margin="40,24,40,24">
 
@@ -2547,7 +2547,7 @@
 
             <!-- ====================================================================== -->
 
-            <Grid x:Name="ThemeHost_RetroCRT" Grid.Row="1" Visibility="Collapsed" Background="#05030A">
+            <Grid x:Name="ThemeHost_RetroCRT" Grid.Row="1" Visibility="Collapsed" Background="#B805030A">
 
                 <Grid Margin="30,20">
 
@@ -2735,7 +2735,7 @@
 
             <!-- ====================================================================== -->
 
-            <Grid x:Name="ThemeHost_EditorialPaper" Grid.Row="1" Visibility="Collapsed" Background="#141414">
+            <Grid x:Name="ThemeHost_EditorialPaper" Grid.Row="1" Visibility="Collapsed" Background="#B8141414">
 
                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
 
@@ -2843,7 +2843,7 @@
 
             <!-- ====================================================================== -->
 
-            <Grid x:Name="ThemeHost_StarshipLCARS" Grid.Row="1" Visibility="Collapsed" Background="#000000">
+            <Grid x:Name="ThemeHost_StarshipLCARS" Grid.Row="1" Visibility="Collapsed" Background="#B8000000">
 
                 <Grid Margin="20,16">
 
@@ -2987,76 +2987,89 @@ PRESSURE: NOMINAL" Foreground="#FFF" FontSize="13" FontWeight="Bold"/>
 
             <!-- ====================================================================== -->
 
-            <Grid x:Name="ThemeHost_ZenGarden" Grid.Row="1" Visibility="Collapsed" Background="#171A18">
-
-                <Grid Margin="40,30">
-
-                    <Grid.RowDefinitions>
-
-                        <RowDefinition Height="Auto"/>
-
-                        <RowDefinition Height="Auto"/>
-
-                        <RowDefinition Height="*"/>
-
-                    </Grid.RowDefinitions>
-
-
-
-                    <!-- Breathing Mindful Sundial -->
-
-                    <StackPanel Grid.Row="0" HorizontalAlignment="Center" Margin="0,0,0,24">
-
-                        <TextBlock x:Name="TxtZenClock" Text="10:48" FontSize="52" FontWeight="Light" Foreground="#DDE5E0" HorizontalAlignment="Center"/>
-
-                        <TextBlock x:Name="TxtZenBreath" Text="Soft morning light in Sofia · 7°C · Breathe deeply"
-
-                                   FontSize="15" Foreground="#8EA898" HorizontalAlignment="Center" Margin="0,4,0,0"/>
-
-                    </StackPanel>
-
-
-
-                    <!-- Pebble-Pond Indented Search -->
-
-                    <Border Grid.Row="1" HorizontalAlignment="Center" Width="520" Height="52"
-
-                            Background="#222724" BorderBrush="#353E39" BorderThickness="1.5" CornerRadius="26" Padding="20,0" Margin="0,0,0,30">
-
-                        <Grid VerticalAlignment="Center">
-
-                            <Grid.ColumnDefinitions>
-
-                                <ColumnDefinition Width="Auto"/>
-
-                                <ColumnDefinition Width="*"/>
-
-                            </Grid.ColumnDefinitions>
-
-                            <TextBlock Text="&#x1F33F;" FontSize="18" Foreground="#8EA898" VerticalAlignment="Center" Margin="0,0,12,0"/>
-
-                            <TextBox x:Name="TxtZenSearch" Grid.Column="1" Background="Transparent" Foreground="#E2EBE6" CaretBrush="#8EA898"
-
-                                     FontSize="16" BorderThickness="0" VerticalAlignment="Center" KeyDown="ZenSearch_KeyDown"/>
-
-                        </Grid>
-
-                    </Border>
-
-
-
-                    <!-- River Stone Shortcuts -->
-
-                    <StackPanel Grid.Row="2" MaxWidth="760" HorizontalAlignment="Center">
-
-                        <TextBlock Text="RIVER STONES" FontSize="11" FontWeight="Bold" Foreground="#5A6E62" HorizontalAlignment="Center" Margin="0,0,0,16"/>
-
-                        <WrapPanel x:Name="PnlZenStones" HorizontalAlignment="Center" Orientation="Horizontal"/>
-
-                    </StackPanel>
-
+            <!-- ====================================================================== -->
+            <!-- THEME 8: ZEN GARDEN (Misty Watercolor & Frosted Glass Serenity)        -->
+            <!-- ====================================================================== -->
+            <Grid x:Name="ThemeHost_ZenGarden" Grid.Row="1" Visibility="Collapsed" ClipToBounds="True">
+                <!-- Soft misty watercolor backdrop with heavy Gaussian blur layers -->
+                <Grid IsHitTestVisible="False">
+                    <Rectangle>
+                        <Rectangle.Fill>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                <GradientStop Color="#B8F4F1EA" Offset="0"/>
+                                <GradientStop Color="#B8EBECE5" Offset="0.52"/>
+                                <GradientStop Color="#B8DCE3D6" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Rectangle.Fill>
+                    </Rectangle>
+                    <!-- Layered misty sage watercolor mountain sweeps -->
+                    <Ellipse Width="1200" Height="560" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-240,-180" Fill="#88B6C6B2">
+                        <Ellipse.Effect><BlurEffect Radius="52" KernelType="Gaussian" RenderingBias="Performance"/></Ellipse.Effect>
+                    </Ellipse>
+                    <Ellipse Width="1050" Height="440" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-120,-210" Fill="#AA8EA88E">
+                        <Ellipse.Effect><BlurEffect Radius="40" KernelType="Gaussian" RenderingBias="Performance"/></Ellipse.Effect>
+                    </Ellipse>
+                    <Ellipse Width="860" Height="340" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-60,-180" Fill="#CC6F8B70">
+                        <Ellipse.Effect><BlurEffect Radius="32" KernelType="Gaussian" RenderingBias="Performance"/></Ellipse.Effect>
+                    </Ellipse>
+                    <Ellipse Width="780" Height="360" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="-180,0,0,-200" Fill="#66C5D1BE">
+                        <Ellipse.Effect><BlurEffect Radius="48" KernelType="Gaussian" RenderingBias="Performance"/></Ellipse.Effect>
+                    </Ellipse>
                 </Grid>
 
+                <Grid Margin="40,48,40,76">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Soft Frosted Sundial & Breath -->
+                    <StackPanel Grid.Row="0" HorizontalAlignment="Center" Margin="0,12,0,28">
+                        <TextBlock x:Name="TxtZenClock" Text="10:48" FontSize="54" FontWeight="Light" Foreground="#243328" HorizontalAlignment="Center"/>
+                        <TextBlock x:Name="TxtZenBreath" Text="Calm focus" FontSize="14" Foreground="#56695B" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                    </StackPanel>
+
+                    <!-- Milky Frosted Glass Search Pill + Circular '+' Quick-Add Button -->
+                    <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,34">
+                        <Border Width="480" Height="52" Background="#CCFFFFFF" BorderBrush="#99FFFFFF" BorderThickness="1.2" CornerRadius="26" Padding="20,0">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="24" ShadowDepth="6" Direction="270" Color="#405545" Opacity="0.16"/>
+                            </Border.Effect>
+                            <Grid VerticalAlignment="Center">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="&#x1F50D;" FontSize="15" Foreground="#4F6F52" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                                <TextBox x:Name="TxtZenSearch" Grid.Column="1" Background="Transparent" Foreground="#1F2D23" CaretBrush="#4F6F52"
+                                         FontSize="15.5" BorderThickness="0" VerticalAlignment="Center" KeyDown="ZenSearch_KeyDown"/>
+                            </Grid>
+                        </Border>
+                        <Button Width="52" Height="52" Margin="14,0,0,0" Cursor="Hand" Click="BtnZenQuickAdd_Click" ToolTip="Add Favorite">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="Bd" Background="#CCFFFFFF" BorderBrush="#99FFFFFF" BorderThickness="1.2" CornerRadius="26">
+                                        <Border.Effect>
+                                            <DropShadowEffect BlurRadius="22" ShadowDepth="5" Direction="270" Color="#405545" Opacity="0.16"/>
+                                        </Border.Effect>
+                                        <TextBlock Text="+" FontSize="22" FontWeight="Light" Foreground="#2E4032" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-2,0,0"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="Bd" Property="Background" Value="#EEFFFFFF"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                    </StackPanel>
+
+                    <!-- Frosted River Stone Shortcuts -->
+                    <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <WrapPanel x:Name="PnlZenStones" HorizontalAlignment="Center" MaxWidth="820" Orientation="Horizontal"/>
+                    </ScrollViewer>
+                </Grid>
             </Grid>
 
 
@@ -3067,7 +3080,7 @@ PRESSURE: NOMINAL" Foreground="#FFF" FontSize="13" FontWeight="Bold"/>
 
             <!-- ====================================================================== -->
 
-            <Grid x:Name="ThemeHost_Win95RetroDesk" Grid.Row="1" Visibility="Collapsed" Background="#008080">
+            <Grid x:Name="ThemeHost_Win95RetroDesk" Grid.Row="1" Visibility="Collapsed" Background="#B8008080">
 
                 <Grid Margin="24">
 
@@ -3177,6 +3190,208 @@ PRESSURE: NOMINAL" Foreground="#FFF" FontSize="13" FontWeight="Bold"/>
 
                 </Grid>
 
+            </Grid>
+
+            <!-- ====================================================================== -->
+            <!-- THEME 10: IMPERIAL CITADEL (Original Medieval RTS Stone & Gold HUD)    -->
+            <!-- ====================================================================== -->
+            <Grid x:Name="ThemeHost_ImperialCitadel" Grid.Row="1" Visibility="Collapsed" ClipToBounds="True">
+                <!-- Original Isometric Medieval Kingdom Backdrop + Subtle Readability Vignette -->
+                <Grid IsHitTestVisible="False">
+                    <Image x:Name="ImgImperialBg" Stretch="UniformToFill" RenderOptions.BitmapScalingMode="HighQuality"/>
+                    <Rectangle>
+                        <Rectangle.Fill>
+                            <RadialGradientBrush Center="0.5,0.42" GradientOrigin="0.5,0.38" RadiusX="0.78" RadiusY="0.78">
+                                <GradientStop Color="#44140E08" Offset="0"/>
+                                <GradientStop Color="#7A120C07" Offset="0.72"/>
+                                <GradientStop Color="#B80C0805" Offset="1"/>
+                            </RadialGradientBrush>
+                        </Rectangle.Fill>
+                    </Rectangle>
+                </Grid>
+
+                <Grid Margin="36,18,36,70">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Top Medieval RTS Resource Bar -->
+                    <Border Grid.Row="0" HorizontalAlignment="Left" VerticalAlignment="Top"
+                            Background="#EC1C150F" BorderBrush="#C8A24A" BorderThickness="1.5"
+                            CornerRadius="4" Padding="14,7" Margin="0,0,0,18">
+                        <Border.Effect>
+                            <DropShadowEffect BlurRadius="14" ShadowDepth="3" Direction="270" Color="#000000" Opacity="0.65"/>
+                        </Border.Effect>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="&#x269C; IMPERIAL CITADEL" FontFamily="Georgia" FontSize="12" FontWeight="Bold"
+                                       Foreground="#F0C869" VerticalAlignment="Center" Margin="0,0,14,0"/>
+                            <Rectangle Width="1" Height="14" Fill="#66C8A24A" Margin="0,0,14,0"/>
+                            <TextBlock x:Name="TxtImperialRam" Text="&#x2694; RAM: -- MB" FontFamily="Georgia" FontSize="11.5"
+                                       Foreground="#E8DCC4" VerticalAlignment="Center" Margin="0,0,14,0"/>
+                            <TextBlock x:Name="TxtImperialWeather" Text="&#x2600; Weather" FontFamily="Georgia" FontSize="11.5"
+                                       Foreground="#E8DCC4" VerticalAlignment="Center" Margin="0,0,14,0"/>
+                            <TextBlock x:Name="TxtImperialPop" Text="&#x2605; Realm: 0" FontFamily="Georgia" FontSize="11.5"
+                                       Foreground="#E8DCC4" VerticalAlignment="Center" Margin="0,0,14,0"/>
+                            <TextBlock x:Name="TxtImperialClock" Text="00:00:00" FontFamily="Georgia" FontSize="12" FontWeight="Bold"
+                                       Foreground="#F0C869" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Central Royal Heraldic Search Scroll -->
+                    <StackPanel Grid.Row="1" HorizontalAlignment="Center" Width="640" Margin="0,24,0,22">
+                        <TextBlock Text="CHRONICLE OF THE REALM" FontFamily="Georgia" FontSize="28" FontWeight="Bold"
+                                   Foreground="#F5D57E" HorizontalAlignment="Center" Margin="0,0,0,4">
+                            <TextBlock.Effect>
+                                <DropShadowEffect BlurRadius="12" ShadowDepth="2" Direction="270" Color="#000000" Opacity="0.9"/>
+                            </TextBlock.Effect>
+                        </TextBlock>
+                        <TextBlock x:Name="TxtImperialDate" Text="IMPERIAL AGE" FontFamily="Georgia" FontSize="12"
+                                   Foreground="#F0DFBC" HorizontalAlignment="Center" Margin="0,0,0,16">
+                            <TextBlock.Effect>
+                                <DropShadowEffect BlurRadius="8" ShadowDepth="1" Direction="270" Color="#000000" Opacity="0.9"/>
+                            </TextBlock.Effect>
+                        </TextBlock>
+
+                        <Border Background="#EB1E160F" BorderBrush="#D4AF4A" BorderThickness="2" CornerRadius="5" Padding="6">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="22" ShadowDepth="5" Direction="270" Color="#000000" Opacity="0.72"/>
+                            </Border.Effect>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="&#x2694;" FontSize="15" Foreground="#C8A24A"
+                                           VerticalAlignment="Center" Margin="10,0,8,0"/>
+                                <TextBox x:Name="TxtImperialSearch" Grid.Column="1" Background="Transparent" BorderThickness="0"
+                                         Foreground="#F5EBD6" CaretBrush="#F0C869" FontFamily="Georgia" FontSize="15"
+                                         VerticalContentAlignment="Center" Height="34"
+                                         KeyDown="ImperialSearch_KeyDown"/>
+                                <Button Grid.Column="2" Content="MARCH" Click="BtnImperialSearch_Click"
+                                        Background="#7A1C1C" Foreground="#F5E2B0" BorderBrush="#C8A24A" BorderThickness="1.5"
+                                        FontFamily="Georgia" FontSize="12" FontWeight="Bold" Padding="16,0" Height="34"
+                                        Cursor="Hand"/>
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- Heraldic Crest / Shield Shortcut Grid -->
+                    <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <WrapPanel x:Name="PnlImperialCrests" HorizontalAlignment="Center" MaxWidth="980" Margin="0,4,0,16"/>
+                    </ScrollViewer>
+
+                    <!-- Ornate Gold-Framed Isometric Diamond Minimap (Bottom-Right Corner) -->
+                    <Border Grid.Row="2" HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                            Width="206" Height="132" Margin="0,0,0,6"
+                            Background="#EC1A130C" BorderBrush="#C8A24A" BorderThickness="2" CornerRadius="4" Padding="6"
+                            ToolTip="Imperial Realm Map">
+                        <Border.Effect>
+                            <DropShadowEffect BlurRadius="16" ShadowDepth="4" Direction="270" Color="#000000" Opacity="0.75"/>
+                        </Border.Effect>
+                        <Border BorderBrush="#66C8A24A" BorderThickness="1" Background="#120E09">
+                            <Canvas x:Name="CanvasImperialMinimap" Width="190" Height="116" ClipToBounds="True">
+                                <!-- Isometric diamond landmass -->
+                                <Polygon Points="95,6 184,58 95,110 6,58" Fill="#2D5A27" Stroke="#C8A24A" StrokeThickness="1.2"/>
+                                <!-- Turquoise river channels -->
+                                <Polygon Points="36,42 95,18 148,46 130,56 95,36 52,54" Fill="#1E7898" Opacity="0.9"/>
+                                <Polygon Points="54,70 95,88 156,64 142,76 95,102 42,78" Fill="#1E7898" Opacity="0.9"/>
+                                <!-- Central Citadel Island & Gold Keep -->
+                                <Polygon Points="95,38 128,58 95,78 62,58" Fill="#3C7330"/>
+                                <Rectangle Canvas.Left="88" Canvas.Top="52" Width="14" Height="12" Fill="#D4AF4A" Stroke="#FFF2B2" StrokeThickness="0.8"/>
+                                <!-- Distant gold/red/blue faction beacons -->
+                                <Ellipse Canvas.Left="46" Canvas.Top="54" Width="6" Height="6" Fill="#EF4444"/>
+                                <Ellipse Canvas.Left="138" Canvas.Top="54" Width="6" Height="6" Fill="#3B82F6"/>
+                                <Ellipse Canvas.Left="92" Canvas.Top="24" Width="5" Height="5" Fill="#F59E0B"/>
+                                <!-- Camera viewport indicator -->
+                                <Rectangle Canvas.Left="72" Canvas.Top="44" Width="46" Height="28" Stroke="#E6FFFFFF" StrokeThickness="1.2" Fill="Transparent"/>
+                            </Canvas>
+                        </Border>
+                    </Border>
+                </Grid>
+            </Grid>
+
+            <!-- ====================================================================== -->
+            <!-- THEME 11: CELESTIAL OBSERVATORY (Midnight Indigo & Brass Astrolabe)    -->
+            <!-- ====================================================================== -->
+            <Grid x:Name="ThemeHost_CelestialObservatory" Grid.Row="1" Visibility="Collapsed" ClipToBounds="True" SizeChanged="ThemeHost_CelestialObservatory_SizeChanged">
+                <!-- Multi-layered cosmic sky + nebula + procedural starfield/constellations/astrolabe -->
+                <Grid IsHitTestVisible="False">
+                    <Rectangle>
+                        <Rectangle.Fill>
+                            <LinearGradientBrush StartPoint="0.1,0" EndPoint="0.9,1">
+                                <GradientStop Color="#B8030610" Offset="0"/>
+                                <GradientStop Color="#B8081024" Offset="0.42"/>
+                                <GradientStop Color="#B8101A38" Offset="0.78"/>
+                                <GradientStop Color="#B8191B3A" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Rectangle.Fill>
+                    </Rectangle>
+                    <!-- Diagonal Milky Way nebula clouds -->
+                    <Ellipse Width="1300" Height="340" HorizontalAlignment="Center" VerticalAlignment="Center" Fill="#2038BDF8" RenderTransformOrigin="0.5,0.5">
+                        <Ellipse.RenderTransform><RotateTransform Angle="-26"/></Ellipse.RenderTransform>
+                        <Ellipse.Effect><BlurEffect Radius="95" KernelType="Gaussian" RenderingBias="Performance"/></Ellipse.Effect>
+                    </Ellipse>
+                    <Ellipse Width="1050" Height="280" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="80,-60,0,0" Fill="#228B5CF6" RenderTransformOrigin="0.5,0.5">
+                        <Ellipse.RenderTransform><RotateTransform Angle="-24"/></Ellipse.RenderTransform>
+                        <Ellipse.Effect><BlurEffect Radius="88" KernelType="Gaussian" RenderingBias="Performance"/></Ellipse.Effect>
+                    </Ellipse>
+                    <Ellipse Width="640" Height="260" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-60,-80,0" Fill="#1CD4AF37" RenderTransformOrigin="0.5,0.5">
+                        <Ellipse.RenderTransform><RotateTransform Angle="-18"/></Ellipse.RenderTransform>
+                        <Ellipse.Effect><BlurEffect Radius="85" KernelType="Gaussian" RenderingBias="Performance"/></Ellipse.Effect>
+                    </Ellipse>
+                    <Ellipse Width="580" Height="240" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="-100,0,0,-40" Fill="#1CE879F9">
+                        <Ellipse.Effect><BlurEffect Radius="90" KernelType="Gaussian" RenderingBias="Performance"/></Ellipse.Effect>
+                    </Ellipse>
+                    <!-- Procedural starfield, constellations, diffraction flares & graduated brass astrolabe -->
+                    <Canvas x:Name="CanvasCelestialSky" IsHitTestVisible="False"/>
+                </Grid>
+
+                <Grid Margin="40,36,40,76">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Observatory Sidereal Readout -->
+                    <StackPanel Grid.Row="0" HorizontalAlignment="Center" Margin="0,6,0,22">
+                        <TextBlock Text="&#x2726; CELESTIAL OBSERVATORY &#x2726;" FontSize="11.5" FontWeight="SemiBold" Foreground="#D4AF37" HorizontalAlignment="Center" Margin="0,0,0,4"/>
+                        <TextBlock x:Name="TxtCelestialClock" Text="20:40" FontSize="48" FontWeight="Light" Foreground="#F0F5FF" HorizontalAlignment="Center"/>
+                        <TextBlock x:Name="TxtCelestialSky" Text="Clear Night Sky" FontSize="12.5" Foreground="#9AB0D4" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                    </StackPanel>
+
+                    <!-- Frosted Midnight Glass Search Capsule -->
+                    <Border Grid.Row="1" HorizontalAlignment="Center" Width="560" Height="50"
+                            Background="#B80B1224" BorderBrush="#66D4AF37" BorderThickness="1.2" CornerRadius="25" Padding="18,0,8,0" Margin="0,0,0,28">
+                        <Border.Effect>
+                            <DropShadowEffect BlurRadius="24" ShadowDepth="6" Direction="270" Color="#000000" Opacity="0.45"/>
+                        </Border.Effect>
+                        <Grid VerticalAlignment="Center">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="&#x2727;" FontSize="16" Foreground="#D4AF37" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <TextBox x:Name="TxtCelestialSearch" Grid.Column="1" Background="Transparent" BorderThickness="0"
+                                     Foreground="#F0F5FF" CaretBrush="#D4AF37" FontSize="15" VerticalAlignment="Center"
+                                     KeyDown="CelestialSearch_KeyDown"/>
+                            <Button Grid.Column="2" Content="CHART" Click="BtnCelestialSearch_Click"
+                                    Background="#D4AF37" Foreground="#090E1C" BorderThickness="0"
+                                    FontSize="11.5" FontWeight="Bold" Padding="16,0" Height="34" Cursor="Hand">
+                                <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="17"/></Style></Button.Resources>
+                            </Button>
+                        </Grid>
+                    </Border>
+
+                    <!-- Constellation Frosted Cards -->
+                    <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <WrapPanel x:Name="PnlCelestialCards" HorizontalAlignment="Center" MaxWidth="920"/>
+                    </ScrollViewer>
+                </Grid>
             </Grid>
 
         </Grid>

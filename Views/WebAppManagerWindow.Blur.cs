@@ -62,9 +62,16 @@ public partial class WebAppManagerWindow
     {
         Color bg = (CardBaseBg.Background as SolidColorBrush)?.Color ?? Colors.Black;
         double lum = (0.2126 * bg.R + 0.7152 * bg.G + 0.0722 * bg.B) / 255.0;
-        Color fg = lum < 0.5 ? Colors.White : Colors.Black;
-        foreach (string key in new[] { "Brush_Text", "Brush_SoftText", "Brush_MutedText", "Brush_Accent" })
-            Resources[key] = new SolidColorBrush(fg);
+        bool isDark = lum < 0.5;
+
+        Resources["Brush_Text"]               = new SolidColorBrush(isDark ? Colors.White : Color.FromRgb(0x11, 0x14, 0x18));
+        Resources["Brush_SoftText"]           = new SolidColorBrush(isDark ? Color.FromRgb(0xEB, 0xF1, 0xF7) : Color.FromRgb(0x22, 0x26, 0x2E));
+        Resources["Brush_MutedText"]          = new SolidColorBrush(isDark ? Color.FromRgb(0xCC, 0xD8, 0xE6) : Color.FromRgb(0x45, 0x4E, 0x59));
+        Resources["Brush_Accent"]             = new SolidColorBrush(isDark ? Color.FromRgb(0x60, 0xCD, 0xFF) : Color.FromRgb(0x00, 0x67, 0xC0));
+        Resources["Brush_SurfaceChrome"]      = new SolidColorBrush(isDark ? Color.FromArgb(0x24, 0xFF, 0xFF, 0xFF) : Color.FromArgb(0x18, 0x00, 0x00, 0x00));
+        Resources["Brush_SurfaceChromeStroke"]= new SolidColorBrush(isDark ? Color.FromArgb(0x36, 0xFF, 0xFF, 0xFF) : Color.FromArgb(0x2A, 0x00, 0x00, 0x00));
+        Resources["Brush_SurfaceField"]       = new SolidColorBrush(isDark ? Color.FromArgb(0x28, 0xFF, 0xFF, 0xFF) : Color.FromArgb(0x14, 0x00, 0x00, 0x00));
+        Resources["Brush_SurfaceFieldStroke"] = new SolidColorBrush(isDark ? Color.FromArgb(0x55, 0xFF, 0xFF, 0xFF) : Color.FromArgb(0x3A, 0x00, 0x00, 0x00));
     }
 
     private void EnableNativeBlur()

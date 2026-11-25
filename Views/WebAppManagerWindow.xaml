@@ -8,6 +8,62 @@
         Foreground="{DynamicResource Brush_Text}"
         KeyDown="Window_KeyDown">
 
+    <Window.Resources>
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource Brush_Text}"/>
+        </Style>
+
+        <Style TargetType="CheckBox">
+            <Setter Property="Foreground" Value="{DynamicResource Brush_Text}"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <Grid Background="Transparent">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Border x:Name="Box" Grid.Column="0" Width="16" Height="16" CornerRadius="3"
+                                    Margin="0,1,8,0" VerticalAlignment="Top"
+                                    Background="#22FFFFFF" BorderBrush="#CCFFFFFF" BorderThickness="1.2">
+                                <Path x:Name="CheckMark" Data="M 3,8 L 6.5,11.5 L 13,4.5"
+                                      Stroke="#FF0B1018" StrokeThickness="2"
+                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                                      Visibility="Collapsed"/>
+                            </Border>
+                            <ContentPresenter x:Name="ContentHost" Grid.Column="1"
+                                              VerticalAlignment="Center"
+                                              RecognizesAccessKey="True"
+                                              TextElement.Foreground="{TemplateBinding Foreground}"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Box" Property="Background" Value="{DynamicResource Brush_Accent}"/>
+                                <Setter TargetName="Box" Property="BorderBrush" Value="{DynamicResource Brush_Accent}"/>
+                                <Setter TargetName="CheckMark" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Box" Property="BorderBrush" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Foreground" Value="#FFB8C4D4"/>
+                                <Setter TargetName="Box" Property="Opacity" Value="0.55"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="Expander">
+            <Setter Property="Foreground" Value="{DynamicResource Brush_Text}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+    </Window.Resources>
+
     <Grid x:Name="OuterGrid" Margin="0">
         <Grid x:Name="CardClipHost">
             <Border x:Name="CardBaseBg" CornerRadius="8" Background="{DynamicResource Brush_SurfaceCard}" IsHitTestVisible="False"/>

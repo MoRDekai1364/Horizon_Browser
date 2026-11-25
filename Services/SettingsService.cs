@@ -378,6 +378,9 @@ public class SettingsData
     public string       WallpaperOrder       { get; set; } = "Sequential";
     public int          WallpaperCustomIndex { get; set; } = -1;
     public string       WallpaperFolderPath  { get; set; } = "";
+    public bool         DismissedAllInstallationPrompts { get; set; } = false;
+    public bool         HomeLiveWallpaperEnabled { get; set; } = false;
+    public string       HomeLiveWallpaperPath    { get; set; } = "";
 
     // ── Media manager model (config v6). The legacy Wallpaper* fields above stay for the old UI until Phase 6. ──
     // "Single" | "Selection" | "Collection"
@@ -480,6 +483,8 @@ public class SettingsData
     public DateTime? NextUpdateCheckTime { get; set; } = null;
     public DateTime? SnoozeUntilDate { get; set; } = null;
     public string SkippedUpdateVersion { get; set; } = "";
+    public string LastInstalledReleaseSignature { get; set; } = "";
+    public string PendingUpdateReleaseSignature { get; set; } = "";
     public string AutoInstallLocation { get; set; } = "";
     public string PendingUpdateDownloadChoice { get; set; } = ""; // "DownloadNow", "DownloadLater"
     

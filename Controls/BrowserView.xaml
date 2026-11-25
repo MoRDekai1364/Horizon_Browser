@@ -77,9 +77,9 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Modern Anti-Automation / Site Fallback Bar -->
+        <!-- Modern Anti-Automation / Site Fallback Bar (Ctrl+Tab smoked-glass palette) -->
         <Border x:Name="ScriptWarningBar" Grid.Row="0" Visibility="Collapsed"
-                Background="#F4171A24" BorderBrush="#33F59E0B" BorderThickness="0,0,0,1">
+                Background="#E60E0E0E" BorderBrush="#33F59E0B" BorderThickness="0,0,0,1">
             <DockPanel Margin="14,7">
                 <Button x:Name="DismissWarningBtn" DockPanel.Dock="Right"
                         Content="&#x2715;" Margin="6,0,0,0" Padding="8,4"
@@ -101,9 +101,9 @@
             </DockPanel>
         </Border>
 
-        <!-- Modern Save Password Bar -->
+        <!-- Modern Save Password Bar (Ctrl+Tab smoked-glass palette) -->
         <Border x:Name="SavePasswordBar" Grid.Row="1" Visibility="Collapsed"
-                Background="#F4151D1A" BorderBrush="#3310B981" BorderThickness="0,0,0,1">
+                Background="#E60E0E0E" BorderBrush="#3310B981" BorderThickness="0,0,0,1">
             <DockPanel Margin="14,7">
                 <Button x:Name="SavePassDismissBtn" DockPanel.Dock="Right"
                         Content="&#x2715;" Margin="6,0,0,0" Padding="8,4"
@@ -122,9 +122,9 @@
             </DockPanel>
         </Border>
 
-        <!-- Modern Extension Install Bar -->
+        <!-- Modern Extension Install Bar (Ctrl+Tab smoked-glass palette) -->
         <Border x:Name="ExtensionInstallBar" Grid.Row="2" Visibility="Collapsed"
-                Background="#F4151824" BorderBrush="#333B82F6" BorderThickness="0,0,0,1">
+                Background="#E60E0E0E" BorderBrush="#333B82F6" BorderThickness="0,0,0,1">
             <DockPanel Margin="14,7">
                 <Button x:Name="InstallExtDismissBtn" DockPanel.Dock="Right"
                         Content="&#x2715;" Margin="6,0,0,0" Padding="8,4"

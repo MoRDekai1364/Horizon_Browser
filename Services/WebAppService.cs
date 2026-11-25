@@ -24,6 +24,7 @@ public sealed class WebAppManifest
     public string InstalledUtc { get; set; } = "";
     public string DesktopShortcutPath { get; set; } = "";
     public string StartMenuShortcutPath { get; set; } = "";
+    public int IconVersion { get; set; } = 0;
 }
 
 public sealed class WebAppInstallResult
@@ -186,7 +187,8 @@ public static class WebAppService
                 Icon = result.IconOk ? IconFileName : "",
                 InstalledUtc = existing?.InstalledUtc ?? DateTime.UtcNow.ToString("o"),
                 DesktopShortcutPath = desktopPath ?? (desktop ? "" : existing?.DesktopShortcutPath ?? ""),
-                StartMenuShortcutPath = menuPath ?? (startMenu ? "" : existing?.StartMenuShortcutPath ?? "")
+                StartMenuShortcutPath = menuPath ?? (startMenu ? "" : existing?.StartMenuShortcutPath ?? ""),
+                IconVersion = result.IconOk ? CurrentIconPipelineVersion : 0
             };
 
             string manifestPath = Path.Combine(dir, ManifestFileName);
@@ -749,6 +751,367 @@ public static class WebAppService
         }
     }
 
+    private const int CurrentIconPipelineVersion = 2;
+    private const uint SHCNE_ASSOCCHANGED = 0x08000000;
+    private const uint SHCNF_IDLIST = 0x0000;
+
+    [DllImport("shell32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+    private static extern void SHChangeNotify(uint wEventId, uint uFlags, IntPtr dwItem1, IntPtr dwItem2);
+
+    private static readonly System.Net.Http.HttpClient _iconHttp = CreateIconHttpClient();
+
+    private static System.Net.Http.HttpClient CreateIconHttpClient()
+    {
+        var handler = new System.Net.Http.HttpClientHandler { AllowAutoRedirect = true };
+        var client = new System.Net.Http.HttpClient(handler) { Timeout = TimeSpan.FromSeconds(8) };
+        client.DefaultRequestHeaders.UserAgent.ParseAdd(
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36");
+        return client;
+    }
+
+    private sealed class WebAppSyncState
+    {
+        public string BrowserVersion { get; set; } = "0.0.0.0";
+        public string ExePath { get; set; } = "";
+        public long ExeWriteUtcTicks { get; set; }
+        public int IconPipelineVersion { get; set; }
+    }
+
+    private static string SyncStatePath => Path.Combine(RootDir, "_sync_state.json");
+
+    /// <summary>
+    /// Loads all WebApps, syncs uninstall entries, and automatically upgrades all existing WebApps
+    /// (high-res icons + refreshed shortcuts + uninstall entries) whenever Horizon Browser is
+    /// updated or reinstalled with the same or newer version, or if any WebApp still has a legacy low-res icon.
+    /// </summary>
+    public static async Task SyncAllWebAppsIfNeededAsync()
+    {
+        try
+        {
+            var list = LoadAll();
+            if (list.Count == 0) return;
+
+            string currentExe = ResolveExePath();
+            long currentTicks = (!string.IsNullOrEmpty(currentExe) && File.Exists(currentExe))
+                ? File.GetLastWriteTimeUtc(currentExe).Ticks
+                : 0;
+            Version currentVer = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version ?? new Version(2, 8, 0, 0);
+
+            WebAppSyncState? prev = null;
+            try
+            {
+                if (File.Exists(SyncStatePath))
+                    prev = JsonSerializer.Deserialize<WebAppSyncState>(File.ReadAllText(SyncStatePath, Encoding.UTF8));
+            }
+            catch { }
+
+            Version prevVer = Version.TryParse(prev?.BrowserVersion, out var parsed) ? parsed : new Version(0, 0, 0, 0);
+            bool isSameOrNewer = currentVer >= prevVer;
+            bool versionOrBinaryChanged =
+                prev == null ||
+                currentVer > prevVer ||
+                !string.Equals(prev.ExePath, currentExe, StringComparison.OrdinalIgnoreCase) ||
+                prev.ExeWriteUtcTicks != currentTicks ||
+                prev.IconPipelineVersion < CurrentIconPipelineVersion;
+
+            bool anyLegacyIcon = list.Any(m => m.IconVersion < CurrentIconPipelineVersion);
+
+            if (!isSameOrNewer || (!versionOrBinaryChanged && !anyLegacyIcon))
+                return;
+
+            LogService.Write(LogTag, $"Auto-upgrading {list.Count} installed WebApp(s) (ver={currentVer}, prev={prevVer}, legacyIcons={anyLegacyIcon})...");
+            bool anyShellChanged = false;
+
+            foreach (var m in list)
+            {
+                try
+                {
+                    if (!Uri.TryCreate(m.StartUrl, UriKind.Absolute, out var startUri)) continue;
+                    string dir = GetAppDir(m.Id);
+                    string iconPath = Path.Combine(dir, IconFileName);
+                    var errors = new List<string>();
+
+                    // Upgrade icon to high-res if legacy or missing
+                    if (m.IconVersion < CurrentIconPipelineVersion || !File.Exists(iconPath))
+                    {
+                        bool iconOk = await TryWriteIconAsync(() => FetchHighResIconByUrlAsync(startUri), iconPath, errors);
+                        if (iconOk)
+                        {
+                            m.Icon = IconFileName;
+                            m.IconVersion = CurrentIconPipelineVersion;
+                            anyShellChanged = true;
+                        }
+                    }
+
+                    // Refresh existing shortcuts so they point to the current Horizon.Browser.exe and crisp icon.ico
+                    bool hasDesktop = !string.IsNullOrEmpty(m.DesktopShortcutPath) && File.Exists(m.DesktopShortcutPath);
+                    bool hasMenu = !string.IsNullOrEmpty(m.StartMenuShortcutPath) && File.Exists(m.StartMenuShortcutPath);
+                    if (hasDesktop || hasMenu)
+                    {
+                        string workDir = Path.GetDirectoryName(currentExe) ?? "";
+                        string iconLoc = (!string.IsNullOrEmpty(m.Icon) && File.Exists(iconPath) ? iconPath : currentExe) + ",0";
+                        string args = "--webapp-id=" + m.Id;
+                        string desc = "Horizon Web App: " + m.Name;
+
+                        if (hasDesktop)
+                            CreateShortcut(m.DesktopShortcutPath, currentExe, args, workDir, iconLoc, desc, "Desktop", errors);
+                        if (hasMenu)
+                            CreateShortcut(m.StartMenuShortcutPath, currentExe, args, workDir, iconLoc, desc, "Start Menu", errors);
+                        anyShellChanged = true;
+                    }
+
+                    SaveManifest(m);
+                    RegisterUninstallEntry(m);
+                }
+                catch (Exception ex)
+                {
+                    LogService.RecordCrash(ex, "WebAppService.SyncWebApp." + m.Id);
+                }
+            }
+
+            if (anyShellChanged)
+            {
+                try { SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, IntPtr.Zero, IntPtr.Zero); }
+                catch { }
+            }
+
+            try
+            {
+                Directory.CreateDirectory(RootDir);
+                var state = new WebAppSyncState
+                {
+                    BrowserVersion = currentVer.ToString(),
+                    ExePath = currentExe,
+                    ExeWriteUtcTicks = currentTicks,
+                    IconPipelineVersion = CurrentIconPipelineVersion
+                };
+                string tmp = SyncStatePath + ".tmp";
+                File.WriteAllText(tmp, JsonSerializer.Serialize(state, JsonOpts), new UTF8Encoding(false));
+                File.Move(tmp, SyncStatePath, true);
+            }
+            catch { }
+
+            LogService.Write(LogTag, $"Auto-upgrade complete for {list.Count} WebApp(s).");
+        }
+        catch (Exception ex)
+        {
+            LogService.RecordCrash(ex, "WebAppService.SyncAllWebAppsIfNeededAsync");
+        }
+    }
+
+    /// <summary>
+    /// Extracts the highest-resolution icon available from an active WebView2 page (apple-touch-icon,
+    /// large &lt;link rel="icon"&gt;, web manifest icons), falling back to URL/high-res icon APIs and CoreWebView2.GetFaviconAsync.
+    /// </summary>
+    public static async Task<Stream?> FetchHighResIconFromPageAsync(
+        Microsoft.Web.WebView2.Core.CoreWebView2 core,
+        Uri pageUri)
+    {
+        var candidateUrls = new List<string>();
+        try
+        {
+            const string js = @"(async () => {
+                const out = [];
+                const add = (href, sz) => {
+                    if (!href) return;
+                    try { out.push({ url: new URL(href, location.href).href, size: sz || 0 }); } catch {}
+                };
+                const parseSize = (s) => {
+                    if (!s) return 0;
+                    let best = 0;
+                    for (const m of s.matchAll(/(\d+)\s*x\s*(\d+)/gi)) {
+                        const v = Math.max(parseInt(m[1], 10) || 0, parseInt(m[2], 10) || 0);
+                        if (v > best) best = v;
+                    }
+                    return best;
+                };
+                for (const l of document.querySelectorAll('link[rel*=""icon"" i], link[rel=""apple-touch-icon"" i], link[rel=""apple-touch-icon-precomposed"" i]')) {
+                    const rel = (l.getAttribute('rel') || '').toLowerCase();
+                    let sz = parseSize(l.getAttribute('sizes'));
+                    if (sz === 0 && rel.includes('apple-touch-icon')) sz = 180;
+                    add(l.getAttribute('href'), sz);
+                }
+                const mf = document.querySelector('link[rel=""manifest"" i]');
+                if (mf && mf.getAttribute('href')) {
+                    try {
+                        const mfUrl = new URL(mf.getAttribute('href'), location.href).href;
+                        const resp = await fetch(mfUrl, { credentials: 'include' });
+                        if (resp.ok) {
+                            const data = await resp.json();
+                            if (Array.isArray(data.icons)) {
+                                for (const ic of data.icons) {
+                                    if (ic && ic.src) add(new URL(ic.src, mfUrl).href, parseSize(ic.sizes) || 192);
+                                }
+                            }
+                        }
+                    } catch {}
+                }
+                out.sort((a, b) => b.size - a.size);
+                return [...new Set(out.map(x => x.url))].slice(0, 8);
+            })()";
+
+            string raw = await core.ExecuteScriptAsync(js);
+            if (!string.IsNullOrWhiteSpace(raw) && raw != "null")
+            {
+                var parsed = JsonSerializer.Deserialize<List<string>>(raw);
+                if (parsed != null) candidateUrls.AddRange(parsed);
+            }
+        }
+        catch { }
+
+        var bestFromUrls = await DownloadBestIconStreamAsync(candidateUrls, pageUri);
+        if (bestFromUrls != null) return bestFromUrls;
+
+        var byUrl = await FetchHighResIconByUrlAsync(pageUri);
+        if (byUrl != null) return byUrl;
+
+        try
+        {
+            return await core.GetFaviconAsync(Microsoft.Web.WebView2.Core.CoreWebView2FaviconImageFormat.Png);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Headless high-resolution icon fetcher for background upgrades of existing WebApps.
+    /// </summary>
+    public static async Task<Stream?> FetchHighResIconByUrlAsync(Uri startUri)
+    {
+        var candidates = new List<string>();
+        try
+        {
+            string html = await _iconHttp.GetStringAsync(startUri);
+            var linkMatches = System.Text.RegularExpressions.Regex.Matches(
+                html,
+                @"<link\b[^>]*rel\s*=\s*[""']([^""']*(?:apple-touch-icon|icon|manifest)[^""']*)[""'][^>]*>",
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+            var scored = new List<(string Url, int Score)>();
+            string? manifestUrl = null;
+
+            foreach (System.Text.RegularExpressions.Match m in linkMatches)
+            {
+                string tag = m.Value;
+                string rel = m.Groups[1].Value.ToLowerInvariant();
+                var hrefM = System.Text.RegularExpressions.Regex.Match(tag, @"href\s*=\s*[""']([^""']+)[""']", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                if (!hrefM.Success) continue;
+                if (!Uri.TryCreate(startUri, hrefM.Groups[1].Value, out var abs)) continue;
+
+                if (rel.Contains("manifest"))
+                {
+                    manifestUrl ??= abs.AbsoluteUri;
+                    continue;
+                }
+
+                int score = rel.Contains("apple-touch-icon") ? 180 : 32;
+                var sizeM = System.Text.RegularExpressions.Regex.Match(tag, @"sizes\s*=\s*[""'](\d+)x(\d+)[""']", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                if (sizeM.Success && int.TryParse(sizeM.Groups[1].Value, out int px)) score = Math.Max(score, px);
+                scored.Add((abs.AbsoluteUri, score));
+            }
+
+            if (!string.IsNullOrEmpty(manifestUrl))
+            {
+                try
+                {
+                    string mfJson = await _iconHttp.GetStringAsync(manifestUrl);
+                    using var doc = JsonDocument.Parse(mfJson);
+                    if (doc.RootElement.TryGetProperty("icons", out var icons) && icons.ValueKind == JsonValueKind.Array)
+                    {
+                        var mfBase = new Uri(manifestUrl);
+                        foreach (var ic in icons.EnumerateArray())
+                        {
+                            if (!ic.TryGetProperty("src", out var srcEl)) continue;
+                            string? src = srcEl.GetString();
+                            if (string.IsNullOrWhiteSpace(src) || !Uri.TryCreate(mfBase, src, out var abs)) continue;
+                            int score = 192;
+                            if (ic.TryGetProperty("sizes", out var szEl))
+                            {
+                                var sm = System.Text.RegularExpressions.Regex.Match(szEl.GetString() ?? "", @"(\d+)x(\d+)");
+                                if (sm.Success && int.TryParse(sm.Groups[1].Value, out int px)) score = px;
+                            }
+                            scored.Add((abs.AbsoluteUri, score));
+                        }
+                    }
+                }
+                catch { }
+            }
+
+            foreach (var item in scored.OrderByDescending(x => x.Score).Select(x => x.Url).Distinct(StringComparer.OrdinalIgnoreCase).Take(6))
+                candidates.Add(item);
+        }
+        catch { }
+
+        // Always append reliable high-res fallbacks
+        string host = startUri.Host;
+        candidates.Add($"https://www.google.com/s2/favicons?domain={Uri.EscapeDataString(host)}&sz=256");
+        candidates.Add($"https://icons.duckduckgo.com/ip3/{Uri.EscapeDataString(host)}.ico");
+        candidates.Add($"{startUri.Scheme}://{startUri.Authority}/apple-touch-icon.png");
+        candidates.Add($"{startUri.Scheme}://{startUri.Authority}/favicon.ico");
+
+        return await DownloadBestIconStreamAsync(candidates.Distinct(StringComparer.OrdinalIgnoreCase), startUri);
+    }
+
+    private static async Task<Stream?> DownloadBestIconStreamAsync(IEnumerable<string> urls, Uri referer)
+    {
+        byte[]? bestBytes = null;
+        int bestPixels = 0;
+
+        foreach (string url in urls)
+        {
+            if (string.IsNullOrWhiteSpace(url) || url.EndsWith(".svg", StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            try
+            {
+                using var req = new System.Net.Http.HttpRequestMessage(System.Net.Http.HttpMethod.Get, url);
+                req.Headers.Referrer = referer;
+                using var resp = await _iconHttp.SendAsync(req);
+                if (!resp.IsSuccessStatusCode) continue;
+
+                byte[] data = await resp.Content.ReadAsByteArrayAsync();
+                if (data.Length < 64 || data.Length > 4 * 1024 * 1024) continue;
+
+                int maxDim = ProbeMaxBitmapDimension(data);
+                if (maxDim <= 0) continue;
+
+                if (maxDim > bestPixels)
+                {
+                    bestPixels = maxDim;
+                    bestBytes = data;
+                }
+
+                // 192px+ is already crisp for 256px Windows ICO — stop early
+                if (bestPixels >= 192) break;
+            }
+            catch { }
+        }
+
+        return bestBytes != null ? new MemoryStream(bestBytes) : null;
+    }
+
+    private static int ProbeMaxBitmapDimension(byte[] raw)
+    {
+        try
+        {
+            using var ms = new MemoryStream(raw);
+            var decoder = BitmapDecoder.Create(ms, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
+            int max = 0;
+            foreach (var f in decoder.Frames)
+            {
+                int dim = Math.Max(f.PixelWidth, f.PixelHeight);
+                if (dim > max) max = dim;
+            }
+            return max;
+        }
+        catch
+        {
+            return 0;
+        }
+    }
+
     private static async Task<bool> TryWriteIconAsync(Func<Task<Stream?>>? provider, string iconPath, List<string> errors)
     {
         if (provider == null)
@@ -782,7 +1145,9 @@ public static class WebAppService
             using (var decodeStream = new MemoryStream(raw))
             {
                 var decoder = BitmapDecoder.Create(decodeStream, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
-                frame = decoder.Frames[0];
+                frame = decoder.Frames
+                    .OrderByDescending(f => f.PixelWidth * f.PixelHeight)
+                    .First();
             }
 
             if (frame.PixelWidth < 16 || frame.PixelHeight < 16)
@@ -792,7 +1157,7 @@ public static class WebAppService
             }
 
             var images = new List<(int Size, byte[] Png)>();
-            foreach (int size in new[] { 256, 48, 32, 16 })
+            foreach (int size in new[] { 256, 128, 64, 48, 32, 16 })
             {
                 images.Add((size, RenderSquarePng(frame, size)));
             }
@@ -801,6 +1166,8 @@ public static class WebAppService
             string tmp = iconPath + ".tmp";
             File.WriteAllBytes(tmp, ico);
             File.Move(tmp, iconPath, true);
+            try { SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, IntPtr.Zero, IntPtr.Zero); }
+            catch { }
             LogService.Write(LogTag, $"Icon written ({frame.PixelWidth}x{frame.PixelHeight} source, {ico.Length} bytes): {iconPath}");
             return true;
         }

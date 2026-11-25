@@ -39,10 +39,13 @@ public partial class WebAppWindow : Window
 
     private string? _pendingOfferUrl;
     private string? _bypassUrl;
+    private WebAppOfferBannerWindow? _offerBannerWindow;
     private bool _coreHooked;
     private bool _barVisible;
     private long _barLastActive;
     private bool _isFullscreen;
+    private bool _fsDesired;
+    private bool _fsBusy;
     private WindowState _prevState = WindowState.Normal;
     private ResizeMode _prevResize = ResizeMode.CanResize;
     private Rect _prevBounds;
@@ -78,14 +81,43 @@ public partial class WebAppWindow : Window
 
         SourceInitialized += (_, _) => ApplyWindowIdentity();
         Loaded += (_, _) => _barTimer.Start();
-        LocationChanged += (_, _) => HideBar(true);
-        SizeChanged += (_, _) => HideBar(true);
-        StateChanged += (_, _) => HideBar(true);
+        LocationChanged += (_, _) => { HideBar(true); _offerBannerWindow?.SyncToOwner(this); };
+        SizeChanged += (_, _) => { HideBar(true); _offerBannerWindow?.SyncToOwner(this); };
+        StateChanged += (_, _) => { HideBar(true); _offerBannerWindow?.SyncToOwner(this); };
         Deactivated += (_, _) => HideBar(true);
         Closed += (_, _) =>
         {
             _barTimer.Stop();
             BarPopup.IsOpen = false;
+            try { _offerBannerWindow?.Close(); } catch { }
+            _offerBannerWindow = null;
+            try { _managerWindow?.Close(); } catch { }
+            _managerWindow = null;
+
+            // Immediately silence and destroy the WebView2 controller so video/audio
+            // never keeps playing in the background after the WebApp window closes.
+            try
+            {
+                Browser.NewTabRequested -= OnNewTabRequested;
+                var wv = Browser.MainWebView;
+                if (wv != null)
+                {
+                    wv.CoreWebView2InitializationCompleted -= OnCoreInitialized;
+                    var core = wv.CoreWebView2;
+                    if (core != null)
+                    {
+                        try { core.IsMuted = true; } catch { }
+                        try { core.Stop(); } catch { }
+                        try { core.NavigationStarting -= OnNavigationStarting; } catch { }
+                        try { core.NavigationCompleted -= OnNavigationCompletedForRestore; } catch { }
+                    }
+                    wv.Dispose();
+                }
+            }
+            catch (Exception ex)
+            {
+                LogService.RecordCrash(ex, "WebAppWindow.Closed.DisposeWebView");
+            }
         };
         _barTimer.Tick += OnBarTick;
 
@@ -146,7 +178,7 @@ public partial class WebAppWindow : Window
         core.NavigationStarting += OnNavigationStarting;
         core.NavigationCompleted += OnNavigationCompletedForRestore;
         core.DocumentTitleChanged += (_, _) => UpdateTitle();
-        core.ContainsFullScreenElementChanged += (_, _) => SetFullscreen(core.ContainsFullScreenElement);
+        core.ContainsFullScreenElementChanged += (_, _) => RequestFullscreen(core.ContainsFullScreenElement);
     }
 
     private const string StateScript =
@@ -420,8 +452,31 @@ public partial class WebAppWindow : Window
     {
         _pendingOfferUrl = url;
         string host = Uri.TryCreate(url, UriKind.Absolute, out var u) ? u.Host : url;
-        OfferText.Text = "This link leaves " + _scopeHost + " and goes to " + host + ".";
-        OfferBar.Visibility = Visibility.Visible;
+        string msg = "This link leaves " + _scopeHost + " and goes to " + host + ".";
+
+        try
+        {
+            if (_offerBannerWindow == null)
+            {
+                _offerBannerWindow = new WebAppOfferBannerWindow(this);
+                _offerBannerWindow.StayClicked += () => ResolveOffer(WebAppLinkAction.SameWindow, false);
+                _offerBannerWindow.HorizonClicked += () => ResolveOffer(WebAppLinkAction.Horizon, false);
+                _offerBannerWindow.BrowserClicked += () => ResolveOffer(WebAppLinkAction.SystemBrowser, false);
+                _offerBannerWindow.NeverClicked += () => ResolveOffer(WebAppLinkAction.SameWindow, true);
+                _offerBannerWindow.DismissClicked += () =>
+                {
+                    _pendingOfferUrl = null;
+                    _offerBannerWindow?.Hide();
+                };
+            }
+            OfferBar.Visibility = Visibility.Collapsed;
+            _offerBannerWindow.ShowOffer(msg, this);
+        }
+        catch
+        {
+            OfferText.Text = msg;
+            OfferBar.Visibility = Visibility.Visible;
+        }
         LogService.Write(LogTag, "Offer shown for: " + url);
     }
 
@@ -430,6 +485,7 @@ public partial class WebAppWindow : Window
         string? url = _pendingOfferUrl;
         _pendingOfferUrl = null;
         OfferBar.Visibility = Visibility.Collapsed;
+        try { _offerBannerWindow?.Hide(); } catch { }
 
         if (neverAskAgain)
         {
@@ -501,12 +557,100 @@ public partial class WebAppWindow : Window
         return false;
     }
 
-    private void SetFullscreen(bool on)
+    private async void RequestFullscreen(bool on)
+    {
+        _fsDesired = on;
+        if (_fsBusy) return;
+        _fsBusy = true;
+
+        try
+        {
+            while (_isFullscreen != _fsDesired)
+            {
+                bool target = _fsDesired;
+                try
+                {
+                    await RunFullscreenTransitionAsync(target);
+                }
+                catch (Exception ex)
+                {
+                    LogService.RecordCrash(ex, "WebAppWindow.FullscreenTransition");
+                    if (_isFullscreen != target) ApplyFullscreenImmediate(target);
+                }
+            }
+        }
+        finally
+        {
+            _fsBusy = false;
+        }
+    }
+
+    private async System.Threading.Tasks.Task RunFullscreenTransitionAsync(bool enter)
+    {
+        var hwnd = new WindowInteropHelper(this).Handle;
+        bool canAnimate = hwnd != IntPtr.Zero && IsLoaded && IsVisible && WindowState != WindowState.Minimized;
+
+        if (!canAnimate || !SettingsService.Current.ShowFullscreenOverlay)
+        {
+            ApplyFullscreenImmediate(enter);
+            return;
+        }
+
+        using var curtain = FullscreenGlassCurtain.TryCreate(hwnd, enter ? "Entering fullscreen..." : "Exiting fullscreen...");
+        if (curtain == null)
+        {
+            ApplyFullscreenImmediate(enter);
+            return;
+        }
+
+        FullscreenTransitionHelper.SetOsWindowTransitions(hwnd, true);
+
+        try
+        {
+            await curtain.FadeInAsync(FullscreenTransitionHelper.FsPreDarkenMs);
+
+            if (!curtain.OwnerAlive || WindowState == WindowState.Minimized || !IsVisible)
+            {
+                ApplyFullscreenImmediate(enter);
+                return;
+            }
+
+            curtain.CoverUnion();
+            curtain.Flush();
+
+            ApplyFullscreenImmediate(enter);
+            UpdateLayout();
+
+            await curtain.WaitForOwnerStableAsync(
+                FullscreenTransitionHelper.FsStableMinMs,
+                FullscreenTransitionHelper.FsStableMaxMs);
+            if (!curtain.OwnerAlive) return;
+
+            UpdateLayout();
+            await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Render);
+            await FullscreenTransitionHelper.WaitForPageSettledAsync(Browser.MainWebView?.CoreWebView2, enter, curtain);
+            if (!curtain.OwnerAlive) return;
+
+            curtain.FitToOwner();
+            curtain.Flush();
+
+            int fadeOutMs = enter ? FullscreenTransitionHelper.FsFadeOutMs : 60;
+            await curtain.FadeOutAsync(fadeOutMs);
+        }
+        finally
+        {
+            if (curtain.OwnerAlive) FullscreenTransitionHelper.SetOsWindowTransitions(hwnd, false);
+        }
+    }
+
+    private void ApplyFullscreenImmediate(bool on)
     {
         try
         {
             if (on == _isFullscreen) return;
             _isFullscreen = on;
+
+            var hwnd = new WindowInteropHelper(this).Handle;
 
             if (on)
             {
@@ -515,19 +659,23 @@ public partial class WebAppWindow : Window
                 _prevBounds = WindowState == WindowState.Normal ? new Rect(Left, Top, Width, Height) : RestoreBounds;
                 HideBar(true);
 
-                var screen = Forms.Screen.FromHandle(new WindowInteropHelper(this).Handle);
+                var screen = Forms.Screen.FromHandle(hwnd);
                 var source = PresentationSource.FromVisual(this);
                 Matrix toDip = source?.CompositionTarget?.TransformFromDevice ?? Matrix.Identity;
                 var tl = toDip.Transform(new Point(screen.Bounds.Left, screen.Bounds.Top));
                 var br = toDip.Transform(new Point(screen.Bounds.Right, screen.Bounds.Bottom));
 
                 ResizeMode = ResizeMode.NoResize;
-                WindowState = WindowState.Normal;
-                Topmost = true;
+                if (WindowState != WindowState.Normal) WindowState = WindowState.Normal;
+                Topmost = false;
                 Left = tl.X;
                 Top = tl.Y;
                 Width = br.X - tl.X;
                 Height = br.Y - tl.Y;
+
+                // Explicitly ensure HWND_NOTOPMOST so other windows can always be shown over fullscreen video
+                if (hwnd != IntPtr.Zero)
+                    SetWindowPos(hwnd, new IntPtr(-2), 0, 0, 0, 0, 0x0001 | 0x0002 | 0x0010);
             }
             else
             {
@@ -542,7 +690,7 @@ public partial class WebAppWindow : Window
         }
         catch (Exception ex)
         {
-            LogService.RecordCrash(ex, "WebAppWindow.SetFullscreen");
+            LogService.RecordCrash(ex, "WebAppWindow.ApplyFullscreenImmediate");
         }
     }
 
@@ -583,8 +731,9 @@ public partial class WebAppWindow : Window
         Matrix toDevice = source.CompositionTarget.TransformToDevice;
         Point tl = RootGrid.PointToScreen(new Point(0, 0));
         double width = RootGrid.ActualWidth * toDevice.M11;
-        double edge = (_barVisible ? BarRoot.Height : 24) * toDevice.M22;
-        double zoneLeft = _barVisible ? tl.X : tl.X + width * 0.75;
+        double edge = (_barVisible ? BarRoot.Height : 20) * toDevice.M22;
+        double triggerWidth = Math.Min(width * 0.22, 250 * toDevice.M11);
+        double zoneLeft = _barVisible ? tl.X : tl.X + Math.Max(0, width - triggerWidth);
         return p.X >= zoneLeft && p.X <= tl.X + width && p.Y >= tl.Y && p.Y <= tl.Y + edge;
     }
 
@@ -670,6 +819,9 @@ public partial class WebAppWindow : Window
 
     [DllImport("user32.dll")]
     private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
 }
 
 internal static class WindowPropertyStore

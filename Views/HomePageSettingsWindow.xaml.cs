@@ -998,6 +998,115 @@ public partial class HomePageSettingsWindow : Window
     {
         string currentTheme = SettingsService.Current.HomePageTheme ?? "Default";
         UpdateThemeSelectionBadges(currentTheme);
+        LoadLiveWallpaperControls();
+    }
+
+    private bool _loadingLiveWallpaperUi;
+    private readonly List<string> _liveWallpaperPaths = new();
+
+    private void LoadLiveWallpaperControls()
+    {
+        if (ChkLiveWallpaperEnabled == null || CmbLiveWallpaperFile == null) return;
+        _loadingLiveWallpaperUi = true;
+        try
+        {
+            ChkLiveWallpaperEnabled.IsChecked = SettingsService.Current.HomeLiveWallpaperEnabled;
+            _liveWallpaperPaths.Clear();
+            CmbLiveWallpaperFile.Items.Clear();
+
+            string[] exts = { ".mp4", ".webm", ".mov", ".wmv" };
+            var scanDirs = new[]
+            {
+                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "wallpapers"),
+                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "start_videos"),
+                SettingsService.Current.WallpaperFolderPath
+            };
+
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (string dir in scanDirs)
+            {
+                if (string.IsNullOrWhiteSpace(dir) || !Directory.Exists(dir)) continue;
+                try
+                {
+                    foreach (string f in Directory.GetFiles(dir))
+                    {
+                        if (!exts.Contains(Path.GetExtension(f).ToLowerInvariant())) continue;
+                        if (seen.Add(f))
+                        {
+                            _liveWallpaperPaths.Add(f);
+                            CmbLiveWallpaperFile.Items.Add(Path.GetFileName(f));
+                        }
+                    }
+                }
+                catch { }
+            }
+
+            string current = SettingsService.Current.HomeLiveWallpaperPath ?? "";
+            if (!string.IsNullOrWhiteSpace(current) && File.Exists(current) && seen.Add(current))
+            {
+                _liveWallpaperPaths.Insert(0, current);
+                CmbLiveWallpaperFile.Items.Insert(0, Path.GetFileName(current));
+            }
+
+            int idx = _liveWallpaperPaths.FindIndex(p => string.Equals(p, current, StringComparison.OrdinalIgnoreCase));
+            if (idx >= 0) CmbLiveWallpaperFile.SelectedIndex = idx;
+            else if (CmbLiveWallpaperFile.Items.Count > 0) CmbLiveWallpaperFile.SelectedIndex = 0;
+        }
+        finally
+        {
+            _loadingLiveWallpaperUi = false;
+        }
+    }
+
+    private void ApplyLiveWallpaperSelection()
+    {
+        SettingsService.Save();
+        if (Application.Current?.MainWindow is MainWindow mw)
+            mw.CurrentBrowser?.NativeHomePage?.ReloadWallpaper();
+    }
+
+    private void ChkLiveWallpaperEnabled_Click(object sender, RoutedEventArgs e)
+    {
+        if (_loadingLiveWallpaperUi) return;
+        SettingsService.Current.HomeLiveWallpaperEnabled = ChkLiveWallpaperEnabled.IsChecked == true;
+        if (SettingsService.Current.HomeLiveWallpaperEnabled &&
+            string.IsNullOrWhiteSpace(SettingsService.Current.HomeLiveWallpaperPath) &&
+            CmbLiveWallpaperFile.SelectedIndex >= 0 &&
+            CmbLiveWallpaperFile.SelectedIndex < _liveWallpaperPaths.Count)
+        {
+            SettingsService.Current.HomeLiveWallpaperPath = _liveWallpaperPaths[CmbLiveWallpaperFile.SelectedIndex];
+        }
+        ApplyLiveWallpaperSelection();
+    }
+
+    private void CmbLiveWallpaperFile_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_loadingLiveWallpaperUi) return;
+        int idx = CmbLiveWallpaperFile.SelectedIndex;
+        if (idx >= 0 && idx < _liveWallpaperPaths.Count)
+        {
+            SettingsService.Current.HomeLiveWallpaperPath = _liveWallpaperPaths[idx];
+            SettingsService.Current.HomeLiveWallpaperEnabled = true;
+            _loadingLiveWallpaperUi = true;
+            ChkLiveWallpaperEnabled.IsChecked = true;
+            _loadingLiveWallpaperUi = false;
+            ApplyLiveWallpaperSelection();
+        }
+    }
+
+    private void BtnBrowseLiveWallpaper_Click(object sender, RoutedEventArgs e)
+    {
+        var ofd = new Microsoft.Win32.OpenFileDialog
+        {
+            Title = "Select Live Wallpaper Video",
+            Filter = "Video Files|*.mp4;*.webm;*.mov;*.wmv|All Files|*.*"
+        };
+        if (ofd.ShowDialog(this) != true) return;
+
+        SettingsService.Current.HomeLiveWallpaperPath = ofd.FileName;
+        SettingsService.Current.HomeLiveWallpaperEnabled = true;
+        LoadLiveWallpaperControls();
+        ApplyLiveWallpaperSelection();
     }
 
     private void UpdateThemeSelectionBadges(string selectedTheme)
@@ -1012,7 +1121,9 @@ public partial class HomePageSettingsWindow : Window
             ["EditorialPaper"] = BadgeTheme_EditorialPaper,
             ["StarshipLCARS"] = BadgeTheme_StarshipLCARS,
             ["ZenGarden"] = BadgeTheme_ZenGarden,
-            ["Win95RetroDesk"] = BadgeTheme_Win95RetroDesk
+            ["Win95RetroDesk"] = BadgeTheme_Win95RetroDesk,
+            ["ImperialCitadel"] = BadgeTheme_ImperialCitadel,
+            ["CelestialObservatory"] = BadgeTheme_CelestialObservatory
         };
 
         var cards = new Dictionary<string, Border?>
@@ -1025,7 +1136,9 @@ public partial class HomePageSettingsWindow : Window
             ["EditorialPaper"] = CardTheme_EditorialPaper,
             ["StarshipLCARS"] = CardTheme_StarshipLCARS,
             ["ZenGarden"] = CardTheme_ZenGarden,
-            ["Win95RetroDesk"] = CardTheme_Win95RetroDesk
+            ["Win95RetroDesk"] = CardTheme_Win95RetroDesk,
+            ["ImperialCitadel"] = CardTheme_ImperialCitadel,
+            ["CelestialObservatory"] = CardTheme_CelestialObservatory
         };
 
         foreach (var (theme, badge) in badges)

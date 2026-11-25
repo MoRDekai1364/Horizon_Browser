@@ -98,6 +98,7 @@
                        FontSize="20" FontWeight="Bold" VerticalAlignment="Center"/>
             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="32,0,0,0">
                 <RadioButton x:Name="TabWallpapers" Content="WALLPAPERS" GroupName="MediaKindTab" Style="{StaticResource TabRadioStyle}" Click="TabWallpapers_Click"/>
+                <RadioButton x:Name="TabLiveWallpapers" Content="LIVE WALLPAPERS" GroupName="MediaKindTab" Style="{StaticResource TabRadioStyle}" Click="TabLiveWallpapers_Click"/>
                 <RadioButton x:Name="TabVideos" Content="STARTUP VIDEO" GroupName="MediaKindTab" Style="{StaticResource TabRadioStyle}" Click="TabVideos_Click"/>
                 <TextBlock x:Name="TxtHeaderSub" Text="" Foreground="#999999" FontSize="12" Margin="10,2,0,0" VerticalAlignment="Center"/>
             </StackPanel>
@@ -119,6 +120,29 @@
                 </Button.Template>
             </Button>
         </Grid>
+
+        <!-- Live Wallpapers (Play Once on Tab Open) Panel -->
+        <Border x:Name="PnlLiveWallpapers" Grid.Row="1" Visibility="Collapsed"
+                Background="#14FFFFFF" BorderBrush="#2AFFFFFF" BorderThickness="1" CornerRadius="12" Padding="24">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Text="Homepage Live Wallpapers (Play Once)" Foreground="{DynamicResource Brush_Accent}" FontSize="18" FontWeight="Bold"/>
+                <TextBlock Grid.Row="1" Text="Pick a video to play once automatically whenever a homepage tab opens, then stop cleanly on the final frame." Foreground="#B8C4D4" FontSize="12.5" Margin="0,6,0,16" TextWrapping="Wrap"/>
+                <ListBox x:Name="LstLiveWallpapers" Grid.Row="2" Background="#1A000000" BorderBrush="#33FFFFFF" BorderThickness="1"
+                         Foreground="{DynamicResource Brush_Text}" FontSize="13" Padding="6"
+                         SelectionChanged="LstLiveWallpapers_SelectionChanged"/>
+                <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,16,0,0" VerticalAlignment="Center">
+                    <CheckBox x:Name="ChkMgrLiveWallpaperEnabled" Content="Enable Live Wallpaper (play once per tab open)" Foreground="{DynamicResource Brush_Text}" VerticalAlignment="Center" Margin="0,0,18,0" Click="ChkMgrLiveWallpaperEnabled_Click"/>
+                    <Button Content="Browse Video..." Height="32" Padding="14,0" Margin="0,0,10,0" Cursor="Hand" Click="BtnMgrBrowseLiveWallpaper_Click"/>
+                    <Button Content="Apply Selected" Height="32" Padding="14,0" Background="{DynamicResource Brush_Accent}" Foreground="Black" FontWeight="Bold" Cursor="Hand" Click="BtnMgrApplyLiveWallpaper_Click"/>
+                </StackPanel>
+            </Grid>
+        </Border>
 
         <!-- Body -->
         <Grid x:Name="PnlBody" Grid.Row="1">

@@ -120,7 +120,8 @@ public partial class FeedbackWindow
     private async Task RegisterContextAsync()
     {
         var (version, channel) = ReadVersionInfo();
-        string description = "Browser version: " + version + "\nUpdate channel: " + channel + "\n\n";
+        string buildId = BuildIdentityService.GetReleaseBuildId();
+        string description = "Browser version: " + version + "\nUpdate channel: " + channel + "\nRelease / Build ID: " + buildId + "\n\n";
         string filesJson = await Task.Run(BuildFilesJson);
         _contextJson = "{\"description\":" + JsonSerializer.Serialize(description) + ",\"files\":" + filesJson + "}";
 

@@ -2,7 +2,7 @@
 
 A Windows desktop browser built on WPF and WebView2, with a small Rust library for the performance-sensitive parts. I started it because I got frustrated over the years with many small but numerous compromises that define a standard modern web browser, with the recent introduction of multiple logins to the same site without juggling incognito windows being an example of a feature i always wished to have in my browsing experience. Everything started with making the header and sidebar truly adaptable & powerful tools, and the project grew from there.
 
-[![Version](https://img.shields.io/badge/version-2.7.9%20beta-7928CA)](docs/version.txt)
+[![Version](https://img.shields.io/badge/version-2.8.0-7928CA)](docs/version.txt)
 [![Platform](https://img.shields.io/badge/platform-Windows%2010%20%2F%2011%20x64-0078D4)](#install)
 
 <a href="docs/screenshots/01-homepage-hero.png">
@@ -15,8 +15,10 @@ Horizon is a Chromium-based browser (through Microsoft's WebView2) with a custom
 
 - Container tabs, so you can stay logged into several accounts on the same site at once
 - A tab governor that puts background tabs to sleep in stages to save memory
-- A homepage with a widget board, bookmarks view and a sidebar
-- Built-in tracker blocking and a few site-specific fixes
+- Standalone Web Apps with high-res icons, per-app extension controls and auto-updates
+- Built-in keyboard navigation (`` ` ``) and a quick Command Bar (`Ctrl+T`)
+- A homepage with a widget board, bookmarks view, split view and a sidebar
+- Built-in tracker blocking, automatic crash self-repair, debug mode and a few site-specific fixes
 
 ## Features
 
@@ -119,6 +121,19 @@ You can also adjust glass opacity, noise, border glow and wallpaper blur.
   <img src="docs/screenshots/08-homepage-customizer.png" alt="Homepage settings" width="100%" />
 </a>
 
+### Web Apps
+
+Any site can be installed as its own desktop window with high-res icons, Desktop and Start Menu shortcuts, and per-app extension permissions. When you update or reinstall Horizon, existing Web Apps update automatically.
+
+### Keyboard navigation & Command Bar
+
+- **Command Bar (`Ctrl+T`)**: Search across favorites, bookmarks, open tabs, settings, utilities and the web in one place.
+- **HintNav (`` ` `` / `Tab` + `` ` ``)**: Click links, header buttons, sidebar items and tabs from the keyboard without getting in the way of video player shortcuts.
+
+### Self-repair & Debug mode
+
+If Horizon crashes, it tries to repair itself automatically (up to twice) before opening an independent crash reporter that can gather debug logs in the background and attach them to your report. You can also start Debug Mode anytime from Settings → Developer.
+
 ## How it's built
 
 Three layers:
@@ -150,10 +165,13 @@ Background tabs move through these states to keep memory down:
 
 | Shortcut | Action |
 |---|---|
-| <kbd>Ctrl</kbd> + <kbd>T</kbd> | New tab |
+| <kbd>Ctrl</kbd> + <kbd>T</kbd> | Command Bar (SuperSearch / New tab) |
 | <kbd>Ctrl</kbd> + <kbd>W</kbd> | Close tab |
 | <kbd>Ctrl</kbd> + <kbd>Tab</kbd> | Tab switcher with live previews |
 | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Tab</kbd> | Previous tab |
+| <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>S</kbd> | Split view |
+| <kbd>`</kbd> | HintNav keyboard navigation (single-use) |
+| <kbd>Tab</kbd> + <kbd>`</kbd> | Toggle sticky HintNav keyboard navigation |
 | <kbd>Ctrl</kbd> + <kbd>1</kbd> to <kbd>9</kbd> | Jump to tab 1 to 9 |
 | <kbd>Ctrl</kbd> + <kbd>H</kbd> | History |
 | <kbd>Ctrl</kbd> + <kbd>J</kbd> | Downloads in the sidebar |
@@ -198,6 +216,11 @@ Done:
 - [x] Inno Setup installer
 - [x] Built-in updater with automatic profile backup and restore
 - [x] Command bar (<kbd>Ctrl</kbd> + <kbd>T</kbd>)
+- [x] Keyboard navigation (`` ` `` / <kbd>Tab</kbd> + `` ` ``)
+- [x] Standalone Web Apps with per-app extension controls
+- [x] Windows 11 Default Apps registration
+- [x] Automatic crash self-repair, debug mode & crash reporter
+- [x] Split view (<kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>S</kbd>)
 - [x] English and Bulgarian interface
 - [x] Academic tools: citation builder, DOI resolver, SSL inspector, text miner
 
@@ -206,7 +229,6 @@ In progress:
 - [ ] VPN relay: local relay, profiles and control center exist, remaining phases are not finished
 - [ ] Side-expand mode for homepage folders
 - [ ] More widgets in the homepage stack
-- [ ] Split view with two tabs: registered as a command, layout not finished
 
 Planned:
 

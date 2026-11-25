@@ -23,6 +23,8 @@ public class ExtensionRecord
     public ExtensionSource Source      { get; set; } = ExtensionSource.Manual;
     public bool            Enabled     { get; set; } = true;
     public bool?           AllowsShortcutModification { get; set; } = null;
+    public string?         RuntimeId   { get; set; } = null;
+    public string?         LastLoadedVersion { get; set; } = null;
     public DateTime        InstalledAt { get; set; } = DateTime.Now;
 
     // Folder name under %LocalAppData%\Horizon_Browser\Extensions\

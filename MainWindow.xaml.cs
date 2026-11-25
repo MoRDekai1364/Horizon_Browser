@@ -3963,33 +3963,61 @@ public partial class MainWindow : Window
 
 
 
-    private async Task RunSilentUpdateCheckAsync()
+    private DispatcherTimer? _periodicUpdateTimer;
+    private bool _silentUpdateCheckRunning;
+
+    private async Task RunSilentUpdateCheckAsync(bool isStartup = true)
     {
+        if (_silentUpdateCheckRunning) return;
+        _silentUpdateCheckRunning = true;
         try
         {
+            // Ensure a periodic 4-hour background re-check runs during long sessions
+            if (_periodicUpdateTimer == null)
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    if (_periodicUpdateTimer == null)
+                    {
+                        _periodicUpdateTimer = new DispatcherTimer { Interval = TimeSpan.FromHours(4) };
+                        _periodicUpdateTimer.Tick += (_, _) => _ = RunSilentUpdateCheckAsync(isStartup: false);
+                        _periodicUpdateTimer.Start();
+                    }
+                });
+            }
+
             if (!Services.GithubUpdateService.ShouldCheckForUpdatesNow())
             {
                 return;
             }
+
+            // Brief delay on cold startup so network interfaces and DNS are ready
+            if (isStartup)
+                await Task.Delay(6000);
 
             string? updateTxtPath = ResolveStartupFilePath("update.txt");
             string? versionTxtPath = ResolveStartupFilePath("version.txt");
             if (updateTxtPath == null || versionTxtPath == null) return;
 
             var result = await Services.GithubUpdateService.CheckForUpdateAsync(updateTxtPath, versionTxtPath);
-            Services.GithubUpdateService.RecordUpdateCheckCompleted();
 
+            // Only advance the check schedule when the check actually succeeded!
+            // Never lock out auto-checks for a week after a transient boot-time network blip.
             if (!string.IsNullOrEmpty(result.ErrorMessage))
             {
-                LogService.Write("UPDATE", $"Silent check failed: {result.ErrorMessage}");
+                LogService.Write("UPDATE", $"Silent check failed (will retry next cycle): {result.ErrorMessage}");
                 return;
             }
 
+            Services.GithubUpdateService.RecordUpdateCheckCompleted();
+
             if (!result.UpdateAvailable) return;
 
-            // Check if user skipped this specific version
-            if (!string.IsNullOrEmpty(SettingsService.Current.SkippedUpdateVersion) &&
-                string.Equals(SettingsService.Current.SkippedUpdateVersion, result.LatestVersion, StringComparison.OrdinalIgnoreCase))
+            // Check if user skipped this specific version or release signature
+            string skipped = SettingsService.Current.SkippedUpdateVersion ?? "";
+            if (!string.IsNullOrEmpty(skipped) &&
+                (string.Equals(skipped, result.LatestVersion, StringComparison.OrdinalIgnoreCase) ||
+                 (!string.IsNullOrEmpty(result.ReleaseSignature) && string.Equals(skipped, result.ReleaseSignature, StringComparison.OrdinalIgnoreCase))))
             {
                 LogService.Write("UPDATE", $"Update {result.LatestVersion} was skipped by user preference.");
                 return;
@@ -4015,6 +4043,7 @@ public partial class MainWindow : Window
                         string path = await Services.GithubUpdateService.DownloadAssetAsync(result.AssetUrl, result.AssetName);
                         if (Services.GithubUpdateService.VerifyInstallerIntegrity(path))
                         {
+                            Services.GithubUpdateService.RecordInstalledSignature(result.ReleaseSignature);
                             LaunchUpdateProcess(path, appropriateTarget);
                         }
                         else
@@ -4036,6 +4065,7 @@ public partial class MainWindow : Window
                                 if (Services.GithubUpdateService.VerifyInstallerIntegrity(path))
                                 {
                                     SettingsService.Current.PendingUpdateInstallerPath = path;
+                                    SettingsService.Current.PendingUpdateReleaseSignature = result.ReleaseSignature ?? "";
                                     SettingsService.Save();
                                     LogService.Write("UPDATE", $"Auto-downloaded update {result.LatestVersion} to {path}");
                                     Dispatcher.Invoke(() => ShowUpdateInstallBanner(path));
@@ -4073,6 +4103,10 @@ public partial class MainWindow : Window
         catch (Exception ex)
         {
             LogService.RecordCrash(ex, "Silent Update Check");
+        }
+        finally
+        {
+            _silentUpdateCheckRunning = false;
         }
     }
 
@@ -4955,6 +4989,8 @@ public partial class MainWindow : Window
             if (detected.Count == 0) return;
 
 
+
+            if (SettingsService.Current.DismissedAllInstallationPrompts) return;
 
             var unprompted = detected.Where(d =>
 
@@ -20935,6 +20971,7 @@ return colors.length > 0 ? colors : null;
 
 
                 Height = (mi.rcMonitor.bottom - mi.rcMonitor.top) * sy;
+                FsSetWindowPos(hwnd, new IntPtr(-2), 0, 0, 0, 0, 0x0001 | 0x0002 | 0x0010);
 
 
 
@@ -26234,7 +26271,7 @@ return colors.length > 0 ? colors : null;
 
 
 
-                    async () => await core.GetFaviconAsync(Microsoft.Web.WebView2.Core.CoreWebView2FaviconImageFormat.Png),
+                    () => WebAppService.FetchHighResIconFromPageAsync(core, new Uri(m.StartUrl)),
 
 
 
@@ -26566,7 +26603,7 @@ return colors.length > 0 ? colors : null;
 
 
 
-                async () => await core.GetFaviconAsync(Microsoft.Web.WebView2.Core.CoreWebView2FaviconImageFormat.Png),
+                () => WebAppService.FetchHighResIconFromPageAsync(core, new Uri(url)),
 
 
 

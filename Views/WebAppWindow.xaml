@@ -80,22 +80,57 @@
 
         <Style x:Key="OfferButton" TargetType="Button">
             <Setter Property="Height" Value="26"/>
-            <Setter Property="Padding" Value="12,0"/>
-            <Setter Property="Margin" Value="0,0,8,0"/>
-            <Setter Property="Background" Value="#1f3a4d"/>
-            <Setter Property="Foreground" Value="#e6f3fb"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Padding" Value="11,0"/>
+            <Setter Property="Margin" Value="0,0,7,0"/>
+            <Setter Property="Background" Value="#22FFFFFF"/>
+            <Setter Property="Foreground" Value="#F3F4F6"/>
+            <Setter Property="BorderBrush" Value="#33FFFFFF"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="11.5"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="4" Padding="{TemplateBinding Padding}">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="7" Padding="{TemplateBinding Padding}">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#2b5a78"/>
+                                <Setter TargetName="Bd" Property="Background" Value="#38FFFFFF"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#55FFFFFF"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#18FFFFFF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="OfferAccentButton" TargetType="Button" BasedOn="{StaticResource OfferButton}">
+            <Setter Property="Background" Value="#FF3B82F6"/>
+            <Setter Property="BorderBrush" Value="#6693C5FD"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="7" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#FF2563EB"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#FF1D4ED8"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -111,18 +146,30 @@
         </Grid.RowDefinitions>
 
         <Border x:Name="OfferBar" Grid.Row="0" Visibility="Collapsed"
-                Background="#12202b" BorderBrush="#2f6f9f" BorderThickness="0,0,0,1">
+                HorizontalAlignment="Left" Margin="0,0,260,0"
+                Background="#F4141824" BorderBrush="#4060CDFF" BorderThickness="0,0,1,1"
+                CornerRadius="0,0,10,0">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="14" ShadowDepth="2" Direction="270" Color="#000000" Opacity="0.45"/>
+            </Border.Effect>
             <DockPanel Margin="12,7">
-                <Button x:Name="BtnOfferStay" DockPanel.Dock="Left" Style="{StaticResource OfferButton}"
-                        Content="Stay in this window" Click="BtnOfferStay_Click"/>
+                <Border DockPanel.Dock="Left" Width="22" Height="22" CornerRadius="6"
+                        Background="#263B82F6" BorderBrush="#4D60A5FA" BorderThickness="1"
+                        Margin="0,0,9,0" VerticalAlignment="Center">
+                    <TextBlock Text="&#x2197;" FontSize="12" FontWeight="Bold" Foreground="#60A5FA"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <Button x:Name="BtnOfferStay" DockPanel.Dock="Left" Style="{StaticResource OfferAccentButton}"
+                        Content="Stay here" Click="BtnOfferStay_Click"/>
                 <Button x:Name="BtnOfferHorizon" DockPanel.Dock="Left" Style="{StaticResource OfferButton}"
                         Content="Open in Horizon" Click="BtnOfferHorizon_Click"/>
                 <Button x:Name="BtnOfferBrowser" DockPanel.Dock="Left" Style="{StaticResource OfferButton}"
-                        Content="Open in default browser" Click="BtnOfferBrowser_Click"/>
+                        Content="Default browser" Click="BtnOfferBrowser_Click"/>
                 <Button x:Name="BtnOfferNever" DockPanel.Dock="Left" Style="{StaticResource OfferButton}"
+                        Background="Transparent" BorderThickness="0" Foreground="#9CA3AF"
                         Content="Don't ask again" Click="BtnOfferNever_Click"/>
-                <TextBlock x:Name="OfferText" VerticalAlignment="Center" Foreground="#cfe6f5"
-                           FontSize="13" TextTrimming="CharacterEllipsis"/>
+                <TextBlock x:Name="OfferText" VerticalAlignment="Center" Foreground="#E5EDF7"
+                           FontSize="12.5" TextTrimming="CharacterEllipsis" Margin="4,0,4,0"/>
             </DockPanel>
         </Border>
 
