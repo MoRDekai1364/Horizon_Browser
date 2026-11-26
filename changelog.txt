@@ -1,4 +1,10 @@
 version 2.8.0
++ added dedicated full-screen manager windows matching the History menu style for Downloads & File Browser, Bookmarks, Favorites, Passwords/Vault, and Extensions
++ added a left-edge wide arrow handle on the sidebar to widen any active sidebar pane directly into its dedicated full-screen menu
++ made browser shortcuts (Ctrl+T, Ctrl+H, Ctrl+Shift+T, Ctrl+J, Ctrl+W, Ctrl+Tab, Ctrl+1-9) truly global across WebView2 pages and inputs via thread message pre-processing (no longer requires clicking the tab bar first)
++ added dedicated full-screen History Manager (Ctrl+H) matching the Wallpaper Manager style: timeline & by-site views, top sites sidebar, time-range filters, instant search, multi-select bulk actions, recently closed tab restore (Ctrl+Shift+T), range clearing, and JSON/CSV export
++ wired standard browser shortcuts Ctrl+H (History), Ctrl+Shift+T (Reopen Closed Tab), and Ctrl+J (Downloads)
++ fixed Command Bar search results not showing favicons or tab preview thumbnails (now renders real favicons for Favorites, Bookmarks, Open Tabs, and URLs, plus mini live preview thumbnails for open tabs)
 + fixed video/audio keeping playing in the background after closing a WebApp window (now immediately mutes, stops, and disposes the WebView2 controller on close)
 + fixed "existing installation detected" popup spamming on every launch after refusing/closing it
 + redesigned Zen Garden theme with a misty sage watercolor backdrop, heavy soft blur, and frosted white glass pills + quick-add button

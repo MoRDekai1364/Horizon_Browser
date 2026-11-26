@@ -3445,9 +3445,60 @@
 
             <Grid x:Name="SidebarContainer" Grid.Row="3" Grid.Column="1" Panel.ZIndex="50" Width="0" Margin="-1,0,0,0" ClipToBounds="True">
                 <Grid x:Name="SidebarSlideHost" ClipToBounds="True">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
                     <Grid.RenderTransform>
                         <TranslateTransform x:Name="SidebarSlideTransform" X="0" Y="0"/>
                     </Grid.RenderTransform>
+
+                    <!-- External left-edge wide arrow glued outside the sidebar -->
+                    <Button x:Name="BtnWidenToMenu" Grid.Column="0" Panel.ZIndex="250"
+                            HorizontalAlignment="Right" VerticalAlignment="Center"
+                            Width="20" Height="60" Margin="0"
+                            Cursor="Hand" ToolTip="Widen into full menu"
+                            Click="BtnWidenToMenu_Click" MouseEnter="BtnWidenToMenu_MouseEnter">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="Bd" BorderBrush="#55FFFFFF" BorderThickness="1,1,0,1"
+                                        CornerRadius="10,0,0,10">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                            <GradientStop Color="#DC434957" Offset="0"/>
+                                            <GradientStop Color="#D0353A46" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                    <Border.Effect>
+                                        <DropShadowEffect Color="Black" BlurRadius="8" ShadowDepth="0" Opacity="0.35"/>
+                                    </Border.Effect>
+                                    <Path x:Name="ArrowPath" Data="M 2,2 L 8,8 L 2,14"
+                                          Stroke="White" StrokeThickness="2"
+                                          StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                                          Width="8" Height="13" Stretch="Uniform"
+                                          HorizontalAlignment="Center" VerticalAlignment="Center"
+                                          Opacity="0.92"/>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="Bd" Property="Background">
+                                            <Setter.Value>
+                                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                                    <GradientStop Color="#EE586072" Offset="0"/>
+                                                    <GradientStop Color="#E6464D5C" Offset="1"/>
+                                                </LinearGradientBrush>
+                                            </Setter.Value>
+                                        </Setter>
+                                        <Setter TargetName="Bd" Property="BorderBrush" Value="#99FFFFFF"/>
+                                        <Setter TargetName="ArrowPath" Property="Opacity" Value="1"/>
+                                    </Trigger>
+                                    <Trigger Property="IsPressed" Value="True">
+                                        <Setter TargetName="Bd" Property="Background" Value="#FF2E333E"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
 
 
 
@@ -3476,7 +3527,7 @@
 
                 -->
 
-                <Grid x:Name="SidebarWallpaperGlass" IsHitTestVisible="False" Visibility="Collapsed" ClipToBounds="True">
+                <Grid x:Name="SidebarWallpaperGlass" Grid.Column="1" IsHitTestVisible="False" Visibility="Collapsed" ClipToBounds="True">
 
                     <Border x:Name="SidebarWallpaperGlassBlur" Margin="-48"/>
                     <Border x:Name="SidebarOverlayTint" Background="#B812151E" BorderBrush="#26FFFFFF" BorderThickness="1,0,0,0" Visibility="Collapsed"/>
@@ -3505,7 +3556,7 @@
 
                 -->
 
-                <Grid x:Name="SidebarSiteGlow" IsHitTestVisible="False" Visibility="Collapsed" ClipToBounds="True">
+                <Grid x:Name="SidebarSiteGlow" Grid.Column="1" IsHitTestVisible="False" Visibility="Collapsed" ClipToBounds="True">
 
                     <Rectangle x:Name="SidebarSiteGlowFill" Margin="-60">
 
@@ -3521,7 +3572,7 @@
 
 
 
-                <controls:FluxSidebar x:Name="RightSidebar"/>
+                <controls:FluxSidebar x:Name="RightSidebar" Grid.Column="1"/>
 
 
 

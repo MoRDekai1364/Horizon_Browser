@@ -4914,9 +4914,10 @@ public partial class MainWindow : Window
 
         this.PreviewKeyDown  += Window_PreviewKeyDown;
 
-
-
         this.PreviewKeyUp    += Window_PreviewKeyUp;
+
+        System.Windows.Interop.ComponentDispatcher.ThreadPreprocessMessage += OnComponentDispatcherPreprocessMessage;
+        this.Closed += (_, _) => System.Windows.Interop.ComponentDispatcher.ThreadPreprocessMessage -= OnComponentDispatcherPreprocessMessage;
 
 
 
@@ -9027,6 +9028,15 @@ return colors.length > 0 ? colors : null;
 
 
 
+    public bool ReopenLastClosedTab()
+    {
+        if (_closedTabHistory.Count == 0) return false;
+        var (url, _) = _closedTabHistory[^1];
+        _closedTabHistory.RemoveAt(_closedTabHistory.Count - 1);
+        CreateNewTab(url, activate: true);
+        return true;
+    }
+
     private void CloseTab(TabViewModel tabToClose)
 
 
@@ -9940,24 +9950,40 @@ return colors.length > 0 ? colors : null;
         return true;
     }
 
+    private void BtnWidenToMenu_Click(object sender, RoutedEventArgs e)
+    {
+        RightSidebar?.OpenActiveTabFullMenu();
+    }
+
+    private void BtnWidenToMenu_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+    {
+        if (BtnWidenToMenu != null && RightSidebar != null)
+            BtnWidenToMenu.ToolTip = RightSidebar.GetWidenTooltip();
+    }
+
     private void ToggleSidebar(bool isOpen)
     {
         UpdateSidebarDockMode();
 
         bool isHome = IsHomeActive();
         bool useOverlay = isHome && SettingsService.Current.HomeSidebarFloatingOverlay;
-        double targetW = isOpen ? GetTargetSidebarWidth() : 0.0;
-        double contentW = GetTargetSidebarWidth();
-
         if (isOpen)
         {
             RightSidebar?.SetMiniMode(SettingsService.Current.SidebarMiniMode);
         }
+        if (BtnWidenToMenu != null)
+        {
+            BtnWidenToMenu.Visibility = SettingsService.Current.SidebarMiniMode ? Visibility.Collapsed : Visibility.Visible;
+        }
+        double contentW = GetTargetSidebarWidth();
+        double widenTabW = (BtnWidenToMenu != null && BtnWidenToMenu.Visibility == Visibility.Visible) ? 20.0 : 0.0;
+        double hostW = contentW + widenTabW;
+        double targetW = isOpen ? hostW : 0.0;
 
-        // Freeze child layout reflows: lock RightSidebar and SlideHost width to contentW
+        // Freeze child layout reflows: lock RightSidebar to contentW and SlideHost width to hostW
         LogService.Debug("sidebar", () => $"Toggle isOpen={isOpen} actualW={ActualWidth:F0} targetW={targetW:F0} contentW={contentW:F0} overlay={useOverlay}");
         if (RightSidebar != null) RightSidebar.Width = contentW;
-        if (SidebarSlideHost != null) SidebarSlideHost.Width = contentW;
+        if (SidebarSlideHost != null) SidebarSlideHost.Width = hostW;
 
         IsSidebarAnimating = true;
 
@@ -9975,13 +10001,13 @@ return colors.length > 0 ? colors : null;
             // ColSidebar stays 0 -> homepage never shifts or resizes!
             ColSidebar.Width = new GridLength(0);
             SidebarContainer.BeginAnimation(FrameworkElement.WidthProperty, null);
-            SidebarContainer.Width = contentW;  
+            SidebarContainer.Width = hostW;
             SidebarContainer.ClipToBounds = true;
             SidebarContainer.HorizontalAlignment = HorizontalAlignment.Right;
             if (SidebarSlideHost != null) SidebarSlideHost.HorizontalAlignment = HorizontalAlignment.Right;
 
-            double fromX = SidebarSlideTransform != null ? SidebarSlideTransform.X : (isOpen ? contentW : 0.0);
-            double toX = isOpen ? 0.0 : contentW;
+            double fromX = SidebarSlideTransform != null ? SidebarSlideTransform.X : (isOpen ? hostW : 0.0);
+            double toX = isOpen ? 0.0 : hostW;
 
             if (SidebarSlideTransform != null)
             {
@@ -10923,6 +10949,111 @@ return colors.length > 0 ? colors : null;
 
 
 
+    [DllImport("user32.dll")]
+    private static extern IntPtr GetActiveWindow();
+
+    [DllImport("user32.dll")]
+    private static extern short GetKeyState(int nVirtKey);
+
+    private void OnComponentDispatcherPreprocessMessage(ref System.Windows.Interop.MSG msg, ref bool handled)
+    {
+        if (handled) return;
+        const int WM_KEYDOWN = 0x0100;
+        if (msg.message != WM_KEYDOWN) return;
+
+        // Only intercept when this MainWindow is the active foreground window
+        // (works even when a WebView2 Win32 child HWND has keyboard focus, while
+        // never interfering with child dialogs like CommandBar, Settings, or History).
+        IntPtr mainHwnd = new WindowInteropHelper(this).Handle;
+        if (mainHwnd == IntPtr.Zero || GetActiveWindow() != mainHwnd) return;
+
+        bool ctrl = (GetKeyState(0x11) & 0x8000) != 0;   // VK_CONTROL
+        bool alt  = (GetKeyState(0x12) & 0x8000) != 0;   // VK_MENU
+        bool shift = (GetKeyState(0x10) & 0x8000) != 0;  // VK_SHIFT
+        if (!ctrl || alt) return;
+
+        int vk = msg.wParam.ToInt32();
+        bool isRepeat = (msg.lParam.ToInt64() & 0x40000000) != 0;
+
+        switch (vk)
+        {
+            case 0x54: // T -> Ctrl+T (Command Bar) or Ctrl+Shift+T (Reopen Closed Tab)
+                if (isRepeat) { handled = true; return; }
+                handled = true;
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    if (shift) ReopenLastClosedTab();
+                    else Horizon.Stealth.Views.CommandBarWindow.ShowCommandBar(this);
+                }));
+                return;
+
+            case 0x48: // H -> Ctrl+H (History Manager)
+                if (shift) return;
+                if (isRepeat) { handled = true; return; }
+                handled = true;
+                Dispatcher.BeginInvoke(new Action(() =>
+                    Horizon.Stealth.Views.HistoryManagerWindow.ShowSingleton(this)));
+                return;
+
+            case 0x4A: // J -> Ctrl+J (Downloads in Sidebar)
+                if (shift) return;
+                if (isRepeat) { handled = true; return; }
+                handled = true;
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    try
+                    {
+                        if (SidebarContainer == null || SidebarContainer.ActualWidth <= 10)
+                            ToggleSidebar_Click(this, new RoutedEventArgs());
+                        RightSidebar?.ShowDownloadsTab();
+                    }
+                    catch { }
+                }));
+                return;
+
+            case 0x57: // W -> Ctrl+W (Close Tab)
+                if (shift) return;
+                if (isRepeat) { handled = true; return; }
+                handled = true;
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    if (_multiSelectedTabs.Count > 1)
+                    {
+                        foreach (var t in _multiSelectedTabs.ToList()) CloseTab(t);
+                    }
+                    else
+                    {
+                        var current = GetCurrentTabViewModel();
+                        if (current != null) CloseTab(current);
+                    }
+                }));
+                return;
+
+            case 0x09: // Tab -> Ctrl+Tab / Ctrl+Shift+Tab (Tab Switcher)
+                handled = true;
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    if (_tabSwitcherWindow == null) OpenTabSwitcher();
+                    StepTabSwitcher(shift ? -1 : +1);
+                }));
+                return;
+
+            default:
+                if (!shift && vk >= 0x31 && vk <= 0x39) // Ctrl+1..9
+                {
+                    if (isRepeat) { handled = true; return; }
+                    int idx = vk - 0x31;
+                    handled = true;
+                    Dispatcher.BeginInvoke(new Action(() =>
+                    {
+                        if (idx >= 0 && idx < Tabs.Count)
+                            ListTabs.SelectedItem = Tabs[idx];
+                    }));
+                }
+                return;
+        }
+    }
+
     private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
 
 
@@ -11022,9 +11153,36 @@ return colors.length > 0 ? colors : null;
             return;
         }
 
-        if (ctrl && e.Key == Key.T)
+        if (ctrl && e.Key == Key.T && !shift)
         {
             Horizon.Stealth.Views.CommandBarWindow.ShowCommandBar(this);
+            e.Handled = true;
+            return;
+        }
+
+        if (ctrl && shift && e.Key == Key.T)
+        {
+            ReopenLastClosedTab();
+            e.Handled = true;
+            return;
+        }
+
+        if (ctrl && e.Key == Key.H)
+        {
+            Horizon.Stealth.Views.HistoryManagerWindow.ShowSingleton(this);
+            e.Handled = true;
+            return;
+        }
+
+        if (ctrl && e.Key == Key.J)
+        {
+            try
+            {
+                if (SidebarContainer == null || SidebarContainer.ActualWidth <= 10)
+                    ToggleSidebar_Click(this, new RoutedEventArgs());
+                RightSidebar?.ShowDownloadsTab();
+            }
+            catch { }
             e.Handled = true;
             return;
         }
@@ -46430,30 +46588,19 @@ private async Task EnsureWeatherGeoOnceAsync(string city)
 
 
         var miHome = new MenuItem
-
-
-
         {
-
-
-
-            Header = "\U0001F3E0  New Tab on Homepage",
-
-
-
-            InputGestureText = "Ctrl+H"
-
-
-
+            Header = "\U0001F3E0  New Tab on Homepage"
         };
-
-
-
         miHome.Click += (_, _) => CreateNewTab(Controls.BrowserView.HomeSentinel);
-
-
-
         cm.Items.Add(miHome);
+
+        var miHistory = new MenuItem
+        {
+            Header = "\U0001F552  History",
+            InputGestureText = "Ctrl+H"
+        };
+        miHistory.Click += (_, _) => Horizon.Stealth.Views.HistoryManagerWindow.ShowSingleton(this);
+        cm.Items.Add(miHistory);
 
 
 

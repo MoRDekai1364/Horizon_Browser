@@ -146,14 +146,22 @@
                                             <ColumnDefinition Width="34"/>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
 
-                                        <!-- Icon Container -->
-                                        <Border Grid.Column="0" Width="26" Height="26" CornerRadius="6"
+                                        <!-- Icon Container (Favicon / Real Icon with Emoji Fallback) -->
+                                        <Border Grid.Column="0" Width="28" Height="28" CornerRadius="7"
                                                 Background="{DynamicResource Brush_SurfaceChrome}" BorderBrush="{DynamicResource Brush_SurfaceFieldStroke}" BorderThickness="1"
-                                                HorizontalAlignment="Left" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding DisplayIcon}" FontSize="13"
-                                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                HorizontalAlignment="Left" VerticalAlignment="Center" ClipToBounds="True">
+                                            <Grid>
+                                                <Image Source="{Binding IconImage}" Width="18" Height="18" Stretch="Uniform"
+                                                       RenderOptions.BitmapScalingMode="HighQuality"
+                                                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                       Visibility="{Binding HasIconImage}"/>
+                                                <TextBlock Text="{Binding DisplayIcon}" FontSize="13"
+                                                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                           Visibility="{Binding HasFallbackGlyph}"/>
+                                            </Grid>
                                         </Border>
 
                                         <!-- Title and Description Stack -->
@@ -164,8 +172,17 @@
                                                        Margin="0,1,0,0" TextTrimming="CharacterEllipsis"/>
                                         </StackPanel>
 
+                                        <!-- Live Tab Preview Thumbnail (when available) -->
+                                        <Border Grid.Column="2" Width="48" Height="28" CornerRadius="5" Margin="0,0,10,0"
+                                                Background="#18000000" BorderBrush="{DynamicResource Brush_SurfaceFieldStroke}" BorderThickness="1"
+                                                ClipToBounds="True" VerticalAlignment="Center"
+                                                Visibility="{Binding HasThumbnail}">
+                                            <Image Source="{Binding ThumbnailImage}" Stretch="UniformToFill"
+                                                   RenderOptions.BitmapScalingMode="HighQuality"/>
+                                        </Border>
+
                                         <!-- Action Hint / Tag / Hotkey -->
-                                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
                                             <!-- Hotkey badge if any -->
                                             <Border CornerRadius="4" Background="{DynamicResource Brush_SurfaceField}" Padding="6,2" Margin="0,0,8,0"
                                                     Visibility="{Binding KeyGestureVisibility}">

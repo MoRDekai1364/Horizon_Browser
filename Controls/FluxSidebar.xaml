@@ -510,7 +510,8 @@
             </Grid>
         </Border>
 
-        <TabControl x:Name="SidebarTabControl" Grid.Row="1" Background="Transparent" BorderThickness="0" Margin="0" Padding="0">
+        <TabControl x:Name="SidebarTabControl" Grid.Row="1" Background="Transparent" BorderThickness="0" Margin="0" Padding="0"
+                    SelectionChanged="SidebarTabControl_SelectionChanged">
             <TabControl.Template>
                 <ControlTemplate TargetType="TabControl">
                     <Grid>
@@ -762,10 +763,11 @@
                              MouseDoubleClick="ListHistory_MouseDoubleClick"
                              MouseRightButtonUp="ListHistory_RightClick"/>
 
-                    <UniformGrid x:Name="RowHistActions" Grid.Row="2" Rows="1" Columns="3" Margin="0,10,0,5">
-                        <Button Content="&#x1F4CB;" Click="BtnHistoryCopy_Click"   Background="{DynamicResource Brush_TabStripBg}" Foreground="{DynamicResource Brush_SoftText}" BorderThickness="0" Height="34" Margin="0,0,2,0"/>
-                        <Button Content="&#x1F517;" Click="BtnHistoryOpen_Click"   Background="{DynamicResource Brush_TabStripBg}" Foreground="{DynamicResource Brush_SoftText}" BorderThickness="0" Height="34" Margin="2,0,2,0"/>
-                        <Button Content="&#x1F5D1;" Click="BtnHistoryDelete_Click" Background="{DynamicResource Brush_DangerBg}" Foreground="{DynamicResource Brush.Alert}" BorderThickness="0" Height="34" Margin="2,0,0,0"/>
+                    <UniformGrid x:Name="RowHistActions" Grid.Row="2" Rows="1" Columns="4" Margin="0,10,0,5">
+                        <Button Content="&#x1F4CB;" Click="BtnHistoryCopy_Click"   Background="{DynamicResource Brush_TabStripBg}" Foreground="{DynamicResource Brush_SoftText}" BorderThickness="0" Height="34" Margin="0,0,2,0" ToolTip="Copy URL"/>
+                        <Button Content="&#x1F517;" Click="BtnHistoryOpen_Click"   Background="{DynamicResource Brush_TabStripBg}" Foreground="{DynamicResource Brush_SoftText}" BorderThickness="0" Height="34" Margin="2,0,2,0" ToolTip="Open URL"/>
+                        <Button Content="&#x26F6;"  Click="BtnHistoryFull_Click"   Background="{DynamicResource Brush_TabStripBg}" Foreground="{DynamicResource Brush_Accent}" BorderThickness="0" Height="34" Margin="2,0,2,0" ToolTip="Open Full History (Ctrl+H)"/>
+                        <Button Content="&#x1F5D1;" Click="BtnHistoryDelete_Click" Background="{DynamicResource Brush_DangerBg}" Foreground="{DynamicResource Brush.Alert}" BorderThickness="0" Height="34" Margin="2,0,0,0" ToolTip="Delete selected"/>
                     </UniformGrid>
 
                     <Button x:Name="BtnClearHistory" Grid.Row="3" Content="[ CLEAR SIGNAL ]" Click="BtnClearHistory_Click"

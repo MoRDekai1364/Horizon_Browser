@@ -59,6 +59,11 @@ public partial class CommandBarWindow : Window
         public string Title { get; set; } = "";
         public string Subtitle { get; set; } = "";
         public string DisplayIcon { get; set; } = "\u26A1";
+        public ImageSource? IconImage { get; set; }
+        public ImageSource? ThumbnailImage { get; set; }
+        public Visibility HasIconImage => IconImage != null ? Visibility.Visible : Visibility.Collapsed;
+        public Visibility HasFallbackGlyph => IconImage == null ? Visibility.Visible : Visibility.Collapsed;
+        public Visibility HasThumbnail => ThumbnailImage != null ? Visibility.Visible : Visibility.Collapsed;
         public string ActionHint { get; set; } = "Execute";
         public string KeyGesture { get; set; } = "";
         public Visibility KeyGestureVisibility => string.IsNullOrWhiteSpace(KeyGesture) ? Visibility.Collapsed : Visibility.Visible;
@@ -66,6 +71,39 @@ public partial class CommandBarWindow : Window
         public CustomShortcut? Shortcut { get; set; }
         public string Group { get; set; } = "";
         public int Score { get; set; }
+    }
+
+    private static readonly Horizon.Stealth.Controls.FaviconConverter _faviconConv = new();
+    private static readonly Horizon.Stealth.Controls.PinIconConverter _pinIconConv = new();
+    private static readonly Horizon.Stealth.Controls.BookmarkIconConverter _bookmarkIconConv = new();
+
+    private static ImageSource? ResolveUrlIcon(string? url)
+    {
+        if (string.IsNullOrWhiteSpace(url)) return null;
+        try { return _faviconConv.Convert(url, typeof(ImageSource), null!, System.Globalization.CultureInfo.InvariantCulture) as ImageSource; }
+        catch { return null; }
+    }
+
+    private static ImageSource? ResolvePinIcon(PinItem pin)
+    {
+        try
+        {
+            if (_pinIconConv.Convert(pin, typeof(ImageSource), null!, System.Globalization.CultureInfo.InvariantCulture) is ImageSource img)
+                return img;
+        }
+        catch { }
+        return ResolveUrlIcon(pin.Url);
+    }
+
+    private static ImageSource? ResolveBookmarkIcon(BookmarkItem b)
+    {
+        try
+        {
+            if (_bookmarkIconConv.Convert(b, typeof(ImageSource), null!, System.Globalization.CultureInfo.InvariantCulture) is ImageSource img)
+                return img;
+        }
+        catch { }
+        return ResolveUrlIcon(b.Url);
     }
 
     public class ManageRow
@@ -613,6 +651,7 @@ public partial class CommandBarWindow : Window
                     Title = navUrl,
                     Subtitle = "Navigate directly to website",
                     DisplayIcon = "\uD83C\uDF10",
+                    IconImage = ResolveUrlIcon(navUrl),
                     ActionHint = "Go to URL",
                     Group = "Web",
                     Score = 1500,
@@ -632,6 +671,7 @@ public partial class CommandBarWindow : Window
                     Title = $"Open {q.ToLowerInvariant()}.com",
                     Subtitle = $"Navigate directly to {directDomain}",
                     DisplayIcon = "\uD83C\uDF10",
+                    IconImage = ResolveUrlIcon(directDomain),
                     ActionHint = "Go to Site",
                     Group = "Web",
                     Score = 850,
@@ -685,6 +725,7 @@ public partial class CommandBarWindow : Window
                         Title = pin.Name,
                         Subtitle = string.IsNullOrEmpty(domain) ? "Favorite Pin" : $"Favorite \u00B7 {domain}",
                         DisplayIcon = !string.IsNullOrEmpty(pin.IconEmoji) ? pin.IconEmoji : "\u2B50",
+                        IconImage = ResolvePinIcon(pin),
                         ActionHint = "Open Favorite",
                         Group = "Favorites",
                         Score = score + 30,
@@ -728,6 +769,7 @@ public partial class CommandBarWindow : Window
                         Title = b.Name,
                         Subtitle = sub,
                         DisplayIcon = "\uD83D\uDD16",
+                        IconImage = ResolveBookmarkIcon(b),
                         ActionHint = "Open Bookmark",
                         Group = "Bookmarks",
                         Score = score + 20,
@@ -767,6 +809,8 @@ public partial class CommandBarWindow : Window
                     Title = tabTitle,
                     Subtitle = $"Open Tab \u00B7 {tab.DomainTitle}",
                     DisplayIcon = "\uD83D\uDDD2",
+                    IconImage = (tab.CompactFavicon as ImageSource) ?? ResolveUrlIcon(tab.Url),
+                    ThumbnailImage = tab.Thumbnail,
                     ActionHint = "Switch to Tab",
                     Group = "Tabs",
                     Score = score + 15,
@@ -789,6 +833,7 @@ public partial class CommandBarWindow : Window
             ("Settings: General & Startup", "Startup pages, default search engine, session restore, downloads", 0, "\u2699\uFE0F", null),
             ("Settings: Visuals & Themes", "Themes, glass blur, acrylic, custom wallpapers, accents", 1, "\uD83C\uDFA8", null),
             ("Settings: Homepage Customizer", "Widgets, card layout, weather, clock styles, background blur", 2, "\uD83C\uDFE0", null),
+            ("History Manager (Ctrl+H)", "Full browsing history timeline, top sites, bulk actions & export", -1, "\uD83D\uDD52", "history://"),
             ("Settings: Input & Keyboard Shortcuts", "Keyboard navigation, backtick link hints, hotkeys, gestures", 3, "\u2328\uFE0F", null),
             ("Settings: Content & Extensions", "Installed extensions, AdGuard, Vimium, translator, permissions", 4, "\uD83E\uDDE9", null),
             ("Settings: Import & Sync", "Import bookmarks, history, settings backup and cloud sync", 5, "\uD83D\uDD04", null),
@@ -821,6 +866,12 @@ public partial class CommandBarWindow : Window
                 Score = score + 10,
                 Action = () =>
                 {
+                    if (entry.Url == "history://")
+                    {
+                        Close();
+                        HistoryManagerWindow.ShowSingleton(_mainWindow);
+                        return Task.CompletedTask;
+                    }
                     if (entry.TabIndex >= 0)
                     {
                         _mainWindow.OpenSettings(entry.TabIndex);

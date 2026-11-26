@@ -3062,6 +3062,59 @@ public partial class FluxSidebar : UserControl
         if (ListHistory.SelectedItem is HistoryItemViewModel item) RequestNavigate?.Invoke(this, item.Url);
     }
 
+    public void RefreshPinsPublic() => RefreshPins();
+
+    public event Action<string>? ActiveTabTooltipChanged;
+
+    private void SidebarTabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        ActiveTabTooltipChanged?.Invoke(GetWidenTooltip());
+    }
+
+    public string GetWidenTooltip() => (SidebarTabControl?.SelectedIndex ?? 0) switch
+    {
+        0 => "Widen into full Favorites menu",
+        1 => "Widen into full Bookmarks menu",
+        2 => "Widen into full History menu",
+        3 => "Widen into full Downloads & File Browser",
+        4 => "Widen into full Passwords & Vault menu",
+        5 => "Widen into full Extensions menu",
+        _ => "Widen into full menu"
+    };
+
+    public void OpenActiveTabFullMenu()
+    {
+        if (Application.Current?.MainWindow is not MainWindow mw) return;
+
+        switch (SidebarTabControl?.SelectedIndex ?? 0)
+        {
+            case 0:
+                Horizon.Stealth.Views.FavoritesManagerWindow.ShowSingleton(mw);
+                break;
+            case 1:
+                Horizon.Stealth.Views.BookmarksManagerWindow.ShowSingleton(mw);
+                break;
+            case 2:
+                Horizon.Stealth.Views.HistoryManagerWindow.ShowSingleton(mw);
+                break;
+            case 3:
+                Horizon.Stealth.Views.DownloadsManagerWindow.ShowSingleton(mw);
+                break;
+            case 4:
+                Horizon.Stealth.Views.PasswordsManagerWindow.ShowSingleton(mw);
+                break;
+            case 5:
+                Horizon.Stealth.Views.ExtensionsManagerWindow.ShowSingleton(mw);
+                break;
+        }
+    }
+
+    private void BtnHistoryFull_Click(object sender, RoutedEventArgs e)
+    {
+        if (Application.Current?.MainWindow is MainWindow mw)
+            Horizon.Stealth.Views.HistoryManagerWindow.ShowSingleton(mw);
+    }
+
     private void BtnHistoryDelete_Click(object sender, RoutedEventArgs e)
     {
         HistoryContextPopup.IsOpen = false;
@@ -4430,6 +4483,19 @@ public partial class FluxSidebar : UserControl
     public void ShowUtilitiesTab()
     {
         BtnSidebarUtilitiesTab_Click(this, null!);
+    }
+
+    public void ShowDownloadsTab()
+    {
+        if (SidebarTabControl == null) return;
+        foreach (var item in SidebarTabControl.Items)
+        {
+            if (item is TabItem ti && string.Equals(ti.ToolTip as string, "Downloads", StringComparison.OrdinalIgnoreCase))
+            {
+                SidebarTabControl.SelectedItem = ti;
+                break;
+            }
+        }
     }
 
     public void LoadSidebarUtilities()
