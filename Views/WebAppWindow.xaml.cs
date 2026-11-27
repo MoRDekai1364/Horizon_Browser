@@ -42,6 +42,7 @@ public partial class WebAppWindow : Window
     private WebAppOfferBannerWindow? _offerBannerWindow;
     private bool _coreHooked;
     private bool _barVisible;
+    private int _barGlassToken;
     private long _barLastActive;
     private bool _isFullscreen;
     private bool _fsDesired;
@@ -740,9 +741,72 @@ public partial class WebAppWindow : Window
     private void ShowBar()
     {
         BarRoot.Width = RootGrid.ActualWidth;
+        PrepareBarGlass();
         BarPopup.IsOpen = true;
         _barVisible = true;
         BarRoot.BeginAnimation(UIElement.OpacityProperty, new DoubleAnimation(1, TimeSpan.FromMilliseconds(150)));
+        _ = RefreshBarGlassAsync();
+    }
+
+    private void PrepareBarGlass()
+    {
+        bool off = SettingsService.Current.DisableBlurEffects;
+        BarGlassTint.Background = new SolidColorBrush(off
+            ? Color.FromArgb(0xF2, 0x12, 0x12, 0x12)
+            : Color.FromArgb(0x8C, 0x0E, 0x0E, 0x0E));
+        BarGlassBlur.Visibility = off ? Visibility.Collapsed : Visibility.Visible;
+        BarGlassBlur.BeginAnimation(UIElement.OpacityProperty, null);
+        BarGlassBlur.Opacity = 0;
+        BarGlassBlur.Clip = TopRoundedRect(BarRoot.Width, BarRoot.Height, 8);
+    }
+
+    private static Geometry TopRoundedRect(double w, double h, double r)
+    {
+        var g = new StreamGeometry();
+        using (var c = g.Open())
+        {
+            c.BeginFigure(new Point(0, r), true, true);
+            c.ArcTo(new Point(r, 0), new Size(r, r), 0, false, SweepDirection.Clockwise, true, false);
+            c.LineTo(new Point(w - r, 0), true, false);
+            c.ArcTo(new Point(w, r), new Size(r, r), 0, false, SweepDirection.Clockwise, true, false);
+            c.LineTo(new Point(w, h), true, false);
+            c.LineTo(new Point(0, h), true, false);
+        }
+        g.Freeze();
+        return g;
+    }
+
+    private async System.Threading.Tasks.Task RefreshBarGlassAsync()
+    {
+        if (SettingsService.Current.DisableBlurEffects) return;
+        int token = ++_barGlassToken;
+        try
+        {
+            var core = Browser.MainWebView.CoreWebView2;
+            if (core == null) return;
+            using var ms = new MemoryStream();
+            await core.CapturePreviewAsync(CoreWebView2CapturePreviewImageFormat.Jpeg, ms);
+            if (token != _barGlassToken || !_barVisible) return;
+            ms.Position = 0;
+            var bmp = new BitmapImage();
+            bmp.BeginInit();
+            bmp.CacheOption = BitmapCacheOption.OnLoad;
+            bmp.StreamSource = ms;
+            bmp.EndInit();
+            bmp.Freeze();
+            double width = RootGrid.ActualWidth;
+            if (width <= 0 || bmp.PixelWidth <= 0) return;
+            double scale = bmp.PixelWidth / width;
+            int h = Math.Clamp((int)Math.Ceiling(BarRoot.Height * scale), 1, bmp.PixelHeight);
+            var strip = new CroppedBitmap(bmp, new Int32Rect(0, 0, bmp.PixelWidth, h));
+            strip.Freeze();
+            BarGlassImage.Source = strip;
+            BarGlassBlur.BeginAnimation(UIElement.OpacityProperty, new DoubleAnimation(1, TimeSpan.FromMilliseconds(120)));
+        }
+        catch (Exception ex)
+        {
+            LogService.Write(LogTag, $"Bar glass capture failed: {ex.Message}");
+        }
     }
 
     private void HideBar(bool immediate)

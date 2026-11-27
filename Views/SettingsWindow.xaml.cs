@@ -1109,8 +1109,7 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
         ChkFullscreenOverlay.IsChecked = s.ShowFullscreenOverlay;
         ChkSplitViewOverlay.IsChecked = s.ShowSplitViewOverlay;
         CboSplitPickMode.SelectedIndex = s.SplitViewPickMode == 2 ? 1 : 0;
-        SliderCompactHoverDelay.Value = Math.Clamp(s.CompactTabHoverDelayMs, 0, 500);
-        TblCompactHoverDelayValue.Text = $"{(int)SliderCompactHoverDelay.Value} ms";
+
         ChkStartupVideo.IsChecked = s.ShowStartupVideo;
         LoadStartupVideoOptions();
         
@@ -1407,7 +1406,7 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
         s.ShowFullscreenOverlay = ChkFullscreenOverlay.IsChecked == true;
         s.ShowSplitViewOverlay  = ChkSplitViewOverlay.IsChecked == true;
         s.SplitViewPickMode    = CboSplitPickMode.SelectedIndex == 1 ? 2 : 1;
-        s.CompactTabHoverDelayMs = (int)SliderCompactHoverDelay.Value;
+
         Horizon.Stealth.Controls.HomeGlassMotion.RaiseBlurSettingChanged();
 
         s.ShowStartupVideo = ChkStartupVideo.IsChecked == true;
@@ -2333,11 +2332,7 @@ private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
             TblWidgetTintValue.Text = $"{e.NewValue:0}%";
     }
 
-    private void SliderCompactHoverDelay_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-    {
-        if (TblCompactHoverDelayValue != null)
-            TblCompactHoverDelayValue.Text = $"{(int)e.NewValue} ms";
-    }
+
 
     private void SliderPaletteSampleRate_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
     {

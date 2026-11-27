@@ -25,6 +25,8 @@ public sealed class WebAppManifest
     public string DesktopShortcutPath { get; set; } = "";
     public string StartMenuShortcutPath { get; set; } = "";
     public int IconVersion { get; set; } = 0;
+    public bool RegisterInShareMenu { get; set; } = false;
+    public string ShareTargetPackageName { get; set; } = "";
 }
 
 public sealed class WebAppInstallResult
@@ -37,6 +39,8 @@ public sealed class WebAppInstallResult
     public bool DesktopOk { get; set; }
     public bool StartMenuRequested { get; set; }
     public bool StartMenuOk { get; set; }
+    public bool ShareMenuRequested { get; set; }
+    public bool ShareMenuOk { get; set; }
     public List<string> Errors { get; } = new();
 }
 
@@ -99,9 +103,16 @@ public static class WebAppService
         string pageTitle,
         Func<Task<Stream?>>? faviconProvider,
         bool desktop,
-        bool startMenu)
+        bool startMenu,
+        bool registerShareMenu = false,
+        string? customName = null)
     {
-        var result = new WebAppInstallResult { DesktopRequested = desktop, StartMenuRequested = startMenu };
+        var result = new WebAppInstallResult
+        {
+            DesktopRequested = desktop,
+            StartMenuRequested = startMenu,
+            ShareMenuRequested = registerShareMenu
+        };
         try
         {
             if (!Uri.TryCreate(startUrl, UriKind.Absolute, out var uri) ||
@@ -113,7 +124,9 @@ public static class WebAppService
             }
 
             string id = BuildId(uri);
-            string name = BuildName(pageTitle, uri);
+            string name = string.IsNullOrWhiteSpace(customName)
+                ? BuildName(pageTitle, uri)
+                : BuildName(customName.Trim(), uri);
             string dir = GetAppDir(id);
             string exe = ResolveExePath();
             string workDir = string.IsNullOrEmpty(exe) ? "" : (Path.GetDirectoryName(exe) ?? "");
@@ -188,8 +201,15 @@ public static class WebAppService
                 InstalledUtc = existing?.InstalledUtc ?? DateTime.UtcNow.ToString("o"),
                 DesktopShortcutPath = desktopPath ?? (desktop ? "" : existing?.DesktopShortcutPath ?? ""),
                 StartMenuShortcutPath = menuPath ?? (startMenu ? "" : existing?.StartMenuShortcutPath ?? ""),
-                IconVersion = result.IconOk ? CurrentIconPipelineVersion : 0
+                IconVersion = result.IconOk ? CurrentIconPipelineVersion : 0,
+                RegisterInShareMenu = existing?.RegisterInShareMenu ?? false,
+                ShareTargetPackageName = existing?.ShareTargetPackageName ?? ""
             };
+
+            if (registerShareMenu || manifest.RegisterInShareMenu)
+            {
+                result.ShareMenuOk = WebAppShareTargetService.Register(manifest, result.Errors);
+            }
 
             string manifestPath = Path.Combine(dir, ManifestFileName);
             string tmp = manifestPath + ".tmp";
@@ -378,6 +398,7 @@ public static class WebAppService
 
             if (manifest != null)
             {
+                WebAppShareTargetService.Unregister(manifest, errors);
                 DeleteShortcutFile(manifest.DesktopShortcutPath, errors);
                 DeleteShortcutFile(manifest.StartMenuShortcutPath, errors);
                 RemoveStartMenuFolderIfEmpty();
@@ -438,6 +459,8 @@ public static class WebAppService
 
             m.Name = name;
             CreateShortcutsFor(m, hadDesktop, hadMenu, errors);
+            if (m.RegisterInShareMenu)
+                WebAppShareTargetService.Register(m, errors);
             SaveManifest(m);
             RegisterUninstallEntry(m);
             LogService.Write(LogTag, $"Renamed {id} to '{name}'.");
@@ -520,7 +543,7 @@ public static class WebAppService
         }
     }
 
-    private static void SaveManifest(WebAppManifest m)
+    internal static void SaveManifest(WebAppManifest m)
     {
         string dir = GetAppDir(m.Id);
         Directory.CreateDirectory(dir);
@@ -682,7 +705,9 @@ public static class WebAppService
         return second;
     }
 
-    private static string ResolveExePath()
+    internal static void NotifyChanged() => RaiseChanged();
+
+    internal static string ResolveExePath()
     {
         string p = Environment.ProcessPath ?? "";
         if (!string.IsNullOrEmpty(p) &&

@@ -36,6 +36,7 @@ public partial class WebAppManagerWindow : Window
         TxtUrl.Text = manifest?.StartUrl ?? "";
         TxtName.Text = name;
         ChkOffer.IsChecked = SettingsService.Current.WebAppOfferOnLeave;
+        ChkShareTarget.IsChecked = manifest?.RegisterInShareMenu == true;
 
         _policy = WebAppAccessService.Load(_id);
         _extensions = WebAppAccessService.ListInstalledExtensions();
@@ -254,6 +255,23 @@ public partial class WebAppManagerWindow : Window
     {
         SettingsService.Current.WebAppOfferOnLeave = ChkOffer.IsChecked == true;
         SettingsService.Save();
+    }
+
+    private void ChkShareTarget_Click(object sender, RoutedEventArgs e)
+    {
+        bool enable = ChkShareTarget.IsChecked == true;
+        var errors = new List<string>();
+        bool ok = WebAppShareTargetService.SetEnabled(_id, enable, errors);
+        if (!ok)
+        {
+            ChkShareTarget.IsChecked = !enable;
+            TxtGeneralStatus.Text = "Share menu update failed: " + string.Join("; ", errors);
+            return;
+        }
+
+        TxtGeneralStatus.Text = enable
+            ? "Registered in Windows 11 Share menu."
+            : "Removed from Windows 11 Share menu.";
     }
 
     private void BtnRename_Click(object sender, RoutedEventArgs e)

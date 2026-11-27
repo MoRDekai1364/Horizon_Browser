@@ -1,4 +1,4 @@
-using System.IO;
+    using System.IO;
 
 
 
@@ -5987,7 +5987,6 @@ public partial class MainWindow : Window
                 double compactWidth = Math.Round(Math.Min(TAB_MIN_WIDTH, compactSlot), 1);
                 _compactBaseWidth = compactWidth;
                 _compactExpandedTab = null;
-                _compactHoverCandidate = null;
                 foreach (var ct in regularTabs)
                 {
                     ct.IsCompact = true;
@@ -12631,15 +12630,11 @@ return colors.length > 0 ? colors : null;
     private const double TAB_EXPAND_MAX_WIDTH = 190.0;
 
 
-    private DispatcherTimer? _compactHoverTimer;
-    private TabViewModel? _compactHoverCandidate;
     private TabViewModel? _compactExpandedTab;
     private double _compactBaseWidth;
 
     private void InitCompactTabHover()
     {
-        _compactHoverTimer = new DispatcherTimer();
-        _compactHoverTimer.Tick += CompactHoverTimer_Tick;
         ListTabs.PreviewMouseMove += ListTabs_CompactPreviewMouseMove;
         ListTabs.MouseLeave += (_, _) => ResetCompactHover(true);
     }
@@ -12653,40 +12648,13 @@ return colors.length > 0 ? colors : null;
 
     private void ListTabs_CompactPreviewMouseMove(object sender, MouseEventArgs e)
     {
-        if (!SettingsService.Current.CompactTabsEnabled || e.LeftButton == MouseButtonState.Pressed)
-        {
-            _compactHoverTimer?.Stop();
-            _compactHoverCandidate = null;
-            return;
-        }
+        if (!SettingsService.Current.CompactTabsEnabled || e.LeftButton == MouseButtonState.Pressed) return;
 
         var tab = GetCompactTabUnderCursor(e);
         if (tab == null) return;
 
-        if (ReferenceEquals(tab, _compactExpandedTab) || !tab.IsCompact)
-        {
-            _compactHoverTimer?.Stop();
-            _compactHoverCandidate = null;
-            return;
-        }
+        if (ReferenceEquals(tab, _compactExpandedTab) || !tab.IsCompact) return;
 
-        if (ReferenceEquals(tab, _compactHoverCandidate)) return;
-
-        _compactHoverCandidate = tab;
-        _compactHoverTimer?.Stop();
-        if (_compactHoverTimer != null)
-        {
-            _compactHoverTimer.Interval = TimeSpan.FromMilliseconds(Math.Clamp(SettingsService.Current.CompactTabHoverDelayMs, 0, 1000));
-            _compactHoverTimer.Start();
-        }
-    }
-
-    private void CompactHoverTimer_Tick(object? sender, EventArgs e)
-    {
-        _compactHoverTimer?.Stop();
-        var tab = _compactHoverCandidate;
-        _compactHoverCandidate = null;
-        if (tab == null || !tab.IsCompact) return;
         ApplyCompactExpansion(tab);
     }
 
@@ -12720,8 +12688,6 @@ return colors.length > 0 ? colors : null;
 
     private void ResetCompactHover(bool restore)
     {
-        _compactHoverTimer?.Stop();
-        _compactHoverCandidate = null;
         var expanded = _compactExpandedTab;
         _compactExpandedTab = null;
 
@@ -26746,30 +26712,30 @@ return colors.length > 0 ? colors : null;
 
 
             var s = SettingsService.Current;
+            string suggestedName = string.IsNullOrWhiteSpace(title)
+                ? (Uri.TryCreate(url, UriKind.Absolute, out var u) ? u.Host : "Web App")
+                : title.Trim();
+            if (suggestedName.Length > 40) suggestedName = suggestedName.Substring(0, 40).Trim();
 
+            var dlg = new Views.WebAppCreateDialog(
+                suggestedName,
+                url,
+                s.WebAppShortcutDesktop,
+                s.WebAppShortcutStartMenu)
+            {
+                Owner = this
+            };
 
+            if (dlg.ShowDialog() != true) return;
 
             var r = await WebAppService.InstallAsync(
-
-
-
                 url,
-
-
-
                 title,
-
-
-
                 () => WebAppService.FetchHighResIconFromPageAsync(core, new Uri(url)),
-
-
-
-                s.WebAppShortcutDesktop,
-
-
-
-                s.WebAppShortcutStartMenu);
+                dlg.CreateDesktopShortcut,
+                dlg.CreateStartMenuShortcut,
+                dlg.RegisterInShareMenu,
+                dlg.AppName);
 
 
 
@@ -26817,11 +26783,9 @@ return colors.length > 0 ? colors : null;
 
 
 
-            sb.AppendLine("Desktop shortcut: " + (!r.DesktopRequested ? "off in Settings" : r.DesktopOk ? "created" : "failed"));
-
-
-
-            sb.AppendLine("Start Menu shortcut: " + (!r.StartMenuRequested ? "off in Settings" : r.StartMenuOk ? "created" : "failed"));
+            sb.AppendLine("Desktop shortcut: " + (!r.DesktopRequested ? "off" : r.DesktopOk ? "created" : "failed"));
+            sb.AppendLine("Start Menu shortcut: " + (!r.StartMenuRequested ? "off" : r.StartMenuOk ? "created" : "failed"));
+            sb.AppendLine("Windows 11 Share menu: " + (!r.ShareMenuRequested ? "off" : r.ShareMenuOk ? "registered" : "failed"));
 
 
 

@@ -138,6 +138,9 @@
                         <CheckBox x:Name="ChkOffer" Margin="0,6,0,0" Click="ChkOffer_Click"
                                   Content="Ask what to do when a link leaves a Web App's site (all Web Apps)"/>
 
+                        <CheckBox x:Name="ChkShareTarget" Margin="0,8,0,0" Click="ChkShareTarget_Click"
+                                  Content="Show in Windows 11 Share menu"/>
+
                         <TextBlock x:Name="TxtGeneralStatus" FontSize="11" Margin="0,8,0,0" TextWrapping="Wrap"
                                    Foreground="{DynamicResource Brush_MutedText}"/>
 

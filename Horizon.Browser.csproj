@@ -74,6 +74,7 @@
   <Target Name="BuildAndCopyNativeTools" AfterTargets="Build">
     <MSBuild Projects="Tools\Horizon.Updater\Horizon.Updater.csproj" Targets="Restore;Build" Properties="Configuration=$(Configuration);Platform=x64;OutDir=$(TargetDir)Tools\" RemoveProperties="RuntimeIdentifier;SelfContained" Condition="Exists('Tools\Horizon.Updater\Horizon.Updater.csproj')" ContinueOnError="WarnAndContinue" />
     <MSBuild Projects="Tools\Horizon.SessionImporter\Horizon.SessionImporter.csproj" Targets="Restore;Build" Properties="Configuration=$(Configuration);Platform=x64;OutDir=$(TargetDir)Tools\" RemoveProperties="RuntimeIdentifier;SelfContained" Condition="Exists('Tools\Horizon.SessionImporter\Horizon.SessionImporter.csproj')" ContinueOnError="WarnAndContinue" />
+    <MSBuild Projects="Tools\Horizon.WebAppShareTarget\Horizon.WebAppShareTarget.csproj" Targets="Restore;Build" Properties="Configuration=$(Configuration);Platform=x64;OutDir=$(TargetDir)Tools\" RemoveProperties="RuntimeIdentifier;SelfContained" Condition="Exists('Tools\Horizon.WebAppShareTarget\Horizon.WebAppShareTarget.csproj')" ContinueOnError="WarnAndContinue" />
     <ItemGroup>
       <_UpdaterBins Include="$(TargetDir)Tools\Horizon.Updater.*" />
     </ItemGroup>

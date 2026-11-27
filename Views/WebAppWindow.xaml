@@ -180,7 +180,7 @@
                Placement="Relative" PlacementTarget="{Binding ElementName=RootGrid}"
                HorizontalOffset="0" VerticalOffset="0" IsOpen="False">
             <Grid x:Name="BarRoot" Height="36" Opacity="0">
-                <Border CornerRadius="8,0,0,0" IsHitTestVisible="False">
+                <Border CornerRadius="8,8,0,0" IsHitTestVisible="False">
                     <Border.Background>
                         <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
                             <GradientStop Color="#F20b0b0b" Offset="0"/>
@@ -188,6 +188,14 @@
                         </LinearGradientBrush>
                     </Border.Background>
                 </Border>
+                <Grid x:Name="BarGlassBlur" IsHitTestVisible="False" ClipToBounds="True" Opacity="0">
+                    <Image x:Name="BarGlassImage" Stretch="Fill" Margin="-32">
+                        <Image.Effect>
+                            <BlurEffect Radius="32" KernelType="Gaussian" RenderingBias="Performance"/>
+                        </Image.Effect>
+                    </Image>
+                </Grid>
+                <Border x:Name="BarGlassTint" CornerRadius="8,8,0,0" Background="#8C0E0E0E" IsHitTestVisible="False"/>
                 <Rectangle x:Name="BarDragGrip" Fill="#01000000" Cursor="SizeAll"
                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                            Margin="0,0,186,0" MouseLeftButtonDown="BarDragGrip_MouseLeftButtonDown"/>
